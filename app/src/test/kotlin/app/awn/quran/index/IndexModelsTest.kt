@@ -93,12 +93,13 @@ class IndexModelsTest {
     }
 
     @Test
-    fun theStandInTableKnowsTheFirstQuarterOfEveryJuz() = runBlocking {
-        val quarters = JuzStartQuarterTable.quarters()
+    fun theQuarterTableHasEightQuartersInEveryJuz() = runBlocking {
+        val quarters = CoreQuarterTable.quarters()
 
-        assertEquals(30, quarters.size)
-        assertTrue(quarters.all { it.quarterOfJuz == 1 })
-        assertEquals(AyahRef(2, 142), quarters[1].firstAyah)
+        assertEquals(240, quarters.size)
+        assertTrue((1..30).all { juz -> quarters.count { it.juz == juz } == 8 })
+        assertEquals((1..8).toList(), quarters.filter { it.juz == 2 }.map { it.quarterOfJuz })
+        assertEquals(AyahRef(2, 142), quarters.first { it.juz == 2 }.firstAyah)
     }
 
     private val entries =

@@ -17,26 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.ui.components.AwnSwitch
-import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import kotlinx.coroutines.launch
-
-/**
- * The Reciting group of the old Settings list: the page below under its title. Kept so :app still
- * compiles; the Settings hub opens [ReciteSettingsPage] instead.
- */
-@Composable
-fun ReciteSettingsScreen(settings: ReciteSettings, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        Text(
-            text = stringResource(R.string.recite_settings_title),
-            style = AwnTypography.lead,
-            color = Awn.field.buttonFill,
-        )
-        ReciteSettingsPage(settings)
-    }
-}
 
 /**
  * The Recite and memorise page of the Settings hub: speed, hide words and hint. It draws no

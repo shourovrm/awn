@@ -72,15 +72,6 @@ fun ReadingSettingsPage(dependencies: ReadDependencies, modifier: Modifier = Mod
     }
 }
 
-/**
- * The old Reading group of the Settings list, kept so :app still compiles until the Settings hub
- * links to [ReadingSettingsPage]. Delete it with that change.
- */
-@Composable
-fun ReadSettingsScreen(dependencies: ReadDependencies, modifier: Modifier = Modifier) {
-    ReadingSettingsPage(dependencies, modifier)
-}
-
 @Composable
 private fun TranslationSettings(
     available: List<TranslationInfo>,
