@@ -72,6 +72,8 @@ awn-data/
 # Gradle and Android build outputs
 .gradle/
 build/
+# the build-logic package lives in a directory named build; keep it
+!buildSrc/src/**/build/
 .kotlin/
 local.properties
 captures/
