@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -20,8 +21,7 @@ import app.awn.quran.feature.learn.fsrs.FsrsRating
 
 /**
  * Cards due today, one ayah at a time. The user recites from memory, shows the text to check, then
- * rates the recital. Until the recite feature can judge a recital, the rating is the user's own:
- * Again or Good.
+ * grades the recital: Forgot, Hard, Good or Easy.
  */
 @Composable
 fun RevisionScreen(
@@ -93,16 +93,13 @@ private fun ColumnScope.RevisionCardContent(
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         if (state.isTextShown || card.text == null) {
-            AwnButton(
-                label = stringResource(R.string.revision_good),
-                onClick = { onRate(FsrsRating.Good) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            TextLink(
-                label = stringResource(R.string.revision_again),
-                onClick = { onRate(FsrsRating.Again) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            for (grade in gradeButtons) {
+                AwnButton(
+                    label = stringResource(grade.label),
+                    onClick = { onRate(grade.rating) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         } else {
             AwnButton(
                 label = stringResource(R.string.revision_show),
@@ -112,3 +109,14 @@ private fun ColumnScope.RevisionCardContent(
         }
     }
 }
+
+private class GradeButton(@StringRes val label: Int, val rating: FsrsRating)
+
+// Worst to best, top to bottom. "Forgot" is the learner's word for FSRS "Again".
+private val gradeButtons =
+    listOf(
+        GradeButton(R.string.revision_forgot, FsrsRating.Again),
+        GradeButton(R.string.revision_hard, FsrsRating.Hard),
+        GradeButton(R.string.revision_good, FsrsRating.Good),
+        GradeButton(R.string.revision_easy, FsrsRating.Easy),
+    )

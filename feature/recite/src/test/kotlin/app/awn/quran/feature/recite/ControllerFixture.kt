@@ -26,7 +26,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
 /**
  * A [ReciteController] on fake collaborators. Surah 1 has ayah 1 (two words) and ayah 2 (one word)
- * on page 1 and ayah 3 (one word) on page 2.
+ * on page 1, ayah 3 (one word) on page 2 and surah 2 ayah 1 (one word) on page 3.
  */
 // Each argument swaps one fake for a test that needs another behaviour.
 @Suppress("LongParameterList")
@@ -39,11 +39,16 @@ class ControllerFixture(
     private val fakeTrackers: FakeTrackerFactory? = FakeTrackerFactory(),
     reference: ReferencePhonemes? = null,
     trackerFactory: TrackerFactory? = null,
+    val dueAyahs: MutableList<AyahRef> = mutableListOf(),
 ) {
     val first = WordKey(1, 1, 1)
     val second = WordKey(1, 1, 2)
     val third = WordKey(1, 2, 1)
     val fourth = WordKey(1, 3, 1)
+    val fifth = WordKey(2, 1, 1)
+
+    val graded = mutableListOf<Pair<AyahRef, AyahGrade>>()
+    val opened = mutableListOf<AyahRef>()
 
     val audioPlayer = FakeAudioPlayer()
     val progress = FakeProgressEvents()
@@ -85,9 +90,15 @@ class ControllerFixture(
                         AyahRef(1, 1) to listOf(word(first, "بِسْمِ"), word(second, "ٱللَّهِ")),
                         AyahRef(1, 2) to listOf(word(third, "ٱلْحَمْدُ")),
                         AyahRef(1, 3) to listOf(word(fourth, "ٱلرَّحْمَٰنِ")),
+                        AyahRef(2, 1) to listOf(word(fifth, "الم")),
                     ),
                 pageByAyah =
-                    mutableMapOf(AyahRef(1, 1) to 1, AyahRef(1, 2) to 1, AyahRef(1, 3) to 2),
+                    mutableMapOf(
+                        AyahRef(1, 1) to 1,
+                        AyahRef(1, 2) to 1,
+                        AyahRef(1, 3) to 2,
+                        AyahRef(2, 1) to 3,
+                    ),
             )
         controller =
             ReciteController(
@@ -100,6 +111,9 @@ class ControllerFixture(
                 scope = CoroutineScope(dispatcher),
                 trackerFactory = trackerFactory ?: fakeTrackers ?: DefaultTrackerFactory,
                 recognitionDispatcher = dispatcher,
+                gradeSink = { ayah, grade -> graded += ayah to grade },
+                revisionQueue = { dueAyahs.toList() },
+                onOpenAyah = { opened += it },
             )
     }
 
@@ -123,6 +137,7 @@ class ControllerFixture(
                 (1 to 1) to listOf(reference(first), reference(second)),
                 (1 to 2) to listOf(reference(third)),
                 (1 to 3) to listOf(reference(fourth)),
+                (2 to 1) to listOf(reference(fifth)),
             ),
         )
 

@@ -35,6 +35,7 @@ dependencies {
     ksp(libs.androidx.roomCompiler)
     implementation(libs.androidx.datastorePreferences)
     implementation(libs.androidx.activityCompose)
+    implementation(libs.androidx.coreKtx)
 
     testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.androidx.roomTesting)

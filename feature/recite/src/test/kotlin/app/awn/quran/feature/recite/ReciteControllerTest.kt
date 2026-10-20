@@ -97,4 +97,153 @@ class ReciteControllerTest {
         fixture.finishPreparing()
         assertEquals(SpeechState.Ready, fixture.controller.speechState.value)
     }
+
+    @Test
+    fun reciteGoesOnIntoTheNextPageWithoutAReset() = runTest {
+        val fixture = ControllerFixture(folder.root, inputBlocks = 1)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(fixture.confirmed(0))
+
+        fixture.controller.session.start()
+
+        val session = fixture.controller.session
+        assertEquals(
+            listOf(fixture.first, fixture.second, fixture.third, fixture.fourth),
+            session.words.value.map { it.key },
+        )
+        assertEquals(1, fixture.tracker.appended.size)
+        assertEquals(WordState.Confirmed, session.wordStates.value[fixture.first])
+        assertEquals(WordState.Neutral, session.wordStates.value[fixture.fourth])
+    }
+
+    @Test
+    fun reciteCrossesIntoTheNextSurahAndReportsItsOwnAyah() = runTest {
+        val fixture = ControllerFixture(folder.root, inputBlocks = 3)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.controller.setHideWords(true)
+        withContext(Dispatchers.Default) {
+            withTimeout(5_000) { fixture.controller.session.hifzEnabled.first { it } }
+        }
+        fixture.script(fixture.confirmed(0))
+        fixture.script(fixture.confirmed(1), fixture.confirmed(2), fixture.confirmed(3))
+        fixture.script(fixture.confirmed(4))
+
+        fixture.controller.session.start()
+
+        val session = fixture.controller.session
+        assertEquals(fixture.fifth, session.words.value.last().key)
+        assertTrue(
+            "ayah 2:1 reported once, not mixed up with 1:1",
+            fixture.progress.hifzCompletions.contains(AyahRef(2, 1) to 0),
+        )
+        assertEquals(1, fixture.progress.hifzCompletions.count { it.first == AyahRef(1, 1) })
+    }
+
+    @Test
+    fun reciteStopsExtendingAtTheEndOfTheQuran() = runTest {
+        val fixture = ControllerFixture(folder.root, inputBlocks = 4)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        repeat(4) { fixture.script(fixture.confirmed(it)) }
+
+        fixture.controller.session.start()
+
+        // Page 4 holds no ayah in the fixture, so the third request finds nothing more.
+        assertEquals(5, fixture.controller.session.words.value.size)
+        assertEquals(2, fixture.tracker.appended.size)
+    }
+
+    // ---- Revision -----------------------------------------------------------------------
+
+    // The setting travels through the DataStore on another thread and back into the session.
+    private suspend fun ControllerFixture.awaitHidingWords() {
+        withContext(Dispatchers.Default) {
+            withTimeout(5_000) { controller.session.hifzEnabled.first { it } }
+        }
+    }
+
+    private suspend fun ControllerFixture.reviseAndReveal(ayah: AyahRef) {
+        controller.reviseAt(ayah)
+        controller.joinPendingWork()
+        awaitHidingWords()
+        controller.session.revealAyah()
+    }
+
+    @Test
+    fun reviseAtLoadsFromTheAyahWithWordsHiddenAndMarksRevision() = runTest {
+        val fixture = ControllerFixture(folder.root, dueAyahs = mutableListOf(AyahRef(1, 3)))
+
+        fixture.controller.reviseAt(AyahRef(1, 3))
+        fixture.controller.joinPendingWork()
+        fixture.awaitHidingWords()
+
+        assertTrue(fixture.controller.isActive.value)
+        assertTrue(fixture.controller.isRevising.value)
+        assertEquals(WordState.Hidden, fixture.controller.session.wordStates.value[fixture.fourth])
+        assertEquals(1, fixture.controller.revisionRemaining.value)
+    }
+
+    @Test
+    fun gradingMovesTheRevisionToTheNextDueAyah() = runTest {
+        val fixture =
+            ControllerFixture(
+                folder.root,
+                dueAyahs = mutableListOf(AyahRef(1, 1), AyahRef(1, 3)),
+            )
+        fixture.reviseAndReveal(AyahRef(1, 1))
+
+        fixture.controller.grade(AyahGrade.Good)
+        fixture.controller.joinPendingWork()
+
+        assertEquals(listOf(AyahRef(1, 1) to AyahGrade.Good), fixture.graded)
+        assertEquals(listOf(AyahRef(1, 3)), fixture.opened)
+        assertEquals(fixture.fourth, fixture.controller.session.words.value.first().key)
+        assertEquals(1, fixture.controller.revisionRemaining.value)
+        assertTrue(fixture.controller.isRevising.value)
+    }
+
+    @Test
+    fun gradingTheLastDueAyahEndsTheRevisionAndOpensNothing() = runTest {
+        val fixture = ControllerFixture(folder.root, dueAyahs = mutableListOf(AyahRef(1, 1)))
+        fixture.reviseAndReveal(AyahRef(1, 1))
+
+        fixture.controller.grade(AyahGrade.Easy)
+        fixture.controller.joinPendingWork()
+
+        assertFalse(fixture.controller.isRevising.value)
+        assertEquals(0, fixture.controller.revisionRemaining.value)
+        assertTrue(fixture.opened.isEmpty())
+        assertTrue(fixture.controller.isActive.value)
+    }
+
+    @Test
+    fun gradingOutsideRevisionOnlySendsTheGrade() = runTest {
+        val fixture = ControllerFixture(folder.root, dueAyahs = mutableListOf(AyahRef(1, 3)))
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.controller.setHideWords(true)
+        fixture.awaitHidingWords()
+        fixture.controller.session.revealAyah()
+
+        fixture.controller.grade(AyahGrade.Hard)
+        fixture.controller.joinPendingWork()
+
+        assertEquals(listOf(AyahRef(1, 1) to AyahGrade.Hard), fixture.graded)
+        assertTrue(fixture.opened.isEmpty())
+        assertFalse(fixture.controller.isRevising.value)
+    }
+
+    @Test
+    fun exitLeavesRevision() = runTest {
+        val fixture = ControllerFixture(folder.root, dueAyahs = mutableListOf(AyahRef(1, 1)))
+        fixture.controller.reviseAt(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+
+        fixture.controller.exit()
+        fixture.controller.joinPendingWork()
+
+        assertFalse(fixture.controller.isRevising.value)
+    }
 }

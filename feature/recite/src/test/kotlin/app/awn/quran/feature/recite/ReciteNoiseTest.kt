@@ -71,7 +71,8 @@ class ReciteNoiseTest {
         fixture.controller.session.start()
 
         val states = fixture.controller.session.wordStates.value
-        assertEquals(3, states.size)
+        // The three words of the page plus the word of the next page, appended once phonemes came.
+        assertEquals(4, states.size)
         assertTrue("states $states", states.values.all { it == WordState.Neutral })
     }
 

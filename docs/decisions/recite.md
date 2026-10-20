@@ -1,27 +1,30 @@
 # Recite
 
 ## Current state
-- Recite lives on the Quran screen. `ReciteController` (one per process, created in `AwnServices`) owns the `RecitationSession`, `SpeechPreparation` and `ReciteSettings`. API: `reciteFrom(AyahRef)` loads that ayah to the end of its page (script V2; a page with two surahs loads both), `exit()`, `prepareSpeech()`, `isActive`, `speechState`, `setSpeed`, `setHideWords`.
-- `ReciteBar(controller, onExit)` fills the `reciteBar` slot: status line, then icon buttons (all 48 dp, content descriptions): close, speed popup (five labelled steps, fastest on top), hide-words switch, hint (on while words are hidden), review (only after stopping), microphone (start/stop/allow/open settings). Leaving the composition calls `controller.exit()`; ON_STOP stops the microphone.
-- `rememberReciteWordStates(controller)` returns `Map<WordKey, WordState>` for the page: empty when not reciting, Hidden for unheard words in memorise mode, Wrong for skipped words. The hint letter shows in the bar status line, not on the page.
-- The session runs input, phoneme source and tracker on one daemon thread; the tracker is touched only under a lock. `load(List<AyahRef>)` or `load(ReciteRange)`, `unload()`, `stop()` keeps results, `start()` after a run clears them, `reset()` clears and returns to Idle.
-- `SpeechPreparation` copies the speech files, parses the 12.8 MB phoneme file and loads one `SherpaRecognizer` on a minimum-priority thread; `state` is Idle, Preparing, Ready or Failed (retry by `prepare()`). Later starts open a stream on the loaded recognizer instead of loading the model again.
-- Noise: the tracker judges nothing until the heard phonemes match the start of the text (see tracker.md), so stray phonemes from room sound colour no word.
-- Review sheet: one flat list of flagged words across the loaded ayahs, Listen (`AudioPlayer.playWord`, reciter from `ReciteSettings.reciterId`, default "husary"), Previous/Next, and the line "Experimental feedback on likely mistakes". It opens when nothing is flagged and then says "Nothing to review".
-- `ReciteSettingsPage(settings)` (speed slider, hide words, hint) is for the Settings hub; title string `recite_settings_title`. "Memorised after" lives in learn.
-- Old `ReciteScreen`, `ReciteRangePicker`, `ReciteWords` and `ReciteSettingsScreen` still compile for :app; remove them with the Recite route.
+- Recite lives on the Quran screen. `ReciteController` (one per process, created in `AwnServices`) owns the `RecitationSession`, `SpeechPreparation` and `ReciteSettings`. API: `reciteFrom(AyahRef)` loads that ayah to the end of its page (script V2), `reviseAt(AyahRef)`, `grade(AyahGrade)`, `exit()`, `prepareSpeech()`, `isActive`, `isRevising`, `revisionRemaining`, `speechState`, `setSpeed`, `setHideWords`. Optional constructor arguments: `gradeSink`, `revisionQueue` (`RevisionQueue.dueAyahs()`), `onOpenAyah`.
+- Reciting continues past the page: when fewer than 15 words are left to recite, the session asks the controller for the ayahs of the next page that has any (`ayahsOnPageAfter`) and appends them to the tracker (`Tracker.append`) without a reset, across page and surah boundaries. An empty answer (end of the Quran) stops asking. The session loop runs the read itself (no dispatcher switch), so tests stay synchronous.
+- `ReciteBar(controller, onExit)` fills the `reciteBar` slot. Row 1: close, speed popup, hide-words switch, hint, review (after stopping), microphone. Row 2, only while words are hidden: show next word, show ayah (silent self-testing, no microphone). Row 3, when an ayah is finished in hide-words mode: four grade buttons Easy, Good, Hard, Forgot, one tap each; the grade the recitation earned is filled (a 2 by 2 grid from font scale 1.3). Status line shows "Ayah N done. Pick a grade." or the revision count. Colours come from `ReciteBarColors.of(Awn.field)` (bar, text, main-button fill), so Awn, Light, Dark and Black all work; `ReciteBarLayoutTest` checks 360 dp at font scale 2.0 in every mode.
+- Grades: `HifzRules.suggestedGrade(missedWords)` is Good for 0, Hard for 1, Forgot for 2 or more; Easy is only ever chosen by the user. A recited ayah is sent to `ProgressEvents.hifzCompleted` as before (learn rates it the same way) and the prompt carries the suggestion; revealing any word of the ayah sends nothing automatically and the prompt has no suggestion. `RecitationSession.grade` calls `gradeSink(ayah, grade)`; :app maps it to `LearnProgress.gradeAyah`, which replaces the automatic rating.
+- Revision: `reviseAt(ayah)` reads the due ayahs from `RevisionQueue`, turns hide words on (also saved), loads from the ayah and sets `isRevising`. After each grade the run moves to the next due ayah after it (else the first before it): it calls `onOpenAyah(next)` and loads it, unless it is already loaded further on. When none is left `isRevising` turns false and recite mode stays.
+- `rememberReciteWordStates(controller)` returns `Map<WordKey, WordState>` for the page and now covers appended words too; revealed words are Neutral (shown, no colour), unheard words Hidden in hide-words mode. `rememberReciteCurrentAyah(controller)` returns the ayah of the word the user is on, for the reader to turn the page.
+- The session runs input, phoneme source and tracker on one daemon thread; the tracker is touched only under a lock. `load(List<AyahRef>)`, `unload()`, `stop()` keeps results, `start()` after a run clears them, `reset()` clears and returns to Idle. Ayah results are keyed by surah and ayah, since appended words can cross a surah.
+- `SpeechPreparation` copies the speech files, parses the phoneme file and loads one `SherpaRecognizer` on a minimum-priority thread; `state` is Idle, Preparing, Ready or Failed.
+- Review sheet: one flat list of flagged words, Listen, Previous/Next, and "Experimental feedback on likely mistakes".
+- `ReciteSettingsPage(settings)` is for the Settings hub. Old `ReciteScreen`, `ReciteRangePicker`, `ReciteWords` and `ReciteSettingsScreen` were removed with the Recite route.
 
 ## Open items
-- Phone check: time of `prepareSpeech()` (copy of 72 MB model, parse, model load) and heap with the model kept loaded; call `SpeechPreparation.release()` on low memory if needed.
-- Recite stops at the end of the page; extending to the next page needs a tracker that can append reference words without a reset.
+- Phone check: speech preparation time and heap with the model kept loaded; the page turning when recitation crosses a page (the reader must follow `rememberReciteCurrentAyah`); the reveal and grade icons and the bar height with three rows.
 - A rotation removes the bar and so stops reciting (`onDispose` calls `exit()`).
 - Any failure to build the phoneme source shows "Can't use the microphone"; a separate line would help.
-- Compose test needs `@Config(sdk = [34])`: Espresso fails on the newer SDK (InputManager.getInstance).
+- Revision does not start the microphone by itself (permission and intent); the user taps it once after each jump.
+- Compose tests need `@Config(sdk = [34])`: Espresso fails on the newer SDK (InputManager.getInstance).
 
 ## Gotchas
 - Copy gate flags any `label = "` in Kotlin; build labels outside the call.
 - Detekt ReturnCount and LongParameterList are suppressed with reasons where guards or collaborators are the point.
+- A `withContext` inside the session loop makes the unconfined test dispatcher return early: ten tests failed until the extension read ran inline.
 
 ## Tried / rejected
-- Text "Review" label under each ayah, then per-ayah icon button: replaced by one review button in the bar (the per-ayah button never existed for clean ayahs, so the sheet looked unopenable).
+- Text "Review" label under each ayah, then per-ayah icon button: replaced by one review button in the bar.
 - Voice-activity gate on the microphone: the model emitted 0 phonemes on 26 synthetic noises, so it would only risk cutting quiet recitation.
+- Grades committed only when the user taps (no automatic rating): a silent session would lose every ayah the user forgot to grade; the automatic rating is kept and replaced on a tap.

@@ -30,8 +30,10 @@
   <string name="revision_position">%2$s-এর মধ্যে %1$s</string>
   <string name="revision_prompt">মুখস্থ থেকে তিলাওয়াত করুন</string>
   <string name="revision_show">আয়াত দেখুন</string>
+  <string name="revision_forgot">ভুলে গেছি</string>
+  <string name="revision_hard">কঠিন</string>
   <string name="revision_good">ভালো</string>
-  <string name="revision_again">আবার</string>
+  <string name="revision_easy">সহজ</string>
   <string name="revision_empty">আজকের ঝালাই শেষ</string>
 
   <string name="progress_title">অগ্রগতি</string>
@@ -46,4 +48,15 @@
   </plurals>
   <string name="progress_next_due">পরের ঝালাই: %s</string>
   <string name="progress_next_none">কোনো ঝালাই ঠিক করা নেই</string>
+
+  <string name="reminder_channel">ঝালাইয়ের অনুস্মারক</string>
+  <plurals name="reminder_text">
+    <item quantity="one">%dটি আয়াত ঝালাই বাকি</item>
+    <item quantity="other">%dটি আয়াত ঝালাই বাকি</item>
+  </plurals>
+  <string name="reminder_setting">প্রতিদিনের অনুস্মারক</string>
+  <string name="reminder_time">অনুস্মারকের সময়</string>
+  <string name="reminder_permission">অনুস্মারক পেতে বিজ্ঞপ্তির অনুমতি দিন</string>
+  <string name="reminder_time_set">ঠিক করুন</string>
+  <string name="reminder_time_cancel">বাতিল</string>
 </resources>

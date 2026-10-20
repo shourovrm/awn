@@ -30,8 +30,10 @@
   <string name="revision_position">%1$s of %2$s</string>
   <string name="revision_prompt">Recite from memory</string>
   <string name="revision_show">Show ayah</string>
+  <string name="revision_forgot">Forgot</string>
+  <string name="revision_hard">Hard</string>
   <string name="revision_good">Good</string>
-  <string name="revision_again">Again</string>
+  <string name="revision_easy">Easy</string>
   <string name="revision_empty">All done</string>
 
   <string name="progress_title">Progress</string>
@@ -46,4 +48,15 @@
   </plurals>
   <string name="progress_next_due">Next revision: %s</string>
   <string name="progress_next_none">No revision planned</string>
+
+  <string name="reminder_channel">Revision reminders</string>
+  <plurals name="reminder_text">
+    <item quantity="one">%d ayah to revise</item>
+    <item quantity="other">%d ayahs to revise</item>
+  </plurals>
+  <string name="reminder_setting">Daily reminder</string>
+  <string name="reminder_time">Reminder time</string>
+  <string name="reminder_permission">Allow notifications to get the reminder</string>
+  <string name="reminder_time_set">Set</string>
+  <string name="reminder_time_cancel">Cancel</string>
 </resources>

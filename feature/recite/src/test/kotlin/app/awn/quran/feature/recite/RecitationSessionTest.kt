@@ -220,7 +220,7 @@ class RecitationSessionTest {
         fixture.script(fixture.confirmed(0), substitution)
         fixture.session.start()
 
-        val review = fixture.session.reviews.value.getValue(1).single()
+        val review = fixture.session.reviews.value.getValue(AyahRef(1, 1)).single()
 
         assertEquals(fixture.first, review.key)
         assertEquals(listOf(ReviewFinding.Pronunciation(substitution)), review.findings)
@@ -234,7 +234,7 @@ class RecitationSessionTest {
         fixture.script(fixture.confirmed(0), fixture.confirmed(1), TrackerEvent.Duration(check))
         fixture.session.start()
 
-        val review = fixture.session.reviews.value.getValue(1).single()
+        val review = fixture.session.reviews.value.getValue(AyahRef(1, 1)).single()
 
         assertEquals(fixture.second, review.key)
         assertEquals(listOf(ReviewFinding.Duration(check)), review.findings)
@@ -251,5 +251,133 @@ class RecitationSessionTest {
 
         assertEquals(fixture.third, fixture.session.currentWord.value)
         assertEquals(listOf(AyahRef(1, 1) to 1), fixture.progress.hifzCompletions)
+    }
+
+    // ---- Reveal and grade ---------------------------------------------------------------
+
+    @Test
+    fun revealNextWordShowsItAndMovesToTheFollowingWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+
+        fixture.session.revealNextWord()
+
+        val states = fixture.session.wordStates.value
+        assertEquals(WordState.Neutral, states[fixture.first])
+        assertEquals(WordState.Hidden, states[fixture.second])
+        assertEquals(fixture.second, fixture.session.currentWord.value)
+    }
+
+    @Test
+    fun revealNextWordDoesNothingWhileWordsAreShown() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+
+        fixture.session.revealNextWord()
+
+        assertEquals(fixture.first, fixture.session.currentWord.value)
+        assertNull(fixture.session.gradePrompt.value)
+    }
+
+    @Test
+    fun revealAyahShowsEveryWordOfTheCurrentAyahOnly() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+
+        fixture.session.revealAyah()
+
+        val states = fixture.session.wordStates.value
+        assertEquals(WordState.Neutral, states[fixture.first])
+        assertEquals(WordState.Neutral, states[fixture.second])
+        assertEquals(WordState.Hidden, states[fixture.third])
+        assertEquals(fixture.third, fixture.session.currentWord.value)
+    }
+
+    @Test
+    fun aRevealedAyahAsksForAGradeWithoutSuggestingOneOrCountingAsRecited() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+
+        fixture.session.revealAyah()
+
+        assertEquals(
+            GradePrompt(AyahRef(1, 1), suggested = null),
+            fixture.session.gradePrompt.value,
+        )
+        assertTrue(fixture.progress.hifzCompletions.isEmpty())
+    }
+
+    @Test
+    fun anAyahRecitedCleanSuggestsGood() = runTest {
+        val fixture = SessionFixture(inputBlocks = 2)
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.script(fixture.confirmed(0))
+        fixture.script(fixture.confirmed(1))
+        fixture.session.start()
+
+        assertEquals(
+            GradePrompt(AyahRef(1, 1), suggested = AyahGrade.Good),
+            fixture.session.gradePrompt.value,
+        )
+        assertEquals(listOf(AyahRef(1, 1) to 0), fixture.progress.hifzCompletions)
+    }
+
+    @Test
+    fun oneSkippedWordSuggestsHardAndTwoSuggestForgot() = runTest {
+        val oneSkip = SessionFixture(inputBlocks = 2)
+        oneSkip.session.load(oneSkip.range)
+        oneSkip.session.setHifzEnabled(true)
+        oneSkip.script(TrackerEvent.Skipped(0))
+        oneSkip.script(oneSkip.confirmed(1))
+        oneSkip.session.start()
+        assertEquals(AyahGrade.Hard, oneSkip.session.gradePrompt.value?.suggested)
+
+        val twoSkips = SessionFixture(inputBlocks = 2)
+        twoSkips.session.load(twoSkips.range)
+        twoSkips.session.setHifzEnabled(true)
+        twoSkips.script(TrackerEvent.Skipped(0))
+        twoSkips.script(TrackerEvent.Skipped(1))
+        twoSkips.session.start()
+        assertEquals(AyahGrade.Forgot, twoSkips.session.gradePrompt.value?.suggested)
+    }
+
+    @Test
+    fun aWordRevealedBeforeReciteMeansNoAutomaticReportAndNoSuggestion() = runTest {
+        val fixture = SessionFixture(inputBlocks = 1)
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.session.revealNextWord()
+        fixture.script(fixture.confirmed(1))
+        fixture.session.start()
+
+        assertTrue(fixture.progress.hifzCompletions.isEmpty())
+        assertEquals(GradePrompt(AyahRef(1, 1), null), fixture.session.gradePrompt.value)
+    }
+
+    @Test
+    fun gradingSendsTheGradeAndClearsThePrompt() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.session.revealAyah()
+
+        val graded = fixture.session.grade(AyahGrade.Hard)
+
+        assertEquals(AyahRef(1, 1), graded)
+        assertEquals(listOf(AyahRef(1, 1) to AyahGrade.Hard), fixture.graded)
+        assertNull(fixture.session.gradePrompt.value)
+    }
+
+    @Test
+    fun gradingWithoutAPromptDoesNothing() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+
+        assertNull(fixture.session.grade(AyahGrade.Good))
+        assertTrue(fixture.graded.isEmpty())
     }
 }

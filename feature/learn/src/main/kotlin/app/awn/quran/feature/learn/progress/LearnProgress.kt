@@ -45,6 +45,8 @@ data class ProgressSnapshot(
  * Records learning events in [LearnDatabase], schedules ayah revision with FSRS and derives the
  * progress figures. :feature:read and :feature:recite receive this class as [ProgressEvents].
  */
+// Each function is one entry point that a screen, the recite feature or the reminder calls.
+@Suppress("TooManyFunctions")
 class LearnProgress(
     private val database: LearnDatabase,
     private val settings: LearnSettings,
@@ -54,6 +56,11 @@ class LearnProgress(
 
     private val dao = database.dao()
 
+    // The card as it was before the recitation rated it, so a grade from the user can replace it.
+    private class AutomaticRating(val cardBefore: CardEntity?, val at: Long)
+
+    private val automaticRatings = mutableMapOf<AyahRef, AutomaticRating>()
+
     override suspend fun pageOpened(page: Int) {
         record(EventKind.PAGE_OPENED, ayah = null, page = page)
     }
@@ -62,15 +69,58 @@ class LearnProgress(
         record(EventKind.AYAH_GREEN, ayah = ayah, page = null)
     }
 
-    /** A completion without skips is rated Good for FSRS; one with skips is rated Again. */
+    /**
+     * Rates the completion for FSRS: no skips is Good, one skip Hard, two or more Again. The user
+     * can replace this rating with [gradeAyah] for a short while.
+     */
     override suspend fun hifzCompleted(ayah: AyahRef, skips: Int) {
         val isClean = skips == 0
         val kind = if (isClean) EventKind.HIFZ_CLEAN else EventKind.HIFZ_WITH_SKIPS
-        val rating = if (isClean) FsrsRating.Good else FsrsRating.Again
+        val rating =
+            when {
+                isClean -> FsrsRating.Good
+                skips == 1 -> FsrsRating.Hard
+                else -> FsrsRating.Again
+            }
         database.withTransaction {
             record(kind, ayah = ayah, page = null)
+            val previousCard = dao.findCard(ayah.surah, ayah.ayah)
+            reviewCard(ayah, rating)
+            automaticRatings[ayah] = AutomaticRating(previousCard, clock.now().toEpochMilli())
+        }
+    }
+
+    /**
+     * Rates [ayah] with the user's own grade. When the recitation rated the same ayah in the last
+     * [AUTOMATIC_RATING_WINDOW_MILLIS], that rating is undone first so one recitation counts as one
+     * review; otherwise this is a plain rating.
+     */
+    suspend fun gradeAyah(ayah: AyahRef, rating: FsrsRating) {
+        database.withTransaction {
+            val automatic = automaticRatings.remove(ayah)
+            val isRecent =
+                automatic != null &&
+                    clock.now().toEpochMilli() - automatic.at <= AUTOMATIC_RATING_WINDOW_MILLIS
+            if (automatic != null && isRecent) {
+                val previousCard = automatic.cardBefore
+                if (previousCard == null) {
+                    dao.deleteCard(ayah.surah, ayah.ayah)
+                } else {
+                    dao.upsertCard(previousCard)
+                }
+            }
+            record(EventKind.REVISION_RATED, ayah = ayah, page = null)
             reviewCard(ayah, rating)
         }
+    }
+
+    /** Ayahs due today or earlier, in reading order. */
+    suspend fun dueAyahs(): List<AyahRef> {
+        val zone = clock.zone()
+        val today = clock.now().atZone(zone).toLocalDate()
+        return ProgressCalculator.dueToday(dao.observeCards().first(), today, zone)
+            .map { AyahRef(it.surah, it.ayah) }
+            .sortedWith(compareBy({ it.surah }, { it.ayah }))
     }
 
     /**
@@ -172,3 +222,5 @@ private fun CardEntity.toFsrsCard(): FsrsCard =
         dueMillis = due,
         lastReviewMillis = lastReview,
     )
+
+private const val AUTOMATIC_RATING_WINDOW_MILLIS = 10 * 60 * 1000L

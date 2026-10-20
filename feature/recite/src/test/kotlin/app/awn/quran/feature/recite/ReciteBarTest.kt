@@ -5,6 +5,9 @@ import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
@@ -151,5 +154,76 @@ class ReciteBarTest {
 
         assertTrue(fixture.controller.session.wordStates.value.isEmpty())
         assertFalse(fixture.controller.isActive.value)
+    }
+
+    // ---- Reveal and grade ---------------------------------------------------------------
+
+    private fun hideWords() {
+        composeRule.onNodeWithTag(RECITE_BAR_HIDE_TAG).performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) { stateOf(fixture.first) == WordState.Hidden }
+    }
+
+    @Test
+    fun theRevealButtonsAppearOnlyWhileWordsAreHidden() {
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_AYAH_TAG).assertDoesNotExist()
+
+        hideWords()
+
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_AYAH_TAG).assertIsDisplayed()
+    }
+
+    @Test
+    fun showNextWordRevealsOneWordWithoutTheMicrophone() {
+        hideWords()
+
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG).performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(WordState.Neutral, stateOf(fixture.first))
+        assertEquals(WordState.Hidden, stateOf(fixture.second))
+        assertEquals(RecitationPhase.Idle, fixture.controller.session.phase.value)
+    }
+
+    @Test
+    fun showAyahRevealsItAndOffersTheFourGrades() {
+        hideWords()
+        composeRule.onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "easy").assertDoesNotExist()
+
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_AYAH_TAG).performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(WordState.Neutral, stateOf(fixture.second))
+        for (grade in listOf("easy", "good", "hard", "forgot")) {
+            composeRule.onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + grade).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun oneTapOnAGradeSendsItAndHidesTheGradeButtons() {
+        hideWords()
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_AYAH_TAG).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "hard").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) { fixture.graded.isNotEmpty() }
+
+        assertEquals(listOf(AyahRef(1, 1) to AyahGrade.Hard), fixture.graded)
+        composeRule.onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "hard").assertDoesNotExist()
+    }
+
+    @Test
+    fun aRecitedAyahOffersGradesWithTheSuggestedOneMarked() {
+        hideWords()
+        recite(fixture.confirmed(0), fixture.confirmed(1))
+
+        composeRule.onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "good").assertIsDisplayed()
+        composeRule
+            .onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "good")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Selected, true))
+        composeRule
+            .onNodeWithTag(RECITE_BAR_GRADE_TAG_PREFIX + "easy")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Selected, false))
     }
 }

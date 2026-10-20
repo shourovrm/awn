@@ -25,6 +25,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+/** The ayahs due for revision today; :app backs it with :feature:learn. */
+fun interface RevisionQueue {
+
+    /** Returns the ayahs due now, in any order. */
+    suspend fun dueAyahs(): List<AyahRef>
+}
+
 /**
  * The one object :app creates for reciting on the Quran page. It owns the [RecitationSession], the
  * speech preparation and the settings, and offers the three things the Quran screen needs:
@@ -34,7 +41,9 @@ import kotlinx.coroutines.launch
  * Create it once per process (for example in `AwnServices`) with a [scope] that outlives the
  * screens, and call [prepareSpeech] at app start.
  */
-@Suppress("LongParameterList") // Each argument is a collaborator that :app supplies.
+// Each argument is a collaborator that :app supplies, and the entry points of recite mode (recite,
+// revise, grade, exit, speed, hide words) are the controller's whole purpose.
+@Suppress("LongParameterList", "TooManyFunctions")
 class ReciteController(
     private val quranText: QuranTextRepository,
     progressEvents: ProgressEvents,
@@ -46,6 +55,9 @@ class ReciteController(
     trackerFactory: TrackerFactory = DefaultTrackerFactory,
     recognitionDispatcher: CoroutineDispatcher = RecitationSession.newRecognitionDispatcher(),
     private val pageScript: ScriptId = ScriptId.V2,
+    gradeSink: suspend (AyahRef, AyahGrade) -> Unit = { _, _ -> },
+    private val revisionQueue: RevisionQueue = RevisionQueue { emptyList() },
+    private val onOpenAyah: (AyahRef) -> Unit = {},
 ) {
     val session: RecitationSession =
         RecitationSession(
@@ -57,13 +69,27 @@ class ReciteController(
             inputFactory = inputFactory,
             scope = scope,
             recognitionDispatcher = recognitionDispatcher,
+            nextAyahs = ::ayahsOnPageAfter,
+            gradeSink = gradeSink,
         )
 
     private val mutableActive = MutableStateFlow(false)
+    private val mutableRevising = MutableStateFlow(false)
+    private val mutableRevisionRemaining = MutableStateFlow(0)
+
+    // The ayahs still to revise in this run, in reading order; only touched on the controller's
+    // scope.
+    private var revisionQueueLeft: List<AyahRef> = emptyList()
     private var loadJob: Job? = null
 
     /** True from [reciteFrom] until [exit]; the Quran screen shows the recite bar meanwhile. */
     val isActive: StateFlow<Boolean> = mutableActive.asStateFlow()
+
+    /** True while the user works through the ayahs due for revision. */
+    val isRevising: StateFlow<Boolean> = mutableRevising.asStateFlow()
+
+    /** How many due ayahs of this revision run are still ungraded. */
+    val revisionRemaining: StateFlow<Int> = mutableRevisionRemaining.asStateFlow()
 
     /** Whether the speech files are ready; the bar waits on this. */
     val speechState: StateFlow<SpeechState> = speech.state
@@ -87,6 +113,11 @@ class ReciteController(
      * microphone. A page that holds the end of one surah and the start of the next loads both.
      */
     fun reciteFrom(ayah: AyahRef) {
+        mutableRevising.value = false
+        load(ayah)
+    }
+
+    private fun load(ayah: AyahRef) {
         mutableActive.value = true
         val previous = loadJob
         loadJob = scope.launch {
@@ -96,9 +127,71 @@ class ReciteController(
         }
     }
 
+    /**
+     * Starts a revision run at [ayah], the first ayah due: recite mode with the words hidden. The
+     * due ayahs are read now; each grade given with [grade] moves on to the next one, opening it
+     * through `onOpenAyah` when it is not already loaded.
+     */
+    fun reviseAt(ayah: AyahRef) {
+        mutableRevising.value = true
+        mutableActive.value = true
+        val previous = loadJob
+        loadJob = scope.launch {
+            previous?.cancelAndJoin()
+            revisionQueueLeft = revisionQueue.dueAyahs().sorted()
+            mutableRevisionRemaining.value = revisionQueueLeft.size
+            settings.setHifzEnabled(true)
+            session.setHifzEnabled(true)
+            speech.prepare()
+            session.load(ayahsFrom(ayah))
+        }
+    }
+
+    /**
+     * Grades the ayah that was just finished. During revision the run then moves to the next due
+     * ayah after it (or the first one before it), and ends when none is left.
+     */
+    fun grade(grade: AyahGrade) {
+        scope.launch {
+            val graded = session.grade(grade) ?: return@launch
+            if (mutableRevising.value) continueRevisionAfter(graded)
+        }
+    }
+
+    private fun continueRevisionAfter(graded: AyahRef) {
+        revisionQueueLeft = revisionQueueLeft - graded
+        mutableRevisionRemaining.value = revisionQueueLeft.size
+        val next = revisionQueueLeft.firstOrNull { it > graded } ?: revisionQueueLeft.firstOrNull()
+        if (next == null) {
+            mutableRevising.value = false
+            return
+        }
+        // An ayah later on the loaded stretch needs no new load: the user is already on the way.
+        val alreadyLoaded =
+            next > graded &&
+                session.words.value.any { it.key.surah == next.surah && it.key.ayah == next.ayah }
+        if (alreadyLoaded) return
+        onOpenAyah(next)
+        load(next)
+    }
+
     /** Waits until the last [reciteFrom] or [exit] has finished; for tests. */
     internal suspend fun joinPendingWork() {
         loadJob?.join()
+    }
+
+    // The ayahs after [last] on the first following page that has any. A long ayah can fill a whole
+    // page, so the page right after the one of [last] may hold nothing new. An empty list means the
+    // Quran has ended.
+    private suspend fun ayahsOnPageAfter(last: AyahRef): List<AyahRef> {
+        val lastPage = quranText.pageCount(pageScript)
+        var page = quranText.pageOf(last, pageScript) + 1
+        while (page <= lastPage) {
+            val following = quranText.ayahsOnPage(page, pageScript).filter { it > last }
+            if (following.isNotEmpty()) return following
+            page++
+        }
+        return emptyList()
     }
 
     private suspend fun ayahsFrom(ayah: AyahRef): List<AyahRef> {
@@ -109,6 +202,7 @@ class ReciteController(
     /** Stops the microphone, forgets the loaded words and leaves recite mode. */
     fun exit() {
         mutableActive.value = false
+        mutableRevising.value = false
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
@@ -128,6 +222,16 @@ class ReciteController(
     fun setHideWords(hide: Boolean) {
         scope.launch { settings.setHifzEnabled(hide) }
     }
+}
+
+/**
+ * The ayah of the word the user is on while reciting, null when not reciting. The Quran screen
+ * turns to the page of this ayah, so a recitation that goes past the end of the page is followed.
+ */
+@Composable
+fun rememberReciteCurrentAyah(controller: ReciteController): AyahRef? {
+    val word by controller.session.currentWord.collectAsState()
+    return word?.let { AyahRef(it.surah, it.ayah) }
 }
 
 /** The real tracker, used when the caller does not pass a factory. */

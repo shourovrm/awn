@@ -32,4 +32,19 @@ class HifzRulesTest {
     fun firstLetterOfTextWithoutLettersIsNull() {
         assertNull(HifzRules.firstLetter("ۖ"))
     }
+
+    @Test
+    fun aRevealedWordIsShownWithoutAColour() {
+        assertEquals(WordState.Neutral, HifzRules.displayState(WordState.Neutral, true, true))
+        assertEquals(WordState.Neutral, HifzRules.displayState(WordState.Tentative, true, true))
+        assertEquals(WordState.Confirmed, HifzRules.displayState(WordState.Confirmed, true, true))
+    }
+
+    @Test
+    fun suggestedGradeFollowsTheNumberOfMissedWords() {
+        assertEquals(AyahGrade.Good, HifzRules.suggestedGrade(missedWords = 0))
+        assertEquals(AyahGrade.Hard, HifzRules.suggestedGrade(missedWords = 1))
+        assertEquals(AyahGrade.Forgot, HifzRules.suggestedGrade(missedWords = 2))
+        assertEquals(AyahGrade.Forgot, HifzRules.suggestedGrade(missedWords = 9))
+    }
 }

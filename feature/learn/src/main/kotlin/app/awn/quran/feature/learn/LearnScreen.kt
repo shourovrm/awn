@@ -2,9 +2,12 @@ package app.awn.quran.feature.learn
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,18 +46,18 @@ fun LearnScreen(
                     endLinkLabel = stringResource(R.string.learn_progress_link),
                     onEndLinkClick = onProgressClick,
                 )
-                Row(Modifier.fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                     FigureTile(
                         field = AwnField.Green,
                         figure = state.streakDays,
                         caption = stringResource(R.string.learn_streak_caption),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                     FigureTile(
                         field = AwnField.Night,
                         figure = state.pagesThisWeek,
                         caption = stringResource(R.string.learn_pages_caption),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
                 Column(

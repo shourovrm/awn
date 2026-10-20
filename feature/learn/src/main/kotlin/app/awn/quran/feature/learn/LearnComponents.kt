@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -21,14 +21,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnIconButton
+import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.LocalColourMode
 import app.awn.quran.core.ui.theme.awnFieldColors
 import java.text.NumberFormat
+
+// Three 64 dp steps keep a tile roughly square at 360 dp and let it grow with large text.
+private const val TILE_MINIMUM_HEIGHT_STEPS = 3
 
 /** Formats a count with the digits of the user's language. */
 @Composable
@@ -54,14 +59,24 @@ internal fun LearnBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (startLinkLabel != null) {
-            AwnIconButton(
-                icon = UiR.drawable.ic_ui_arrow_back,
-                contentDescription = startLinkLabel,
-                onClick = onStartLinkClick,
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (startLinkLabel != null) {
+                AwnIconButton(
+                    icon = UiR.drawable.ic_ui_arrow_back,
+                    contentDescription = startLinkLabel,
+                    onClick = onStartLinkClick,
+                )
+            }
+            Text(
+                text = title,
+                style = AwnTypography.bodyStrong,
+                color = Awn.field.content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-        } else {
-            Text(text = title, style = AwnTypography.body)
         }
         if (endLinkLabel != null) {
             TextLink(label = endLinkLabel, onClick = onEndLinkClick)
@@ -79,7 +94,7 @@ internal fun TextLink(label: String, onClick: () -> Unit, modifier: Modifier = M
                 .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, style = AwnTypography.bodyStrong)
+        Text(text = label, style = AwnTypography.bodyStrong, color = Awn.field.content)
     }
 }
 
@@ -95,7 +110,10 @@ internal fun FigureTile(
     val colors = awnFieldColors(field, LocalColourMode.current)
     Column(
         modifier =
-            modifier.aspectRatio(1f).background(colors.background).padding(AwnSpacing.medium),
+            modifier
+                .defaultMinSize(minHeight = AwnSpacing.giant * TILE_MINIMUM_HEIGHT_STEPS)
+                .background(colors.background)
+                .padding(AwnSpacing.medium),
     ) {
         Text(text = formatCount(figure), style = AwnTypography.poster, color = colors.content)
         Text(

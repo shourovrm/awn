@@ -30,14 +30,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import app.awn.quran.core.ui.theme.AwnColors
+import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -52,6 +54,11 @@ const val RECITE_BAR_REVIEW_TAG = "recite-bar-review"
 const val RECITE_BAR_SPEED_TAG = "recite-bar-speed"
 const val RECITE_BAR_HIDE_TAG = "recite-bar-hide-words"
 const val RECITE_BAR_HINT_TAG = "recite-bar-hint"
+const val RECITE_BAR_REVEAL_WORD_TAG = "recite-bar-reveal-word"
+const val RECITE_BAR_REVEAL_AYAH_TAG = "recite-bar-reveal-ayah"
+
+/** A grade button's tag is this prefix plus the grade in lower case: easy, good, hard, forgot. */
+const val RECITE_BAR_GRADE_TAG_PREFIX = "recite-bar-grade-"
 
 private const val DISABLED_ALPHA = 0.38f
 
@@ -69,7 +76,9 @@ private val speedLabels =
 
 /**
  * The recite bar for the `reciteBar` slot of the Quran screen: one status line above icon buttons
- * for close, speed, hide words, hint, review (after stopping) and the microphone. [onExit] runs
+ * for close, speed, hide words, hint, review (after stopping) and the microphone. While words are
+ * hidden a second row offers "show next word" and "show ayah" for silent self-testing, and a
+ * finished ayah brings four grade buttons. The colours follow the active colour mode. [onExit] runs
  * when the close button is tapped. Leaving the composition, for example when Back removes the bar,
  * also stops reciting and clears the word states.
  */
@@ -83,6 +92,8 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val hideWords by session.hifzEnabled.collectAsState()
     val words by session.words.collectAsState()
     val reviews by session.reviews.collectAsState()
+    val gradePrompt by session.gradePrompt.collectAsState()
+    val colors = ReciteBarColors.of(Awn.field)
     val speechState by controller.speechState.collectAsState()
     val hintEnabled by controller.settings.hintEnabled.collectAsState(initial = true)
     var reviewOpen by remember { mutableStateOf(false) }
@@ -104,13 +115,13 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
             .padding(bottom = AwnSpacing.dockFloatGap)
             .fillMaxWidth()
             .clip(AwnShapes.control)
-            .background(AwnColors.green)
+            .background(colors.background)
             .padding(AwnSpacing.small),
     ) {
         Text(
-            text = barStatusText(session, phase, preparing, access),
+            text = barStatusText(controller, phase, preparing, access),
             style = AwnTypography.small,
-            color = AwnColors.paper,
+            color = colors.content,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier =
@@ -129,14 +140,16 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     onExit()
                 },
                 tag = RECITE_BAR_CLOSE_TAG,
+                colors = colors,
             )
-            SpeedButton(speed = speed, onSpeedChange = controller::setSpeed)
+            SpeedButton(speed = speed, onSpeedChange = controller::setSpeed, colors = colors)
             BarToggleButton(
                 icon = R.drawable.ic_recite_hide_words,
                 description = stringResource(R.string.recite_hide_words),
                 checked = hideWords,
                 onCheckedChange = controller::setHideWords,
                 tag = RECITE_BAR_HIDE_TAG,
+                colors = colors,
             )
             if (hintEnabled) {
                 BarIconButton(
@@ -145,6 +158,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     onClick = session::requestHint,
                     enabled = hideWords,
                     tag = RECITE_BAR_HINT_TAG,
+                    colors = colors,
                 )
             }
             if (phase == RecitationPhase.Stopped) {
@@ -153,12 +167,14 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     description = stringResource(R.string.recite_review),
                     onClick = { reviewOpen = true },
                     tag = RECITE_BAR_REVIEW_TAG,
+                    colors = colors,
                 )
             }
             MicrophoneButton(
                 listening = listening,
                 access = access,
                 enabled = canListen || listening,
+                colors = colors,
                 onClick = {
                     when {
                         listening -> session.stop()
@@ -168,6 +184,27 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     }
                 },
             )
+        }
+        if (hideWords) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                BarIconButton(
+                    icon = R.drawable.ic_recite_reveal_word,
+                    description = stringResource(R.string.recite_reveal_word),
+                    onClick = session::revealNextWord,
+                    tag = RECITE_BAR_REVEAL_WORD_TAG,
+                    colors = colors,
+                )
+                BarIconButton(
+                    icon = R.drawable.ic_recite_reveal_ayah,
+                    description = stringResource(R.string.recite_reveal_ayah),
+                    onClick = session::revealAyah,
+                    tag = RECITE_BAR_REVEAL_AYAH_TAG,
+                    colors = colors,
+                )
+            }
+        }
+        gradePrompt?.let { prompt ->
+            GradeButtons(suggested = prompt.suggested, onGrade = controller::grade, colors = colors)
         }
     }
 
@@ -188,15 +225,20 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
 
 @Composable
 private fun barStatusText(
-    session: RecitationSession,
+    controller: ReciteController,
     phase: RecitationPhase,
     preparing: Boolean,
     access: MicrophoneAccess,
 ): String {
+    val session = controller.session
     val status by session.status.collectAsState()
     val hint by session.hint.collectAsState()
+    val gradePrompt by session.gradePrompt.collectAsState()
+    val revising by controller.isRevising.collectAsState()
+    val revisionRemaining by controller.revisionRemaining.collectAsState()
     val currentStatus = status
     val currentHint = hint
+    val currentPrompt = gradePrompt
     val listening = phase == RecitationPhase.Listening
     return when {
         preparing -> stringResource(R.string.recite_status_preparing)
@@ -204,27 +246,29 @@ private fun barStatusText(
             stringResource(R.string.recite_status_allow_microphone)
         access == MicrophoneAccess.DeniedPermanently && !listening ->
             stringResource(R.string.recite_status_microphone_off)
+        currentPrompt != null && !listening ->
+            stringResource(R.string.recite_status_grade, currentPrompt.ayah.ayah)
         currentHint != null -> stringResource(R.string.recite_status_hint, currentHint.letter)
-        currentStatus is ReciteStatus.Skipped ->
-            stringResource(
-                R.string.recite_status_skipped,
-                currentStatus.ayah,
-                currentStatus.wordPosition,
-            )
-        currentStatus is ReciteStatus.Inserted ->
-            stringResource(
-                R.string.recite_status_inserted,
-                currentStatus.ayah,
-                currentStatus.wordPosition,
-            )
-        currentStatus is ReciteStatus.Anchored ->
-            stringResource(
-                R.string.recite_status_anchored,
-                currentStatus.ayah,
-                currentStatus.wordPosition,
+        currentStatus != null -> findingText(currentStatus)
+        revising && revisionRemaining > 0 && phase == RecitationPhase.Idle ->
+            pluralStringResource(
+                R.plurals.recite_status_revising,
+                revisionRemaining,
+                revisionRemaining,
             )
         else -> phaseText(phase, session)
     }
+}
+
+@Composable
+private fun findingText(status: ReciteStatus): String {
+    val template =
+        when (status) {
+            is ReciteStatus.Skipped -> R.string.recite_status_skipped
+            is ReciteStatus.Inserted -> R.string.recite_status_inserted
+            is ReciteStatus.Anchored -> R.string.recite_status_anchored
+        }
+    return stringResource(template, status.ayah, status.wordPosition)
 }
 
 @Composable
@@ -243,6 +287,7 @@ private fun MicrophoneButton(
     listening: Boolean,
     access: MicrophoneAccess,
     enabled: Boolean,
+    colors: ReciteBarColors,
     onClick: () -> Unit,
 ) {
     val description =
@@ -253,24 +298,24 @@ private fun MicrophoneButton(
             else -> stringResource(R.string.recite_microphone_open_settings)
         }
     val icon = if (listening) R.drawable.ic_recite_stop else R.drawable.ic_recite_mic
-    // The one primary action: ochre fill with ink, as buttons on the green field.
+    // The one primary action, in the fill the colour mode gives a button on the bar.
     Box(
         modifier =
             Modifier.requiredSize(AwnSpacing.touchTarget)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(AwnShapes.control)
-                .background(AwnColors.ochre)
+                .background(colors.primaryFill)
                 .semantics { contentDescription = description }
                 .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
                 .testTag(RECITE_BAR_MIC_TAG),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(icon), contentDescription = null, tint = AwnColors.ink)
+        Icon(painterResource(icon), contentDescription = null, tint = colors.onPrimary)
     }
 }
 
 @Composable
-private fun SpeedButton(speed: Float, onSpeedChange: (Float) -> Unit) {
+private fun SpeedButton(speed: Float, onSpeedChange: (Float) -> Unit, colors: ReciteBarColors) {
     var open by remember { mutableStateOf(false) }
     val nearestStep = speedSteps.indices.minBy { abs(speedSteps[it] - speed) }
     Box {
@@ -279,11 +324,12 @@ private fun SpeedButton(speed: Float, onSpeedChange: (Float) -> Unit) {
             description = stringResource(R.string.recite_speed),
             onClick = { open = true },
             tag = RECITE_BAR_SPEED_TAG,
+            colors = colors,
         )
         DropdownMenu(
             expanded = open,
             onDismissRequest = { open = false },
-            containerColor = AwnColors.paper,
+            containerColor = Awn.field.background,
         ) {
             // Fastest on top: the popup reads from faster down to slower as a vertical scale.
             for (step in speedSteps.indices.reversed()) {
@@ -302,6 +348,7 @@ private fun SpeedButton(speed: Float, onSpeedChange: (Float) -> Unit) {
 
 @Composable
 private fun SpeedChoice(label: String, selected: Boolean, onClick: () -> Unit) {
+    val field = Awn.field
     Row(
         Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget)
             .fillMaxWidth()
@@ -314,14 +361,14 @@ private fun SpeedChoice(label: String, selected: Boolean, onClick: () -> Unit) {
                 Icon(
                     painterResource(R.drawable.ic_recite_check),
                     contentDescription = null,
-                    tint = AwnColors.green,
+                    tint = field.content,
                 )
             }
         }
         Text(
             text = label,
             style = AwnTypography.body,
-            color = AwnColors.ink,
+            color = field.content,
             modifier = Modifier.padding(start = AwnSpacing.small),
         )
     }
@@ -333,6 +380,7 @@ private fun BarIconButton(
     description: String,
     onClick: () -> Unit,
     tag: String,
+    colors: ReciteBarColors,
     enabled: Boolean = true,
 ) {
     Box(
@@ -344,11 +392,11 @@ private fun BarIconButton(
                 .testTag(tag),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(icon), contentDescription = null, tint = AwnColors.paper)
+        Icon(painterResource(icon), contentDescription = null, tint = colors.content)
     }
 }
 
-/** A switch drawn as an icon: the icon turns ochre while it is on. */
+/** A switch drawn as an icon: the icon takes the accent colour while it is on. */
 @Composable
 private fun BarToggleButton(
     icon: Int,
@@ -356,8 +404,9 @@ private fun BarToggleButton(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     tag: String,
+    colors: ReciteBarColors,
 ) {
-    val tint: Color = if (checked) AwnColors.ochre else AwnColors.paper
+    val tint: Color = if (checked) colors.primaryFill else colors.content
     Box(
         modifier =
             Modifier.requiredSize(AwnSpacing.touchTarget)

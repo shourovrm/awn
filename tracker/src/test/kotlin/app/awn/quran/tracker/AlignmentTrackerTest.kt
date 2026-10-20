@@ -237,4 +237,84 @@ class AlignmentTrackerTest {
         assertFalse(events.isNotEmpty())
         assertEquals(WordState.Neutral, tracker.stateOfWord(0))
     }
+
+    // ---- Appending reference words ------------------------------------------------------
+
+    private fun AlignmentTracker.loadFirst(wordCount: Int) = load(reference.take(wordCount))
+
+    @Test
+    fun appendedWordsContinueWithoutForgettingEarlierResults() {
+        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        tracker.loadFirst(6)
+        tracker.hear(wordTexts.take(5).joinToString(""))
+
+        tracker.append(reference.drop(6).take(6))
+        tracker.hear(wordTexts.drop(5).take(5).joinToString(""))
+
+        for (index in 0 until 10) {
+            assertEquals("word $index", WordState.Confirmed, tracker.stateOfWord(index))
+        }
+        assertEquals(10, tracker.currentIndex())
+    }
+
+    @Test
+    fun theLastLoadedWordSettlesOnceTheUserReachesAppendedWords() {
+        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        tracker.loadFirst(6)
+        tracker.hear(wordTexts.take(6).joinToString(""))
+        assertEquals(6, tracker.currentIndex())
+
+        // The user recites on past the end of the loaded words and the app extends them.
+        tracker.append(reference.drop(6).take(3))
+        val events = tracker.hear(wordTexts.drop(6).take(3).joinToString(""))
+
+        assertTrue(events.none { it is TrackerEvent.Skipped })
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(5))
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(8))
+        assertEquals(9, tracker.currentIndex())
+    }
+
+    @Test
+    fun appendedWordsReportEventsWithIndexesAfterTheLoadedOnes() {
+        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        tracker.loadFirst(6)
+        tracker.hear(wordTexts.take(6).joinToString(""))
+        tracker.append(reference.drop(6).take(6))
+
+        // Word 9 is left out; the skip carries its index in the extended list.
+        val events =
+            tracker.hear(
+                wordTexts[6] + wordTexts[7] + wordTexts[8] + wordTexts[10] + wordTexts[11],
+            )
+
+        assertTrue(TrackerEvent.Skipped(9) in events)
+    }
+
+    @Test
+    fun appendingNothingChangesNothing() {
+        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        tracker.loadFirst(6)
+        tracker.hear(wordTexts.take(3).joinToString(""))
+
+        tracker.append(emptyList())
+
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(0))
+        assertEquals(3, tracker.currentIndex())
+    }
+
+    @Test
+    fun appendingSeveralTimesIsTheSameAsLoadingEverythingAtOnce() {
+        val grown = AlignmentTracker(TrackerConfig(0.5f))
+        grown.loadFirst(3)
+        grown.append(reference.subList(3, 9))
+        grown.append(reference.subList(9, reference.size))
+        val whole = newTracker()
+        val recital = wordTexts.take(12).joinToString("")
+
+        val grownEvents = grown.hear(recital)
+        val wholeEvents = whole.hear(recital)
+
+        assertEquals(wholeEvents, grownEvents)
+        assertEquals(whole.currentIndex(), grown.currentIndex())
+    }
 }

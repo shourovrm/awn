@@ -90,6 +90,72 @@ class LearnProgressTest {
     }
 
     @Test
+    fun oneSkipIsRatedHardAndTwoAreRatedAgain() = runBlocking {
+        val hardAyah = AyahRef(1, 3)
+        progress.hifzCompleted(ayah, skips = 0)
+        progress.hifzCompleted(hardAyah, skips = 0)
+        advanceDays(5)
+
+        progress.hifzCompleted(hardAyah, skips = 1)
+
+        val hardCard = database.dao().findCard(1, 3)!!
+        assertEquals(0, hardCard.lapses)
+        assertTrue(hardCard.reps == 2)
+    }
+
+    @Test
+    fun gradingAfterAnAutomaticRatingReplacesIt() = runBlocking {
+        progress.hifzCompleted(ayah, skips = 0)
+        advanceDays(5)
+        progress.hifzCompleted(ayah, skips = 0)
+        val reference = database.dao().findCard(1, 2)!!
+
+        progress.gradeAyah(ayah, FsrsRating.Again)
+
+        val regraded = database.dao().findCard(1, 2)!!
+        assertEquals(reference.reps, regraded.reps)
+        assertEquals(1, regraded.lapses)
+        assertTrue(regraded.stability < reference.stability)
+    }
+
+    @Test
+    fun gradingAFirstTimeAutomaticRatingLeavesOneReview() = runBlocking {
+        progress.hifzCompleted(ayah, skips = 0)
+
+        progress.gradeAyah(ayah, FsrsRating.Easy)
+
+        assertEquals(1, database.dao().findCard(1, 2)!!.reps)
+    }
+
+    @Test
+    fun gradingWithoutAnAutomaticRatingIsAPlainRating() = runBlocking {
+        progress.gradeAyah(ayah, FsrsRating.Hard)
+        progress.gradeAyah(ayah, FsrsRating.Good)
+
+        assertEquals(2, database.dao().findCard(1, 2)!!.reps)
+    }
+
+    @Test
+    fun anAutomaticRatingOlderThanTenMinutesIsNotReplaced() = runBlocking {
+        progress.hifzCompleted(ayah, skips = 0)
+        now = now.plusSeconds(11 * 60)
+
+        progress.gradeAyah(ayah, FsrsRating.Good)
+
+        assertEquals(2, database.dao().findCard(1, 2)!!.reps)
+    }
+
+    @Test
+    fun dueAyahsComeInReadingOrder() = runBlocking {
+        progress.rateCard(AyahRef(2, 5), FsrsRating.Good)
+        progress.rateCard(AyahRef(1, 7), FsrsRating.Good)
+        progress.rateCard(AyahRef(1, 3), FsrsRating.Good)
+        advanceDays(60)
+
+        assertEquals(listOf(AyahRef(1, 3), AyahRef(1, 7), AyahRef(2, 5)), progress.dueAyahs())
+    }
+
+    @Test
     fun threeCleanCompletionsOnThreeDaysMemoriseTheAyah() = runBlocking {
         repeat(3) {
             progress.hifzCompleted(ayah, skips = 0)

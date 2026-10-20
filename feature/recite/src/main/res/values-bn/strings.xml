@@ -53,4 +53,15 @@
   <string name="recite_status_microphone_off">আওনের জন্য মাইক্রোফোন বন্ধ</string>
   <string name="recite_review_empty">পর্যালোচনার কিছু নেই</string>
   <string name="recite_review_note">সম্ভাব্য ভুলের পরীক্ষামূলক মতামত</string>
+  <string name="recite_reveal_word">পরের শব্দ দেখান</string>
+  <string name="recite_reveal_ayah">আয়াত দেখান</string>
+  <string name="recite_grade_easy">সহজ</string>
+  <string name="recite_grade_good">ভালো</string>
+  <string name="recite_grade_hard">কঠিন</string>
+  <string name="recite_grade_forgot">ভুলে গেছি</string>
+  <string name="recite_status_grade">আয়াত শেষ: %1$d। একটি গ্রেড বাছুন।</string>
+  <plurals name="recite_status_revising">
+    <item quantity="one">%1$d টি আয়াত বাকি</item>
+    <item quantity="other">%1$d টি আয়াত বাকি</item>
+  </plurals>
 </resources>

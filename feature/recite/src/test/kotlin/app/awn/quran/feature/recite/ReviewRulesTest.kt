@@ -32,12 +32,12 @@ class ReviewRulesTest {
 
         assertEquals(
             mapOf(
-                1 to
+                AyahRef(1, 1) to
                     listOf(
                         WordReview(keys[0], listOf(ReviewFinding.WrongWord)),
                         WordReview(keys[1], listOf(ReviewFinding.Skipped)),
                     ),
-                2 to listOf(WordReview(keys[2], listOf(ReviewFinding.WrongWord))),
+                AyahRef(1, 2) to listOf(WordReview(keys[2], listOf(ReviewFinding.WrongWord))),
             ),
             reviews,
         )
@@ -64,7 +64,7 @@ class ReviewRulesTest {
                 ReviewFinding.Pronunciation(substitution),
                 ReviewFinding.Duration(duration),
             ),
-            reviews.getValue(1).single().findings,
+            reviews.getValue(AyahRef(1, 1)).single().findings,
         )
     }
 
@@ -97,7 +97,7 @@ class ReviewRulesTest {
 
         assertEquals(
             listOf(ReviewFinding.Duration(duration)),
-            reviews.getValue(1).single().findings,
+            reviews.getValue(AyahRef(1, 1)).single().findings,
         )
     }
 

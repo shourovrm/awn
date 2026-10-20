@@ -53,4 +53,15 @@
   <string name="recite_status_microphone_off">Microphone is off for Awn</string>
   <string name="recite_review_empty">Nothing to review</string>
   <string name="recite_review_note">Experimental feedback on likely mistakes</string>
+  <string name="recite_reveal_word">Show next word</string>
+  <string name="recite_reveal_ayah">Show ayah</string>
+  <string name="recite_grade_easy">Easy</string>
+  <string name="recite_grade_good">Good</string>
+  <string name="recite_grade_hard">Hard</string>
+  <string name="recite_grade_forgot">Forgot</string>
+  <string name="recite_status_grade">Done with ayah %1$d. Pick a grade.</string>
+  <plurals name="recite_status_revising">
+    <item quantity="one">%1$d ayah left to revise</item>
+    <item quantity="other">%1$d ayahs left to revise</item>
+  </plurals>
 </resources>

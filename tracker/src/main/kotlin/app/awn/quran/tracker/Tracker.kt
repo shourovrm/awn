@@ -95,6 +95,13 @@ interface Tracker {
     /** Sets the words to follow and puts the current position at [startIndex]; clears all state. */
     fun load(reference: List<ReferenceWord>, startIndex: Int = 0)
 
+    /**
+     * Adds [words] after the loaded ones without clearing anything: states, the position and the
+     * phonemes heard so far stay, and the new words get the next indexes. Recitation that goes on
+     * past the loaded words is followed into them.
+     */
+    fun append(words: List<ReferenceWord>)
+
     /** Feeds newly heard phonemes and returns the changes they caused, empty when none. */
     fun onPhonemes(events: List<PhonemeEvent>): List<TrackerEvent>
 

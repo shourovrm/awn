@@ -25,11 +25,10 @@ data class WordReview(val key: WordKey, val findings: List<ReviewFinding>)
 internal object ReviewRules {
 
     /**
-     * Lists the words to review, grouped by ayah number. A word is listed when it was skipped, is
-     * wrong, has a substitution, or has a duration finding that is not [DurationVerdict.Ok]; a
-     * skipped word is reported as skipped only, although the tracker also marks it wrong. Duration
-     * findings that are Ok are kept on a listed word so the sheet can show them next to the bad
-     * ones.
+     * Lists the words to review, grouped by ayah. A word is listed when it was skipped, is wrong,
+     * has a substitution, or has a duration finding that is not [DurationVerdict.Ok]; a skipped
+     * word is reported as skipped only, although the tracker also marks it wrong. Duration findings
+     * that are Ok are kept on a listed word so the sheet can show them next to the bad ones.
      */
     fun reviewsByAyah(
         keys: List<WordKey>,
@@ -37,7 +36,7 @@ internal object ReviewRules {
         skippedIndexes: Set<Int>,
         durations: Map<WordKey, List<DurationCheck>>,
         substitutions: Map<WordKey, List<TrackerEvent.Substitution>> = emptyMap(),
-    ): Map<Int, List<WordReview>> {
+    ): Map<AyahRef, List<WordReview>> {
         val reviews = mutableListOf<WordReview>()
         keys.forEachIndexed { index, key ->
             val findings = mutableListOf<ReviewFinding>()
@@ -54,7 +53,7 @@ internal object ReviewRules {
                 reviews += WordReview(key, findings)
             }
         }
-        return reviews.groupBy { it.key.ayah }
+        return reviews.groupBy { AyahRef(it.key.surah, it.key.ayah) }
     }
 }
 

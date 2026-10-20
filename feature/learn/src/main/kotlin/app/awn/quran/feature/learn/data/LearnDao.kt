@@ -21,6 +21,9 @@ interface LearnDao {
     @Query("SELECT * FROM card WHERE surah = :surah AND ayah = :ayah")
     suspend fun findCard(surah: Int, ayah: Int): CardEntity?
 
+    @Query("DELETE FROM card WHERE surah = :surah AND ayah = :ayah")
+    suspend fun deleteCard(surah: Int, ayah: Int)
+
     @Query("SELECT * FROM card ORDER BY due ASC, surah ASC, ayah ASC")
     fun observeCards(): Flow<List<CardEntity>>
 

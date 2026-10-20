@@ -79,7 +79,10 @@ data class ReciteHint(val key: WordKey, val letter: String)
  * tracker on a thread of its own, and the results appear in the state flows below.
  *
  * Call [load] first, then [start] and [stop] as often as needed; [reset] forgets what was heard.
- * The tracker is touched only while holding [lock], so [setSpeed] is safe from any thread.
+ * While the user recites, the loaded words grow: when fewer than [EXTEND_BELOW_WORDS] words are
+ * left, [nextAyahs] supplies the ayahs after the last loaded one (across a page or a surah) and
+ * they are appended to the tracker without a reset. An empty answer means the Quran has ended. The
+ * tracker is touched only while holding [lock], so [setSpeed] is safe from any thread.
  */
 // One screen's whole behaviour is behind these entry points, and every constructor argument is a
 // separate collaborator that :app supplies.
@@ -93,6 +96,8 @@ class RecitationSession(
     private val inputFactory: () -> TrackerInput,
     private val scope: CoroutineScope,
     private val recognitionDispatcher: CoroutineDispatcher = newRecognitionDispatcher(),
+    private val nextAyahs: suspend (after: AyahRef) -> List<AyahRef> = { emptyList() },
+    private val gradeSink: suspend (AyahRef, AyahGrade) -> Unit = { _, _ -> },
     initialSpeed: Float = DEFAULT_SPEED,
 ) {
     private val lock = Any()
@@ -106,7 +111,8 @@ class RecitationSession(
     private val mutableStatus = MutableStateFlow<ReciteStatus?>(null)
     private val mutableHint = MutableStateFlow<ReciteHint?>(null)
     private val mutableSkippedWords = MutableStateFlow<Set<WordKey>>(emptySet())
-    private val mutableReviews = MutableStateFlow<Map<Int, List<WordReview>>>(emptyMap())
+    private val mutableGradePrompt = MutableStateFlow<GradePrompt?>(null)
+    private val mutableReviews = MutableStateFlow<Map<AyahRef, List<WordReview>>>(emptyMap())
 
     val phase: StateFlow<RecitationPhase> = mutablePhase.asStateFlow()
     val speed: StateFlow<Float> = mutableSpeed.asStateFlow()
@@ -129,8 +135,11 @@ class RecitationSession(
      */
     val skippedWords: StateFlow<Set<WordKey>> = mutableSkippedWords.asStateFlow()
 
-    /** The skipped and wrong words of each ayah number that has any, in reading order. */
-    val reviews: StateFlow<Map<Int, List<WordReview>>> = mutableReviews.asStateFlow()
+    /** The ayah just finished in hide-words mode, waiting for [grade]; null when none waits. */
+    val gradePrompt: StateFlow<GradePrompt?> = mutableGradePrompt.asStateFlow()
+
+    /** The skipped and wrong words of each ayah that has any, in reading order. */
+    val reviews: StateFlow<Map<AyahRef, List<WordReview>>> = mutableReviews.asStateFlow()
 
     private var tracker: Tracker? = null
     private var wordKeys: List<WordKey> = emptyList()
@@ -141,6 +150,8 @@ class RecitationSession(
     private var skippedIndexes: MutableSet<Int> = mutableSetOf()
     private var greenAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var hifzAyahsReported: MutableSet<AyahRef> = mutableSetOf()
+    private var nothingToAppend = false
+    private var revealedIndexes: MutableSet<Int> = mutableSetOf()
 
     /** Why the last run ended in [RecitationPhase.Error], for diagnostics and tests. */
     @Volatile
@@ -189,6 +200,9 @@ class RecitationSession(
             skippedIndexes = mutableSetOf()
             greenAyahsReported = mutableSetOf()
             hifzAyahsReported = mutableSetOf()
+            nothingToAppend = false
+            revealedIndexes = mutableSetOf()
+            mutableGradePrompt.value = null
             mutableWords.value = displayWords
             mutableStatus.value = null
             mutableHint.value = null
@@ -260,6 +274,8 @@ class RecitationSession(
         tracker?.reset()
         trackerStates.fill(WordState.Neutral)
         skippedIndexes.clear()
+        revealedIndexes.clear()
+        mutableGradePrompt.value = null
         durationFindings = emptyMap()
         substitutionFindings = emptyMap()
         greenAyahsReported.clear()
@@ -298,6 +314,67 @@ class RecitationSession(
             mutableHint.value = ReciteHint(key, letter)
         }
     }
+
+    /**
+     * Shows the next hidden word without the microphone, for silent self-testing. A revealed word
+     * counts as help: the ayah is not reported as recited by itself and waits for a grade.
+     */
+    fun revealNextWord() {
+        val notifications =
+            synchronized(lock) {
+                val index = firstOpenIndex()
+                if (!mutableHifz.value || index == null) return
+                revealedIndexes += index
+                publishStates()
+                collectAyahNotifications(listOf(ayahOf(index)))
+            }
+        runNotifications(notifications)
+    }
+
+    /**
+     * Shows every hidden word of the ayah being recited, with the same rules as [revealNextWord].
+     */
+    fun revealAyah() {
+        val notifications =
+            synchronized(lock) {
+                val index = firstOpenIndex()
+                if (!mutableHifz.value || index == null) return
+                val ayah = ayahOf(index)
+                revealedIndexes += indexesOfAyah(ayah).filter { !isResolved(it) }
+                publishStates()
+                collectAyahNotifications(listOf(ayah))
+            }
+        runNotifications(notifications)
+    }
+
+    private fun runNotifications(notifications: List<suspend () -> Unit>) {
+        if (notifications.isEmpty()) return
+        scope.launch { notifications.forEach { notification -> notification() } }
+    }
+
+    /**
+     * Sends [grade] for the ayah waiting in [gradePrompt] to the revision schedule and clears the
+     * prompt. Returns the ayah that was graded, or null when none was waiting.
+     */
+    suspend fun grade(grade: AyahGrade): AyahRef? {
+        val prompt =
+            synchronized(lock) { mutableGradePrompt.value.also { mutableGradePrompt.value = null } }
+        if (prompt == null) return null
+        gradeSink(prompt.ayah, grade)
+        return prompt.ayah
+    }
+
+    /** Must be called with [lock] held. */
+    private fun firstOpenIndex(): Int? = trackerStates.indices.firstOrNull { !isResolved(it) }
+
+    /** Must be called with [lock] held. */
+    private fun ayahOf(index: Int) = AyahRef(wordKeys[index].surah, wordKeys[index].ayah)
+
+    /** Must be called with [lock] held. */
+    private fun indexesOfAyah(ayah: AyahRef): List<Int> =
+        wordKeys.indices.filter {
+            wordKeys[it].surah == ayah.surah && wordKeys[it].ayah == ayah.ayah
+        }
 
     private suspend fun stopAndWait() {
         stop()
@@ -349,9 +426,55 @@ class RecitationSession(
                 val events = activeTracker.onPhonemes(phonemes)
                 events.forEach(::apply)
                 publishStates()
-                collectAyahNotifications(events)
+                collectEventNotifications(events)
             }
         notifications.forEach { notification -> notification() }
+        extendWhenNearTheEnd()
+    }
+
+    // Reading the next ayahs happens off the lock, because it can touch the database; nothing else
+    // changes the loaded words meanwhile, since load and unload wait for this loop to end.
+    private suspend fun extendWhenNearTheEnd() {
+        val lastLoaded = synchronized(lock) { if (isNearTheEnd()) wordKeys.lastOrNull() else null }
+        if (lastLoaded == null) return
+        val following = nextAyahs(AyahRef(lastLoaded.surah, lastLoaded.ayah))
+        val loaded =
+            try {
+                readAyahs(following)
+            } catch (problem: IllegalStateException) {
+                lastFailure = problem
+                null
+            }
+        synchronized(lock) {
+            if (loaded == null || loaded.first.isEmpty()) {
+                nothingToAppend = true
+            } else {
+                appendLoaded(loaded.first, loaded.second)
+            }
+        }
+    }
+
+    /** Must be called with [lock] held. */
+    private fun isNearTheEnd(): Boolean {
+        if (nothingToAppend || tracker == null) return false
+        val firstOpenWord = trackerStates.indices.firstOrNull { !isResolved(it) }
+        val wordsLeft = if (firstOpenWord == null) 0 else trackerStates.size - firstOpenWord
+        return wordsLeft < EXTEND_BELOW_WORDS
+    }
+
+    /** Must be called with [lock] held. */
+    private fun appendLoaded(referenceWords: List<ReferenceWord>, displayWords: List<Word>) {
+        tracker?.append(referenceWords)
+        wordKeys =
+            wordKeys +
+                referenceWords.map {
+                    WordKey(it.key.surah, it.key.ayah, it.key.wordPosition)
+                }
+        wordTextByKey = wordTextByKey + displayWords.associate { it.key to it.textUthmani }
+        val oldStates = trackerStates
+        trackerStates = Array(wordKeys.size) { oldStates.getOrElse(it) { WordState.Neutral } }
+        mutableWords.value = mutableWords.value + displayWords
+        publishStates()
     }
 
     private fun apply(event: TrackerEvent) {
@@ -389,11 +512,11 @@ class RecitationSession(
         val hifz = mutableHifz.value
         val states = LinkedHashMap<WordKey, WordState>()
         wordKeys.forEachIndexed { index, key ->
-            states[key] = HifzRules.displayState(trackerStates[index], hifz)
+            states[key] =
+                HifzRules.displayState(trackerStates[index], hifz, index in revealedIndexes)
         }
         mutableWordStates.value = states
-        val currentIndex = trackerStates.indices.firstOrNull { !isResolved(it) }
-        val current = currentIndex?.let { wordKeys[it] }
+        val current = firstOpenIndex()?.let { wordKeys[it] }
         mutableCurrentWord.value = current
         val hintedKey = mutableHint.value?.key
         if (hintedKey != null && hintedKey != current) mutableHint.value = null
@@ -413,31 +536,46 @@ class RecitationSession(
     private fun isResolved(index: Int): Boolean =
         trackerStates[index] == WordState.Confirmed ||
             trackerStates[index] == WordState.Wrong ||
-            index in skippedIndexes
+            index in skippedIndexes ||
+            index in revealedIndexes
 
     /**
      * Finds the ayahs that just became complete. An ayah is green when every word is confirmed. In
      * hifz mode it also counts as recited once every word is confirmed or skipped, and then the
      * skips are reported. Must be called with [lock] held; the returned calls run outside it.
      */
-    private fun collectAyahNotifications(events: List<TrackerEvent>): List<suspend () -> Unit> {
-        val touchedAyahs = events.map { ayahOfIndex(it) }.distinct()
+    private fun collectEventNotifications(events: List<TrackerEvent>): List<suspend () -> Unit> =
+        collectAyahNotifications(events.map { ayahOfIndex(it) }.distinct())
+
+    // Must be called with [lock] held; [touchedAyahs] may just have finished.
+    private fun collectAyahNotifications(touchedAyahs: List<AyahRef>): List<suspend () -> Unit> {
         val notifications = mutableListOf<suspend () -> Unit>()
         for (ayah in touchedAyahs) {
-            val indexes = wordKeys.indices.filter { wordKeys[it].ayah == ayah.ayah }
+            val indexes = indexesOfAyah(ayah)
             val allConfirmed = indexes.all { trackerStates[it] == WordState.Confirmed }
             if (allConfirmed && greenAyahsReported.add(ayah)) {
                 notifications += { progressEvents.ayahTrackedGreen(ayah) }
             }
-            val skipCount = indexes.count {
-                trackerStates[it] == WordState.Wrong || it in skippedIndexes
-            }
             val allResolved = indexes.all(::isResolved)
             if (mutableHifz.value && allResolved && hifzAyahsReported.add(ayah)) {
-                notifications += { progressEvents.hifzCompleted(ayah, skipCount) }
+                notifications += finishHifzAyah(ayah, indexes)
             }
         }
         return notifications
+    }
+
+    // A revealed word means the user needed help, so the recitation alone cannot grade the ayah:
+    // the user is asked, and nothing is sent to the schedule until they answer.
+    private fun finishHifzAyah(ayah: AyahRef, indexes: List<Int>): List<suspend () -> Unit> {
+        if (indexes.any { it in revealedIndexes }) {
+            mutableGradePrompt.value = GradePrompt(ayah, suggested = null)
+            return emptyList()
+        }
+        val skipCount = indexes.count {
+            trackerStates[it] == WordState.Wrong || it in skippedIndexes
+        }
+        mutableGradePrompt.value = GradePrompt(ayah, HifzRules.suggestedGrade(skipCount))
+        return listOf { progressEvents.hifzCompleted(ayah, skipCount) }
     }
 
     private fun ayahOfIndex(event: TrackerEvent): AyahRef {
@@ -467,6 +605,9 @@ class RecitationSession(
 
     companion object {
         const val DEFAULT_SPEED = 0.5f
+
+        /** More words are loaded when fewer than this many are left to recite. */
+        const val EXTEND_BELOW_WORDS = 15
 
         /** One thread that does nothing but wait for audio and run the tracker. */
         fun newRecognitionDispatcher(): CoroutineDispatcher =

@@ -58,9 +58,17 @@ private val EMPTY_SNAPSHOT =
 /**
  * The Learn tab: owns the database and moves between Learn, Revision, Progress and the lessons.
  * [quranText] supplies ayah text and surah names; without it the screens show references only.
+ *
+ * When [onReviseAt] is set, "Revise" calls it with the first due ayah in reading order, and :app
+ * opens the Quran screen there in recite mode with words hidden; the Revision screen of this tab is
+ * then not used. Without it, revision runs inside this tab.
  */
 @Composable
-fun LearnScreen(modifier: Modifier = Modifier, quranText: QuranTextRepository? = null) {
+fun LearnScreen(
+    modifier: Modifier = Modifier,
+    quranText: QuranTextRepository? = null,
+    onReviseAt: ((AyahRef) -> Unit)? = null,
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val services = remember { LearnServices.get(context) }
@@ -103,7 +111,8 @@ fun LearnScreen(modifier: Modifier = Modifier, quranText: QuranTextRepository? =
                 quranText = quranText,
                 surahName = surahName,
             ),
-        rate = { ayah, rating -> scope.launch { services.progress.rateCard(ayah, rating) } },
+        rate = { ayah, rating -> scope.launch { services.progress.gradeAyah(ayah, rating) } },
+        onReviseAt = onReviseAt,
         modifier = modifier,
     )
 }
@@ -127,6 +136,7 @@ private fun LearnRoutes(
     onRouteChange: (LearnRoute) -> Unit,
     content: LearnRouteContent,
     rate: (AyahRef, FsrsRating) -> Unit,
+    onReviseAt: ((AyahRef) -> Unit)?,
     modifier: Modifier,
 ) {
     val summaries = LearnUiMapper.lessonSummaries(content.lessons, content.language)
@@ -141,7 +151,11 @@ private fun LearnRoutes(
                 onLessonClick = { onRouteChange(LearnRoute.OneLesson(it)) },
                 onAllLessonsClick = { onRouteChange(LearnRoute.Lessons) },
                 onProgressClick = { onRouteChange(LearnRoute.Progress) },
-                onReviseClick = { onRouteChange(LearnRoute.Revision) },
+                onReviseClick = {
+                    reviseOrOpenRevision(snapshot.dueToday, onReviseAt) {
+                        onRouteChange(LearnRoute.Revision)
+                    }
+                },
                 modifier = modifier,
             )
         }
@@ -181,6 +195,17 @@ private fun LearnRoutes(
                 modifier = modifier,
             )
     }
+}
+
+// Hands the first due ayah in reading order to :app when it handles revision, else opens the
+// Revision screen of this tab.
+private fun reviseOrOpenRevision(
+    dueToday: List<AyahRef>,
+    onReviseAt: ((AyahRef) -> Unit)?,
+    openRevision: () -> Unit,
+) {
+    val firstDue = dueToday.minOrNull()
+    if (onReviseAt != null && firstDue != null) onReviseAt(firstDue) else openRevision()
 }
 
 @Composable

@@ -30,6 +30,14 @@ class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
         states.clear()
     }
 
+    /** Every list given to [append], in order. */
+    val appended = mutableListOf<List<ReferenceWord>>()
+
+    override fun append(words: List<ReferenceWord>) {
+        appended += words
+        reference = reference + words
+    }
+
     override fun onPhonemes(events: List<PhonemeEvent>): List<TrackerEvent> {
         val batch = scriptedBatches.removeFirstOrNull().orEmpty()
         batch.filterIsInstance<TrackerEvent.WordChanged>().forEach { states[it.index] = it.state }

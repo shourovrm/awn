@@ -43,6 +43,7 @@ class SessionFixture(inputBlocks: Int = 1) {
     val range = ReciteRange(surah = 1, firstAyah = 1, lastAyah = 2)
 
     val progress = FakeProgressEvents()
+    val graded = mutableListOf<Pair<AyahRef, AyahGrade>>()
     val trackerFactory = FakeTrackerFactory()
     val tracker: FakeTracker
         get() = trackerFactory.created.last()
@@ -78,6 +79,7 @@ class SessionFixture(inputBlocks: Int = 1) {
                 inputFactory = { ScriptedInput(blocksPerStart) },
                 scope = CoroutineScope(dispatcher),
                 recognitionDispatcher = dispatcher,
+                gradeSink = { ayah, grade -> graded += ayah to grade },
             )
     }
 

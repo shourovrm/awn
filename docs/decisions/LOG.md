@@ -63,3 +63,8 @@
 2026-10-21 | Pack installs run in WorkManager with a wanted flag restarted at launch | a 137 MB font download died with the screen or the process
 2026-10-21 | Downloads stay in filesDir; update means recorded checksum differs from the manifest | phone cleaners emptied Quran for Android's external folder
 2026-10-21 | Reading settings and a Downloads page install, update and remove translations | no code installed translations, so they were never available
+2026-10-21 | Tracker.append adds reference words without a reset; recite loads the next page when under 15 words are left | recitation must continue across pages and surahs
+2026-10-21 | Recite bar: show next word and show ayah without the microphone, four one-tap grades (Easy, Good, Hard, Forgot) | memorisers self-test silently and grade for revision
+2026-10-21 | Automatic grade is Good for 0 missed words, Hard for 1, Forgot for 2 or more; Easy only by the user; a tap replaces it | recited and revealed ayahs feed FSRS alike
+2026-10-21 | Revision opens at the first due ayah in recite mode with words hidden, then moves to the next due ayah after each grade | revision leads to the page (onReviseAt, onOpenAyah)
+2026-10-21 | Recite bar colours come from Awn.field (ReciteBarColors); the main button is ochre where the button colour equals the bar | the bar follows Awn, Light, Dark and Black

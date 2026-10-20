@@ -61,8 +61,20 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
     override fun load(reference: List<ReferenceWord>, startIndex: Int) {
         this.reference = reference
         this.startIndex = startIndex
+        symbolIds.clear()
+        symbolsById.clear()
         buildReferenceTables()
         reset()
+    }
+
+    // The symbol numbers stay as they are, because the heard phonemes are stored as those numbers.
+    override fun append(words: List<ReferenceWord>) {
+        if (words.isEmpty()) return
+        val oldStates = states
+        reference = reference + words
+        buildReferenceTables()
+        states = Array(reference.size) { oldStates.getOrElse(it) { WordState.Neutral } }
+        settled = settled.copyOf(reference.size)
     }
 
     override fun reset() {
@@ -133,8 +145,6 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
     // ---- Reference tables ----------------------------------------------------------------
 
     private fun buildReferenceTables() {
-        symbolIds.clear()
-        symbolsById.clear()
         val positions = mutableListOf<IntArray>()
         val flattened = mutableListOf<Int>()
         wordStartOffsets = IntArray(reference.size + 1)
