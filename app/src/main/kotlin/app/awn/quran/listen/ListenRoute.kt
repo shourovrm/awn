@@ -99,7 +99,10 @@ private fun SurahRow(chapter: Chapter, useBanglaName: Boolean, onClick: () -> Un
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = "${chapter.number}  $name", style = AwnTypography.body)
+        Text(
+            text = stringResource(R.string.surah_row, chapter.number, name),
+            style = AwnTypography.body,
+        )
         Text(text = chapter.nameArabic, style = AwnTypography.body)
     }
 }
