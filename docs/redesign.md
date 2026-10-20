@@ -12,7 +12,7 @@ Awn moves from four separate modes (Read, Listen, Recite, Learn) to one Quran sc
 
 ## Quran screen
 
-The Quran screen is a horizontal pager of the 604 pages. Swiping right goes to the next page, as in a printed Mushaf. One tap on the page shows or hides both bars together; the bars float over the page and never resize it, and they start hidden when a page is opened from the index.
+The Quran screen is a horizontal pager of the 604 pages. Swiping right goes to the next page, as in a printed Mushaf. One tap on the page shows or hides both bars together; the bars float over the page and never resize it, and they show for 2 s whenever the screen opens, then hide.
 
 ### Views
 The top bar has one view button that cycles three views of the same page; the choice is saved.
