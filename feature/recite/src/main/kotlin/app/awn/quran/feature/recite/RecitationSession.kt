@@ -153,11 +153,24 @@ class RecitationSession(
     suspend fun chapters(): List<Chapter> = quranText.chapters()
 
     /** Loads the text and reference of [range], replacing whatever was loaded before. */
-    suspend fun load(range: ReciteRange) {
+    suspend fun load(range: ReciteRange) = load(range.ayahs())
+
+    /**
+     * Loads the text and reference of [ayahs], which must follow each other in reading order, and
+     * replaces whatever was loaded before. They may cross from one surah into the next.
+     */
+    suspend fun load(ayahs: List<AyahRef>) {
         stopAndWait()
         // Reading the reference phonemes can parse a large file the first time, so it must not
         // run on the caller's thread, which is the UI thread in the app.
-        val loaded = withContext(Dispatchers.Default) { readRange(range) }
+        val loaded =
+            try {
+                withContext(Dispatchers.Default) { readAyahs(ayahs) }
+            } catch (problem: IllegalStateException) {
+                // The speech files could not be prepared; the bar shows the error line.
+                lastFailure = problem
+                null
+            }
         if (loaded == null) {
             synchronized(lock) { clearLoaded() }
             mutablePhase.value = RecitationPhase.Error
@@ -185,12 +198,12 @@ class RecitationSession(
     }
 
     /**
-     * Returns the reference and display words of [range], or null when an ayah has no reference.
+     * Returns the reference and display words of [ayahs], or null when an ayah has no reference.
      */
-    private suspend fun readRange(range: ReciteRange): Pair<List<ReferenceWord>, List<Word>>? {
+    private suspend fun readAyahs(ayahs: List<AyahRef>): Pair<List<ReferenceWord>, List<Word>>? {
         val referenceWords = mutableListOf<ReferenceWord>()
         val displayWords = mutableListOf<Word>()
-        for (ayah in range.ayahs()) {
+        for (ayah in ayahs) {
             val reference = referencePhonemes.forAyah(ayah.surah, ayah.ayah)
             if (reference.isEmpty()) return null
             referenceWords += reference
@@ -224,6 +237,15 @@ class RecitationSession(
         if (mutablePhase.value == RecitationPhase.Listening) {
             mutablePhase.value = RecitationPhase.Stopped
         }
+    }
+
+    /** Stops and forgets the loaded words as well as everything heard; the page draws normally. */
+    suspend fun unload() {
+        stopAndWait()
+        synchronized(lock) { clearLoaded() }
+        mutableStatus.value = null
+        mutableHint.value = null
+        mutablePhase.value = RecitationPhase.Idle
     }
 
     /** Stops and forgets everything heard, keeping the loaded range. */

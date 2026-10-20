@@ -55,6 +55,7 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
     private var previousHeardId = NO_SYMBOL
     private var droppedHeardCount = 0
     private var lastReportedInsertionEnd = -1
+    private var hasHeardRecitation = false
     private val reportedSubstitutions = mutableSetOf<Pair<Int, Int>>()
 
     override fun load(reference: List<ReferenceWord>, startIndex: Int) {
@@ -75,6 +76,7 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         previousHeardId = NO_SYMBOL
         droppedHeardCount = 0
         lastReportedInsertionEnd = -1
+        hasHeardRecitation = false
         reportedSubstitutions.clear()
     }
 
@@ -94,7 +96,36 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         if (anchorIndex >= reference.size) return emptyList()
         val addedCount = appendHeard(events)
         if (addedCount == 0) return emptyList()
+        if (!hasHeardRecitation && !recitationHasStarted()) return emptyList()
         return alignAndReport()
+    }
+
+    // A few stray phonemes from room sound align to the first words by chance and would colour
+    // them. Nothing is judged until the heard sequence matches the start of the window well enough
+    // to be recitation; until then only the latest phonemes are kept.
+    private fun recitationHasStarted(): Boolean {
+        val windowEnd = windowEndWord(anchorIndex)
+        val expected =
+            expectedIds.copyOfRange(wordStartOffsets[anchorIndex], wordStartOffsets[windowEnd])
+        val operations = PhonemeAligner.align(heardIds.toIntArray(), expected)
+        val matches = operations.count { it.step == AlignmentStep.Match }
+        // Chance matches need gaps in the expected text to line up; a user who starts at the
+        // first word leaves almost none.
+        val lastMatchedOffset =
+            operations.lastOrNull { it.step == AlignmentStep.Match }?.expectedIndex ?: -1
+        val leftOutBeforeLastMatch = operations.count {
+            it.step == AlignmentStep.Deletion && it.expectedIndex < lastMatchedOffset
+        }
+        val isRecitation =
+            matches >= thresholds.entryMatches &&
+                matches >= ENTRY_MINIMUM_MATCH_SHARE * heardIds.size &&
+                leftOutBeforeLastMatch <= ENTRY_MAXIMUM_LEFT_OUT
+        if (isRecitation) {
+            hasHeardRecitation = true
+        } else if (heardIds.size > ENTRY_BUFFER_PHONEMES) {
+            dropHeard(heardIds.size - ENTRY_BUFFER_PHONEMES)
+        }
+        return isRecitation
     }
 
     private fun WordState.isDone() = this == WordState.Confirmed || this == WordState.Wrong
@@ -349,30 +380,52 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
                 val heardIndex = heardIndexByExpectedOffset[offset] ?: continue
                 if (heardIndex + 1 >= heardOnsets.size) continue
                 if (!reportedDurations.add(word to madd.phonemeIndex)) continue
-                val measured = heardOnsets[heardIndex + 1] - heardOnsets[heardIndex]
+                val vowelOnset = heardOnsets[heardIndex]
+                val nextOnset =
+                    nextMatchedOnset(heardIndexByExpectedOffset, offset, vowelOnset)
+                        ?: heardOnsets[heardIndex + 1]
+                val measured = nextOnset - vowelOnset
                 val expected = madd.harakat * harakaSeconds
-                val check = judgeDuration(word, madd, measured, expected, harakaSeconds)
+                val verdict = judgeDuration(measured, expected, harakaSeconds)
+                val check =
+                    DurationCheck(
+                        word,
+                        madd.letter,
+                        madd.rule,
+                        measured,
+                        expected,
+                        verdict,
+                        vowelOnset,
+                    )
                 events += TrackerEvent.Duration(check)
             }
         }
     }
 
+    // The model sometimes emits an extra token inside a held vowel, so the token right after the
+    // vowel is not always the end of it. The end is the start of the next token that matched one of
+    // the next expected phonemes; null when none of them matched.
+    private fun nextMatchedOnset(
+        heardIndexByExpectedOffset: Map<Int, Int>,
+        vowelOffset: Int,
+        vowelOnset: Float,
+    ): Float? =
+        (1..MADD_END_LOOKAHEAD_PHONEMES)
+            .mapNotNull { heardIndexByExpectedOffset[vowelOffset + it] }
+            .map { heardOnsets[it] }
+            .firstOrNull { it > vowelOnset + MINIMUM_ONSET_STEP_SECONDS }
+
     // A deviation of more than one haraka is a deviation; anything closer is fine.
     private fun judgeDuration(
-        word: Int,
-        madd: MaddAnnotation,
         measured: Float,
         expected: Float,
         harakaSeconds: Float,
-    ): DurationCheck {
-        val verdict =
-            when {
-                measured < expected - harakaSeconds -> DurationVerdict.Underheld
-                measured > expected + harakaSeconds -> DurationVerdict.Overheld
-                else -> DurationVerdict.Ok
-            }
-        return DurationCheck(word, madd.letter, madd.rule, measured, expected, verdict)
-    }
+    ): DurationVerdict =
+        when {
+            measured < expected - harakaSeconds -> DurationVerdict.Underheld
+            measured > expected + harakaSeconds -> DurationVerdict.Overheld
+            else -> DurationVerdict.Ok
+        }
 
     private fun isGreen(wordStatistics: WordStatistics, word: Int): Boolean {
         val coverage = wordStatistics.aligned.toFloat() / wordLengths[word]
@@ -529,6 +582,22 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
 
     private companion object {
         const val NO_SYMBOL = -1
+
+        // A held vowel ends at the first matched token among this many expected phonemes after it.
+        const val MADD_END_LOOKAHEAD_PHONEMES = 2
+
+        // Onsets lie on a 0.04 s grid; a later onset by less than this is the same token.
+        const val MINIMUM_ONSET_STEP_SECONDS = 0.001f
+
+        // Before the first judgement, at least this share of the heard phonemes must match ...
+        const val ENTRY_MINIMUM_MATCH_SHARE = 0.7f
+
+        // ... with at most this many expected phonemes left out among them ...
+        const val ENTRY_MAXIMUM_LEFT_OUT = 2
+
+        // ... and only this many of the latest heard phonemes are kept while waiting.
+        const val ENTRY_BUFFER_PHONEMES = 16
+
         const val BLANK_SYMBOL = "<blank>"
 
         // The window holds the ayah of the anchor and this many ayahs after it.

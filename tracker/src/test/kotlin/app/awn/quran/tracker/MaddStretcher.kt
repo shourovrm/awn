@@ -44,23 +44,22 @@ object MaddStretcher {
         return checks.mapNotNull { check -> locate(check, tokens) }
     }
 
-    // The tracker reports no onset, so find the token that starts the measured gap.
+    // The check carries the onset of the vowel's token; the gap runs to the token after it.
     private fun locate(check: DurationCheck, tokens: List<PhonemeEvent>): MeasuredMadd? {
-        for (index in 0 until tokens.size - 1) {
-            val token = tokens[index]
-            val gap = tokens[index + 1].onsetSeconds - token.onsetSeconds
-            val isSameGap = kotlin.math.abs(gap - check.measuredSeconds) < ONSET_TOLERANCE_SECONDS
-            if (isSameGap && token.symbol.contains(check.letter)) {
-                return MeasuredMadd(
-                    check.wordIndex,
-                    check.rule,
-                    check,
-                    token.onsetSeconds,
-                    tokens[index + 1].onsetSeconds,
-                )
+        val index =
+            tokens.indices.firstOrNull {
+                kotlin.math.abs(tokens[it].onsetSeconds - check.onsetSeconds) <
+                    ONSET_TOLERANCE_SECONDS
             }
-        }
-        return null
+        val next = index?.let { tokens.getOrNull(it + 1) }
+        if (index == null || next == null) return null
+        return MeasuredMadd(
+            check.wordIndex,
+            check.rule,
+            check,
+            tokens[index].onsetSeconds,
+            next.onsetSeconds,
+        )
     }
 
     // ffmpeg's atempo accepts 0.5 to 100 per instance, so slower speeds are chained.

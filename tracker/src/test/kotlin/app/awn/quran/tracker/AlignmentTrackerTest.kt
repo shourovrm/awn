@@ -61,9 +61,20 @@ class AlignmentTrackerTest {
     fun halfAWordIsYellowUntilEnoughIsHeard() {
         val tracker = newTracker()
 
-        tracker.hear(wordTexts[0].take(3))
+        tracker.hear(wordTexts[0] + wordTexts[1].take(3))
 
-        assertEquals(WordState.Tentative, tracker.stateOfWord(0))
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(0))
+        assertEquals(WordState.Tentative, tracker.stateOfWord(1))
+    }
+
+    @Test
+    fun aFewPhonemesAtTheStartColourNothing() {
+        val tracker = newTracker()
+
+        val events = tracker.hear(wordTexts[0].take(3))
+
+        assertTrue(events.isEmpty())
+        assertEquals(WordState.Neutral, tracker.stateOfWord(0))
     }
 
     @Test

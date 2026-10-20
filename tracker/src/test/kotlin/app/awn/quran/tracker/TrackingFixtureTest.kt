@@ -255,7 +255,7 @@ class TrackingFixtureTest {
         const val MINIMUM_STRETCH_TARGET_SECONDS = 0.16f
         const val STRETCH_TARGET_COUNT = 10
         const val MADD_SLOWDOWN = 3f
-        const val RECORDED_STRETCHED_FLAGGED = 5
+        const val RECORDED_STRETCHED_FLAGGED = 8
         const val RECORDED_ORIGINALS_NOT_OK = 0
         const val RECORDED_FALSE_SUBSTITUTIONS_SHORT_SURAHS = 0
         const val RECORDED_FALSE_SUBSTITUTIONS_LONG_SETS = 2

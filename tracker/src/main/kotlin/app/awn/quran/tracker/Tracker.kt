@@ -47,6 +47,8 @@ data class DurationCheck(
     val measuredSeconds: Float,
     val expectedSeconds: Float,
     val verdict: DurationVerdict,
+    /** When the vowel's token started, in seconds of audio; 0 when unknown. */
+    val onsetSeconds: Float = 0f,
 )
 
 /**

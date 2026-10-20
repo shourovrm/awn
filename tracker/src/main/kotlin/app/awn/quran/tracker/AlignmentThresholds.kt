@@ -17,6 +17,8 @@ import kotlin.math.roundToInt
  * @property insertionPhonemes consecutive unmatched heard phonemes that count as an insertion
  * @property reanchorPhonemes consecutive unmatched heard phonemes that trigger a search of the
  *   surah
+ * @property entryMatches matched phonemes needed before the first word is judged, so that stray
+ *   sounds do not colour words
  */
 internal data class AlignmentThresholds(
     val greenCoverage: Float,
@@ -25,6 +27,7 @@ internal data class AlignmentThresholds(
     val skipEvidencePhonemes: Int,
     val insertionPhonemes: Int,
     val reanchorPhonemes: Int,
+    val entryMatches: Int,
 ) {
     companion object {
         private const val GREEN_COVERAGE_PATIENT = 0.9f
@@ -35,6 +38,8 @@ internal data class AlignmentThresholds(
         private const val INSERTION_EAGER = 4f
         private const val REANCHOR_PATIENT = 16f
         private const val REANCHOR_EAGER = 8f
+        private const val ENTRY_PATIENT = 7f
+        private const val ENTRY_EAGER = 5f
         private const val MAXIMUM_GREEN_SUBSTITUTIONS = 1
         private const val WRONG_SUBSTITUTIONS = 2
 
@@ -50,6 +55,7 @@ internal data class AlignmentThresholds(
                     between(INSERTION_PATIENT, INSERTION_EAGER, clampedSpeed).roundToInt(),
                 reanchorPhonemes =
                     between(REANCHOR_PATIENT, REANCHOR_EAGER, clampedSpeed).roundToInt(),
+                entryMatches = between(ENTRY_PATIENT, ENTRY_EAGER, clampedSpeed).roundToInt(),
             )
         }
 

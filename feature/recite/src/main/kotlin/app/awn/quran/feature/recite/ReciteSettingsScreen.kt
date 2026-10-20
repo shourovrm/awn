@@ -23,11 +23,28 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import kotlinx.coroutines.launch
 
 /**
- * The Reciting group of the Settings screen: speed, hide words in hifz, hint button. It draws no
- * background, so :app places it in the Settings list on whatever field that screen uses.
+ * The Reciting group of the old Settings list: the page below under its title. Kept so :app still
+ * compiles; the Settings hub opens [ReciteSettingsPage] instead.
  */
 @Composable
 fun ReciteSettingsScreen(settings: ReciteSettings, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(
+            text = stringResource(R.string.recite_settings_title),
+            style = AwnTypography.lead,
+            color = Awn.field.buttonFill,
+        )
+        ReciteSettingsPage(settings)
+    }
+}
+
+/**
+ * The Recite and memorise page of the Settings hub: speed, hide words and hint. It draws no
+ * background and no title (the hub's bar names it with `R.string.recite_settings_title`).
+ * "Memorised after" belongs to Learn and is linked by the hub.
+ */
+@Composable
+fun ReciteSettingsPage(settings: ReciteSettings, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     val storedSpeed by settings.speed.collectAsState(initial = RecitationSession.DEFAULT_SPEED)
     val hifzEnabled by settings.hifzEnabled.collectAsState(initial = false)
@@ -37,11 +54,7 @@ fun ReciteSettingsScreen(settings: ReciteSettings, modifier: Modifier = Modifier
     var draggedSpeed by remember { mutableStateOf<Float?>(null) }
 
     Column(modifier) {
-        Text(
-            text = stringResource(R.string.recite_settings_title),
-            style = AwnTypography.lead,
-            color = Awn.field.buttonFill,
-        )
+        Text(text = stringResource(R.string.recite_speed), style = AwnTypography.body)
         SpeedSlider(
             value = draggedSpeed ?: storedSpeed,
             onValueChange = { draggedSpeed = it },

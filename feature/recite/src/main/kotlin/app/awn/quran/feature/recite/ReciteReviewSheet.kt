@@ -38,6 +38,9 @@ import app.awn.quran.tracker.TrackerEvent
 private const val BAR_TRACK_ALPHA = 0.3f
 private val barShape = RoundedCornerShape(AwnSpacing.switchKnobCorner)
 
+/** The test tag of the review sheet's content. */
+const val REVIEW_SHEET_TAG = "review-sheet"
+
 /** The test tag of the Listen action in the review sheet. */
 const val REVIEW_LISTEN_TAG = "review-listen"
 
@@ -50,7 +53,7 @@ const val REVIEW_LISTEN_TAG = "review-listen"
 @Composable
 fun ReciteReviewSheet(
     reviews: List<WordReview>,
-    startKey: WordKey,
+    startKey: WordKey?,
     words: List<Word>,
     onListen: (WordKey) -> Unit,
     onDismiss: () -> Unit,
@@ -58,28 +61,37 @@ fun ReciteReviewSheet(
     var position by remember {
         mutableIntStateOf(reviews.indexOfFirst { it.key == startKey }.coerceAtLeast(0))
     }
-    val review = reviews.getOrNull(position) ?: return
-    val wordText = words.firstOrNull { it.key == review.key }?.textUthmani.orEmpty()
+    // An empty list still opens the sheet: a sheet that silently stays closed looked like a bug.
+    val review = reviews.getOrNull(position)
+    val wordText = words.firstOrNull { it.key == review?.key }?.textUthmani.orEmpty()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = AwnColors.paper,
         contentColor = AwnColors.ink,
     ) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = AwnSpacing.screenMargin)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SheetAction(
-                    label = stringResource(R.string.recite_listen),
-                    modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
-                    onClick = { onListen(review.key) },
-                )
-                Text(text = wordText, style = AwnTypography.title)
+        Column(
+            Modifier.fillMaxWidth()
+                .padding(horizontal = AwnSpacing.screenMargin)
+                .testTag(REVIEW_SHEET_TAG),
+        ) {
+            if (review == null) {
+                FindingTitle(stringResource(R.string.recite_review_empty))
+            } else {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SheetAction(
+                        label = stringResource(R.string.recite_listen),
+                        modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
+                        onClick = { onListen(review.key) },
+                    )
+                    Text(text = wordText, style = AwnTypography.title)
+                }
+                review.findings.forEach { finding -> FindingBlock(finding) }
             }
-            review.findings.forEach { finding -> FindingBlock(finding) }
             if (reviews.size > 1) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     SheetAction(
@@ -94,6 +106,11 @@ fun ReciteReviewSheet(
                     )
                 }
             }
+            Text(
+                text = stringResource(R.string.recite_review_note),
+                style = AwnTypography.small,
+                modifier = Modifier.padding(vertical = AwnSpacing.medium),
+            )
         }
     }
 }

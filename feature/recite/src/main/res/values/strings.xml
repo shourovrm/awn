@@ -55,7 +55,19 @@
   <string name="recite_range_to">To ayah</string>
   <string name="recite_range_done">Done</string>
 
-  <string name="recite_settings_title">Reciting</string>
-  <string name="recite_settings_hide_words">Hide words in hifz</string>
+  <string name="recite_settings_title">Recite and memorise</string>
+  <string name="recite_settings_hide_words">Hide words</string>
   <string name="recite_settings_hint">Hint button</string>
+
+  <string name="recite_close">Close</string>
+  <string name="recite_hide_words">Hide words</string>
+  <string name="recite_speed_slowest">Slowest</string>
+  <string name="recite_speed_normal">Normal</string>
+  <string name="recite_speed_fastest">Fastest</string>
+  <string name="recite_status_preparing">Getting ready</string>
+  <string name="recite_status_hint">Next word starts with %1$s</string>
+  <string name="recite_status_allow_microphone">Allow the microphone to recite</string>
+  <string name="recite_status_microphone_off">Microphone is off for Awn</string>
+  <string name="recite_review_empty">Nothing to review</string>
+  <string name="recite_review_note">Experimental feedback on likely mistakes</string>
 </resources>

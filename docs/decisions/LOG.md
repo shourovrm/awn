@@ -31,3 +31,8 @@
 2026-10-21 | Reciter list sizes come from AudioDownloads.usedBytes, a live flow | the size was read once at creation and showed Nothing downloaded
 2026-10-21 | Reciter sheet groups are exclusive | a reciter in two groups reads as a duplicate
 2026-10-21 | AudioFeature holds dependencies and the view model factory for the audio composables | :app registers no audio view models
+2026-10-21 | Tracker judges nothing until 5 to 7 phonemes match the text start | stray phonemes coloured words in 55 % of seeded runs; now 0 of 300
+2026-10-21 | One ReciteController, ReciteBar and rememberReciteWordStates replace the Recite screen | recite is a mode of the Quran page; topic recite
+2026-10-21 | Speech files, phoneme parse and recogniser load run at app start on a low-priority thread | first start waited about 45 s; topic recite
+2026-10-21 | One review button in the bar, sheet opens when empty | the sheet returned without drawing for an empty list; topic recite
+2026-10-21 | Madd length measured to the next matched token | extra tokens sit inside a held vowel; 8 of 10 flagged, gate 9; tracker.md
