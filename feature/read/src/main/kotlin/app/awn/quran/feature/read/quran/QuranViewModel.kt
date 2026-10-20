@@ -7,6 +7,7 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
 import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
@@ -28,6 +29,15 @@ import kotlinx.coroutines.launch
 
 /** A page counts as read after it has been on screen this long. */
 const val PAGE_READ_DELAY_MS = 20_000L
+
+/** The bars show for this long when the screen opens, to teach that they exist. */
+const val BARS_REVEAL_MS = 2_000L
+
+/** How a page was reached: by reading on, or by looking something up. */
+private enum class Arrival {
+    Reading,
+    Lookup,
+}
 
 /** The things that float over the Quran screen and close first when Back is pressed. */
 enum class Popup {
@@ -55,7 +65,10 @@ data class QuranUiState(
     val isPageBookmarked: Boolean = false,
     val savedAyahs: Set<AyahRef> = emptySet(),
     val areBarsVisible: Boolean = true,
+    /** The first selected ayah; the ayah panel and the Play tab follow it. */
     val selection: AyahRef? = null,
+    /** The last ayah of a dragged range; null when only [selection] is selected. */
+    val selectionEnd: AyahRef? = null,
     /** The page the selected ayah was chosen on; a swipe to another page clears the selection. */
     val selectionPage: Int? = null,
     val isPanelOpen: Boolean = false,
@@ -64,13 +77,30 @@ data class QuranUiState(
     val popup: Popup = Popup.None,
     val wordPopup: WordPopup? = null,
     val playingAyah: AyahRef? = null,
-    val playingWordPosition: Int? = null,
+    /** The page the playing ayah starts on; null while nothing plays. */
+    val playingPage: Int? = null,
+    /**
+     * True while the pager and the lists move with the audio. It turns off when the reader drags
+     * the pager or goes to another page, and on again when the reader returns to the playing page,
+     * taps the back-to-playing control, or starts a new playback.
+     */
+    val isFollowing: Boolean = true,
+    /** No audio is playing, paused or downloading; only then do the volume keys turn pages. */
+    val isAudioIdle: Boolean = true,
     /** Install state of the chosen page type's font; null while unknown. */
     val fontStatus: FontPackStatus? = null,
     val isFontPromptDismissed: Boolean = false,
     /** Changes whenever a pack is installed or removed, so cached fonts are looked up again. */
     val packRevision: Int = 0,
 ) {
+    /** The selected ayahs, or null when nothing is selected. */
+    val selectedRange: AyahRange?
+        get() = selection?.let { AyahRange(it, selectionEnd ?: it) }
+
+    /** The back-to-playing control shows while audio plays and the reader is not following it. */
+    val showBackToPlaying: Boolean
+        get() = playingAyah != null && !isFollowing
+
     /** The chosen print's font is missing and the user has not chosen to keep the fallback. */
     val showFontPrompt: Boolean
         get() = fontStatus != null && !fontStatus.isInstalled && !isFontPromptDismissed
@@ -127,6 +157,13 @@ class QuranViewModel(
     private val mutableState = MutableStateFlow(QuranUiState())
     val state: StateFlow<QuranUiState> = mutableState
 
+    /**
+     * The word being played. It changes several times a second, so it is kept out of [state]: a
+     * page that does not hold the playing ayah must not recompose for it.
+     */
+    private val mutablePlayingWord = MutableStateFlow<Int?>(null)
+    val playingWordPosition: StateFlow<Int?> = mutablePlayingWord
+
     private val contentLoader =
         PageContentLoader(dependencies.quranText, dependencies.translations, wordLanguage)
 
@@ -134,9 +171,14 @@ class QuranViewModel(
     private var openedTarget: QuranTarget? = null
     private var hasOpened = false
     private var readTimerJob: Job? = null
+    private var barsRevealJob: Job? = null
     private var lastReadPage: Int? = null
     private var isScreenActive = true
-    private var previousPlayingPage: Int? = null
+    private val resumeTracker =
+        ResumeTracker(
+            viewModelScope,
+            save = { page -> dependencies.bookmarks.recordPageOpened(page) },
+        )
     private val pageOfAyahCache = mutableMapOf<AyahRef, Int>()
     private val pagesLoadingContent = mutableSetOf<Int>()
 
@@ -160,11 +202,16 @@ class QuranViewModel(
         hasOpened = true
         openedTarget = target
         viewModelScope.launch {
+            // The saved settings come first, so every entry opens in the saved view and print.
+            val saved = dependencies.settingsStore.settings.first()
+            mutableState.update {
+                it.copy(settings = saved, fontStatus = fontPacks.statuses.value[saved.script])
+            }
             when (target) {
-                is QuranTarget.Page -> showPage(target.page, barsVisible = false)
+                is QuranTarget.Page -> showPage(target.page, barsVisible = true)
                 is QuranTarget.Ayah -> {
                     val page = dependencies.quranText.pageOf(target.ayah, scriptNow())
-                    showPage(page, barsVisible = false)
+                    showPage(page, barsVisible = true)
                     selectAyah(target.ayah)
                 }
                 null -> {
@@ -172,20 +219,46 @@ class QuranViewModel(
                     showPage(lastPage ?: FIRST_PAGE, barsVisible = true)
                 }
             }
+            revealBarsBriefly()
         }
     }
 
-    /** Moves the pager to [page] at once, in every view. Used by Go to page and the index. */
+    /**
+     * Moves the pager to [page] at once, in every view. Used by Go to page and the index. This is a
+     * lookup: it becomes the resume point only if the reader stays.
+     */
     fun jumpToPage(page: Int) {
         showPage(page, barsVisible = mutableState.value.areBarsVisible, movesPager = true)
+    }
+
+    /** Turns the page by [step] pages, as the volume keys do. Turning pages is reading. */
+    fun turnPage(step: Int) {
+        val state = mutableState.value
+        showPage(
+            state.currentPage + step,
+            barsVisible = state.areBarsVisible,
+            movesPager = true,
+            arrival = Arrival.Reading,
+        )
     }
 
     /** Called when the pager has come to rest on [page]; the pager is already there. */
     fun onPageSettled(page: Int) {
         val state = mutableState.value
         val validPage = page.coerceIn(FIRST_PAGE, state.pageCount)
-        if (state.hasStarted && validPage == state.currentPage) return
-        showPage(validPage, barsVisible = state.areBarsVisible, movesPager = false)
+        if (state.hasStarted && validPage == state.currentPage) {
+            // A drag that came back to the playing page follows the audio again.
+            if (validPage == state.playingPage && !state.isFollowing) {
+                mutableState.update { it.copy(isFollowing = true) }
+            }
+            return
+        }
+        showPage(
+            validPage,
+            barsVisible = state.areBarsVisible,
+            movesPager = false,
+            arrival = Arrival.Reading,
+        )
     }
 
     /** Starts loading the page, in the form the chosen view needs, unless it is loaded. */
@@ -218,8 +291,37 @@ class QuranViewModel(
         }
     }
 
+    /** The reader dragged the pager: stop turning pages for the audio until they come back. */
+    fun onPagerDragged() {
+        mutableState.update { it.copy(isFollowing = false) }
+    }
+
+    /** The back-to-playing control: follow the audio again and show the playing ayah. */
+    fun backToPlaying() {
+        val state = mutableState.value
+        val page = state.playingPage ?: return
+        mutableState.update { it.copy(isFollowing = true) }
+        if (page != state.currentPage) {
+            showPage(page, barsVisible = state.areBarsVisible)
+        } else {
+            // The list views scroll to the ayah again; the page has nothing to move.
+            mutableState.update { it.copy(jumpToken = it.jumpToken + 1) }
+        }
+    }
+
     fun toggleBars() {
+        // A bar the reader shows or hides by hand stays as they left it.
+        barsRevealJob?.cancel()
         mutableState.update { it.copy(areBarsVisible = !it.areBarsVisible) }
+    }
+
+    /** Shows the bars when the screen opens and hides them after [BARS_REVEAL_MS]. */
+    private fun revealBarsBriefly() {
+        barsRevealJob?.cancel()
+        barsRevealJob = viewModelScope.launch {
+            delay(BARS_REVEAL_MS)
+            mutableState.update { it.copy(areBarsVisible = false) }
+        }
     }
 
     fun openPopup(popup: Popup) {
@@ -238,14 +340,38 @@ class QuranViewModel(
     /** Selects [ayah] on the page shown; selecting another ayah moves the selection and panel. */
     fun selectAyah(ayah: AyahRef) {
         mutableState.update {
-            it.copy(selection = ayah, selectionPage = it.currentPage, wordPopup = null)
+            it.copy(
+                selection = ayah,
+                selectionEnd = null,
+                selectionPage = it.currentPage,
+                wordPopup = null,
+            )
         }
         if (mutableState.value.isPanelOpen) loadPanelBlock(ayah)
     }
 
+    /** Selects the ayahs of a long press and drag; the panel and Play tab follow the first. */
+    fun selectRange(range: AyahRange) {
+        mutableState.update {
+            it.copy(
+                selection = range.first,
+                selectionEnd = range.last.takeUnless { last -> last == range.first },
+                selectionPage = it.currentPage,
+                wordPopup = null,
+            )
+        }
+        if (mutableState.value.isPanelOpen) loadPanelBlock(range.first)
+    }
+
     fun clearSelection() {
         mutableState.update {
-            it.copy(selection = null, selectionPage = null, isPanelOpen = false, panelBlock = null)
+            it.copy(
+                selection = null,
+                selectionEnd = null,
+                selectionPage = null,
+                isPanelOpen = false,
+                panelBlock = null,
+            )
         }
     }
 
@@ -286,6 +412,7 @@ class QuranViewModel(
             it.copy(
                 isReciting = true,
                 selection = null,
+                selectionEnd = null,
                 selectionPage = null,
                 isPanelOpen = false,
                 panelBlock = null,
@@ -331,6 +458,18 @@ class QuranViewModel(
         return ayahShareText(block.arabic, block.translations.firstOrNull()?.text, ayah)
     }
 
+    /** The share text of every ayah in [range], one per line. */
+    suspend fun shareTextOf(range: AyahRange): String {
+        val chapters = mutableState.value.chapters
+        val lines = mutableListOf<String>()
+        var ayah: AyahRef? = range.first
+        while (ayah != null && ayah in range) {
+            lines += shareTextOf(ayah)
+            ayah = adjacentAyah(ayah, 1, chapters)
+        }
+        return lines.joinToString("\n")
+    }
+
     /**
      * Closes the innermost open thing and returns true, or returns false when nothing is open and
      * the screen may be left. The order is: popups, ayah panel, ayah selection, recite mode, bars.
@@ -344,7 +483,10 @@ class QuranViewModel(
             state.isPanelOpen -> closePanel()
             state.selection != null -> clearSelection()
             state.isReciting -> exitReciteMode()
-            state.areBarsVisible -> mutableState.update { it.copy(areBarsVisible = false) }
+            state.areBarsVisible -> {
+                barsRevealJob?.cancel()
+                mutableState.update { it.copy(areBarsVisible = false) }
+            }
             else -> return false
         }
         return true
@@ -353,14 +495,21 @@ class QuranViewModel(
     /** Tells the pages-read timer whether the screen is in front; it counts only then. */
     fun setScreenActive(isActive: Boolean) {
         isScreenActive = isActive
+        if (isActive) resumeTracker.onStart() else resumeTracker.onStop()
         restartReadTimer()
     }
 
     /**
      * Makes [page] the page shown. [movesPager] is true for jumps, which bump
      * [QuranUiState.jumpToken] so the pager scrolls there; a swipe has already moved the pager.
+     * [arrival] decides how the resume point follows (see [ResumeTracker]).
      */
-    private fun showPage(page: Int, barsVisible: Boolean, movesPager: Boolean = true) {
+    private fun showPage(
+        page: Int,
+        barsVisible: Boolean,
+        movesPager: Boolean = true,
+        arrival: Arrival = Arrival.Lookup,
+    ) {
         val pageCount = mutableState.value.pageCount
         val validPage = page.coerceIn(FIRST_PAGE, pageCount)
         mutableState.update {
@@ -372,18 +521,23 @@ class QuranViewModel(
                 juz = JuzTable.juzOfPage(validPage),
                 areBarsVisible = barsVisible,
                 selection = if (keepsSelection) it.selection else null,
+                selectionEnd = if (keepsSelection) it.selectionEnd else null,
                 selectionPage = if (keepsSelection) it.selectionPage else null,
                 isPanelOpen = it.isPanelOpen && keepsSelection,
                 panelBlock = if (keepsSelection) it.panelBlock else null,
                 popup = Popup.None,
                 wordPopup = null,
                 isPageBookmarked = validPage in bookmarkedPages,
+                isFollowing = isFollowingOn(it.isFollowing, it.playingPage, validPage),
             )
         }
         loadPage(validPage)
         loadPage(validPage - 1)
         loadPage(validPage + 1)
-        viewModelScope.launch { dependencies.bookmarks.recordPageOpened(validPage) }
+        when (arrival) {
+            Arrival.Reading -> resumeTracker.onReading(validPage)
+            Arrival.Lookup -> resumeTracker.onLookup(validPage)
+        }
         restartReadTimer()
     }
 
@@ -562,23 +716,31 @@ class QuranViewModel(
                 }
             }
             val previousAyah = mutableState.value.playingAyah
-            mutableState.update { it.copy(playingAyah = ayah, playingWordPosition = wordPosition) }
-            if (ayah == null) {
-                previousPlayingPage = null
-            } else if (ayah != previousAyah) {
-                followPlayingAyah(ayah)
+            val playingPage = ayah?.let { pageOfAyah(it) }
+            mutablePlayingWord.value = wordPosition
+            val hasStarted = previousAyah == null && ayah != null
+            mutableState.update {
+                it.copy(
+                    playingAyah = ayah,
+                    playingPage = playingPage,
+                    isAudioIdle = playback is PlaybackState.Idle || playback is PlaybackState.Error,
+                    // A new playback is followed from its first ayah, wherever the reader is.
+                    isFollowing = if (hasStarted) true else it.isFollowing,
+                )
             }
+            if (ayah != null && ayah != previousAyah) followPlayingAyah(playingPage)
         }
     }
 
-    /** Turns the pager to the playing ayah's page when the reader was following the audio. */
-    private suspend fun followPlayingAyah(ayah: AyahRef) {
-        val playingPage = pageOfAyah(ayah)
+    /** Turns the pager to the playing ayah's page while the reader is following the audio. */
+    private fun followPlayingAyah(playingPage: Int?) {
         val state = mutableState.value
-        val target = pageToFollow(previousPlayingPage, playingPage, state.currentPage)
-        previousPlayingPage = playingPage
-        if (target != null && state.hasStarted) {
-            showPage(target, barsVisible = state.areBarsVisible)
+        if (
+            playingPage != null &&
+                state.hasStarted &&
+                shouldTurnToPlayingPage(state.isFollowing, playingPage, state.currentPage)
+        ) {
+            showPage(playingPage, barsVisible = state.areBarsVisible)
         }
     }
 

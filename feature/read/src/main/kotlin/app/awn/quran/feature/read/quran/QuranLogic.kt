@@ -38,16 +38,19 @@ internal fun ayahShareText(arabic: String, translation: String?, ayah: AyahRef):
     }
 
 /**
- * Decides whether the pager follows playback. The pager turns when the playing ayah is on another
- * page than the one shown and the reader was following: playback has just started, or the page
- * shown is the page the previous ayah was on. A reader who swiped elsewhere is left alone. Returns
- * the page to show, or null to stay.
+ * Whether the pager turns to the playing ayah's page: the reader is following the audio and is on
+ * another page than the one the ayah is on.
  */
-internal fun pageToFollow(previousPlayingPage: Int?, playingPage: Int, shownPage: Int): Int? {
-    if (playingPage == shownPage) return null
-    val wasFollowing = previousPlayingPage == null || previousPlayingPage == shownPage
-    return if (wasFollowing) playingPage else null
-}
+internal fun shouldTurnToPlayingPage(isFollowing: Boolean, playingPage: Int, shownPage: Int) =
+    isFollowing && playingPage != shownPage
+
+/**
+ * The following switch after the reader arrives on [shownPage]. Arriving on the playing page
+ * (swiping back to it, or the page turn that follows the audio) follows; arriving anywhere else
+ * while audio plays is the reader's own choice and stops following. With no audio it is unchanged.
+ */
+internal fun isFollowingOn(wasFollowing: Boolean, playingPage: Int?, shownPage: Int): Boolean =
+    if (playingPage == null) wasFollowing else shownPage == playingPage
 
 /**
  * How far a page taller than its window must be scrolled up so the span [spanTop]..[spanBottom] is
@@ -71,6 +74,24 @@ internal enum class VolumeKeyAction {
     PreviousPage,
 }
 
-/** Volume down turns to the next page and volume up to the previous one. */
-internal fun volumeKeyAction(isVolumeDown: Boolean): VolumeKeyAction =
-    if (isVolumeDown) VolumeKeyAction.NextPage else VolumeKeyAction.PreviousPage
+/**
+ * Volume down turns to the next page and volume up to the previous one, but only while no audio is
+ * playing, paused or downloading: then the keys belong to the volume. Null means the keys are left
+ * to the system.
+ */
+internal fun volumeKeyAction(isVolumeDown: Boolean, isAudioIdle: Boolean): VolumeKeyAction? =
+    when {
+        !isAudioIdle -> null
+        isVolumeDown -> VolumeKeyAction.NextPage
+        else -> VolumeKeyAction.PreviousPage
+    }
+
+/** The share of a list's height left above an ayah that the list scrolls to. */
+internal const val TOP_MARGIN_SHARE = 0.05f
+
+/** The room, in pixels, left above a scrolled-to ayah in a list [visibleHeight] pixels tall. */
+internal fun topMarginFor(visibleHeight: Int): Int = (visibleHeight * TOP_MARGIN_SHARE).toInt()
+
+/** Whether an item at [offset] with [size] lies wholly between [visibleTop] and [visibleBottom]. */
+internal fun isFullyVisible(offset: Int, size: Int, visibleTop: Int, visibleBottom: Int): Boolean =
+    offset >= visibleTop && offset + size <= visibleBottom

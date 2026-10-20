@@ -68,3 +68,8 @@
 2026-10-21 | Automatic grade is Good for 0 missed words, Hard for 1, Forgot for 2 or more; Easy only by the user; a tap replaces it | recited and revealed ayahs feed FSRS alike
 2026-10-21 | Revision opens at the first due ayah in recite mode with words hidden, then moves to the next due ayah after each grade | revision leads to the page (onReviseAt, onOpenAyah)
 2026-10-21 | Recite bar colours come from Awn.field (ReciteBarColors); the main button is ochre where the button colour equals the bar | the bar follows Awn, Light, Dark and Black
+2026-10-21 | Resume point saved 1.5 s after a swipe settles and on stop; lookups only if the reader stays | lookups moved the place (usability rule 2)
+2026-10-21 | Following is a switch: pager drag off, playing page or back-to-playing control on | pager snapped back on every ayah
+2026-10-21 | Long press finds the nearest ayah and drag makes a range; optional onPlayRange and playPanelRange slots | Play tab needs ranges
+2026-10-21 | Bars show 2 s on open; volume keys only when audio is idle; saved view loaded before the first page | code lessons Y6, Z20, usability 15
+2026-10-21 | Mushaf ayahs exposed as one Unicode node each, drawn glyphs hidden; top bar wraps above font scale 1.3 | TalkBack and 200 % text

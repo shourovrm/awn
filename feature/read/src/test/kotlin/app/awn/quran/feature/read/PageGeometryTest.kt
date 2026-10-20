@@ -5,6 +5,7 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.LineToken
 import app.awn.quran.feature.read.page.PageRow
 import app.awn.quran.feature.read.page.layoutPage
+import app.awn.quran.feature.read.page.selectionBounds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -147,5 +148,67 @@ class PageGeometryTest {
         assertNotNull(geometry.wordRect(WordKey(2, 1, 2)))
         assertNull(geometry.wordRect(WordKey(2, 1, 9)))
         assertNull(geometry.ayahBounds(AyahRef(3, 1)))
+    }
+
+    // Three lines of two ayahs each: slot 1 holds ayah 1 and the start of ayah 2 (words 1-3 and
+    // 4-6), slot 2 all of ayah 3, slot 3 ayah 4. Every word is 2 ems, justified to the page.
+    private fun hitRows() =
+        listOf(
+            PageRow.TextRow(1, List(3) { word(2, 1, it + 1) } + List(3) { word(2, 2, it + 1) }),
+            PageRow.TextRow(2, List(6) { word(2, 3, it + 1) }),
+            PageRow.TextRow(3, List(6) { word(2, 4, it + 1) }),
+        )
+
+    private fun hitGeometry() = layoutPage(hitRows(), false, width, height, emWidth)
+
+    @Test
+    fun aTouchOnAWordFindsItsAyah() {
+        val geometry = hitGeometry()
+        val word = geometry.textLines[0].tokens.first() // first word of ayah 1, at the right edge
+
+        val ayah = geometry.nearestAyahAt(word.right - 1f, geometry.slotTop(1) + 5f)
+
+        assertEquals(AyahRef(2, 1), ayah)
+    }
+
+    @Test
+    fun aTouchBetweenLinesFindsTheNearestLine() {
+        val geometry = hitGeometry()
+        // Below the last line of text, in the bottom margin of the page.
+        assertEquals(AyahRef(2, 4), geometry.nearestAyahAt(500f, height - 5f))
+        // Above the first line.
+        assertEquals(AyahRef(2, 1), geometry.nearestAyahAt(900f, -40f))
+    }
+
+    @Test
+    fun aTouchInTheSideMarginFindsTheNearestAyahOnThatLine() {
+        val geometry = hitGeometry()
+        val middleOfFirstLine = geometry.slotTop(1) + geometry.slotHeightPx / 2f
+
+        // Far right of the page: the first token on the line belongs to ayah 1.
+        assertEquals(AyahRef(2, 1), geometry.nearestAyahAt(width + 300f, middleOfFirstLine))
+        // Far left: the last token on the line belongs to ayah 2.
+        assertEquals(AyahRef(2, 2), geometry.nearestAyahAt(-300f, middleOfFirstLine))
+    }
+
+    @Test
+    fun aPageWithoutTextHasNoNearestAyah() {
+        val empty = layoutPage(emptyList(), false, width, height, emWidth)
+
+        assertNull(empty.nearestAyahAt(10f, 10f))
+    }
+
+    @Test
+    fun selectionBoundsSplitTheFirstLineFromTheWholeSelection() {
+        val geometry = hitGeometry()
+
+        val bounds = geometry.selectionBounds(setOf(AyahRef(2, 2), AyahRef(2, 3)))
+
+        assertNotNull(bounds)
+        // Ayah 2 starts on slot 1 and ayah 3 fills slot 2.
+        assertEquals(geometry.slotTop(1), bounds!!.firstLine.top, 0.01f)
+        assertEquals(geometry.slotTop(1) + geometry.slotHeightPx, bounds.firstLine.bottom, 0.01f)
+        assertEquals(geometry.slotTop(2) + geometry.slotHeightPx, bounds.all.bottom, 0.01f)
+        assertNull(geometry.selectionBounds(setOf(AyahRef(9, 9))))
     }
 }

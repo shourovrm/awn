@@ -9,7 +9,7 @@ import app.awn.quran.tracker.WordState
  * Everything drawn on a page besides the text itself. Fills come from `Awn.field` and sit behind
  * each line fragment of the ayah, so an ayah over several lines has a stepped shape.
  *
- * @property selectedAyah the ayah the user long-pressed.
+ * @property selectedAyahs the ayah the user long-pressed, or the range they dragged over.
  * @property playingAyah the ayah being played.
  * @property playingWord the word being played; its fill is drawn on top of the ayah fill.
  * @property bookmarkedAyahs ayahs that carry a bookmark; empty when "Highlight bookmarks" is off.
@@ -17,7 +17,7 @@ import app.awn.quran.tracker.WordState
  */
 @Immutable
 data class PageDecorations(
-    val selectedAyah: AyahRef? = null,
+    val selectedAyahs: Set<AyahRef> = emptySet(),
     val playingAyah: AyahRef? = null,
     val playingWord: WordKey? = null,
     val bookmarkedAyahs: Set<AyahRef> = emptySet(),

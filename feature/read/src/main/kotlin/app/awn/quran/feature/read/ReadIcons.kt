@@ -2,8 +2,15 @@ package app.awn.quran.feature.read
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,8 +22,9 @@ private const val DISABLED_ALPHA = 0.38f
 
 /**
  * A 48 dp icon button. [description] is read by screen readers and is required because the icon is
- * the only label.
+ * the only label; pressing and holding the button also shows it as a tooltip.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReadIconButton(
     @DrawableRes iconRes: Int,
@@ -26,15 +34,23 @@ internal fun ReadIconButton(
     isEnabled: Boolean = true,
     tint: Color = Awn.field.buttonFill,
 ) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(AwnSpacing.touchTarget),
-        enabled = isEnabled,
+    TooltipBox(
+        positionProvider =
+            TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+        tooltip = { PlainTooltip { Text(description) } },
+        state = rememberTooltipState(),
+        modifier = modifier,
     ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = description,
-            tint = if (isEnabled) tint else tint.copy(alpha = DISABLED_ALPHA),
-        )
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.size(AwnSpacing.touchTarget),
+            enabled = isEnabled,
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = description,
+                tint = if (isEnabled) tint else tint.copy(alpha = DISABLED_ALPHA),
+            )
+        }
     }
 }

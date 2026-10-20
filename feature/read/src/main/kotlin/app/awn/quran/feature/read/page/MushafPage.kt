@@ -10,18 +10,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
@@ -51,9 +51,12 @@ private const val INK_CENTER_ABOVE_BASELINE_EM = 0.35f
  * and the Basmalah are drawn from Unicode text in every script, because the page fonts hold no
  * glyphs for them.
  *
- * A tap on a word calls [onWordClick]. A long press (500 ms) on a word or an ayah-end sign calls
- * [onAyahLongPress] with the ayah and the union of its line fragments, in the coordinates of the
- * window, so the caller can put a bar above it.
+ * A tap anywhere on the page calls [onTap] the moment the finger lifts; a tap on a word also calls
+ * [onWordClick]. A long press (500 ms) anywhere, even in a margin, calls [onAyahLongPress] with the
+ * nearest ayah; dragging on calls [onRangeDrag] with the range from that ayah to the one under the
+ * finger, and lifting calls [onRangeEnd]. [onSelectionBounds] reports where the ayahs in
+ * [decorations] are, in this page's own coordinates (origin at its top left), or null when none of
+ * them is on this page.
  */
 @Composable
 fun MushafPage(
@@ -65,17 +68,28 @@ fun MushafPage(
     decorations: PageDecorations = PageDecorations(),
     showPageInfo: Boolean = true,
     onWordClick: (WordKey) -> Unit = {},
-    onAyahLongPress: (AyahRef, Rect) -> Unit = { _, _ -> },
+    onTap: () -> Unit = {},
+    onAyahLongPress: (AyahRef) -> Unit = {},
+    onRangeDrag: (AyahRange) -> Unit = {},
+    onRangeEnd: () -> Unit = {},
+    onSelectionBounds: (SelectionBounds?) -> Unit = {},
 ) {
     val hasGlyphFont = fontFamily != null && layout.script in glyphScripts
     val rows = remember(layout, hasGlyphFont) { buildPageRows(layout, hasGlyphFont) }
     val textFamily = if (hasGlyphFont) fontFamily else plainFamily
+    var bodyTop by remember { mutableFloatStateOf(0f) }
+    val touchActions =
+        rememberTouchActions(onWordClick, onTap, onAyahLongPress, onRangeDrag, onRangeEnd)
 
     // The page is positioned from left to right in pixels; text direction is inside each word.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Column(modifier.fillMaxSize()) {
             if (showPageInfo) PageHeaderRow(layout, chapters)
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            BoxWithConstraints(
+                Modifier.weight(1f).fillMaxWidth().onGloballyPositioned {
+                    bodyTop = it.positionInParent().y
+                },
+            ) {
                 val density = LocalDensity.current
                 PageBody(
                     layout = layout,
@@ -86,12 +100,41 @@ fun MushafPage(
                     widthPx = with(density) { maxWidth.toPx() },
                     heightPx = with(density) { maxHeight.toPx() },
                     decorations = decorations,
-                    onWordClick = onWordClick,
-                    onAyahLongPress = onAyahLongPress,
+                    touchActions = touchActions,
+                    bodyTop = bodyTop,
+                    onSelectionBounds = onSelectionBounds,
                 )
             }
             if (showPageInfo) PageNumberRow(layout.page)
         }
+    }
+}
+
+/**
+ * The touch actions of a page, built once so a recomposition during a drag does not restart the
+ * gesture; each call reaches the newest callback.
+ */
+@Composable
+private fun rememberTouchActions(
+    onWordClick: (WordKey) -> Unit,
+    onTap: () -> Unit,
+    onAyahLongPress: (AyahRef) -> Unit,
+    onRangeDrag: (AyahRange) -> Unit,
+    onRangeEnd: () -> Unit,
+): PageTouchActions {
+    val currentOnWordClick by rememberUpdatedState(onWordClick)
+    val currentOnTap by rememberUpdatedState(onTap)
+    val currentOnLongPress by rememberUpdatedState(onAyahLongPress)
+    val currentOnRangeDrag by rememberUpdatedState(onRangeDrag)
+    val currentOnRangeEnd by rememberUpdatedState(onRangeEnd)
+    return remember {
+        PageTouchActions(
+            onTap = { currentOnTap() },
+            onWordClick = { currentOnWordClick(it) },
+            onLongPress = { currentOnLongPress(it) },
+            onRangeDrag = { currentOnRangeDrag(it) },
+            onRangeEnd = { currentOnRangeEnd() },
+        )
     }
 }
 
@@ -105,8 +148,9 @@ private fun PageBody(
     widthPx: Float,
     heightPx: Float,
     decorations: PageDecorations,
-    onWordClick: (WordKey) -> Unit,
-    onAyahLongPress: (AyahRef, Rect) -> Unit,
+    touchActions: PageTouchActions,
+    bodyTop: Float,
+    onSelectionBounds: (SelectionBounds?) -> Unit,
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
@@ -114,15 +158,13 @@ private fun PageBody(
     val geometry = measured.geometry
     val measurements = measured.measurements
     val field = Awn.field
-    var containerPosition by remember { mutableStateOf(Offset.Zero) }
+    ReportSelectionBounds(geometry, decorations.selectedAyahs, bodyTop, onSelectionBounds)
+    val playingFade = rememberPlayingFade(decorations.playingAyah)
 
     Box(
-        Modifier.fillMaxSize()
-            .onGloballyPositioned { coordinates: LayoutCoordinates ->
-                containerPosition = coordinates.positionInRoot()
-            }
-            .pageGestures(geometry, containerPosition, onWordClick, onAyahLongPress)
-            .drawBehind { drawFills(geometry, decorations, field) },
+        Modifier.fillMaxSize().pageGestures(geometry, touchActions).drawBehind {
+            drawFills(geometry, decorations, field, playingFade.snapshot())
+        },
     ) {
         val fontSizePx = geometry.fontSizePx
         val style = pageTextStyle(textFamily, fontSizePx, density)
@@ -158,6 +200,32 @@ private fun PageBody(
                     )
             }
         }
+        // What is drawn may be private-use glyph codes; screen readers get the Unicode text here.
+        AyahTextLayer(
+            layout = layout,
+            geometry = geometry,
+            chapters = chapters,
+            onSelect = { ayah ->
+                touchActions.onLongPress(ayah)
+                touchActions.onRangeEnd()
+            },
+        )
+    }
+}
+
+/** Tells the screen where the selected ayahs are whenever the selection or the layout changes. */
+@Composable
+private fun ReportSelectionBounds(
+    geometry: PageGeometry,
+    selectedAyahs: Set<AyahRef>,
+    bodyTop: Float,
+    onSelectionBounds: (SelectionBounds?) -> Unit,
+) {
+    val currentOnSelectionBounds by rememberUpdatedState(onSelectionBounds)
+    LaunchedEffect(geometry, selectedAyahs, bodyTop) {
+        currentOnSelectionBounds(
+            geometry.selectionBounds(selectedAyahs)?.translate(Offset(0f, bodyTop)),
+        )
     }
 }
 
@@ -188,7 +256,7 @@ private fun TextLine(
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Visible,
-                    modifier = slotModifier,
+                    modifier = slotModifier.hiddenFromScreenReaders(),
                 )
             is LineToken.RosetteToken ->
                 if (token.glyphCode != null) {
@@ -199,7 +267,7 @@ private fun TextLine(
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Visible,
-                        modifier = slotModifier,
+                        modifier = slotModifier.hiddenFromScreenReaders(),
                     )
                 } else {
                     AyahRing(

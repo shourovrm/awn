@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
@@ -79,6 +80,19 @@ internal class PageGeometry(
         val nearest = if (isOnLine) line?.tokens?.minByOrNull { distanceToToken(it, x) } else null
         val slop = fontSizePx * GAP_EM / 2f
         return nearest?.token?.takeIf { distanceToToken(nearest, x) <= slop }
+    }
+
+    /**
+     * The ayah a touch at ([x], [y]) means, even in a margin or between lines: the ayah under the
+     * point; else the ayah of the nearest line's token nearest to the point. Null only when the
+     * page has no text. Used by the long press, which must always find an ayah.
+     */
+    fun nearestAyahAt(x: Float, y: Float): AyahRef? {
+        val nearestLine = textLines.minByOrNull {
+            maxOf(it.top - y, y - (it.top + slotHeightPx), 0f)
+        }
+        val nearestToken = nearestLine?.tokens?.minByOrNull { distanceToToken(it, x) }
+        return nearestToken?.let { ayahOf(it.token) }
     }
 
     private fun distanceToToken(placement: TokenPlacement, x: Float): Float =
@@ -205,4 +219,37 @@ private fun placeTokens(
         right -= widths[index] + gap
         placement
     }
+}
+
+/** Where a selection is: the rectangle of its first line and the rectangle around all of it. */
+data class SelectionBounds(val firstLine: Rect, val all: Rect) {
+    fun translate(offset: Offset) =
+        SelectionBounds(firstLine.translate(offset), all.translate(offset))
+}
+
+/**
+ * Where the ayahs of [ayahs] are: the rectangle of their first line, for the floating bar to sit
+ * above, and the rectangle around all of them. Null when none is on this page.
+ */
+internal fun PageGeometry.selectionBounds(ayahs: Set<AyahRef>): SelectionBounds? {
+    val fragments = ayahs.flatMap { ayahFragments(it) }
+    if (fragments.isEmpty()) return null
+    val firstTop = fragments.minOf { it.top }
+    val firstLine = fragments.filter { it.top == firstTop }
+    return SelectionBounds(
+        firstLine =
+            Rect(
+                left = firstLine.minOf { it.left },
+                top = firstTop,
+                right = firstLine.maxOf { it.right },
+                bottom = firstTop + slotHeightPx,
+            ),
+        all =
+            Rect(
+                left = fragments.minOf { it.left },
+                top = firstTop,
+                right = fragments.maxOf { it.right },
+                bottom = fragments.maxOf { it.bottom },
+            ),
+    )
 }

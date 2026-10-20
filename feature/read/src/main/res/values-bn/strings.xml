@@ -15,6 +15,7 @@
   <string name="action_smaller">ছোট</string>
   <string name="action_larger">বড়</string>
   <string name="action_move_up">উপরে নিন</string>
+  <string name="action_go_to_playing_ayah">চলমান আয়াতে যান</string>
   <string name="size_percent">%1$d%%</string>
 
   <string name="menu_search">খোঁজ</string>
@@ -33,6 +34,9 @@
   <string name="ayah_share">শেয়ার</string>
   <string name="ayah_title">%1$s %2$d:%3$d</string>
   <string name="ayah_reference">%1$d:%2$d</string>
+  <string name="ayah_spoken">%1$s, আয়াত %2$d</string>
+  <string name="ayah_select_action">আয়াত বাছুন</string>
+  <string name="word_meaning_action">অর্থ দেখান</string>
 
   <string name="panel_translation">অনুবাদ</string>
   <string name="panel_play">চালান</string>

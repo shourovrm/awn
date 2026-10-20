@@ -70,7 +70,8 @@ internal fun AyahRing(
                     )
                 }
                 .size(ringDp)
-                .border(1.dp, Awn.field.tentativeWord, CircleShape),
+                .border(1.dp, Awn.field.tentativeWord, CircleShape)
+                .hiddenFromScreenReaders(),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -195,23 +196,43 @@ internal fun BasmalaLine(
 /** A rectangle to paint behind the text and its colour. */
 internal data class PageFill(val rect: Rect, val color: Color)
 
+/**
+ * How the playing-ayah highlight changes hands: the ayah that was playing fades out at
+ * [outgoingAlpha] while the new one fades in at [incomingAlpha], so the new ayah is lit before the
+ * old one is gone.
+ */
+internal data class PlayingFade(
+    val incoming: AyahRef?,
+    val incomingAlpha: Float = 1f,
+    val outgoing: AyahRef? = null,
+    val outgoingAlpha: Float = 0f,
+)
+
 /** The fills behind the ayah line fragments, lowest layer first: bookmarks up to the word. */
 internal fun ayahFills(
     geometry: PageGeometry,
     decorations: PageDecorations,
     field: AwnFieldColors,
+    playingFade: PlayingFade = PlayingFade(decorations.playingAyah),
 ): List<PageFill> {
-    fun fragments(ayah: AyahRef, color: Color) =
-        geometry.ayahFragments(ayah).map { PageFill(it, color) }
+    fun fragments(ayah: AyahRef, color: Color, alpha: Float = 1f) =
+        geometry.ayahFragments(ayah).map { PageFill(it, color.copy(alpha = color.alpha * alpha)) }
 
     val bookmarked = decorations.bookmarkedAyahs.flatMap { fragments(it, field.bookmarkedAyahFill) }
-    val selected = decorations.selectedAyah?.let { fragments(it, field.selectedAyahFill) }
-    val playing = decorations.playingAyah?.let { fragments(it, field.playingAyahFill) }
+    val selected = decorations.selectedAyahs.flatMap { fragments(it, field.selectedAyahFill) }
+    val outgoing =
+        playingFade.outgoing?.let {
+            fragments(it, field.playingAyahFill, playingFade.outgoingAlpha)
+        }
+    val incoming =
+        playingFade.incoming?.let {
+            fragments(it, field.playingAyahFill, playingFade.incomingAlpha)
+        }
     val word =
         decorations.playingWord?.let { key ->
             geometry.wordRect(key)?.let { listOf(PageFill(it, field.playingWordFill)) }
         }
-    return bookmarked + selected.orEmpty() + playing.orEmpty() + word.orEmpty()
+    return bookmarked + selected + outgoing.orEmpty() + incoming.orEmpty() + word.orEmpty()
 }
 
 /** One block over every word whose state is Hidden. */
@@ -244,11 +265,13 @@ internal fun DrawScope.drawFills(
     geometry: PageGeometry,
     decorations: PageDecorations,
     field: AwnFieldColors,
+    playingFade: PlayingFade = PlayingFade(decorations.playingAyah),
 ) {
     val corner = CornerRadius(4.dp.toPx())
     val inset = geometry.slotHeightPx * FILL_INSET_SHARE
     val fills =
-        ayahFills(geometry, decorations, field) + hiddenWordFills(geometry, decorations, field)
+        ayahFills(geometry, decorations, field, playingFade) +
+            hiddenWordFills(geometry, decorations, field)
     for ((rect, color) in fills) {
         drawRoundRect(
             color,

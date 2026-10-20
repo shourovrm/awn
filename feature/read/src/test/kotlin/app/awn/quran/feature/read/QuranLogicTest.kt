@@ -13,14 +13,15 @@ import app.awn.quran.feature.read.quran.PageItem
 import app.awn.quran.feature.read.quran.VolumeKeyAction
 import app.awn.quran.feature.read.quran.adjacentAyah
 import app.awn.quran.feature.read.quran.ayahShareText
-import app.awn.quran.feature.read.quran.ayahSpan
-import app.awn.quran.feature.read.quran.pageToFollow
+import app.awn.quran.feature.read.quran.isFollowingOn
 import app.awn.quran.feature.read.quran.scrollToKeepVisible
+import app.awn.quran.feature.read.quran.shouldTurnToPlayingPage
 import app.awn.quran.feature.read.quran.titleSurahNumber
 import app.awn.quran.feature.read.quran.volumeKeyAction
 import app.awn.quran.feature.read.settings.TextScale
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -68,11 +69,18 @@ class QuranLogicTest {
     }
 
     @Test
-    fun pagerFollowsPlaybackOnlyWhenTheReaderWasFollowing() {
-        assertEquals(5, pageToFollow(previousPlayingPage = 4, playingPage = 5, shownPage = 4))
-        assertEquals(5, pageToFollow(previousPlayingPage = null, playingPage = 5, shownPage = 1))
-        assertNull(pageToFollow(previousPlayingPage = 4, playingPage = 5, shownPage = 9))
-        assertNull(pageToFollow(previousPlayingPage = 5, playingPage = 5, shownPage = 5))
+    fun pagerTurnsToThePlayingPageOnlyWhileFollowing() {
+        assertTrue(shouldTurnToPlayingPage(isFollowing = true, playingPage = 5, shownPage = 4))
+        assertFalse(shouldTurnToPlayingPage(isFollowing = false, playingPage = 5, shownPage = 4))
+        assertFalse(shouldTurnToPlayingPage(isFollowing = true, playingPage = 5, shownPage = 5))
+    }
+
+    @Test
+    fun arrivingOnThePlayingPageFollowsAndArrivingElsewhereDoesNot() {
+        assertTrue(isFollowingOn(wasFollowing = false, playingPage = 5, shownPage = 5))
+        assertFalse(isFollowingOn(wasFollowing = true, playingPage = 5, shownPage = 9))
+        assertTrue(isFollowingOn(wasFollowing = true, playingPage = null, shownPage = 9))
+        assertFalse(isFollowingOn(wasFollowing = false, playingPage = null, shownPage = 9))
     }
 
     @Test
@@ -86,8 +94,14 @@ class QuranLogicTest {
 
     @Test
     fun volumeDownTurnsToTheNextPage() {
-        assertEquals(VolumeKeyAction.NextPage, volumeKeyAction(isVolumeDown = true))
-        assertEquals(VolumeKeyAction.PreviousPage, volumeKeyAction(isVolumeDown = false))
+        assertEquals(VolumeKeyAction.NextPage, volumeKeyAction(true, isAudioIdle = true))
+        assertEquals(VolumeKeyAction.PreviousPage, volumeKeyAction(false, isAudioIdle = true))
+    }
+
+    @Test
+    fun volumeKeysBelongToTheVolumeWhileAudioIsActive() {
+        assertNull(volumeKeyAction(isVolumeDown = true, isAudioIdle = false))
+        assertNull(volumeKeyAction(isVolumeDown = false, isAudioIdle = false))
     }
 
     @Test
@@ -153,26 +167,6 @@ class QuranLogicTest {
         // Page 50: Ali 'Imran starts at the top.
         val page50 = layoutOf(50, listOf(LineItem.SurahHeader(3)), listOf(wordOf(3, 1)))
         assertEquals(3, titleSurahNumber(page50))
-    }
-
-    @Test
-    fun ayahSpanFollowsTheSlotsOfThePage() {
-        val full =
-            layoutOf(
-                10,
-                *Array(15) { index ->
-                    if (index + 1 in 3..4) listOf(wordOf(2, 5)) else listOf(wordOf(2, 4))
-                },
-            )
-        // 15 slots of 100 px: lines 3 and 4 span 200..400.
-        val span = ayahSpan(full, AyahRef(2, 5), 1500f)
-        assertEquals(200f, span?.top)
-        assertEquals(400f, span?.bottom)
-
-        // 8 slots on a page 1500 px tall are centred: the block starts at (1500 - 800) / 2.
-        val short = layoutOf(1, *Array(8) { listOf(wordOf(1, 1)) })
-        assertEquals(350f, ayahSpan(short, AyahRef(1, 1), 1500f)?.top)
-        assertNull(ayahSpan(short, AyahRef(1, 2), 1500f))
     }
 
     @Test

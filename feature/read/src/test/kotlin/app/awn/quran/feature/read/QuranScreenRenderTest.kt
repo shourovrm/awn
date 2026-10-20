@@ -2,6 +2,7 @@ package app.awn.quran.feature.read
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -35,7 +36,7 @@ class QuranScreenRenderTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText(ReadFixture.FIRST_WORD).assertIsDisplayed()
-        // Opened at a target, so the bars start hidden; a tap on the page would show them.
+        // The bars are shown for two seconds when the screen opens.
         assertEquals(0, searchOpened)
     }
 
@@ -59,7 +60,8 @@ class QuranScreenRenderTest {
         }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("Al-Fatihah").assertIsDisplayed()
+        // The title in the top bar (shown for two seconds at the start) and the surah band.
+        composeRule.onAllNodesWithText("Al-Fatihah")[0].assertIsDisplayed()
         composeRule.onNodeWithText("1:1").assertIsDisplayed()
     }
 

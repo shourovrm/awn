@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.ui.theme.Awn
@@ -96,6 +98,7 @@ private fun TabButton(iconRes: Int, description: String, isSelected: Boolean, on
         iconRes = iconRes,
         description = description,
         onClick = onClick,
+        modifier = Modifier.semantics { selected = isSelected },
         tint =
             if (isSelected) Awn.field.buttonFill
             else Awn.field.content.copy(alpha = UNSELECTED_TAB_ALPHA),

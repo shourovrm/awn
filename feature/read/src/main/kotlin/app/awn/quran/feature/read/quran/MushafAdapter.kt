@@ -3,6 +3,11 @@ package app.awn.quran.feature.read.quran
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontFamily
@@ -11,48 +16,11 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.MushafPage
 import app.awn.quran.feature.read.page.PageDecorations
-import app.awn.quran.feature.read.page.slotCountOf
+import app.awn.quran.feature.read.page.SelectionBounds
 import app.awn.quran.tracker.WordState
-
-private const val SLOTS_PER_PAGE = 15
-
-/** The vertical extent of an ayah on a Mushaf page, in pixels from the top of the page. */
-internal data class AyahSpan(val top: Float, val bottom: Float)
-
-/** The page slots (1..15) that hold words or the end sign of [ayah], or null if none do. */
-internal fun ayahSlotRange(layout: PageLayout, ayah: AyahRef): IntRange? {
-    val slots =
-        layout.lines
-            .filter { line ->
-                line.items.any { item ->
-                    when (item) {
-                        is LineItem.WordItem ->
-                            item.word.key.surah == ayah.surah && item.word.key.ayah == ayah.ayah
-                        is LineItem.AyahEnd -> item.ayah == ayah
-                        is LineItem.SurahHeader,
-                        is LineItem.Basmala -> false
-                    }
-                }
-            }
-            .map { it.line }
-    return if (slots.isEmpty()) null else slots.min()..slots.max()
-}
-
-/**
- * Where [ayah] is on a page drawn [pageHeight] pixels tall. The page draws its slots at pageHeight
- * / 15 each, centred vertically when it has fewer than 15 (pages 1 and 2).
- */
-internal fun ayahSpan(layout: PageLayout, ayah: AyahRef, pageHeight: Float): AyahSpan? {
-    val range = ayahSlotRange(layout, ayah) ?: return null
-    val slotHeight = pageHeight / SLOTS_PER_PAGE
-    val topOfFirstSlot = (pageHeight - slotCountOf(layout) * slotHeight) / 2f
-    return AyahSpan(
-        top = topOfFirstSlot + (range.first - 1) * slotHeight,
-        bottom = topOfFirstSlot + range.last * slotHeight,
-    )
-}
 
 /**
  * Lays [content] out at [fullHeightPx] and moves it up by [shiftPx], clipped by the parent. The
@@ -67,6 +35,101 @@ internal fun Modifier.fixedHeightShifted(fullHeightPx: Int, shiftPx: () -> Int):
         layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, -shiftPx()) }
     }
 
+/** Every ayah that has a word or an end sign on the page. */
+internal fun ayahsOnLayout(layout: PageLayout): Set<AyahRef> =
+    layout.lines
+        .flatMap { line -> line.items }
+        .mapNotNull { item ->
+            when (item) {
+                is LineItem.WordItem -> AyahRef(item.word.key.surah, item.word.key.ayah)
+                is LineItem.AyahEnd -> item.ayah
+                is LineItem.SurahHeader,
+                is LineItem.Basmala -> null
+            }
+        }
+        .toSet()
+
+/**
+ * What the screen knows about marking the ayahs, before it is narrowed to one page by
+ * [highlightsFor]. [playingWordPosition] is a State so that a word tick is read only by the page
+ * that holds the playing ayah.
+ */
+@Immutable
+internal data class ScreenMarks(
+    val selection: AyahRange?,
+    val playingAyah: AyahRef?,
+    val playingWordPosition: State<Int?>,
+    val bookmarkedAyahs: Set<AyahRef>,
+)
+
+/**
+ * The marks that fall on a page holding [pageAyahs]. Two pages get equal results unless a mark
+ * changed on that page, so a playback tick on one page does not recompose the others.
+ */
+internal fun highlightsFor(
+    pageAyahs: Set<AyahRef>,
+    selection: AyahRange?,
+    playingAyah: AyahRef?,
+    playingWordPosition: Int?,
+    bookmarkedAyahs: Set<AyahRef>,
+): MushafHighlights {
+    val playingHere = playingAyah?.takeIf { it in pageAyahs }
+    return MushafHighlights(
+        selectedAyahs = pageAyahs.filterTo(mutableSetOf()) { selection?.contains(it) == true },
+        playingAyah = playingHere,
+        playingWord =
+            if (playingHere != null && playingWordPosition != null) {
+                WordKey(playingHere.surah, playingHere.ayah, playingWordPosition)
+            } else {
+                null
+            },
+        bookmarkedAyahs = pageAyahs.filterTo(mutableSetOf()) { it in bookmarkedAyahs },
+    )
+}
+
+/**
+ * A Mushaf page with the marks that fall on it. The word position is read through a derived state
+ * that is constant on pages without the playing ayah.
+ */
+@Composable
+internal fun MushafPageItem(
+    layout: PageLayout,
+    marks: ScreenMarks,
+    host: MushafHost,
+    modifier: Modifier = Modifier,
+) {
+    val pageAyahs = remember(layout) { ayahsOnLayout(layout) }
+    val isPlayingHere = marks.playingAyah != null && marks.playingAyah in pageAyahs
+    val wordPosition by
+        remember(isPlayingHere, marks.playingWordPosition) {
+            derivedStateOf { if (isPlayingHere) marks.playingWordPosition.value else null }
+        }
+    val highlights =
+        highlightsFor(
+            pageAyahs = pageAyahs,
+            selection = marks.selection,
+            playingAyah = marks.playingAyah,
+            playingWordPosition = wordPosition,
+            bookmarkedAyahs = marks.bookmarkedAyahs,
+        )
+    MushafPageHost(layout, highlights, host, modifier)
+}
+
+/** What a Mushaf page needs besides its marks: text, fonts, recite colours and the actions. */
+@Immutable
+internal data class MushafHost(
+    val chapters: List<Chapter>,
+    val fontFamily: FontFamily?,
+    val plainFamily: FontFamily?,
+    val wordStates: Map<WordKey, WordState>,
+    val showPageInfo: Boolean,
+    val onTap: () -> Unit,
+    val onAyahPressed: (AyahRef) -> Unit,
+    val onRangeDrag: (AyahRange) -> Unit,
+    val onRangeEnd: () -> Unit,
+    val onSelectionBounds: (SelectionBounds?) -> Unit,
+)
+
 /**
  * The one place that calls [MushafPage]: maps the screen's highlights to [PageDecorations]. A tap
  * anywhere on the page toggles the bars, a long press on a word selects its ayah.
@@ -74,40 +137,43 @@ internal fun Modifier.fixedHeightShifted(fullHeightPx: Int, shiftPx: () -> Int):
 @Composable
 internal fun MushafPageHost(
     layout: PageLayout,
-    chapters: List<Chapter>,
-    fontFamily: FontFamily?,
-    plainFamily: FontFamily?,
     highlights: MushafHighlights,
-    wordStates: Map<WordKey, WordState>,
-    showPageInfo: Boolean,
-    onTap: () -> Unit,
-    onAyahPressed: (AyahRef) -> Unit,
+    host: MushafHost,
     modifier: Modifier = Modifier,
 ) {
+    val wordStates = host.wordStates
+    // Remembered, so equal marks give an equal PageDecorations and the page can skip recomposing.
+    val decorations =
+        remember(highlights, wordStates) {
+            PageDecorations(
+                selectedAyahs = highlights.selectedAyahs,
+                playingAyah = highlights.playingAyah,
+                playingWord = highlights.playingWord,
+                bookmarkedAyahs = highlights.bookmarkedAyahs,
+                wordStates = { key -> wordStates[key] ?: WordState.Neutral },
+            )
+        }
     Box(modifier.fillMaxSize()) {
         MushafPage(
             layout = layout,
-            chapters = chapters,
-            fontFamily = fontFamily,
-            plainFamily = plainFamily,
-            decorations =
-                PageDecorations(
-                    selectedAyah = highlights.selectedAyah,
-                    playingAyah = highlights.playingAyah,
-                    playingWord = highlights.playingWord,
-                    bookmarkedAyahs = highlights.bookmarkedAyahs,
-                    wordStates = { key -> wordStates[key] ?: WordState.Neutral },
-                ),
-            showPageInfo = showPageInfo,
-            onWordClick = { onTap() },
-            onAyahLongPress = { ayah, _ -> onAyahPressed(ayah) },
+            chapters = host.chapters,
+            fontFamily = host.fontFamily,
+            plainFamily = host.plainFamily,
+            decorations = decorations,
+            showPageInfo = host.showPageInfo,
+            onTap = host.onTap,
+            onAyahLongPress = host.onAyahPressed,
+            onRangeDrag = host.onRangeDrag,
+            onRangeEnd = host.onRangeEnd,
+            onSelectionBounds = host.onSelectionBounds,
         )
     }
 }
 
 /** What the Mushaf page should mark; mirrors the fields of the page agent's PageDecorations. */
+@Immutable
 internal data class MushafHighlights(
-    val selectedAyah: AyahRef? = null,
+    val selectedAyahs: Set<AyahRef> = emptySet(),
     val playingAyah: AyahRef? = null,
     val playingWord: WordKey? = null,
     val bookmarkedAyahs: Set<AyahRef> = emptySet(),
