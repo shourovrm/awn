@@ -1,6 +1,6 @@
 # Awn - Quran & Tajweed Helper (عون)
 
-Free, ad-free, account-free native Android app (Kotlin, Jetpack Compose, Android only) for reading the Quran and following recitation word by word on the device with on-device ONNX models; for Muslims learning to recite and memorise. Licence: Apache-2.0 plus Awn additional conditions (free to all end users, no ads, no charges or in-app purchases, AI-advisory notice, conditions pass through to forks). The repository is source-available, not OSI open source; F-Droid is out of scope for that reason. Awn depends on no other Quran app's code; the plan is `docs/plan.md`.
+Free, ad-free, account-free native Android app (Kotlin, Jetpack Compose, Android only) for reading the Quran and following recitation word by word on the device with on-device ONNX models; for Muslims learning to recite and memorise. Licence: MIT plus Awn additional conditions (free to all end users, no ads, no charges or in-app purchases, AI-advisory notice, conditions pass through to forks). The repository is source-available, not OSI open source; F-Droid is out of scope for that reason. Awn depends on no other Quran app's code; the plan is `docs/plan.md`.
 
 ## Commands
 The Gradle project is not scaffolded yet; the commands below are the intended ones. Stack: Gradle wrapper 9.8.2, AGP 9.4, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk/targetSdk 36, minSdk 26, versions in `gradle/libs.versions.toml`. No global Gradle is installed (the wrapper handles it).
