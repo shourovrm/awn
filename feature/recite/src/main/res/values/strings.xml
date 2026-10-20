@@ -1,4 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="recite_title">Recite</string>
+  <string name="recite_start">Start</string>
+  <string name="recite_stop">Stop</string>
+  <string name="recite_reset">Start over</string>
+  <string name="recite_hifz">Hifz</string>
+  <string name="recite_hint">Hint</string>
+  <string name="recite_speed">Speed</string>
+  <string name="recite_slower">Slower</string>
+  <string name="recite_faster">Faster</string>
+
+  <string name="recite_status_ready">Ready</string>
+  <string name="recite_status_listening">Listening</string>
+  <string name="recite_status_stopped">Stopped</string>
+  <string name="recite_status_no_text">No text for this range</string>
+  <string name="recite_status_no_microphone">Can\'t use the microphone</string>
+  <string name="recite_status_skipped">Skipped: ayah %1$d, word %2$d</string>
+  <string name="recite_status_inserted">Extra words: ayah %1$d, after word %2$d</string>
+  <string name="recite_status_anchored">Found your place: ayah %1$d, word %2$d</string>
+
+  <string name="recite_word_confirmed">Correct</string>
+  <string name="recite_word_tentative">Unsure</string>
+  <string name="recite_word_wrong">Wrong</string>
+  <string name="recite_word_hidden">Hidden</string>
+
+  <string name="recite_review">Review</string>
+  <string name="recite_verdict_skipped">Skipped</string>
+  <string name="recite_listen">Listen</string>
+  <string name="recite_previous">Previous</string>
+  <string name="recite_next">Next</string>
+  <string name="recite_finding_wrong_word">Wrong word</string>
+  <string name="recite_duration">%1$.2f s of %2$.2f s</string>
+  <string name="recite_hint_say_again">Say the word again</string>
+  <string name="recite_hint_hold_longer">Hold it a little longer</string>
+  <string name="recite_hint_hold_shorter">Hold it a little shorter</string>
+  <string name="recite_hint_duration_ok">Well held</string>
+  <string name="recite_finding_pronunciation">Pronunciation</string>
+  <string name="recite_yours">Yours</string>
+  <string name="recite_correct">Correct</string>
+  <string name="recite_hint_clear_letter">Say the letter clearly</string>
+  <string name="recite_legend_mistake">Mistake</string>
+
+  <string name="recite_microphone_rationale">Awn needs the microphone to hear you recite. Audio stays on your phone.</string>
+  <string name="recite_microphone_allow">Allow microphone</string>
+  <string name="recite_microphone_denied">The microphone is off for Awn. Turn it on in settings.</string>
+  <string name="recite_microphone_open_settings">Open settings</string>
+
+  <string name="recite_range_single">%1$s %2$d</string>
+  <string name="recite_range_span">%1$s %2$d–%3$d</string>
+  <string name="recite_range_title">Range</string>
+  <string name="recite_range_surah">Surah</string>
+  <string name="recite_range_from">From ayah</string>
+  <string name="recite_range_to">To ayah</string>
+  <string name="recite_range_done">Done</string>
+
+  <string name="recite_settings_title">Reciting</string>
+  <string name="recite_settings_hide_words">Hide words in hifz</string>
+  <string name="recite_settings_hint">Hint button</string>
 </resources>
