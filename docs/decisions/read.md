@@ -14,8 +14,6 @@
 - Both views call `recordPageOpened`; switching view reopens on the most recent page.
 
 ## Open items
-- Add a 12 sp token to `Type.kt`; the word meaning is now 14 sp scaled by 6/7 in `AyahListScreen`.
-- Reciter display names: the dock shows the `reciterName` lambda result, default the id.
 - Screenshots at font scale 1.3 and night are not checked (no emulator was available).
 - Basmala and surah band use Unicode text in every script; no glyph codes exist for them in the tables.
 

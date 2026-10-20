@@ -7,6 +7,7 @@ plugins {
 }
 
 val fetchNativeLibs = rootProject.tasks.named("fetchNativeLibs")
+val fetchModels = rootProject.tasks.named("fetchModels")
 
 // ---------------------------------------------------------------------------------------------
 // Version, derived from git so it is never edited by hand.
@@ -103,6 +104,9 @@ android {
 
     testOptions { unitTests.isIncludeAndroidResources = true }
 
+    // Lists the languages of the app's resources (English, Bangla) for the system language picker.
+    androidResources { generateLocaleConfig = true }
+
     lint {
         warningsAsErrors = true
         abortOnError = true
@@ -120,6 +124,32 @@ android {
             )
     }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Speech files. The Zipformer model, its token list and the reference phonemes ship inside the
+// APK. fetchModels checks awn-models/ against gradle/models.sha256 (and downloads what is missing),
+// then the three files the app reads are copied into the gitignored assets/models folder.
+// ---------------------------------------------------------------------------------------------
+
+val speechFileNames =
+    listOf("zipformer_p_arabic_v3.int8.onnx", "tokens.txt", "ordered_quran_phonemes.json")
+
+val copySpeechFiles =
+    tasks.register<Copy>("copySpeechFiles") {
+        description = "Copies the verified speech files from awn-models/ into assets/models."
+        group = "awn"
+        dependsOn(fetchModels)
+        from(rootProject.layout.projectDirectory.dir("awn-models")) { include(speechFileNames) }
+        into(layout.projectDirectory.dir("src/main/assets/models"))
+    }
+
+// Every task that reads the assets folder must run after the files are in place.
+tasks
+    .matching {
+        (it.name.contains("Assets") || it.name.contains("lint", ignoreCase = true)) &&
+            it.name != copySpeechFiles.name
+    }
+    .configureEach { dependsOn(copySpeechFiles) }
 
 androidComponents {
     onVariants { variant ->
@@ -171,8 +201,11 @@ dependencies {
     implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)
+    implementation(libs.androidx.lifecycleViewmodelCompose)
     implementation(libs.androidx.datastorePreferences)
     implementation(libs.androidx.coreKtx)
+    implementation(libs.kotlinx.coroutinesCore)
+    implementation(libs.okhttp)
 
     // sherpa-onnx classes and native libraries; downloaded and checksum-verified by
     // fetchNativeLibs.

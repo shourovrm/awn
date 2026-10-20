@@ -58,15 +58,7 @@ private const val BANGLA_LANGUAGE = "bn"
 private const val ENGLISH_LANGUAGE = "en"
 private const val CURRENT_BLOCK_ALPHA = 0.08f
 
-/** The word-by-word meaning is set at 12 sp, which is 6/7 of the 14 sp small token. */
-private const val MEANING_SCALE = 6f / 7f
-
-private val wordMeaningStyle =
-    AwnTypography.small.copy(
-        fontSize = AwnTypography.small.fontSize * MEANING_SCALE,
-        textAlign = TextAlign.Center,
-        lineHeight = AwnTypography.small.lineHeight * MEANING_SCALE,
-    )
+private val wordMeaningStyle = AwnTypography.caption.copy(textAlign = TextAlign.Center)
 
 /**
  * The ayah-by-ayah view of [source]. Each line of a block (word by word, transliteration, each

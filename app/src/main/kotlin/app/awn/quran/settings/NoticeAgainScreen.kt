@@ -17,9 +17,9 @@ import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.notice.NoticeContent
 
-/** About stub: the notice again. Credits and version arrive with their features. */
+/** The notice again, opened from the Notice row of Settings. */
 @Composable
-fun AboutScreen() {
+fun NoticeAgainScreen() {
     AwnTheme(field = AwnField.Paper) {
         Column(
             modifier =
@@ -28,7 +28,7 @@ fun AboutScreen() {
                     .padding(AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.large),
         ) {
-            Text(text = stringResource(R.string.about_title), style = AwnTypography.title)
+            Text(text = stringResource(R.string.settings_notice), style = AwnTypography.title)
             NoticeContent()
         }
     }

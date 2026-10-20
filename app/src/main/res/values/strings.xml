@@ -3,6 +3,15 @@
   <string name="app_name" translatable="false">Awn</string>
 
   <string name="home_settings">Settings</string>
+  <string name="home_continue">Continue reading</string>
+  <string name="home_streak_caption">days in a row</string>
+  <string name="home_pages_caption">pages this week</string>
+  <string name="home_detail_page">Page %d</string>
+  <plurals name="home_detail_due">
+    <item quantity="one">%d due</item>
+    <item quantity="other">%d due</item>
+  </plurals>
+  <string name="home_detail_hifz">Hifz on</string>
   <string name="mode_read">Read</string>
   <string name="mode_listen">Listen</string>
   <string name="mode_recite">Recite</string>
@@ -10,12 +19,42 @@
 
   <string name="settings_title">Settings</string>
   <string name="settings_theme">Theme</string>
-  <string name="settings_about">About</string>
+  <string name="settings_group_listening">Listening</string>
+  <string name="settings_group_learning">Learning</string>
+  <string name="settings_group_app">App</string>
+  <string name="settings_reciter">Reciter</string>
+  <string name="settings_downloads">Downloads</string>
+  <string name="settings_wifi_only">Wi-Fi only</string>
+  <string name="settings_audio_size">Downloaded audio</string>
+  <string name="settings_memorised_after">Memorised after (days)</string>
+  <string name="settings_language">Language</string>
+  <string name="settings_backup_export">Export bookmarks</string>
+  <string name="settings_backup_import">Import bookmarks</string>
+  <string name="settings_backup_exported">Saved</string>
+  <string name="settings_backup_imported">Imported</string>
+  <string name="settings_backup_failed">Can\'t use that file</string>
+  <string name="settings_notice">Notice</string>
+  <string name="settings_credits">Credits</string>
+  <string name="settings_version">Version</string>
   <string name="theme_light">Light</string>
   <string name="theme_dark">Dark</string>
   <string name="theme_system">System</string>
 
-  <string name="about_title">About</string>
+  <string name="credits_title">Credits</string>
+  <string name="credits_data">Text, translations and audio</string>
+  <string name="credits_recogniser">Recitation checker</string>
+  <string name="credits_libraries">Open-source libraries</string>
+  <string name="credits_source_line" translatable="false">%1$s\n%2$s</string>
+  <string name="credit_recogniser_entry" translatable="false">Quran-Lab, Zipformer p-arabic v3. Quran-Lab No-Profit License 1.2 (NPL-1.2).</string>
+  <string-array name="credit_libraries" translatable="false">
+    <item>AndroidX, Jetpack Compose, Room and Media3. Apache License 2.0.</item>
+    <item>Kotlin and kotlinx.coroutines. Apache License 2.0.</item>
+    <item>OkHttp. Apache License 2.0.</item>
+    <item>sherpa-onnx. Apache License 2.0.</item>
+    <item>ONNX Runtime. MIT License.</item>
+  </string-array>
+
+  <string name="listen_choose_surah">Surahs</string>
 
   <string name="notice_title">Notice</string>
   <string name="notice_accept">I understand</string>

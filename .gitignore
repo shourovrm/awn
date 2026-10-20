@@ -66,6 +66,7 @@ __pycache__/
 .taste-skill/
 
 # model files (mirrored in the models data release, not in git)
+/app/src/main/assets/models/
 awn-models/
 awn-data/
 

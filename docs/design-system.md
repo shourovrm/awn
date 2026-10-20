@@ -7,7 +7,7 @@ Every screen is a chapter with one flat colour, floor to ceiling, and one object
 ## Type
 
 - One Latin and Bangla UI face: Roundo (rounded geometric sans), weights 400 and 600. Bangla falls back to Noto Serif Bengali. Quran text uses the QPC Hafs font (mockups stand in Amiri Quran).
-- Five sizes only, in sp: 14 (small), 16 (body), 22 (lead), 32 (title), 56 (poster). Quran text 26sp with line height 2.0 so a 15-line page fits the screen; page view may scale it by the user's zoom only.
+- Six sizes only, in sp: 12 (caption, word-by-word meanings), 14 (small), 16 (body), 22 (lead), 32 (title), 56 (poster). Quran text 26sp with line height 2.0 so a 15-line page fits the screen; page view may scale it by the user's zoom only.
 - Poster and title: weight 600, tracking -0.025em, leading 1.05. Body: weight 400, leading 1.5. Sentence case everywhere; no uppercase tracking, no italics.
 - Headlines two lines or fewer at every width. Running text in the full ink of the field, never grey.
 

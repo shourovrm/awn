@@ -8,7 +8,6 @@ android {
 
     // Two test-only libraries are declared by coordinate because the shared version catalog is
     // owned by the maintainer; they move to the catalog when it is next edited.
-    lint { disable += "UseTomlInstead" }
 }
 
 dependencies {
@@ -28,10 +27,10 @@ dependencies {
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.uiTestJunit4)
     // Test dispatcher for the session loop; the version catalog has no entry for it.
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation(libs.kotlinx.coroutinesTest)
     // The Espresso that Compose tests pull in by default calls an InputManager method that Android
     // 16 removed.
-    testImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    testImplementation(libs.androidx.espressoCore)
     // Declares the ComponentActivity that the Robolectric Compose rule launches.
-    testImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation(libs.compose.uiTestManifest)
 }

@@ -8,11 +8,20 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 /**
- * Five sizes only: 14, 16, 22, 32 and 56 sp. Roundo is not bundled yet, so the platform sans-serif
- * stands in until the font file is added.
+ * Six sizes only: 12, 14, 16, 22, 32 and 56 sp. Roundo is not bundled yet, so the platform
+ * sans-serif stands in until the font file is added.
  */
 object AwnTypography {
     private val interfaceFont = FontFamily.SansSerif
+
+    /** Word-by-word meanings under each Quran word. */
+    val caption =
+        TextStyle(
+            fontFamily = interfaceFont,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            lineHeight = 1.5.em,
+        )
 
     val small =
         TextStyle(

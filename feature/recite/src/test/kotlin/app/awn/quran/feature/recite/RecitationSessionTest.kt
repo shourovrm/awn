@@ -1,6 +1,8 @@
 package app.awn.quran.feature.recite
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.tracker.DurationCheck
+import app.awn.quran.tracker.DurationVerdict
 import app.awn.quran.tracker.TrackerConfig
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordState
@@ -208,5 +210,46 @@ class RecitationSessionTest {
 
         assertEquals(listOf(AyahRef(1, 1) to 1), fixture.progress.hifzCompletions)
         assertTrue(fixture.progress.greenAyahs.isEmpty())
+    }
+
+    @Test
+    fun aSubstitutionEventAppearsInTheReviewOfItsWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        val substitution = TrackerEvent.Substitution(0, 2, heard = "س", expected = "ص")
+        fixture.script(fixture.confirmed(0), substitution)
+        fixture.session.start()
+
+        val review = fixture.session.reviews.value.getValue(1).single()
+
+        assertEquals(fixture.first, review.key)
+        assertEquals(listOf(ReviewFinding.Pronunciation(substitution)), review.findings)
+    }
+
+    @Test
+    fun anOverheldDurationEventFlagsItsWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        val check = DurationCheck(1, "ا", "natural", 1.2f, 0.4f, DurationVerdict.Overheld)
+        fixture.script(fixture.confirmed(0), fixture.confirmed(1), TrackerEvent.Duration(check))
+        fixture.session.start()
+
+        val review = fixture.session.reviews.value.getValue(1).single()
+
+        assertEquals(fixture.second, review.key)
+        assertEquals(listOf(ReviewFinding.Duration(check)), review.findings)
+    }
+
+    @Test
+    fun aWrongWordCountsAsPassedAndAsAMistakeInHifz() = runTest {
+        val fixture = SessionFixture(inputBlocks = 2)
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.script(TrackerEvent.WordChanged(0, WordState.Wrong))
+        fixture.script(fixture.confirmed(1))
+        fixture.session.start()
+
+        assertEquals(fixture.third, fixture.session.currentWord.value)
+        assertEquals(listOf(AyahRef(1, 1) to 1), fixture.progress.hifzCompletions)
     }
 }

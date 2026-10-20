@@ -3,6 +3,9 @@ package app.awn.quran.feature.recite
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.player.fakes.FakeAudioPlayer
+import app.awn.quran.tracker.DurationCheck
+import app.awn.quran.tracker.DurationVerdict
+import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -42,8 +45,9 @@ class ReviewRulesTest {
 
     @Test
     fun findingsAreOrderedVerdictThenPronunciationThenDuration() {
-        val substitution = SubstitutionFinding(keys[0], heard = "س", expected = "ص")
-        val duration = DurationFinding(keys[0], "ا", "Madd", 0.28f, 0.6f, DurationVerdict.Underheld)
+        val substitution =
+            TrackerEvent.Substitution(wordIndex = 0, phonemeIndex = 1, heard = "س", expected = "ص")
+        val duration = DurationCheck(0, "ا", "natural", 0.28f, 0.6f, DurationVerdict.Underheld)
 
         val reviews =
             ReviewRules.reviewsByAyah(
@@ -66,7 +70,7 @@ class ReviewRulesTest {
 
     @Test
     fun anOkDurationAloneDoesNotFlagAWord() {
-        val duration = DurationFinding(keys[0], "ا", "Madd", 0.6f, 0.6f, DurationVerdict.Ok)
+        val duration = DurationCheck(0, "ا", "natural", 0.6f, 0.6f, DurationVerdict.Ok)
 
         val reviews =
             ReviewRules.reviewsByAyah(
@@ -81,7 +85,7 @@ class ReviewRulesTest {
 
     @Test
     fun aBadDurationFlagsAConfirmedWord() {
-        val duration = DurationFinding(keys[0], "ا", "Madd", 1.2f, 0.6f, DurationVerdict.Overheld)
+        val duration = DurationCheck(0, "ا", "natural", 1.2f, 0.6f, DurationVerdict.Overheld)
 
         val reviews =
             ReviewRules.reviewsByAyah(

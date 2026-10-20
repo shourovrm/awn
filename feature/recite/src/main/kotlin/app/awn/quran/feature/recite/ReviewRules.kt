@@ -3,32 +3,10 @@ package app.awn.quran.feature.recite
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.tracker.DurationCheck
+import app.awn.quran.tracker.DurationVerdict
+import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordState
-
-/** Whether a held letter was held for the right time. Mirrors the tracker's `DurationVerdict`. */
-enum class DurationVerdict {
-    Ok,
-    Underheld,
-    Overheld,
-}
-
-/**
- * How long one [letter] of the word [key] was held against what [rule] expects. Mirrors the
- * tracker's `DurationCheck`; [rule] is the rule name shown to the user, for example "Madd".
- */
-data class DurationFinding(
-    val key: WordKey,
-    val letter: String,
-    val rule: String,
-    val measuredSeconds: Float,
-    val expectedSeconds: Float,
-    val verdict: DurationVerdict,
-)
-
-/**
- * A sound the user said as [heard] where [expected] belongs; mirrors the tracker's `Substitution`.
- */
-data class SubstitutionFinding(val key: WordKey, val heard: String, val expected: String)
 
 /** One thing found about a word. */
 sealed interface ReviewFinding {
@@ -36,9 +14,9 @@ sealed interface ReviewFinding {
 
     data object WrongWord : ReviewFinding
 
-    data class Pronunciation(val substitution: SubstitutionFinding) : ReviewFinding
+    data class Pronunciation(val substitution: TrackerEvent.Substitution) : ReviewFinding
 
-    data class Duration(val check: DurationFinding) : ReviewFinding
+    data class Duration(val check: DurationCheck) : ReviewFinding
 }
 
 /** Everything found about one word, in the order shown in the sheet. */
@@ -57,8 +35,8 @@ internal object ReviewRules {
         keys: List<WordKey>,
         trackerStates: List<WordState>,
         skippedIndexes: Set<Int>,
-        durations: Map<WordKey, List<DurationFinding>>,
-        substitutions: Map<WordKey, List<SubstitutionFinding>> = emptyMap(),
+        durations: Map<WordKey, List<DurationCheck>>,
+        substitutions: Map<WordKey, List<TrackerEvent.Substitution>> = emptyMap(),
     ): Map<Int, List<WordReview>> {
         val reviews = mutableListOf<WordReview>()
         keys.forEachIndexed { index, key ->

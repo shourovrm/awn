@@ -12,7 +12,6 @@
 
 ## Open items
 - data-v1 release does not exist yet (404 on 2026-10-20); the download fallback and installs need it.
-- The app must create one `CoreData` and call fetch before assembling; `:app` wiring is the maintainer's.
 - No instrumented test for the asset copy on a device.
 
 ## Gotchas

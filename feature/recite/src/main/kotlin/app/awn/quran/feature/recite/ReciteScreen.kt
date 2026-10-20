@@ -54,6 +54,8 @@ const val RECITE_PRIMARY_TAG = "recite-primary"
 /**
  * The Recite screen for [range]. [session] must outlive the screen (hold it in :app, for example in
  * a ViewModel) so the results survive a rotation; the screen stops listening when it leaves.
+ * [onRangeChange] reports the range the user picks, so the holder can pass it back in after a
+ * rotation.
  */
 @Composable
 fun ReciteScreen(
@@ -62,8 +64,11 @@ fun ReciteScreen(
     settings: ReciteSettings,
     audioPlayer: AudioPlayer,
     modifier: Modifier = Modifier,
+    onRangeChange: (ReciteRange) -> Unit = {},
 ) {
-    AwnTheme(field = ReciteField) { ReciteContent(range, session, settings, audioPlayer, modifier) }
+    AwnTheme(field = ReciteField) {
+        ReciteContent(range, session, settings, audioPlayer, modifier, onRangeChange)
+    }
 }
 
 @Composable
@@ -74,6 +79,7 @@ private fun ReciteContent(
     settings: ReciteSettings,
     audioPlayer: AudioPlayer,
     modifier: Modifier,
+    onRangeChange: (ReciteRange) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var range by remember(initialRange) { mutableStateOf(initialRange) }
@@ -87,6 +93,7 @@ private fun ReciteContent(
     val skippedWords by session.skippedWords.collectAsState()
     val hint by session.hint.collectAsState()
     val reviews by session.reviews.collectAsState()
+    val currentWord by session.currentWord.collectAsState()
     val speed by session.speed.collectAsState()
     val hifzEnabled by session.hifzEnabled.collectAsState()
     val hintEnabled by settings.hintEnabled.collectAsState(initial = true)
@@ -116,6 +123,7 @@ private fun ReciteContent(
                 skippedWords = skippedWords,
                 hint = hint,
                 reviews = reviews,
+                currentWord = currentWord,
                 onFlaggedWordClick = { key -> reviewStart = key.ayah to key },
                 onReviewClick = { ayah ->
                     reviews[ayah]?.firstOrNull()?.let { reviewStart = ayah to it.key }
@@ -138,6 +146,7 @@ private fun ReciteContent(
             current = range,
             onConfirm = {
                 range = it
+                onRangeChange(it)
                 pickerOpen = false
             },
             onDismiss = { pickerOpen = false },

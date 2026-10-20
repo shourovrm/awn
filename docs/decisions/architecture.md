@@ -9,11 +9,15 @@
 - :tracker contracts: TrackerInput.nextBlock() returns 16 kHz mono floats or null at end; PhonemeSource.accept/finish return new PhonemeEvent(symbol, onsetSeconds, probability); Tracker works on reference word indexes (not WordKey, which is Android-only); WordState Neutral, Confirmed, Tentative, Wrong, Hidden.
 - SherpaPhonemeSource wraps OnlineRecognizer (Zipformer2 CTC, greedy_search, endpoint off, 80-dim 16 kHz features) and reports only tokens not reported before. Blank token is <blank>.
 - Notice and theme choice live in DataStore (app/AppPreferences). The notice shows English, Bangla and Arabic together, always; the three texts are non-translatable strings notice_english, notice_bangla, notice_arabic. The Arabic text is the maintainer's wording ("هذا المعلّم القرآني"); English and Bangla say "This app".
-- Navigation: Home with four mode bands, Settings (Theme row cycles Light, Dark, System; About row), About (hosts the notice), four feature placeholders.
+- :app wiring: `AwnApplication.onCreate` builds one `AwnServices` (hand-written holder, no DI): CoreData, ExoAudioPlayer, OkHttpAudioDownloads, learn's ProgressEvents, ReadDependencies, settings stores. `AwnViewModelFactory` builds the view models; `ReciteViewModel` holds the `RecitationSession` and the chosen range.
+- Navigation: Home (bands with live detail, streak and pages tiles, day's snippet, Continue reading), Read (`read?page=`), Listen (surah list, `ListenPanel`), Reciters, Downloads, Recite, Learn (hosts Revision, Progress, lessons itself), Settings, Notice, Credits.
+- Settings groups follow the design system: Reading and Reciting embed the feature screens, Listening, Learning and App are in :app. Group gap is 24 dp (the 8 dp grid), not the 20 dp of the spec. Language opens the system per-app language picker (`generateLocaleConfig`); Backup exports and imports the bookmark JSON through the document picker.
+- The speech model, tokens and reference phonemes ship as assets (`copySpeechFiles`, gitignored `app/src/main/assets/models`, verified by `fetchModels` against gradle/models.sha256) and are copied to filesDir/models on first use.
+- Fonts: Roundo and Noto Serif Bengali are not bundled; every screen uses the platform sans-serif until the files are added. Type.kt now has six sizes (12 caption added).
 
 ## Open items
-- Map WordKey to tracker reference indexes in milestone 4.
-- Settings theme control is a cycling row; replace with the design-system rows when Settings grows.
+- Bundle Roundo and Noto Serif Bengali (needs the font files and their licences).
+- Theme and learn threshold rows cycle on tap; a picker would be clearer.
 
 ## Gotchas
 - sherpa OnlineRecognizer takes android.content.res.AssetManager in its constructor; :tracker compiles against com.google.android:android:4.1.1.4 only for that type.

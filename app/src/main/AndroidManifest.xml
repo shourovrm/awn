@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+  <!-- Android 13 and later hide the media notification of the player without it. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
   <application
+    android:name=".AwnApplication"
     android:allowBackup="false"
     android:dataExtractionRules="@xml/data_extraction_rules"
     android:fullBackupContent="@xml/backup_rules"

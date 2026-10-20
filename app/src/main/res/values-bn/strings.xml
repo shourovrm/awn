@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="home_settings">সেটিংস</string>
+  <string name="home_continue">পড়া চালিয়ে যান</string>
+  <string name="home_streak_caption">দিন টানা</string>
+  <string name="home_pages_caption">পৃষ্ঠা এই সপ্তাহে</string>
+  <string name="home_detail_page">পৃষ্ঠা %d</string>
+  <plurals name="home_detail_due">
+    <item quantity="one">%d বাকি</item>
+    <item quantity="other">%d বাকি</item>
+  </plurals>
+  <string name="home_detail_hifz">হিফজ চালু</string>
   <string name="mode_read">পড়ুন</string>
   <string name="mode_listen">শুনুন</string>
   <string name="mode_recite">তিলাওয়াত</string>
@@ -8,12 +17,33 @@
 
   <string name="settings_title">সেটিংস</string>
   <string name="settings_theme">থিম</string>
-  <string name="settings_about">পরিচিতি</string>
+  <string name="settings_group_listening">শোনা</string>
+  <string name="settings_group_learning">শেখা</string>
+  <string name="settings_group_app">অ্যাপ</string>
+  <string name="settings_reciter">ক্বারী</string>
+  <string name="settings_downloads">ডাউনলোড</string>
+  <string name="settings_wifi_only">শুধু ওয়াই-ফাই</string>
+  <string name="settings_audio_size">ডাউনলোড করা অডিও</string>
+  <string name="settings_memorised_after">মুখস্থ ধরা হবে (দিন)</string>
+  <string name="settings_language">ভাষা</string>
+  <string name="settings_backup_export">বুকমার্ক এক্সপোর্ট</string>
+  <string name="settings_backup_import">বুকমার্ক ইম্পোর্ট</string>
+  <string name="settings_backup_exported">সংরক্ষিত</string>
+  <string name="settings_backup_imported">ইম্পোর্ট হয়েছে</string>
+  <string name="settings_backup_failed">এই ফাইল ব্যবহার করা যাচ্ছে না</string>
+  <string name="settings_notice">বিজ্ঞপ্তি</string>
+  <string name="settings_credits">কৃতজ্ঞতা</string>
+  <string name="settings_version">সংস্করণ</string>
   <string name="theme_light">হালকা</string>
   <string name="theme_dark">গাঢ়</string>
   <string name="theme_system">ডিভাইস অনুযায়ী</string>
 
-  <string name="about_title">পরিচিতি</string>
+  <string name="credits_title">কৃতজ্ঞতা</string>
+  <string name="credits_data">পাঠ, অনুবাদ ও অডিও</string>
+  <string name="credits_recogniser">তিলাওয়াত যাচাই</string>
+  <string name="credits_libraries">ওপেন-সোর্স লাইব্রেরি</string>
+
+  <string name="listen_choose_surah">সূরা</string>
 
   <string name="notice_title">বিজ্ঞপ্তি</string>
   <string name="notice_accept">আমি বুঝেছি</string>

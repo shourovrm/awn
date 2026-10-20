@@ -6,6 +6,7 @@ import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.tracker.DurationCheck
 import app.awn.quran.tracker.PhonemeEvent
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.ReferencePhonemes
@@ -19,12 +20,14 @@ import app.awn.quran.tracker.WordState
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** The ayahs [firstAyah] to [lastAyah] of one surah, both included. */
 data class ReciteRange(val surah: Int, val firstAyah: Int, val lastAyah: Int) {
@@ -115,7 +118,7 @@ class RecitationSession(
     /** How each word is drawn; in hifz mode unconfirmed words are [WordState.Hidden]. */
     val wordStates: StateFlow<Map<WordKey, WordState>> = mutableWordStates.asStateFlow()
 
-    /** The first word not yet confirmed or skipped, null when the whole range is done. */
+    /** The first word not yet confirmed or red (wrong or skipped), null when the range is done. */
     val currentWord: StateFlow<WordKey?> = mutableCurrentWord.asStateFlow()
     val status: StateFlow<ReciteStatus?> = mutableStatus.asStateFlow()
     val hint: StateFlow<ReciteHint?> = mutableHint.asStateFlow()
@@ -133,8 +136,8 @@ class RecitationSession(
     private var wordKeys: List<WordKey> = emptyList()
     private var wordTextByKey: Map<WordKey, String> = emptyMap()
     private var trackerStates: Array<WordState> = emptyArray()
-    private var durationFindings: Map<WordKey, List<DurationFinding>> = emptyMap()
-    private var substitutionFindings: Map<WordKey, List<SubstitutionFinding>> = emptyMap()
+    private var durationFindings: Map<WordKey, List<DurationCheck>> = emptyMap()
+    private var substitutionFindings: Map<WordKey, List<TrackerEvent.Substitution>> = emptyMap()
     private var skippedIndexes: MutableSet<Int> = mutableSetOf()
     private var greenAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var hifzAyahsReported: MutableSet<AyahRef> = mutableSetOf()
@@ -152,19 +155,15 @@ class RecitationSession(
     /** Loads the text and reference of [range], replacing whatever was loaded before. */
     suspend fun load(range: ReciteRange) {
         stopAndWait()
-        val ayahs = range.ayahs()
-        val referenceWords = mutableListOf<ReferenceWord>()
-        val displayWords = mutableListOf<Word>()
-        for (ayah in ayahs) {
-            val reference = referencePhonemes.forAyah(ayah.surah, ayah.ayah)
-            if (reference.isEmpty()) {
-                synchronized(lock) { clearLoaded() }
-                mutablePhase.value = RecitationPhase.Error
-                return
-            }
-            referenceWords += reference
-            displayWords += quranText.wordsOfAyah(ayah)
+        // Reading the reference phonemes can parse a large file the first time, so it must not
+        // run on the caller's thread, which is the UI thread in the app.
+        val loaded = withContext(Dispatchers.Default) { readRange(range) }
+        if (loaded == null) {
+            synchronized(lock) { clearLoaded() }
+            mutablePhase.value = RecitationPhase.Error
+            return
         }
+        val (referenceWords, displayWords) = loaded
         val newTracker = trackerFactory.create(TrackerConfig(mutableSpeed.value))
         newTracker.load(referenceWords, startIndex = 0)
         synchronized(lock) {
@@ -183,6 +182,21 @@ class RecitationSession(
             publishStates()
         }
         mutablePhase.value = RecitationPhase.Idle
+    }
+
+    /**
+     * Returns the reference and display words of [range], or null when an ayah has no reference.
+     */
+    private suspend fun readRange(range: ReciteRange): Pair<List<ReferenceWord>, List<Word>>? {
+        val referenceWords = mutableListOf<ReferenceWord>()
+        val displayWords = mutableListOf<Word>()
+        for (ayah in range.ayahs()) {
+            val reference = referencePhonemes.forAyah(ayah.surah, ayah.ayah)
+            if (reference.isEmpty()) return null
+            referenceWords += reference
+            displayWords += quranText.wordsOfAyah(ayah)
+        }
+        return referenceWords to displayWords
     }
 
     /**
@@ -271,7 +285,15 @@ class RecitationSession(
     }
 
     private suspend fun recognise(input: TrackerInput) {
-        val source = phonemeSourceFactory()
+        val source =
+            try {
+                phonemeSourceFactory()
+            } catch (problem: IllegalStateException) {
+                // The speech files could not be put in place; the screen shows the error line.
+                failListening(problem)
+                (input as? AutoCloseable)?.close()
+                return
+            }
         try {
             while (true) {
                 val block = input.nextBlock() ?: break
@@ -322,28 +344,16 @@ class RecitationSession(
                 mutableStatus.value = statusFor(event.afterIndex, ReciteStatus::Inserted)
             is TrackerEvent.Anchored ->
                 mutableStatus.value = statusFor(event.index, ReciteStatus::Anchored)
-        }
-    }
-
-    /**
-     * Stores how long a letter of a word was held. Not wired to [TrackerEvent] yet because the
-     * tracker's `Duration` event is not on this branch; the adapter is one `when` branch that calls
-     * this function.
-     */
-    internal fun recordDuration(finding: DurationFinding) {
-        synchronized(lock) {
-            val forWord = durationFindings[finding.key].orEmpty() + finding
-            durationFindings = durationFindings + (finding.key to forWord)
-            publishStates()
-        }
-    }
-
-    /** Stores a sound that was heard instead of the expected one; wired like [recordDuration]. */
-    internal fun recordSubstitution(finding: SubstitutionFinding) {
-        synchronized(lock) {
-            val forWord = substitutionFindings[finding.key].orEmpty() + finding
-            substitutionFindings = substitutionFindings + (finding.key to forWord)
-            publishStates()
+            is TrackerEvent.Duration -> {
+                val key = wordKeys[event.check.wordIndex]
+                durationFindings =
+                    durationFindings + (key to durationFindings[key].orEmpty() + event.check)
+            }
+            is TrackerEvent.Substitution -> {
+                val key = wordKeys[event.wordIndex]
+                substitutionFindings =
+                    substitutionFindings + (key to substitutionFindings[key].orEmpty() + event)
+            }
         }
     }
 
@@ -376,8 +386,12 @@ class RecitationSession(
             )
     }
 
+    // The tracker counts a red word as passed (`Tracker.currentIndex`), so the screen moves on
+    // past it too; a skipped word is always red as well.
     private fun isResolved(index: Int): Boolean =
-        trackerStates[index] == WordState.Confirmed || index in skippedIndexes
+        trackerStates[index] == WordState.Confirmed ||
+            trackerStates[index] == WordState.Wrong ||
+            index in skippedIndexes
 
     /**
      * Finds the ayahs that just became complete. An ayah is green when every word is confirmed. In
@@ -393,7 +407,9 @@ class RecitationSession(
             if (allConfirmed && greenAyahsReported.add(ayah)) {
                 notifications += { progressEvents.ayahTrackedGreen(ayah) }
             }
-            val skipCount = indexes.count { it in skippedIndexes }
+            val skipCount = indexes.count {
+                trackerStates[it] == WordState.Wrong || it in skippedIndexes
+            }
             val allResolved = indexes.all(::isResolved)
             if (mutableHifz.value && allResolved && hifzAyahsReported.add(ayah)) {
                 notifications += { progressEvents.hifzCompleted(ayah, skipCount) }
@@ -409,6 +425,8 @@ class RecitationSession(
                 is TrackerEvent.Skipped -> event.index
                 is TrackerEvent.Inserted -> event.afterIndex
                 is TrackerEvent.Anchored -> event.index
+                is TrackerEvent.Duration -> event.check.wordIndex
+                is TrackerEvent.Substitution -> event.wordIndex
             }
         return AyahRef(wordKeys[index].surah, wordKeys[index].ayah)
     }

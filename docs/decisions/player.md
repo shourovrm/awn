@@ -11,6 +11,7 @@
 - Downloads go to `filesDir/audio/<reciterId>/<SSS><AAA>.mp3` (or `<SSS>.mp3`), written as `.part`, resumed with `Range`, size-checked against `Content-Length`, renamed when whole, retried once on `.quranicaudio.org`. `LocalFirstDataSource` reads such a file when the media item's cache key names it.
 - `DownloadState.totalBytes` is an estimate while a surah downloads (bytes so far times files/present files); exact when complete.
 - `UnmeteredOnlyPolicy` (Wi-Fi only) is passed to `OkHttpAudioDownloads`; a refused download throws `DownloadNotAllowedException`.
+- The read dock expands to the Listen route in :app; a range started from Read has no loaded playlist in `ListenViewModel`, so previous and next do nothing there.
 - `:feature:listen` holds `ListenPanel`, `RecitersScreen`, `DownloadsScreen`, three ViewModels and `ListenSettings` (DataStore: Wi-Fi only, selected reciter, default `alafasy`). Downloads run in a scope the app passes to `DownloadsViewModel`.
 - `tools/verify_timings.py` cuts words by timing and counts cuts with speech-level sound for most of their length (alafasy, 20 ayahs, seed 1: 258 of 264 words).
 
@@ -23,7 +24,6 @@
 
 ## Gotchas
 - Lint wants `androidx.annotation.OptIn` plus `@UnstableApi` on classes, not a Kotlin file-level opt-in.
-- `lint { disable += "UseTomlInstead" }` is set in both modules because third-party coordinates are explicit.
 - Gradle daemons are shared by all agents on this machine; `--stop` from another session kills a running build. A private registry avoids it: `-Dorg.gradle.daemon.registry.base=/tmp/<name>`.
 
 ## Tried / rejected

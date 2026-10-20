@@ -13,8 +13,7 @@
 
 ## Open items
 - A reviewer must check all 12 lessons and the Bangla and English renderings of the snippets, then fill `reviewed_by` and `reviewed_on`.
-- :app must pass its `QuranTextRepository` to `LearnScreen` and `learnProgressEvents(context)` to the read and recite features.
-- The Learn screen does not show the snippet rendering; Home may.
+- Home shows the snippet with its English or Bangla rendering; the Learn screen shows the Arabic only.
 - Roundo and the Noto Serif Bengali fallback are not bundled, so Bangla uses the platform font.
 
 ## Gotchas

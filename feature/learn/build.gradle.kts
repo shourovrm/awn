@@ -12,7 +12,6 @@ android {
 
     // The two test coordinates below are written out here on purpose, so that this module adds no
     // line to the shared version catalog while other modules are built in parallel.
-    lint { disable += "UseTomlInstead" }
 }
 
 room { schemaDirectory("$projectDir/schemas") }
@@ -37,11 +36,11 @@ dependencies {
     implementation(libs.androidx.datastorePreferences)
     implementation(libs.androidx.activityCompose)
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.androidx.roomTesting)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testExtJunit)
     testImplementation(libs.compose.uiTestJunit4)
     // Registers the activity that the Compose test rule launches under Robolectric.
-    testImplementation("androidx.compose.ui:ui-test-manifest")
+    testImplementation(libs.compose.uiTestManifest)
 }

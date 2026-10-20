@@ -12,6 +12,8 @@
 - ABI splits arm64-v8a, armeabi-v7a, x86_64; no universal APK. R8 and resource shrinking on; the only keep rule is com.k2fsa.sherpa.onnx.** (native code reads fields by name).
 - fetchNativeLibs verifies gradle/native-libs.sha256, then unpacks classes.jar from the AAR to libs/sherpa-onnx-classes.jar and the Linux .so files to libs/linux-x64/. fetchModels ensures awn-models/ matches gradle/models.sha256, downloading from https://github.com/shourovrm/awn/releases/download/models-v1 (owner assumed from the gh login).
 - :tracker tests set java.library.path and LD_LIBRARY_PATH to libs/linux-x64 and depend on both fetch tasks.
+- Third-party coordinates (okhttp, media3-datasource-okhttp, coroutines-android and -test, espresso, ui-test-manifest) are in the catalog; lint rule UseTomlInstead is on in every module.
+- App assets: `copySpeechFiles` (depends on `fetchModels`) copies the model, tokens.txt and ordered_quran_phonemes.json into gitignored app/src/main/assets/models; lint and asset tasks depend on it.
 - Gates: Spotless with ktfmt 0.65 kotlinlang style, detekt 1.23.8 (config/detekt/detekt.yml), Android Lint with warningsAsErrors. Disabled lint checks: GradleDependency, NewerVersionAvailable, AndroidGradlePluginVersion (network-dependent, Dependabot covers them); in :app also OldTargetApi (target 36 on purpose) and ObsoleteSdkInt (aapt2 does not resolve mipmap-anydpi without -v26).
 - Robolectric tests need --add-exports java.base/jdk.internal.access=ALL-UNNAMED, set in the library convention.
 
@@ -21,6 +23,7 @@
 - Play flavor has no distinct behaviour yet.
 
 ## Gotchas
+- R8 on :app runs inside the Gradle daemon and needs about 1.5 GB: the user-level `-Xmx1g` makes `minifyGithubReleaseWithR8` fail with OutOfMemoryError. Pass `-Dorg.gradle.jvmargs="-Xmx2g -XX:+UseParallelGC"` or raise the user setting.
 - Inside a task configuration block, `path` is the task path; capture the project path first.
 - Room schema JSON reaches the Robolectric test through variant.nestedComponents UnitTest sources.assets.
 - `by tasks.registering` is deprecated in Gradle 9.8; use tasks.register.

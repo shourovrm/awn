@@ -5,8 +5,6 @@ plugins {
 
 android {
     namespace = "app.awn.quran.feature.listen"
-    // Third-party libraries are listed as explicit coordinates here, not in the shared catalog.
-    lint { disable += "UseTomlInstead" }
 }
 
 dependencies {
@@ -16,5 +14,5 @@ dependencies {
     implementation(libs.androidx.lifecycleViewmodelCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation(libs.kotlinx.coroutinesTest)
 }

@@ -25,14 +25,11 @@ dependencies {
     testImplementation(libs.androidx.testExtJunit)
     testImplementation(libs.compose.uiTestJunit4)
     // Supplies the activity that Robolectric Compose tests launch.
-    //noinspection UseTomlInstead
-    testImplementation("androidx.compose.ui:ui-test-manifest")
-    //noinspection UseTomlInstead
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation(libs.compose.uiTestManifest)
+    testImplementation(libs.kotlinx.coroutinesTest)
 
     androidTestImplementation(libs.compose.uiTestJunit4)
     androidTestImplementation(libs.androidx.testExtJunit)
     androidTestImplementation(libs.androidx.testRunner)
-    //noinspection UseTomlInstead
-    androidTestImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation(libs.compose.uiTestManifest)
 }

@@ -10,7 +10,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val preferences = AppPreferences(applicationContext)
-        setContent { AwnApp(preferences) }
+        val services = (application as AwnApplication).services
+        setContent { AwnApp(services) }
     }
 }

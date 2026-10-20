@@ -12,9 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,7 +63,8 @@ fun reviewLabelTag(ayah: Int): String = "review-$ayah"
  * The words of the range, one right-to-left block per ayah with its ochre number after the last
  * word. Flagged words carry a dotted underline and open the review when tapped, and an icon button
  * after each ayah with findings opens the first one; tapping a flagged word calls
- * [onFlaggedWordClick].
+ * [onFlaggedWordClick]. When [currentWord] changes, the enclosing scroll container moves to show
+ * it.
  */
 @Composable
 fun ReciteWords(
@@ -71,7 +76,10 @@ fun ReciteWords(
     onFlaggedWordClick: (WordKey) -> Unit,
     onReviewClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    currentWord: WordKey? = null,
 ) {
+    val currentWordRequester = remember { BringIntoViewRequester() }
+    LaunchedEffect(currentWord) { if (currentWord != null) currentWordRequester.bringIntoView() }
     Column(modifier.fillMaxWidth()) {
         words
             .groupBy { it.key.ayah }
@@ -85,6 +93,8 @@ fun ReciteWords(
                                 state = wordStates[word.key] ?: WordState.Neutral,
                                 isSkipped = word.key in skippedWords,
                                 hintLetter = hint?.takeIf { it.key == word.key }?.letter,
+                                scrollRequester =
+                                    currentWordRequester.takeIf { word.key == currentWord },
                                 onFlaggedClick =
                                     { onFlaggedWordClick(word.key) }.takeIf { isFlagged },
                             )
@@ -104,11 +114,14 @@ private fun ReciteWord(
     state: WordState,
     isSkipped: Boolean,
     hintLetter: String?,
+    scrollRequester: BringIntoViewRequester?,
     onFlaggedClick: (() -> Unit)?,
 ) {
     val field = Awn.field
     val description = stateDescriptionFor(state, isSkipped)
-    val tagged = Modifier.testTag(reciteWordTag(word.key))
+    val positioned =
+        if (scrollRequester == null) Modifier else Modifier.bringIntoViewRequester(scrollRequester)
+    val tagged = positioned.testTag(reciteWordTag(word.key))
     val described =
         if (description == null) tagged else tagged.semantics { stateDescription = description }
 

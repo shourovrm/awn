@@ -31,6 +31,9 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.tracker.DurationCheck
+import app.awn.quran.tracker.DurationVerdict
+import app.awn.quran.tracker.TrackerEvent
 
 private const val BAR_TRACK_ALPHA = 0.3f
 private val barShape = RoundedCornerShape(AwnSpacing.switchKnobCorner)
@@ -142,7 +145,7 @@ private fun FindingHint(hint: String) {
 }
 
 @Composable
-private fun PronunciationBlock(substitution: SubstitutionFinding) {
+private fun PronunciationBlock(substitution: TrackerEvent.Substitution) {
     FindingTitle(stringResource(R.string.recite_finding_pronunciation))
     Row(
         Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small),
@@ -173,8 +176,8 @@ private fun SoundBox(label: String, sound: String, color: Color, modifier: Modif
 }
 
 @Composable
-private fun DurationBlock(check: DurationFinding) {
-    FindingTitle(check.rule)
+private fun DurationBlock(check: DurationCheck) {
+    FindingTitle(stringResource(R.string.recite_finding_madd))
     Text(text = check.letter, style = AwnTypography.quran)
     Text(
         text =

@@ -29,6 +29,7 @@
   <string name="recite_listen">Listen</string>
   <string name="recite_previous">Previous</string>
   <string name="recite_next">Next</string>
+  <string name="recite_finding_madd">Madd</string>
   <string name="recite_finding_wrong_word">Wrong word</string>
   <string name="recite_duration">%1$.2f s of %2$.2f s</string>
   <string name="recite_hint_say_again">Say the word again</string>
