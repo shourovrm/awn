@@ -56,3 +56,7 @@
 2026-10-21 | Page header names the first surah that starts on the page | page 604 is Al-Ikhlas, page 77 An-Nisa
 2026-10-21 | Mushaf settings previews are bundled WebP images of page 50 | fonts are not installed before the user chooses a print
 2026-10-21 | Late layout loads dropped after a script change | they overwrote the new layout, so switching looked like nothing happened
+2026-10-21 | Single Quran screen replaces Read, Listen, Recite modes; slots wired in :app | phone test and Quran for Android study
+2026-10-21 | Any pack install drops loaded layouts and rebuilds the font cache | page types appeared not to change after a download
+2026-10-21 | Copy pass: docs/copy.md vocabulary and rules, 62 dead strings removed, 23 rewritten | design-system copy review
+2026-10-21 | App icon is concept 3, Voice page, scaled 0.948 into the safe zone | maintainer's choice

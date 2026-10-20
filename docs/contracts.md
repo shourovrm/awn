@@ -26,7 +26,10 @@ These interfaces are the only surface that feature modules use. Only the maintai
 - `BookmarkRepository` exposes bookmarks, saved ayahs and recent pages as flows and exports or imports them as JSON.
 - `InstalledPack` is an installed pack with its kind, format version and size.
 - `PackEntry` (package `packs`) is one manifest entry.
-- `PackRepository` lists, installs and removes packs and locates the font file for a page.
+- `PackRepository` lists, installs and removes packs, locates the font file for a page, and reports a pack's download and installed size (`sizeOf`, `PackSize`).
+- `Quarters` is the 240 rub' al-hizb starts with their first ayah and page per print.
+- `SearchRepository` finds ayahs by Arabic (marks and letter variants ignored) and by installed translations.
+- `LineItem.AyahEnd` carries the printed end-sign glyph code for page-font prints.
 - `ProgressEvents` receives learning events; :feature:learn implements it and :feature:read and :feature:recite call it.
 
 ## :tracker (package `app.awn.quran.tracker`, pure Kotlin)
@@ -41,8 +44,9 @@ These interfaces are the only surface that feature modules use. Only the maintai
 - `ReferencePhonemes` returns the reference words of an ayah from `ordered_quran_phonemes.json`.
 
 ## :player (package `app.awn.quran.player`)
-- `PlaybackState` is `Idle`, `Playing`, `Paused` or `Error`.
-- `AudioPlayer` plays ayah ranges or single words and exposes its state as a flow.
+- `PlaybackState` is `Idle`, `Downloading`, `Playing`, `Paused` or `Error`.
+- `AudioPlayer` plays ayah ranges or single words, moves to the next or previous ayah, and exposes its state and its `PlaybackOptions` (repeat each ayah, repeat the range, speed) as flows.
+- `DownloadingAudioPlayer` wraps a player and first downloads missing audio by the download amount (page, surah, juz).
 - `DownloadState` is the progress of one reciter's surah download.
 - `AudioDownloads` downloads, measures and removes offline audio.
 - The stub `Reciter` is deleted; use `app.awn.quran.core.data.Reciter`.
@@ -52,15 +56,5 @@ These interfaces are the only surface that feature modules use. Only the maintai
 - `tracker.fakes`: `FakeTracker`, `FakeTrackerFactory`, `FakeReferencePhonemes`.
 - `player.fakes`: `FakeAudioPlayer`, `FakeAudioDownloads`.
 
-## Module ownership in the next wave
-| Module or files | Owner |
-| --- | --- |
-| `:core:data` implementations | agent "core-data" |
-| `:feature:read` | agent "read" |
-| `:player`, `:feature:listen` | agent "player" |
-| `:tracker` | agent "tracker" |
-| `:feature:recite` | agent "recite" |
-| `:feature:learn` | agent "learn" |
-| `:app`, `:core:ui`, the contract files above | maintainer only |
-
-Feature agents use the fakes in tests and never edit `:core:data`.
+## Ownership
+The single-page redesign wave (docs/redesign.md) is merged. Feature modules still depend only on :core modules, :player and :tracker; :app composes them through `QuranScreenSlots` and the settings page slots.
