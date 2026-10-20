@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="listen_title">Listen</string>
+  <string name="listen_previous">Previous ayah</string>
+  <string name="listen_next">Next ayah</string>
+  <string name="listen_play">Play</string>
+  <string name="listen_pause">Pause</string>
+  <string name="listen_repeat_off">Repeat off</string>
+  <plurals name="listen_repeat_times">
+    <item quantity="one">Repeat %1$d time</item>
+    <item quantity="other">Repeat %1$d times</item>
+  </plurals>
+  <string name="listen_ayah_of">Ayah %1$d of %2$d</string>
+  <string name="listen_error">Cannot play this audio</string>
+  <string name="reciters_title">Reciters</string>
+  <string name="reciter_word_by_word">Word by word</string>
+  <string name="reciter_listening_only">Listening only</string>
+  <string name="reciter_nothing_downloaded">Nothing downloaded</string>
+  <string name="reciter_remove_downloads">Remove downloads</string>
+  <string name="reciters_wifi_only">Wi-Fi only</string>
+  <string name="reciters_downloads">Downloads</string>
+  <string name="downloads_title">Downloads</string>
+  <string name="downloads_download">Download</string>
+  <string name="downloads_downloaded">Downloaded</string>
+  <string name="downloads_wifi_needed">Connect to Wi-Fi to download</string>
+  <string name="downloads_failed">Download failed</string>
+  <string name="downloads_size_progress">%1$s of %2$s</string>
 </resources>

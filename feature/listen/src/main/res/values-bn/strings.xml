@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="listen_title">শুনুন</string>
+  <string name="listen_previous">আগের আয়াত</string>
+  <string name="listen_next">পরের আয়াত</string>
+  <string name="listen_play">চালান</string>
+  <string name="listen_pause">থামান</string>
+  <string name="listen_repeat_off">পুনরাবৃত্তি বন্ধ</string>
+  <plurals name="listen_repeat_times">
+    <item quantity="one">%1$d বার পুনরাবৃত্তি</item>
+    <item quantity="other">%1$d বার পুনরাবৃত্তি</item>
+  </plurals>
+  <string name="listen_ayah_of">আয়াত %1$d / %2$d</string>
+  <string name="listen_error">এই অডিও চালানো যাচ্ছে না</string>
+  <string name="reciters_title">ক্বারী</string>
+  <string name="reciter_word_by_word">শব্দে শব্দে</string>
+  <string name="reciter_listening_only">শুধু শোনা</string>
+  <string name="reciter_nothing_downloaded">কিছু ডাউনলোড হয়নি</string>
+  <string name="reciter_remove_downloads">ডাউনলোড মুছুন</string>
+  <string name="reciters_wifi_only">শুধু ওয়াই-ফাই</string>
+  <string name="reciters_downloads">ডাউনলোড</string>
+  <string name="downloads_title">ডাউনলোড</string>
+  <string name="downloads_download">ডাউনলোড করুন</string>
+  <string name="downloads_downloaded">ডাউনলোড হয়েছে</string>
+  <string name="downloads_wifi_needed">ডাউনলোডের জন্য ওয়াই-ফাই চালু করুন</string>
+  <string name="downloads_failed">ডাউনলোড ব্যর্থ হয়েছে</string>
+  <string name="downloads_size_progress">%1$s / %2$s</string>
 </resources>
