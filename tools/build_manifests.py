@@ -4,14 +4,34 @@
 Every pack entry carries format_version, sha256, bytes, credit and source_url.
 sha256 and bytes describe the file named in "file", relative to awn-data/.
 
+The manifests keep `format_version: 1`. The second catalogue adds only optional fields, which a reader of
+the first catalogue ignores:
+  min_sdk            (scripts) lowest Android API level that can show the print; 33 for v4-tajweed (COLRv1)
+  requires           (scripts) ids of the packs that must be installed with this one
+  script_id          (scripts) the app's ScriptId name that this pack makes available
+  layouts            (scripts) page counts and lines per page of a text pack with several layouts
+  installed_bytes    (font zips) unpacked size, for the free-space check; a single file or SQLite pack installs at `bytes`
+  language_name      (translations) the language in English, for grouping in the install list
+  content            (translations) "translation", "transliteration" or "word_translation"
+  rights_holder, terms_known, publishable
+                     (translations) what is known about the copyright; docs/packs.md has the table
+  style, riwaya      (reciters) "murattal", "mujawwad" or "muallim"; always "hafs"
+  audio_bytes        (reciters) summed Content-Length of the 114 QuranicAudio surah files, measured by HEAD
+  ayah_audio_bytes   (reciters) estimate for the EveryAyah ayah files; `estimated` is true when it is present
+  ayah_base_url      (reciters) the host folder that serves the ayah files, when it is not the default mirror
+
 Font scripts that have one file per page are packed into awn-data/fonts/<script>.zip
 (deflate, fixed member timestamps, members in page order) so a script is one
-download with one checksum. The Unicode font is a single file and is listed as is.
+download with one checksum. A Unicode font is a single file and is listed as is.
 
-A reciter without a timing pack (Raad al-Kurdi) has timing_pack null and
-no sha256 or bytes: there is no pack to verify.
+A reciter without a timing pack has timing_pack null and no sha256 or bytes: there is no pack to verify.
 
-Usage: python3 tools/build_manifests.py
+--publishable=yes,conditional keeps only translation entries whose publishable value is listed; use it to
+write the manifests that go into a release. Without the flag every pack is listed, for testing.
+
+--exclude=id,id leaves the named entries out of every manifest (a font script, a translation, a reciter).
+
+Usage: python3 tools/build_manifests.py [--publishable=yes,conditional] [--exclude=indopak,indopak-layouts]
 """
 
 import hashlib
@@ -22,7 +42,9 @@ import sys
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pack_catalogue
 import quran_com
+import reciter_catalogue
 
 FORMAT_VERSION = 1
 DATA_ROOT = quran_com.DATA_ROOT
@@ -34,43 +56,14 @@ FONT_SOURCE_URL = ("https://github.com/quran/quran.com-frontend-next/tree/"
 
 FONT_CREDIT = ("King Fahd Quran Printing Complex (Madinah Mushaf fonts), "
                "as hosted by the Quran.com frontend repository (quran/quran.com-frontend-next)")
-
-# Reciter facts from docs/plan.md, Milestone 3. QuranicAudio surah files:
-# https://download.quranicaudio.com/quran/<quranicaudio_path>/<SSS>.mp3
-# EveryAyah ayah files: https://mirrors.quranicaudio.com/everyayah/<folder>/<SSS><AAA>.mp3
-RECITERS = [
-    {"id": "alafasy", "name": "Mishari Rashid al-Afasy", "quranicaudio_id": 5,
-     "quranicaudio_path": "mishaari_raashid_al_3afaasee/", "everyayah_folder": "Alafasy_128kbps",
-     "timing_pack": "alafasy", "word_by_word": True},
-    {"id": "husary", "name": "Mahmoud Khalil Al-Husary (Murattal)", "quranicaudio_id": 16,
-     "quranicaudio_path": "mahmood_khaleel_al-husaree/", "everyayah_folder": "Husary_128kbps",
-     "timing_pack": "husary", "word_by_word": True},
-    {"id": "husary_muallim", "name": "Mahmoud Khalil Al-Husary (Muallim)", "quranicaudio_id": 141,
-     "quranicaudio_path": "husary_muallim/", "everyayah_folder": "Husary_Muallim_128kbps",
-     "timing_pack": "husary_muallim", "word_by_word": True},
-    {"id": "minshawi", "name": "Mohamed Siddiq al-Minshawi (Murattal)", "quranicaudio_id": 6,
-     "quranicaudio_path": "muhammad_siddeeq_al-minshaawee/", "everyayah_folder": "Minshawy_Murattal_128kbps",
-     "timing_pack": "minshawi", "word_by_word": True},
-    {"id": "basfar", "name": "Abdullah Basfar", "quranicaudio_id": 2,
-     "quranicaudio_path": "abdullaah_basfar/", "everyayah_folder": "Abdullah_Basfar_192kbps",
-     "alternative_everyayah_folders": [{"folder": "Abdullah_Basfar_64kbps", "base_url": "https://everyayah.com/data"}],
-     "timing_pack": "basfar", "word_by_word": False},
-    {"id": "raad_al_kurdi", "name": "Raad Mohammad al-Kurdi", "quranicaudio_id": 168,
-     "quranicaudio_path": "raad_mohammad_al_kurdi/mp3/", "everyayah_folder": None,
-     "timing_pack": None, "word_by_word": False},
-]
+INDOPAK_FONT_CREDIT = ("AlQuran IndoPak by QuranWBW 4.2.1-WL, Ayman Siddiqui (quranwbw.com), "
+                       "as hosted by the Quran.com frontend repository (quran/quran.com-frontend-next)")
+INDOPAK_LAYOUT_CREDIT = (f"{QURAN_COM_ATTRIBUTION} (QDC API, mushaf 6 and 7): IndoPak 15-line layout "
+                         "(Qudratullah, Lahore, 610 pages) and IndoPak 16-line layout (Taj Company, 548 pages)")
 SURAH_URL_PATTERN = "https://download.quranicaudio.com/quran/{quranicaudio_path}{SSS}.mp3"
-AYAH_URL_PATTERN = "https://mirrors.quranicaudio.com/everyayah/{everyayah_folder}/{SSS}{AAA}.mp3"
 
-TRANSLATION_PACKS = [
-    # file stem, kind, language, display name, Quran.com resource id, credit, source url
-    ("en_saheeh", "ayah", "en", "Saheeh International", 20),
-    ("en_abdul_haleem", "ayah", "en", "M.A.S. Abdel Haleem", 85),
-    ("en_transliteration", "ayah", "en", "English transliteration", 57),
-    ("bn_zakaria", "ayah", "bn", "Dr. Abu Bakr Muhammad Zakaria", 213),
-    ("wbw_en", "word", "en", "Word by word, English", None),
-    ("wbw_bn", "word", "bn", "Word by word, Bangla", None),
-]
+# Android 13 (API 33) is the first release that draws COLRv1 colour glyphs.
+V4_TAJWEED_MIN_SDK = 33
 
 
 def file_checksum_and_size(path):
@@ -92,32 +85,46 @@ def pack_entry(path, **fields):
     return entry
 
 
+def installed_font_bytes(script):
+    """Unpacked size of a per-page font script: the sum of its member files."""
+    directory = os.path.join(DATA_ROOT, "fonts", script)
+    return sum(os.path.getsize(os.path.join(directory, f"p{page}.ttf")) for page in range(1, quran_com.PAGE_COUNT + 1))
+
+
 def zip_font_script(script):
     directory = os.path.join(DATA_ROOT, "fonts", script)
     archive_path = directory + ".zip"
+    temporary_path = archive_path + ".part"
     names = [f"p{page}.ttf" for page in range(1, quran_com.PAGE_COUNT + 1)]
-    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    with zipfile.ZipFile(temporary_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for name in names:
             member = zipfile.ZipInfo(name, FIXED_ZIP_TIMESTAMP)
             member.compress_type = zipfile.ZIP_DEFLATED
             with open(os.path.join(directory, name), "rb") as handle:
                 archive.writestr(member, handle.read(), compresslevel=9)
+    # Replace by a new file: an older data folder may hold a hard link to the old archive.
+    os.replace(temporary_path, archive_path)
     return archive_path
 
 
+EXCLUDED_IDS = set()
+
+
 def write_manifest(name, key, entries):
+    entries = [entry for entry in entries if entry["id"] not in EXCLUDED_IDS]
     path = os.path.join(DATA_ROOT, "manifests", name)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
+    temporary_path = path + ".part"
+    with open(temporary_path, "w", encoding="utf-8") as handle:
         json.dump({"format_version": FORMAT_VERSION, key: entries}, handle, indent=2, ensure_ascii=False)
         handle.write("\n")
-    print("wrote", path)
+    os.replace(temporary_path, path)
+    print("wrote", path, f"({len(entries)} entries)")
 
 
 def build_scripts_manifest():
-    quran_path = os.path.join(DATA_ROOT, "quran", "quran.sqlite")
     entries = [pack_entry(
-        quran_path, id="quran-text", kind="text",
+        os.path.join(DATA_ROOT, "quran", "quran.sqlite"), id="quran-text", kind="text",
         name="Quran text, word table, page and line layout (V1 and V2)",
         credit=f"{QURAN_COM_ATTRIBUTION}; Uthmani text and King Fahd Quran Printing Complex page layouts",
         source_url=QURAN_COM_URL,
@@ -127,38 +134,69 @@ def build_scripts_manifest():
         unicode_font, id="qpc-hafs", kind="font", name="QPC Hafs (Unicode)", glyph_font_per_page=False,
         credit=FONT_CREDIT, source_url=FONT_SOURCE_URL + "/uthmanic_hafs"))
     font_scripts = [
-        ("v1", "QPC V1 (1405H print)", "v1/ttf"),
-        ("v2", "QPC V2 (1421H print)", "v2/ttf"),
-        ("v4-tajweed", "QPC V4 tajweed (COLRv1 colour glyphs)", "v4/colrv1/ttf"),
+        ("v1", "QPC V1 (1405H print)", "v1/ttf", {}),
+        ("v2", "QPC V2 (1421H print)", "v2/ttf", {}),
+        ("v4-tajweed", "QPC V4 tajweed (COLRv1 colour glyphs)", "v4/colrv1/ttf", {"min_sdk": V4_TAJWEED_MIN_SDK}),
     ]
-    for script, name, repository_directory in font_scripts:
+    for script, name, repository_directory, extra_fields in font_scripts:
         archive_path = zip_font_script(script)
         entries.append(pack_entry(
             archive_path, id=script, kind="font", name=name, glyph_font_per_page=True,
             archive_format="zip", member_pattern="p{page}.ttf", member_count=quran_com.PAGE_COUNT,
-            credit=FONT_CREDIT, source_url=f"{FONT_SOURCE_URL}/{repository_directory}"))
+            installed_bytes=installed_font_bytes(script),
+            credit=FONT_CREDIT, source_url=f"{FONT_SOURCE_URL}/{repository_directory}", **extra_fields))
+    entries.append(pack_entry(
+        os.path.join(DATA_ROOT, "quran", "indopak.sqlite"), id="indopak-layouts", kind="text",
+        name="IndoPak layouts (15-line and 16-line)", credit=INDOPAK_LAYOUT_CREDIT,
+        source_url=f"{QURAN_COM_URL.replace('/v4', '/qdc')}/verses/by_page",
+        requires=["quran-text"],
+        layouts=[{"id": "15", "pages": 610, "lines_per_page": 15}, {"id": "16", "pages": 548, "lines_per_page": 16}]))
+    entries.append(pack_entry(
+        os.path.join(DATA_ROOT, "fonts", "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"),
+        id="indopak", kind="font", name="IndoPak (15-line and 16-line)", glyph_font_per_page=False,
+        script_id="indopak", requires=["indopak-layouts"],
+        credit=INDOPAK_FONT_CREDIT, source_url=FONT_SOURCE_URL + "/nastaleeq/indopak"))
+    entries.append(pack_entry(
+        os.path.join(DATA_ROOT, "quran", "tajweed.sqlite"), id="tajweed-text", kind="text",
+        name="Tajweed-coloured Uthmani text (inline rule markup)",
+        credit=f"{QURAN_COM_ATTRIBUTION}, words[].text_uthmani_tajweed", source_url=QURAN_COM_URL,
+        requires=["quran-text"]))
     write_manifest("scripts.json", "packs", entries)
 
 
-def build_translations_manifest():
+def translation_entry(catalogue, pack):
+    path = os.path.join(DATA_ROOT, "translations", pack["id"] + ".sqlite")
+    resource = catalogue[pack["resource_id"]]
+    is_transliteration = pack in pack_catalogue.TRANSLITERATION_PACKS
+    return pack_entry(
+        path, id=pack["id"], kind="transliteration" if is_transliteration else "ayah",
+        language=pack["language"], language_name=pack["language_name"],
+        content="transliteration" if is_transliteration else "translation", name=pack["name"],
+        quran_com_resource_id=pack["resource_id"],
+        credit=f"{resource['author_name']}, via {QURAN_COM_ATTRIBUTION} (resource {pack['resource_id']})",
+        source_url=QURAN_COM_URL, terms_file=relative_path(path[: -len(".sqlite")] + ".TERMS.md"),
+        rights_holder=pack["rights_holder"], terms_known=pack["terms_known"], publishable=pack["publishable"])
+
+
+def build_translations_manifest(allowed_publishable):
     catalogue = {entry["id"]: entry for entry in quran_com.fetch("/resources/translations")["translations"]}
     entries = []
-    for file_stem, kind, language, name, resource_id in TRANSLATION_PACKS:
-        path = os.path.join(DATA_ROOT, "translations", file_stem + ".sqlite")
-        if resource_id:
-            author = catalogue[resource_id]["author_name"]
-            credit = f"{author}, via {QURAN_COM_ATTRIBUTION} (resource {resource_id})"
-        else:
-            credit = f"{QURAN_COM_ATTRIBUTION}, word-by-word translation"
+    for pack in pack_catalogue.TRANSLATIONS_AND_TRANSLITERATIONS:
+        if allowed_publishable is None or pack["publishable"] in allowed_publishable:
+            entries.append(translation_entry(catalogue, pack))
+    for word_pack in pack_catalogue.WORD_PACKS:
+        path = os.path.join(DATA_ROOT, "translations", word_pack["id"] + ".sqlite")
         entries.append(pack_entry(
-            path, id=file_stem, kind=kind, language=language, name=name,
-            quran_com_resource_id=resource_id, credit=credit, source_url=QURAN_COM_URL,
+            path, id=word_pack["id"], kind="word", language=word_pack["language"],
+            language_name=word_pack["language_name"], content="word_translation",
+            name=f"Word by word, {word_pack['language_name']}", quran_com_resource_id=None,
+            credit=f"{QURAN_COM_ATTRIBUTION}, word-by-word translation", source_url=QURAN_COM_URL,
             terms_file=relative_path(path[: -len(".sqlite")] + ".TERMS.md")))
     quantum_path = os.path.join(DATA_ROOT, "translations", "bn_quantum.sqlite")
     if os.path.exists(quantum_path):
         entries.append(pack_entry(
-            quantum_path, id="bn_quantum", kind="ayah", language="bn",
-            name="Quantum Foundation Bangla", quran_com_resource_id=None,
+            quantum_path, id="bn_quantum", kind="ayah", language="bn", language_name="Bangla",
+            content="translation", name="Quantum Foundation Bangla", quran_com_resource_id=None,
             credit="Quantum Foundation (alquran.org.bd); redistribution permission is handled by the maintainer",
             source_url="https://alquran.org.bd", terms_file=None))
     write_manifest("translations.json", "packs", entries)
@@ -175,45 +213,71 @@ def timing_audio_folder(path):
     return url.rsplit("/", 1)[0]
 
 
+def reciter_entry(reciter, probes):
+    probe = probes.get(reciter["id"], {})
+    ayah_base = probe.get("ayah_base", reciter_catalogue.AYAH_BASES[0])
+    entry = {
+        "id": reciter["id"], "name": reciter["name"],
+        "quranicaudio_id": reciter["quranicaudio_id"],
+        "quranicaudio_path": reciter["quranicaudio_path"],
+        "surah_url_pattern": SURAH_URL_PATTERN.replace("{quranicaudio_path}", reciter["quranicaudio_path"]),
+        "everyayah_folder": reciter["everyayah_folder"],
+        "ayah_url_pattern": (f"{ayah_base}{reciter['everyayah_folder']}/{{SSS}}{{AAA}}.mp3"
+                             if reciter["everyayah_folder"] else None),
+        "fallback_domain_suffix": {"from": ".quranicaudio.com", "to": ".quranicaudio.org"},
+        "word_by_word": reciter["quran_com_recitation_id"] is not None,
+        "timing_pack": reciter["id"] if reciter["quran_com_recitation_id"] is not None or reciter["id"] == "basfar" else None,
+        "style": reciter["style"], "riwaya": "hafs",
+    }
+    if "alternative_everyayah_folders" in reciter:
+        entry["alternative_everyayah_folders"] = reciter["alternative_everyayah_folders"]
+    if probe.get("surah_files_ok") == 114:
+        entry["audio_bytes"] = probe["surah_bytes_total"]
+    if "ayah_bytes_total_estimate" in probe:
+        entry["ayah_audio_bytes"] = probe["ayah_bytes_total_estimate"]
+        entry["estimated"] = True
+    if ayah_base != reciter_catalogue.AYAH_BASES[0] and reciter["everyayah_folder"]:
+        entry["ayah_base_url"] = ayah_base
+    if entry["timing_pack"]:
+        path = os.path.join(DATA_ROOT, "timings", entry["timing_pack"] + ".sqlite")
+        info = read_timing_info(path)
+        entry.update(pack_entry(
+            path, quran_com_recitation_id=(None if info["quran_com_recitation_id"] == "none"
+                                           else int(info["quran_com_recitation_id"])),
+            timing_granularity=info["granularity"],
+            timing_audio_folder=timing_audio_folder(path),
+            credit=(f"Segment timings from {QURAN_COM_ATTRIBUTION}, recitation {info['quran_com_recitation_id']}"
+                    if info["granularity"] == "word" else "Ayah file list; audio from EveryAyah (everyayah.com)"),
+            source_url=QURAN_COM_URL))
+    else:
+        credit = ("Audio from QuranicAudio (quranicaudio.com) and EveryAyah (everyayah.com); "
+                  "no word timings, surah and ayah playback only" if reciter["everyayah_folder"]
+                  else "Audio from QuranicAudio (quranicaudio.com); no timings exist, surah playback only")
+        entry.update({"format_version": FORMAT_VERSION, "file": None, "sha256": None, "bytes": None,
+                      "credit": credit, "source_url": "https://quranicaudio.com"})
+    return entry
+
+
 def build_reciters_manifest():
-    entries = []
-    for reciter in RECITERS:
-        entry = {
-            "id": reciter["id"], "name": reciter["name"],
-            "quranicaudio_id": reciter["quranicaudio_id"],
-            "quranicaudio_path": reciter["quranicaudio_path"],
-            "surah_url_pattern": SURAH_URL_PATTERN.replace("{quranicaudio_path}", reciter["quranicaudio_path"]),
-            "everyayah_folder": reciter["everyayah_folder"],
-            "ayah_url_pattern": (AYAH_URL_PATTERN.replace("{everyayah_folder}", reciter["everyayah_folder"])
-                                 if reciter["everyayah_folder"] else None),
-            "fallback_domain_suffix": {"from": ".quranicaudio.com", "to": ".quranicaudio.org"},
-            "word_by_word": reciter["word_by_word"],
-            "timing_pack": reciter["timing_pack"],
-        }
-        if "alternative_everyayah_folders" in reciter:
-            entry["alternative_everyayah_folders"] = reciter["alternative_everyayah_folders"]
-        if reciter["timing_pack"]:
-            path = os.path.join(DATA_ROOT, "timings", reciter["timing_pack"] + ".sqlite")
-            info = read_timing_info(path)
-            entry.update(pack_entry(
-                path, quran_com_recitation_id=(None if info["quran_com_recitation_id"] == "none"
-                                               else int(info["quran_com_recitation_id"])),
-                timing_granularity=info["granularity"],
-                timing_audio_folder=timing_audio_folder(path),
-                credit=(f"Segment timings from {QURAN_COM_ATTRIBUTION}, recitation {info['quran_com_recitation_id']}"
-                        if info["granularity"] == "word" else "Ayah file list; audio from EveryAyah (everyayah.com)"),
-                source_url=QURAN_COM_URL))
-        else:
-            entry.update({"format_version": FORMAT_VERSION, "file": None, "sha256": None, "bytes": None,
-                          "credit": "Audio from QuranicAudio (quranicaudio.com); no timings exist, surah playback only",
-                          "source_url": "https://quranicaudio.com"})
-        entries.append(entry)
+    probes = {}
+    if os.path.exists(reciter_catalogue.PROBE_FILE):
+        with open(reciter_catalogue.PROBE_FILE, encoding="utf-8") as handle:
+            probes = json.load(handle)
+    entries = [reciter_entry(reciter, probes) for reciter in reciter_catalogue.RECITERS]
     write_manifest("reciters.json", "reciters", entries)
 
 
 def main():
+    allowed_publishable = None
+    for argument in sys.argv[1:]:
+        if argument.startswith("--publishable="):
+            allowed_publishable = set(argument.split("=", 1)[1].split(","))
+        elif argument.startswith("--exclude="):
+            EXCLUDED_IDS.update(argument.split("=", 1)[1].split(","))
+        else:
+            raise SystemExit(f"unknown argument {argument}")
     build_scripts_manifest()
-    build_translations_manifest()
+    build_translations_manifest(allowed_publishable)
     build_reciters_manifest()
 
 

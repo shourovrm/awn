@@ -21,20 +21,51 @@ class NormalisedText(val text: String, private val originalIndexOfKept: IntArray
 }
 
 /**
+ * How the dagger alef (the small alef above a letter, U+0670) is read. The Uthmani text writes a
+ * long "a" as a dagger alef where a keyboard writes a full alef (ٱلرَّحْمَٰن against الرحمان), but
+ * it also writes it where a keyboard writes nothing (ذَٰلِكَ against ذلك), so one reading cannot
+ * serve both. A text is therefore compared in all three readings and a query matches when any
+ * reading contains it.
+ */
+enum class DaggerAlefReading {
+    /** The dagger alef is dropped: ذَٰلِكَ is ذلك, ٱلرَّحْمَٰنِ is الرحمن. */
+    Dropped,
+
+    /**
+     * The dagger alef is an alef after its letter: ٱلرَّحْمَٰنِ is الرحمان, ٱلسَّمَٰوَٰتِ is
+     * السماوات.
+     */
+    Written,
+
+    /**
+     * Like [Written], but a dagger alef on a waw or ya inside a word stands in for that letter:
+     * ٱلصَّلَوٰةَ is الصلاة and ٱلتَّوْرَىٰةَ is التوراة, where keyboard spelling has an alef and
+     * no waw or ya.
+     */
+    ReplacingCarrier,
+}
+
+/**
  * Makes two spellings of the same word equal before they are compared.
  *
  * Arabic: vowel signs, Quranic annotation marks and the tatweel (the stretching line) are dropped;
  * every alef form (with hamza above or below, with madda, or alef wasla) becomes a plain alef; alef
- * maqsura becomes ya, because the Uthmani text writes موسى where a keyboard writes موسي. Latin:
- * letters are lower-cased and lose their accents, so "Rahman" finds "Raḥmān". Other scripts, Bangla
- * in particular, pass through unchanged because their vowel signs are letters, not decoration.
+ * maqsura becomes ya, because the Uthmani text writes موسى where a keyboard writes موسي. The hamza
+ * on a waw or ya seat becomes a bare hamza, and a bare hamza before an alef is dropped, so
+ * ءَامَنُوا, آمنوا and امنوا agree and رَءُوف agrees with رؤوف. Uthmani letters that only the
+ * Uthmani spelling has are read in [DaggerAlefReading] terms (see [normalise]). Latin: letters are
+ * lower-cased and lose their accents, so "Rahman" finds "Raḥmān". Other scripts, Bangla in
+ * particular, pass through unchanged because their vowel signs are letters, not decoration.
  */
 object SearchNormaliser {
 
-    private const val TATWEEL = 'ـ'
-    private const val ALEF = 'ا'
-    private const val YA = 'ي'
+    internal const val TATWEEL = 'ـ'
+    internal const val ALEF = 'ا'
+    internal const val YA = 'ي'
     private const val ALEF_MAQSURA = 'ى'
+    private const val HAMZA = 'ء'
+    internal const val SPACE = ' '
+    private val hamzaSeats = setOf('ؤ', 'ئ')
     private val alefForms = setOf('آ', 'أ', 'إ', 'ٱ', 'ٳ')
 
     // Harakat and related signs, the dagger alef, and the Quranic annotation marks.
@@ -56,28 +87,75 @@ object SearchNormaliser {
     fun isIgnorableMark(character: Char): Boolean =
         character == TATWEEL || markRanges.any { character in it }
 
-    fun normalise(text: String): String = normaliseWithPositions(text).text
+    /**
+     * The text in one reading of the dagger alef; [DaggerAlefReading.Dropped] suits Latin and
+     * Bangla too.
+     */
+    fun normalise(
+        text: String,
+        reading: DaggerAlefReading = DaggerAlefReading.Dropped,
+    ): String = normaliseWithPositions(text, reading).text
 
-    fun normaliseWithPositions(text: String): NormalisedText {
+    /**
+     * A word-final alef before ta marbuta, as in الصلاة and الزكاة, which the Uthmani spelling
+     * writes with a waw.
+     */
+    private val alefBeforeFinalTaMarbuta = Regex("اة(?=\\s|$)")
+
+    /**
+     * The normalised forms of a typed query. Keyboard spelling writes the long "a" before a final
+     * ta marbuta with an alef (الصلاة) where the Uthmani spelling has a waw (الصلوة), so a query
+     * that ends a word that way also has a second form with the waw.
+     */
+    fun normalisedQueries(query: String): List<String> {
+        val plain = normalise(query)
+        val withWaw = plain.replace(alefBeforeFinalTaMarbuta, "وة")
+        return listOf(plain, withWaw).distinct()
+    }
+
+    /**
+     * The distinct normalised forms of [text], one per [DaggerAlefReading]. A text without a dagger
+     * alef, small high yeh or hamza-above sign has one form, so translations cost no extra memory.
+     */
+    fun normalisedReadings(text: String): List<String> =
+        DaggerAlefReading.entries.map { normalise(text, it) }.distinct()
+
+    fun normaliseWithPositions(
+        text: String,
+        reading: DaggerAlefReading = DaggerAlefReading.Dropped,
+    ): NormalisedText {
         val kept = StringBuilder(text.length)
         val positions = IntArray(text.length * MAX_EXPANSION)
         text.forEachIndexed { index, character ->
             val before = kept.length
-            appendNormalised(character, kept)
+            appendNormalised(text, index, reading, kept)
             for (offset in before until kept.length) {
                 positions[offset] = index
             }
         }
-        return collapseSpaces(kept, positions)
+        return compact(kept, positions)
     }
 
-    private fun appendNormalised(character: Char, into: StringBuilder) {
+    private fun appendNormalised(
+        text: String,
+        index: Int,
+        reading: DaggerAlefReading,
+        into: StringBuilder,
+    ) {
+        val character = text[index]
+        if (
+            reading != DaggerAlefReading.Dropped &&
+                UthmaniLetters.appendSpelledOut(text, index, reading, into)
+        ) {
+            return
+        }
         when {
             isIgnorableMark(character) -> Unit
             character in alefForms -> into.append(ALEF)
             character == ALEF_MAQSURA -> into.append(YA)
+            character in hamzaSeats -> into.append(HAMZA)
             character in apostrophes -> Unit
-            character in dashes || character.isWhitespace() -> into.append(' ')
+            character in dashes || character.isWhitespace() -> into.append(SPACE)
             character < ASCII_LIMIT -> into.append(character.lowercaseChar())
             character in SPACING_MODIFIER_START..SPACING_MODIFIER_END -> Unit
             isAccentedLatin(character) -> appendWithoutAccents(character, into)
@@ -98,22 +176,27 @@ object SearchNormaliser {
         }
     }
 
-    /** Collapses runs of spaces and removes leading ones, keeping the position map in step. */
-    private fun collapseSpaces(text: StringBuilder, positions: IntArray): NormalisedText {
-        val collapsed = StringBuilder(text.length)
-        val collapsedPositions = IntArray(text.length)
+    /**
+     * Collapses runs of spaces, removes leading ones and drops a bare hamza that is followed by an
+     * alef (the Uthmani ءَامَنُوا against the keyboard امنوا), keeping the position map in step.
+     */
+    private fun compact(text: StringBuilder, positions: IntArray): NormalisedText {
+        val compacted = StringBuilder(text.length)
+        val compactedPositions = IntArray(text.length)
         for (index in text.indices) {
             val character = text[index]
             val isRepeatedSpace =
-                character == ' ' && (collapsed.isEmpty() || collapsed.last() == ' ')
-            if (!isRepeatedSpace) {
-                collapsedPositions[collapsed.length] = positions[index]
-                collapsed.append(character)
+                character == SPACE && (compacted.isEmpty() || compacted.last() == SPACE)
+            val isHamzaBeforeAlef =
+                character == HAMZA && index + 1 < text.length && text[index + 1] == ALEF
+            if (!isRepeatedSpace && !isHamzaBeforeAlef) {
+                compactedPositions[compacted.length] = positions[index]
+                compacted.append(character)
             }
         }
-        if (collapsed.isNotEmpty() && collapsed.last() == ' ')
-            collapsed.setLength(collapsed.length - 1)
-        return NormalisedText(collapsed.toString(), collapsedPositions)
+        if (compacted.isNotEmpty() && compacted.last() == SPACE)
+            compacted.setLength(compacted.length - 1)
+        return NormalisedText(compacted.toString(), compactedPositions)
     }
 
     /** One character expands to at most this many (a Latin letter that decomposes into three). */

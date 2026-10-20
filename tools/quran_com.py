@@ -18,6 +18,8 @@ import urllib.request
 from datetime import datetime, timezone
 
 API_BASE = "https://api.quran.com/api/v4"
+# The "qdc" API of the same service serves the IndoPak page layouts (mushaf=6 and 7); v4 ignores that parameter.
+QDC_API_BASE = "https://api.quran.com/api/qdc"
 USER_AGENT = "awn-pack-builder/1.0 (https://github.com/awn-quran; free Quran app)"
 MINIMUM_SECONDS_BETWEEN_REQUESTS = 0.26  # a little over 1/4 s keeps us under 4 requests per second
 MAXIMUM_ATTEMPTS = 6
@@ -65,9 +67,9 @@ def _download(url):
     raise RuntimeError(f"unreachable retry loop for {url}")
 
 
-def fetch(path, **query):
+def fetch(path, api_base=None, **query):
     """Return the parsed JSON for an API path, using the disk cache when present."""
-    url = API_BASE + path
+    url = (api_base or API_BASE) + path
     if query:
         url += "?" + urllib.parse.urlencode(query, safe=",")
     cache_file = _cache_path(url)

@@ -11,6 +11,12 @@ Output, under awn-data/fonts/:
   v1/p1.ttf .. p604.ttf              QPC V1 glyph fonts, one per page (1405H print)
   v2/p1.ttf .. p604.ttf              QPC V2 glyph fonts, one per page (1421H print)
   v4-tajweed/p1.ttf .. p604.ttf      QPC V4 coloured tajweed, COLRv1 colour glyphs
+  indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf
+                                     one Unicode font for the IndoPak Nastaleeq text (see tools/build_indopak.py);
+                                     "AlQuran IndoPak by QuranWBW" 4.2.1-WL by Ayman Siddiqui. Its name table
+                                     says "not for sale, not for modification, not for distribution or not for
+                                     development without written notice by quranwbw.com", so the pack is not
+                                     publishable until the maintainer has that written notice.
   fonts.json                         file names and sizes per script
 
 Only .ttf files are taken. Android's Typeface loader reads TrueType and OpenType
@@ -46,6 +52,7 @@ PAGE_SCRIPTS = {
     "v4-tajweed": ("v4/colrv1/ttf/", "QPC V4 tajweed (1441H print), COLRv1 colour glyphs, one font per page"),
 }
 UNICODE_FONT_PATH = "uthmanic_hafs/UthmanicHafs1Ver18.ttf"
+INDOPAK_FONT_PATH = "nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"
 
 
 def http_get(url):
@@ -81,6 +88,9 @@ def plan_downloads(repository_files):
     unicode_path = FONT_ROOT + UNICODE_FONT_PATH
     plan["qpc-hafs"] = ("KFGQPC Uthmanic Hafs v18, one Unicode font",
                         [(unicode_path, os.path.basename(unicode_path), repository_files[unicode_path])])
+    indopak_path = FONT_ROOT + INDOPAK_FONT_PATH
+    plan["indopak"] = ("AlQuran IndoPak by QuranWBW 4.2.1-WL (Nastaleeq), one Unicode font",
+                       [(indopak_path, os.path.basename(indopak_path), repository_files[indopak_path])])
     for script, (directory, description) in PAGE_SCRIPTS.items():
         entries = []
         for page in range(1, quran_com.PAGE_COUNT + 1):
@@ -111,7 +121,10 @@ def main():
                 "files": files,
             }
             print(f"{script}: {len(files)} files, {manifest['scripts'][script]['total_bytes']:,} bytes")
-    with open(os.path.join(fonts_root, "fonts.json"), "w", encoding="utf-8") as handle:
+    fonts_json_path = os.path.join(fonts_root, "fonts.json")
+    if os.path.exists(fonts_json_path):
+        os.remove(fonts_json_path)  # a hard-linked copy of an older data folder must not be written through
+    with open(fonts_json_path, "w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2)
     for script in plan:
         actual = sum(os.path.getsize(os.path.join(fonts_root, script, name))

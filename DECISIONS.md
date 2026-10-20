@@ -15,7 +15,7 @@
 - docs/redesign.md: single-page Quran screen spec (merged); docs/copy.md: vocabulary and copy rules.
 
 ## Next
-- Download catalogue UI is on branch worktree-agent-a67c3c7a552d75408; IndoPak and more reciters wait for the catalogue-data manifests. Phone check still due.
+- Phone check of waves 1 and 2, then: IndoPak renderer (15/16-line, data in awn-data-v2), data-v2 release after the maintainer's licence decisions (awn-data-v2/RELEASE-PLAN.md).
 - Bundle the Roundo and Noto Serif Bengali fonts; the theme uses the platform sans-serif until then.
 
 ## Gotchas (cross-cutting)

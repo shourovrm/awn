@@ -79,3 +79,9 @@
 2026-10-21 | Big downloads (over 20 MB or metered) ask first via a prompt flow, not a PlaybackState | no surprise downloads; keeps whens exhaustive
 2026-10-21 | Downloads run in AudioDownloadWorker (WorkManager 2.11.2, dataSync foreground) | resume after process death
 2026-10-21 | Stop on task removed is on by default and saved with the playback options | swiping the app away should mean silence
+2026-10-21 | IndoPak layouts from Quran.com qdc API mushaf 6 (15 lines) and 7 (16 lines), not QUL | QUL downloads need login and state no licence
+2026-10-21 | IndoPak font stays out of the release plan | its name table forbids distribution without written notice from quranwbw.com
+2026-10-21 | Tajweed text built from word-level text_uthmani_tajweed | verse-level markup crosses word boundaries
+2026-10-21 | Translation terms judged by Tanzil provenance (identical ayahs) | Tanzil's non-commercial terms bind only matching text
+2026-10-21 | 14 reciters use everyayah.com for ayah files | the QuranicAudio mirror lacks their folders
+2026-10-21 | Search tries three dagger-alef readings per ayah | keyboard alef and Uthmani dagger alef do not map one to one

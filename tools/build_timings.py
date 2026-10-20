@@ -24,7 +24,7 @@ Two source shapes are used:
 Reciters are found by name in GET /resources/recitations. Basfar is not listed
 there (his id 163 exists only under /chapter_recitations).
 
-Usage: python3 tools/build_timings.py
+Usage: python3 tools/build_timings.py [pack ...]   (no argument builds every pack)
 """
 
 import json
@@ -48,6 +48,15 @@ RECITERS = [
     {"pack": "husary_muallim", "name": "Husary", "style": "Muallim", "recitation_id": 12, "shape": "ayah_files"},
     {"pack": "minshawi", "name": "Minshawi", "style": "Murattal", "recitation_id": 9, "shape": "ayah_files"},
     {"pack": "basfar", "name": None, "style": None, "recitation_id": None, "shape": "everyayah_folder"},
+    # Added with the second catalogue: every other recitation of GET /resources/recitations that has segments.
+    {"pack": "sudais", "name": "Sudais", "style": None, "recitation_id": 3, "shape": "ayah_files"},
+    {"pack": "shuraim", "name": "Shuraym", "style": None, "recitation_id": 10, "shape": "ayah_files"},
+    {"pack": "shatri", "name": "Shatri", "style": None, "recitation_id": 4, "shape": "ayah_files"},
+    {"pack": "abdul_basit_murattal", "name": "AbdulBaset", "style": "Murattal", "recitation_id": 2, "shape": "ayah_files"},
+    {"pack": "abdul_basit_mujawwad", "name": "AbdulBaset", "style": "Mujawwad", "recitation_id": 1, "shape": "ayah_files"},
+    {"pack": "rifai", "name": "Rifai", "style": None, "recitation_id": 5, "shape": "ayah_files"},
+    {"pack": "tablawi", "name": "Tablawi", "style": None, "recitation_id": 11, "shape": "ayah_files"},
+    {"pack": "minshawi_mujawwad", "name": "Minshawi", "style": "Mujawwad", "recitation_id": 8, "shape": "ayah_files"},
 ]
 
 
@@ -112,7 +121,9 @@ def expand_segments(segments, word_count):
     rows = []
     interpolated_words = 0
     previous_end = 0
-    for first_index, end_index, start_ms, end_ms in segments:
+    for raw_segment in segments:
+        # Recitation 3 (Sudais) delivers the four numbers as strings, the others as integers.
+        first_index, end_index, start_ms, end_ms = (int(number) for number in raw_segment)
         words_in_segment = end_index - first_index
         if words_in_segment < 1 or end_ms <= start_ms or start_ms < previous_end:
             return None, 0
@@ -134,9 +145,14 @@ def build_from_ayah_files(connection, recitation_id, word_counts):
         for verse in quran_com.fetch_chapter_audio(chapter, recitation_id):
             surah, ayah = quran_com.split_verse_key(verse)
             audio = verse.get("audio")
-            if not audio or not audio["segments"]:
+            if not audio:
                 raise ValueError(f"recitation {recitation_id} has no audio for {surah}:{ayah}")
-            audio_rows.append((surah, ayah, absolute_audio_url(audio["url"]), audio["segments"][-1][3], 0))
+            if not audio["segments"]:
+                # The file exists but the API lists no segments (Shuraym 12:76): keep the file, no word timing.
+                audio_rows.append((surah, ayah, absolute_audio_url(audio["url"]), None, 0))
+                skipped_ayahs.append(f"{surah}:{ayah}")
+                continue
+            audio_rows.append((surah, ayah, absolute_audio_url(audio["url"]), int(audio["segments"][-1][3]), 0))
             word_rows, interpolated_words = expand_segments(audio["segments"], word_counts[(surah, ayah)])
             if word_rows is None:
                 skipped_ayahs.append(f"{surah}:{ayah}")
@@ -172,7 +188,10 @@ def main():
     listing = quran_com.fetch("/resources/recitations", language="en")["recitations"]
     word_counts = word_counts_per_ayah()
     summary = {}
+    wanted_packs = set(sys.argv[1:])
     for reciter in RECITERS:
+        if wanted_packs and reciter["pack"] not in wanted_packs:
+            continue
         if reciter["name"]:
             found_id = find_recitation_id(listing, reciter["name"], reciter["style"])
             if found_id != reciter["recitation_id"]:

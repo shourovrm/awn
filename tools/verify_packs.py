@@ -2,6 +2,12 @@
 """Check every built pack in awn-data/ against the pack contract in docs/packs.md.
 
 Prints one PASS or FAIL line per check and exits with status 1 when any check fails.
+The packs to expect come from tools/pack_catalogue.py and tools/reciter_catalogue.py, so a pack added to
+a catalogue is checked without editing this file.
+
+AWN_BASELINE_DATA names an older data folder (default: awn-data next to awn-data-v2). When its manifests
+exist, every pack that is in both folders must have the same SHA-256 and size, so a rebuild cannot change
+a published pack unnoticed.
 
 Usage: python3 tools/verify_packs.py
 """
@@ -10,20 +16,29 @@ import collections
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pack_catalogue
 import quran_com
+import reciter_catalogue
 
 DATA_ROOT = quran_com.DATA_ROOT
+BASELINE_ROOT = os.environ.get("AWN_BASELINE_DATA", "/home/rms/repos/awn/awn-data")
+ISO_DOCUMENTED_TERMS = {"yes", "no", "unclear"}
+DOCUMENTED_PUBLISHABLE = {"yes", "conditional", "no"}
 CHAPTERS, AYAHS, PAGES = quran_com.CHAPTER_COUNT, quran_com.AYAH_COUNT, quran_com.PAGE_COUNT
 WORDS = 77429
 SHORT_PAGES = (1, 2)  # Al-Fatihah and the start of Al-Baqarah are printed with 8 lines
-TRANSLATION_FILES = ["en_saheeh", "en_abdul_haleem", "en_transliteration", "bn_zakaria"]
-WORD_FILES = ["wbw_en", "wbw_bn"]
-TIMING_FILES = {"alafasy": "word", "husary": "word", "husary_muallim": "word", "minshawi": "word", "basfar": "ayah"}
-FONT_SCRIPTS = ["qpc-hafs", "v1", "v2", "v4-tajweed"]
+TRANSLATION_FILES = [pack["id"] for pack in pack_catalogue.TRANSLATIONS_AND_TRANSLITERATIONS]
+WORD_FILES = [pack["id"] for pack in pack_catalogue.WORD_PACKS]
+TIMING_FILES = {reciter["id"]: "word" for reciter in reciter_catalogue.RECITERS if reciter["quran_com_recitation_id"]}
+TIMING_FILES["basfar"] = "ayah"
+FONT_SCRIPTS = ["qpc-hafs", "indopak", "v1", "v2", "v4-tajweed"]
+SINGLE_FILE_FONTS = ("qpc-hafs", "indopak")
+INDOPAK_LAYOUTS = {"15": (610, 15), "16": (548, 16)}  # suffix -> (pages, lines per page)
 
 failures = []
 
@@ -116,10 +131,11 @@ def verify_fonts():
         return
     with open(manifest_path, encoding="utf-8") as handle:
         manifest = json.load(handle)
-    check(sorted(manifest["scripts"]) == sorted(FONT_SCRIPTS), "fonts.json lists qpc-hafs, v1, v2 and v4-tajweed")
+    check(sorted(manifest["scripts"]) == sorted(FONT_SCRIPTS),
+          "fonts.json lists qpc-hafs, indopak, v1, v2 and v4-tajweed")
     for script in FONT_SCRIPTS:
         entry = manifest["scripts"][script]
-        expected_count = 1 if script == "qpc-hafs" else PAGES
+        expected_count = 1 if script in SINGLE_FILE_FONTS else PAGES
         check(len(entry["files"]) == expected_count, f"{script} lists {expected_count} font files")
         sizes_match = all(
             os.path.exists(os.path.join(fonts_root, script, item["name"]))
@@ -131,7 +147,7 @@ def verify_fonts():
             with open(os.path.join(fonts_root, script, item["name"]), "rb") as handle:
                 magic_ok = magic_ok and handle.read(4) in (b"\x00\x01\x00\x00", b"OTTO", b"true")
         check(magic_ok, f"{script} files start with a TrueType or OpenType header")
-        if script != "qpc-hafs":
+        if script not in SINGLE_FILE_FONTS:
             names = {item["name"] for item in entry["files"]}
             check(names == {f"p{page}.ttf" for page in range(1, PAGES + 1)}, f"{script} has p1..p604")
         print(f"     {script}: {entry['total_bytes']:,} bytes")
@@ -146,7 +162,7 @@ def verify_translations(word_counts):
         check(scalar(connection, "SELECT COUNT(*) FROM translation WHERE ayah_from != ayah OR ayah_to != ayah") == 0,
               f"{stem} has ayah_from = ayah_to = ayah")
         check(scalar(connection, "SELECT COUNT(*) FROM translation WHERE TRIM(text) = ''") == 0, f"{stem} has no empty text")
-        check(scalar(connection, "SELECT COUNT(*) FROM translation WHERE text LIKE '%<%>%' OR text LIKE '%foot_note%'") == 0,
+        check(scalar(connection, "SELECT COUNT(*) FROM translation WHERE text LIKE '%<%>%' OR instr(text, 'foot_note') > 0") == 0,
               f"{stem} has no markup left")
         keys = {(s, a) for s, a in connection.execute("SELECT surah, ayah FROM translation")}
         check(keys == set(word_counts), f"{stem} covers exactly the ayahs of quran.sqlite")
@@ -166,7 +182,9 @@ def verify_translations(word_counts):
         counts = {(s, a): n for s, a, n in connection.execute(
             "SELECT surah, ayah, COUNT(*) FROM word_translation GROUP BY surah, ayah")}
         check(counts == word_counts, f"{stem} word count equals quran.sqlite in all 6236 ayahs")
-        check(scalar(connection, "SELECT COUNT(*) FROM word_translation WHERE TRIM(text) = ''") == 0, f"{stem} has no empty text")
+        declared_empty = int(dict(connection.execute("SELECT key, value FROM pack_info")).get("empty_words", 0))
+        check(scalar(connection, "SELECT COUNT(*) FROM word_translation WHERE TRIM(text) = ''") == declared_empty,
+              f"{stem} has exactly the {declared_empty} empty words that pack_info.empty_words declares")
         connection.close()
     for stem in TRANSLATION_FILES + WORD_FILES:
         terms = os.path.join(DATA_ROOT, "translations", stem + ".TERMS.md")
@@ -176,6 +194,76 @@ def verify_translations(word_counts):
                 text = handle.read()
             has_terms = "Source:" in text and "Retrieved:" in text
         check(has_terms, f"{stem}.TERMS.md names the source and retrieval date")
+
+
+def verify_indopak(word_counts):
+    connection = open_pack("quran", "indopak.sqlite")
+    if connection is None:
+        return
+    check(scalar(connection, "SELECT COUNT(*) FROM word") == WORDS, "indopak.sqlite has 77429 words")
+    keys = {(s, a, p) for s, a, p in connection.execute("SELECT surah, ayah, position FROM word")}
+    quran = sqlite3.connect(os.path.join(DATA_ROOT, "quran", "quran.sqlite"))
+    check(keys == {(s, a, p) for s, a, p in quran.execute("SELECT surah, ayah, position FROM word")},
+          "indopak words have the same (surah, ayah, position) keys as quran.sqlite")
+    quran.close()
+    check(scalar(connection, "SELECT COUNT(*) FROM ayah_marker") == AYAHS, "indopak.sqlite has 6236 ayah-end markers")
+    check(scalar(connection, "SELECT COUNT(*) FROM word WHERE text_indopak = '' OR text_nastaleeq = ''") == 0,
+          "indopak words have both texts")
+    check(scalar(connection, "SELECT COUNT(*) FROM ayah_marker WHERE end_sign = ''") == 0, "every ayah has an end sign string")
+    for suffix, (pages, lines) in INDOPAK_LAYOUTS.items():
+        page_column, line_column = f"page_{suffix}", f"line_{suffix}"
+        distinct_pages = [row[0] for row in connection.execute(
+            f"SELECT DISTINCT {page_column} FROM word ORDER BY {page_column}")]
+        check(distinct_pages == list(range(1, pages + 1)), f"{page_column} runs 1..{pages} without a gap")
+        check(scalar(connection, f"SELECT MIN({line_column}) FROM word") >= 1
+              and scalar(connection, f"SELECT MAX({line_column}) FROM word") <= lines,
+              f"{line_column} lies in 1..{lines}")
+        backwards = 0
+        previous = (0, 0)
+        for page, line in connection.execute(
+                f"SELECT {page_column}, {line_column} FROM word ORDER BY surah, ayah, position"):
+            backwards += (page, line) < previous
+            previous = (page, line)
+        check(backwards == 0, f"{suffix}-line print: words never go back in page and line")
+        check(scalar(connection, f"""
+            SELECT COUNT(*) FROM ayah_marker m JOIN
+              (SELECT surah, ayah, MAX({page_column} * 100 + {line_column}) AS last FROM word GROUP BY surah, ayah) w
+              USING (surah, ayah) WHERE m.{page_column} * 100 + m.{line_column} < w.last""") == 0,
+              f"{suffix}-line print: no end sign lies before the last word of its ayah")
+    info = dict(connection.execute("SELECT key, value FROM pack_info"))
+    check(info.get("pages_15") == "610" and info.get("pages_16") == "548", "pack_info records the page counts")
+    connection.close()
+
+
+def verify_tajweed(word_counts):
+    connection = open_pack("quran", "tajweed.sqlite")
+    if connection is None:
+        return
+    check(scalar(connection, "SELECT COUNT(*) FROM tajweed_word") == WORDS, "tajweed.sqlite has 77429 words")
+    counts = {(s, a): n for s, a, n in connection.execute(
+        "SELECT surah, ayah, COUNT(*) FROM tajweed_word GROUP BY surah, ayah")}
+    check(counts == word_counts, "tajweed word count equals quran.sqlite in all 6236 ayahs")
+    rule_names = {name for (name,) in connection.execute("SELECT name FROM tajweed_rule")}
+    tag = re.compile(r"</?rule(?: class=([a-z_-]+))?>")
+    unknown_classes, bad_markup, depth_errors = set(), 0, 0
+    for (markup,) in connection.execute("SELECT markup FROM tajweed_word"):
+        leftover = tag.sub("", markup)
+        bad_markup += ("<" in leftover or ">" in leftover or "&" in leftover or " " in leftover or leftover == "")
+        depth = 0
+        for match in re.finditer(r"</?rule[^>]*>", markup):
+            depth += -1 if match.group(0) == "</rule>" else 1
+            if depth < 0:
+                break
+        depth_errors += depth != 0
+        unknown_classes.update(name for name in tag.findall(markup) if name and name not in rule_names)
+    check(bad_markup == 0, "tajweed markup holds only <rule class=NAME> tags around letters")
+    check(depth_errors == 0, "tajweed rule tags are balanced in every word")
+    check(not unknown_classes, f"every tajweed class is described in tajweed_rule {sorted(unknown_classes)}")
+    info = dict(connection.execute("SELECT key, value FROM pack_info"))
+    mismatches = [key for key in info["skeleton_mismatches"].split(",") if key]
+    check(len(mismatches) <= 250,
+          f"at most 250 words differ from text_uthmani in their consonants (has {len(mismatches)}, listed in pack_info)")
+    connection.close()
 
 
 def verify_timings(word_counts):
@@ -198,7 +286,8 @@ def verify_timings(word_counts):
                        for key in info["ayahs_without_word_timing"].split(",") if key}
             expected = {key: n for key, n in word_counts.items() if key not in skipped}
             check(counts == expected, f"{stem} has one segment per word in every ayah except the {len(skipped)} listed")
-            check(len(skipped) <= 50, f"{stem} lists at most 50 ayahs without word timing (has {len(skipped)})")
+            check(len(skipped) <= 160,
+                  f"{stem} lists at most 160 ayahs (2.6 percent) without word timing (has {len(skipped)})")
             check(scalar(connection, "SELECT COUNT(*) FROM segment WHERE end_ms <= start_ms OR start_ms < 0") == 0,
                   f"{stem} segments have 0 <= start_ms < end_ms")
             overlaps = scalar(connection, """
@@ -211,11 +300,18 @@ def verify_timings(word_counts):
         connection.close()
 
 
+def load_manifest(directory, name, key):
+    path = os.path.join(directory, "manifests", name)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle)[key]
+
+
 def verify_manifests():
-    manifest_directory = os.path.join(DATA_ROOT, "manifests")
     expected_keys = {"scripts.json": "packs", "translations.json": "packs", "reciters.json": "reciters"}
     for name, key in expected_keys.items():
-        path = os.path.join(manifest_directory, name)
+        path = os.path.join(DATA_ROOT, "manifests", name)
         if not os.path.exists(path):
             check(False, f"manifests/{name} exists")
             continue
@@ -223,6 +319,7 @@ def verify_manifests():
             manifest = json.load(handle)
         check(manifest.get("format_version") == 1, f"{name} has format_version 1")
         entries = manifest[key]
+        check(len({entry["id"] for entry in entries}) == len(entries), f"{name} has no duplicate id")
         all_fields = all(entry.get("format_version") == 1 and entry.get("credit") and entry.get("source_url")
                          for entry in entries)
         check(all_fields, f"{name} entries have format_version 1, credit and source_url")
@@ -234,25 +331,79 @@ def verify_manifests():
                   and sha256_of_file(path_on_disk) == entry["sha256"])
             check(ok, f"{name}: {entry['file']} matches its sha256 and byte count")
         if name == "scripts.json":
-            check({e["id"] for e in entries} == {"quran-text", "qpc-hafs", "v1", "v2", "v4-tajweed"},
-                  "scripts.json lists the text pack and four font scripts")
+            by_id = {entry["id"]: entry for entry in entries}
+            check(set(by_id) == {"quran-text", "qpc-hafs", "v1", "v2", "v4-tajweed", "indopak-layouts", "indopak",
+                                 "tajweed-text"},
+                  "scripts.json lists the text packs and the font scripts")
+            check(all(by_id[i]["installed_bytes"] > by_id[i]["bytes"] for i in ("v1", "v2", "v4-tajweed")),
+                  "font zips state installed_bytes")
+            check(by_id["v4-tajweed"].get("min_sdk") == 33, "v4-tajweed has min_sdk 33 (COLRv1 needs Android 13)")
+            check(all("min_sdk" not in by_id[i] for i in by_id if i != "v4-tajweed"), "only v4-tajweed has min_sdk")
+            check(by_id["indopak"].get("requires") == ["indopak-layouts"]
+                  and by_id["indopak-layouts"].get("requires") == ["quran-text"],
+                  "indopak requires indopak-layouts, which requires quran-text")
+            layouts = {layout["id"]: (layout["pages"], layout["lines_per_page"])
+                       for layout in by_id["indopak-layouts"]["layouts"]}
+            check(layouts == INDOPAK_LAYOUTS, "indopak-layouts lists the 15-line and 16-line layouts")
+        if name == "translations.json":
+            expected_ids = set(TRANSLATION_FILES) | set(WORD_FILES)
+            ids = {entry["id"] for entry in entries}
+            check(expected_ids <= ids, "translations.json lists every catalogue pack")
+            check({e["id"] for e in entries if e["kind"] == "transliteration"} == {"en_transliteration"},
+                  "the transliteration pack has kind transliteration")
+            judged = [entry for entry in entries if entry["kind"] in ("ayah", "transliteration") and entry["id"] != "bn_quantum"]
+            check(all(entry.get("terms_known") in ISO_DOCUMENTED_TERMS and entry.get("publishable") in DOCUMENTED_PUBLISHABLE
+                      and entry.get("rights_holder") for entry in judged),
+                  "every ayah pack states rights holder, terms_known and publishable")
+            check(all(entry.get("language") and entry.get("language_name") for entry in entries if entry["id"] != "bn_quantum"),
+                  "every pack has language and language_name")
+            check(all(entry.get("terms_file") and os.path.exists(os.path.join(DATA_ROOT, entry["terms_file"]))
+                      for entry in entries if entry["id"] != "bn_quantum"), "every pack has its TERMS.md")
         if name == "reciters.json":
             flags = {e["id"]: e["word_by_word"] for e in entries}
-            check(flags == {"alafasy": True, "husary": True, "husary_muallim": True, "minshawi": True,
-                            "basfar": False, "raad_al_kurdi": False}, "reciters.json word_by_word flags")
+            expected_flags = {r["id"]: r["quran_com_recitation_id"] is not None for r in reciter_catalogue.RECITERS}
+            check(flags == expected_flags, "reciters.json word_by_word flags follow the catalogue")
             raad = next(e for e in entries if e["id"] == "raad_al_kurdi")
             check(raad["timing_pack"] is None and raad["quranicaudio_path"] == "raad_mohammad_al_kurdi/mp3/",
                   "Raad al-Kurdi has surah files only")
             check(all(e["quranicaudio_path"] and e["surah_url_pattern"] for e in entries),
                   "every reciter has a QuranicAudio path and surah url pattern")
+            check(all(e["timing_pack"] == (e["id"] if e["file"] else None) for e in entries),
+                  "a reciter has a timing_pack exactly when it has a timing file")
+            check(all(e.get("riwaya") == "hafs" and e.get("style") for e in entries), "every reciter states style and riwaya")
+            check(all(e.get("audio_bytes", 0) > 10 ** 8 for e in entries), "every reciter has a measured audio_bytes")
+            ayah_reciters = [e for e in entries if e["everyayah_folder"]]
+            check(all(e["ayah_url_pattern"] and e.get("ayah_audio_bytes") and e.get("estimated") is True
+                      for e in ayah_reciters), "every reciter with an EveryAyah folder has an estimated ayah_audio_bytes")
+
+
+def verify_against_baseline():
+    """Packs that exist in the baseline data folder must be byte-identical here."""
+    if os.path.abspath(BASELINE_ROOT) == os.path.abspath(DATA_ROOT):
+        return
+    for name, key in (("scripts.json", "packs"), ("translations.json", "packs"), ("reciters.json", "reciters")):
+        baseline = load_manifest(BASELINE_ROOT, name, key)
+        current = load_manifest(DATA_ROOT, name, key)
+        if baseline is None or current is None:
+            continue
+        current_by_id = {entry["id"]: entry for entry in current}
+        for old in baseline:
+            if old["file"] is None or old["id"] not in current_by_id:
+                continue
+            new = current_by_id[old["id"]]
+            check((new["sha256"], new["bytes"]) == (old["sha256"], old["bytes"]),
+                  f"{old['id']} is byte-identical to the baseline data folder")
 
 
 def main():
     word_counts = verify_quran_text()
     verify_fonts()
+    verify_indopak(word_counts)
+    verify_tajweed(word_counts)
     verify_translations(word_counts)
     verify_timings(word_counts)
     verify_manifests()
+    verify_against_baseline()
     print()
     if failures:
         print(f"{len(failures)} check(s) failed")

@@ -69,6 +69,7 @@ __pycache__/
 /app/src/main/assets/models/
 awn-models/
 awn-data/
+awn-data-v2/
 
 # Gradle and Android build outputs
 .gradle/

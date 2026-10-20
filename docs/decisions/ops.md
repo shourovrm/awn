@@ -5,3 +5,4 @@
 2026-10-20 | sdkmanager --sdk_root=$HOME/android-sdk "platforms;android-37.0" and accepted licences | AndroidX dependencies require compileSdk 37
 2026-10-20 | Manual, not done: add GitHub secrets AWN_KEYSTORE_BASE64 (base64 -w0 of the jks), AWN_KEYSTORE_PASSWORD, AWN_KEY_ALIAS, AWN_KEY_PASSWORD | release.yml needs them
 2026-10-20 | Manual, not done: gh release create models-v1 with the files in awn-models/ | fetchModels downloads from it when awn-models/ is empty
+2026-10-21 | `cp -al awn-data awn-data-v2`, then `AWN_DATA=.../awn-data-v2 python3 -I tools/build_*.py` | second catalogue built beside the first; build_translations wrote 6 TERMS.md through hard links into awn-data (text only, packs unchanged), scripts now unlink first
