@@ -3,6 +3,36 @@ plugins {
     id("awn.compose")
 }
 
-android { namespace = "app.awn.quran.feature.read" }
+android {
+    namespace = "app.awn.quran.feature.read"
+    defaultConfig { testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+}
 
-dependencies { implementation(project(":core:ui")) }
+dependencies {
+    implementation(project(":core:ui"))
+    // Repository interfaces and fakes appear in this module's public classes, so they are api.
+    api(project(":core:data"))
+    api(project(":player"))
+    // WordState, the colour state of a word, is defined by the tracker.
+    api(project(":tracker"))
+
+    implementation(libs.androidx.datastorePreferences)
+    implementation(libs.androidx.activityCompose)
+    implementation(libs.androidx.lifecycleViewmodelCompose)
+    implementation(libs.androidx.lifecycleRuntimeCompose)
+
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.testExtJunit)
+    testImplementation(libs.compose.uiTestJunit4)
+    // Supplies the activity that Robolectric Compose tests launch.
+    //noinspection UseTomlInstead
+    testImplementation("androidx.compose.ui:ui-test-manifest")
+    //noinspection UseTomlInstead
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+
+    androidTestImplementation(libs.compose.uiTestJunit4)
+    androidTestImplementation(libs.androidx.testExtJunit)
+    androidTestImplementation(libs.androidx.testRunner)
+    //noinspection UseTomlInstead
+    androidTestImplementation("androidx.compose.ui:ui-test-manifest")
+}
