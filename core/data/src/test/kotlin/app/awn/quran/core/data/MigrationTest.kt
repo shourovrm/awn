@@ -52,4 +52,32 @@ class MigrationTest {
                 .close()
         }
     }
+
+    @Test
+    fun versionOneBookmarksSurviveTheMigrationToVersionTwo() {
+        val databaseName = "migration-keeps-data"
+        migrationHelper.createDatabase(databaseName, 1).use { oldDatabase ->
+            oldDatabase.execSQL(
+                "INSERT INTO bookmark (surah, ayah, wordPosition, createdAtEpochSeconds) " +
+                    "VALUES (2, 255, 3, 1700000000)",
+            )
+        }
+
+        migrationHelper
+            .runMigrationsAndValidate(databaseName, 2, true, *AwnMigrations.all.toTypedArray())
+            .use { migrated ->
+                migrated.query("SELECT surah, ayah, wordPosition FROM bookmark").use { cursor ->
+                    assertEquals(1, cursor.count)
+                    cursor.moveToFirst()
+                    assertEquals(2, cursor.getInt(0))
+                    assertEquals(255, cursor.getInt(1))
+                    assertEquals(3, cursor.getInt(2))
+                }
+                migrated.execSQL("INSERT INTO bookmarked_page (page, createdAt) VALUES (1, 1)")
+                migrated.execSQL(
+                    "INSERT INTO saved_ayah (surah, ayah, note, createdAt) VALUES (1, 1, NULL, 1)",
+                )
+                migrated.execSQL("INSERT INTO recent_page (page, openedAt) VALUES (1, 1)")
+            }
+    }
 }

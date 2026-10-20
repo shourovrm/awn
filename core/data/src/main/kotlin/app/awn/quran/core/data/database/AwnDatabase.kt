@@ -6,7 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BookmarkEntity::class],
+    entities =
+        [
+            BookmarkEntity::class,
+            BookmarkedPageEntity::class,
+            SavedAyahEntity::class,
+            RecentPageEntity::class,
+        ],
     version = AwnDatabase.CURRENT_VERSION,
     exportSchema = true,
 )
@@ -14,8 +20,10 @@ abstract class AwnDatabase : RoomDatabase() {
 
     abstract fun bookmarkDao(): BookmarkDao
 
+    abstract fun userDataDao(): UserDataDao
+
     companion object {
-        const val CURRENT_VERSION = 1
+        const val CURRENT_VERSION = 2
         const val FILE_NAME = "awn.db"
 
         /**
