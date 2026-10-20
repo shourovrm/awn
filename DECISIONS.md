@@ -12,11 +12,12 @@
 - docs/decisions/ops.md: manual machine and release steps with dates and commands.
 - docs/decisions/LOG.md: one line per decision, newest last (`tail -20`).
 - docs/plan.md: milestones; docs/design-system.md: tokens and gates.
+- docs/redesign.md: single-page Quran screen spec, file ownership and slots for the redesign wave.
 
 ## Next
 - Maintainer: back up ~/.gradle/awn-release.jks and its passwords offline; add the four secrets in docs/decisions/ops.md to GitHub.
 - Maintainer: create the models-v1 and data-v1 releases (fetchModels and fetchBundledPacks download from them).
-- Phone test of the wired app: open items in recite.md, player.md and architecture.md (fonts, speech start-up cost).
+- Redesign wave (docs/redesign.md): branches page, reader, audio, recite, shell; maintainer wires QuranScreenSlots in :app, then copy review and phone test.
 - Bundle the Roundo and Noto Serif Bengali fonts; the theme uses the platform sans-serif until then.
 
 ## Gotchas (cross-cutting)
