@@ -190,13 +190,7 @@ fun QuranScreen(
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(target) { viewModel.open(target) }
-    LaunchedEffect(slots.isReciteActive) {
-        if (slots.isReciteActive && !viewModel.state.value.isReciting) viewModel.enterReciteMode()
-    }
-    val recitedAyah = slots.reciteCurrentAyah()
-    LaunchedEffect(recitedAyah, state.isReciting) {
-        if (state.isReciting && recitedAyah != null) viewModel.followRecitation(recitedAyah)
-    }
+    FollowRecitation(slots, viewModel, isReciting = state.isReciting)
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.setScreenActive(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.setScreenActive(false) }
     BackHandler(enabled = state.hasBackWork) { viewModel.onBack() }

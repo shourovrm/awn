@@ -58,7 +58,8 @@ class SqliteTranslationRepository(
 
     override suspend fun wordByWord(language: String, ayah: AyahRef): List<String> =
         withContext(ioDispatcher) {
-            val record = packOf("wbw_$language", setOf(WORD_PACK_KIND)) ?: return@withContext emptyList()
+            val record =
+                packOf("wbw_$language", setOf(WORD_PACK_KIND)) ?: return@withContext emptyList()
             val file = storage.locate(record) ?: return@withContext emptyList()
             val cursor =
                 databases
