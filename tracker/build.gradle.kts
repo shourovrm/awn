@@ -61,6 +61,9 @@ abstract class FetchFixturesTask : DefaultTask() {
             Splice(36, 10, 113, 1),
         )
 
+    // Resolved on first use, so a task that finds every fixture already present needs no ffmpeg.
+    private val ffmpegExecutable: String by lazy { findFfmpeg() }
+
     @TaskAction
     fun fetch() {
         val root = fixturesDirectory.get().asFile
@@ -69,7 +72,7 @@ abstract class FetchFixturesTask : DefaultTask() {
         val pause = root.resolve("pause.wav")
         if (!pause.exists()) {
             run(
-                "/usr/bin/ffmpeg",
+                ffmpegExecutable,
                 "-y",
                 "-f",
                 "lavfi",
@@ -142,7 +145,7 @@ abstract class FetchFixturesTask : DefaultTask() {
         val wav = ayahDirectory.resolve("$stem.wav")
         if (!wav.exists()) {
             run(
-                "/usr/bin/ffmpeg",
+                ffmpegExecutable,
                 "-y",
                 "-i",
                 mp3.path,
@@ -177,7 +180,7 @@ abstract class FetchFixturesTask : DefaultTask() {
         val listFile = File.createTempFile("concat", ".txt")
         listFile.writeText(parts.joinToString("\n") { "file '${it.absolutePath}'" })
         run(
-            "/usr/bin/ffmpeg",
+            ffmpegExecutable,
             "-y",
             "-f",
             "concat",
@@ -195,7 +198,7 @@ abstract class FetchFixturesTask : DefaultTask() {
     private fun stretch(source: File, output: File, factor: String) {
         if (output.exists()) return
         run(
-            "/usr/bin/ffmpeg",
+            ffmpegExecutable,
             "-y",
             "-i",
             source.path,
@@ -218,7 +221,7 @@ abstract class FetchFixturesTask : DefaultTask() {
         val source = ayahDirectory.resolve("%03d%03d.wav".format(surah, ayah))
         val log =
             run(
-                "/usr/bin/ffmpeg",
+                ffmpegExecutable,
                 "-i",
                 source.path,
                 "-af",
@@ -241,7 +244,7 @@ abstract class FetchFixturesTask : DefaultTask() {
                 speechStart + FALLBACK_WORD_SECONDS
             }
         run(
-            "/usr/bin/ffmpeg",
+            ffmpegExecutable,
             "-y",
             "-i",
             source.path,
@@ -252,6 +255,26 @@ abstract class FetchFixturesTask : DefaultTask() {
             output.path,
         )
         return output
+    }
+
+    // Order: the FFMPEG environment variable, then PATH, then the Debian and Arch location.
+    private fun findFfmpeg(): String {
+        val fromEnvironment = System.getenv("FFMPEG")?.takeIf { it.isNotBlank() }
+        if (fromEnvironment != null && File(fromEnvironment).canExecute()) return fromEnvironment
+        val pathDirectories = System.getenv("PATH").orEmpty().split(File.pathSeparator)
+        val onPath =
+            pathDirectories
+                .filter { it.isNotBlank() }
+                .map { File(it, "ffmpeg") }
+                .firstOrNull { it.isFile && it.canExecute() }
+        if (onPath != null) return onPath.path
+        val defaultLocation = File("/usr/bin/ffmpeg")
+        if (defaultLocation.canExecute()) return defaultLocation.path
+        throw GradleException(
+            "ffmpeg not found. Tried: FFMPEG environment variable " +
+                "(${fromEnvironment ?: "not set"}), PATH, and /usr/bin/ffmpeg. " +
+                "Install ffmpeg or set FFMPEG to its full path.",
+        )
     }
 
     private fun run(vararg command: String): String {
