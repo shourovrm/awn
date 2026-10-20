@@ -67,3 +67,4 @@ __pycache__/
 
 # model files (mirrored in the models data release, not in git)
 awn-models/
+awn-data/

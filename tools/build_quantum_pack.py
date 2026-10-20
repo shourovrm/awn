@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Build the Quantum Foundation Bangla translation pack from alquran.org.bd.
+
+The site exposes one JSON document per surah at /api/surah/<n>. Each document
+holds "blocks": a block covers one ayah or a range of ayahs
+(ayat_number_start..ayat_number_end) and carries the Bangla rendering as HTML.
+Inside a multi-ayah block the text of each ayah is introduced by its number in
+Bangla digits ("২. ..." or "৫-৬. ..."), which this script uses to split the
+block back into per-ayah rows. Where the publisher merged several ayahs into
+one passage, every ayah in the range stores the same text together with the
+range, so the app can show "5-6" instead of repeating the passage.
+
+Output: a SQLite file with table translation(surah, ayah, ayah_from, ayah_to,
+text) plus a coverage report on stdout. Permission to redistribute the text is
+handled by the maintainer and is not checked here.
+
+Usage: python3 tools/build_quantum_pack.py [output.sqlite]
+"""
+
+import html
+import json
+import re
+import sqlite3
+import sys
+import time
+import urllib.request
+
+SITE = "https://alquran.org.bd"
+VERSES_PER_SURAH = [
+    7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
+    112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53,
+    89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12,
+    12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26,
+    30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
+]
+BANGLA_DIGITS = "০১২৩৪৫৬৭৮৯"
+# "২." or "৫-৬." at the start of a sentence, preceded by whitespace or a closing quote.
+MARKER = re.compile(r"(?:^|[\s’”)])([০-৯]+)(?:-([০-৯]+))?\.\s")
+
+
+def bangla_to_int(digits):
+    return int("".join(str(BANGLA_DIGITS.index(ch)) for ch in digits))
+
+
+def fetch_surah(number):
+    with urllib.request.urlopen(f"{SITE}/api/surah/{number}", timeout=30) as response:
+        return json.load(response)["results"]
+
+
+def clean(html_text):
+    text = html.unescape(re.sub(r"<[^>]+>", " ", html_text or ""))
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def split_block(text, first, last):
+    """Return {ayah: (ayah_from, ayah_to, text)} for one block."""
+    rows = {}
+    markers = list(MARKER.finditer(text))
+    # The first ayah of a block usually carries no marker: its text runs from
+    # the start of the block to the first marker.
+    segments = []
+    # The first ayah of a block carries no marker: its text runs from the start
+    # of the block to the first marker, and it covers every ayah before that
+    # marker's number (the whole block when there is no marker at all).
+    head = text[: markers[0].start()].strip() if markers else text
+    if head:
+        head_end = bangla_to_int(markers[0].group(1)) - 1 if markers else last
+        segments.append((first, max(first, head_end), head))
+    for index, match in enumerate(markers):
+        start = bangla_to_int(match.group(1))
+        end = bangla_to_int(match.group(2)) if match.group(2) else start
+        tail = markers[index + 1].start() if index + 1 < len(markers) else len(text)
+        segments.append((start, end, text[match.end():tail].strip()))
+    # The inline markers are more reliable than the block's declared range:
+    # the site sometimes files ayah 94 inside the block labelled 93-93.
+    for start, end, segment in segments:
+        for ayah in range(start, end + 1):
+            rows[ayah] = (start, end, segment)
+    return rows
+
+
+def main():
+    output = sys.argv[1] if len(sys.argv) > 1 else "awn-data/translations/bn_quantum.sqlite"
+    connection = sqlite3.connect(output)
+    connection.execute("DROP TABLE IF EXISTS translation")
+    connection.execute(
+        "CREATE TABLE translation (surah INTEGER, ayah INTEGER, ayah_from INTEGER,"
+        " ayah_to INTEGER, text TEXT, PRIMARY KEY (surah, ayah))"
+    )
+    missing = []
+    merged_ranges = 0
+    for surah in range(1, 115):
+        blocks = fetch_surah(surah)
+        rows = {}
+        for block in blocks:
+            first = block["ayat_number_start"] or block["ayat_number"]
+            last = block["ayat_number_end"] or first
+            rows.update(split_block(clean(block["ayat_bangla_description"]), first, last))
+        for ayah in range(1, VERSES_PER_SURAH[surah - 1] + 1):
+            if ayah not in rows or not rows[ayah][2]:
+                missing.append(f"{surah}:{ayah}")
+                continue
+            start, end, text = rows[ayah]
+            if end > start and ayah == start:
+                merged_ranges += 1
+            connection.execute(
+                "INSERT INTO translation VALUES (?, ?, ?, ?, ?)", (surah, ayah, start, end, text)
+            )
+        connection.commit()
+        time.sleep(0.3)
+    total = connection.execute("SELECT COUNT(*) FROM translation").fetchone()[0]
+    print(f"rows: {total} of 6236; merged ranges: {merged_ranges}; missing: {len(missing)}")
+    if missing:
+        print("missing ayahs:", " ".join(missing[:80]), "..." if len(missing) > 80 else "")
+
+
+if __name__ == "__main__":
+    main()
