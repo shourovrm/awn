@@ -85,6 +85,8 @@ internal fun AyahTextLayer(
             val chapterName =
                 chapters.firstOrNull { it.number == entry.ayah.surah }?.localName().orEmpty()
             val reference = stringResource(R.string.ayah_spoken, chapterName, entry.ayah.ayah)
+            val description =
+                stringResource(R.string.ayah_spoken_with_text, reference, entry.arabic)
             Box(
                 Modifier.offset { IntOffset(bounds.left.roundToInt(), bounds.top.roundToInt()) }
                     .size(
@@ -92,7 +94,7 @@ internal fun AyahTextLayer(
                         with(density) { bounds.height.toDp() },
                     )
                     .semantics {
-                        contentDescription = "$reference. ${entry.arabic}"
+                        contentDescription = description
                         traversalIndex = index.toFloat()
                         onLongClick(label = selectLabel) {
                             onSelect(entry.ayah)
