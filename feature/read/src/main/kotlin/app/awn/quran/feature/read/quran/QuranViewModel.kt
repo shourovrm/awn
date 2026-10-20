@@ -227,6 +227,14 @@ class QuranViewModel(
      * Moves the pager to [page] at once, in every view. Used by Go to page and the index. This is a
      * lookup: it becomes the resume point only if the reader stays.
      */
+    /** Turns to the page of the ayah being recited, so the reader keeps seeing the words. */
+    fun followRecitation(ayah: AyahRef) {
+        viewModelScope.launch {
+            val page = pageOfAyah(ayah)
+            if (page != mutableState.value.currentPage) jumpToPage(page)
+        }
+    }
+
     fun jumpToPage(page: Int) {
         showPage(page, barsVisible = mutableState.value.areBarsVisible, movesPager = true)
     }

@@ -10,6 +10,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
 import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.recite.ReciteBar
+import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.IndexActions
 import app.awn.quran.index.IndexScreen
@@ -48,7 +50,9 @@ import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
 import app.awn.quran.services.AwnServices
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @Composable
@@ -86,7 +90,10 @@ private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
     LaunchedEffect(Unit) {
         // Before Android 13 the permission does not exist and notifications are always allowed.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@LaunchedEffect
-        services.audioPlayer.state.first { it is PlaybackState.Playing }
+        // Downloads show a progress notification too, so ask when either starts.
+        services.audioPlayer.state.first {
+            it is PlaybackState.Playing || it is PlaybackState.Downloading
+        }
         val permission = Manifest.permission.POST_NOTIFICATIONS
         val isGranted =
             ContextCompat.checkSelfPermission(context, permission) ==
@@ -104,6 +111,11 @@ private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
 @Composable
 private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings) {
     val navController = rememberNavController()
+    // Revision moves to the next due ayah through this; it needs the navigation host.
+    DisposableEffect(navController) {
+        services.openQuranAt = { ayah -> navController.openQuran(page = null, ayah = ayah) }
+        onDispose { services.openQuranAt = {} }
+    }
     val viewModelFactory = remember(services) { AwnViewModelFactory(services) }
     NavHost(
         navController = navController,
@@ -126,7 +138,15 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
         }
         indexDestinations(navController, viewModelFactory)
         settingsDestinations(services, navController, viewModelFactory, colourSettings)
-        composable(Routes.LEARN) { LearnScreen(quranText = services.coreData.quranText) }
+        composable(Routes.LEARN) {
+            LearnScreen(
+                quranText = services.coreData.quranText,
+                onReviseAt = { ayah ->
+                    navController.openQuran(page = null, ayah = ayah)
+                    services.recite.reviseAt(ayah)
+                },
+            )
+        }
     }
 }
 
@@ -200,6 +220,14 @@ private fun QuranRoute(
             else -> null
         }
     val nightToggle = rememberNightToggle(services.preferences)
+    val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
+    // The audio bar maps a page to its ayahs in the print the reader shows.
+    LaunchedEffect(services) {
+        services.readDependencies.settingsStore.settings
+            .map { it.script }
+            .distinctUntilChanged()
+            .collect(services.audio::useScript)
+    }
     val slots =
         QuranScreenSlots(
             audioBar = { currentPage -> AudioBar(services.audio, currentPage) },
@@ -216,6 +244,9 @@ private fun QuranRoute(
             onOpenSearch = { navController.navigate(Routes.SEARCH) },
             onOpenLearn = { navController.navigate(Routes.LEARN) },
             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+            onPlayRange = { first, last -> services.audio.controller.playRange(first, last) },
+            isReciteActive = isReciting,
+            reciteCurrentAyah = { rememberReciteCurrentAyah(services.recite) },
         )
     AwnTheme(field = ReadField) {
         QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)

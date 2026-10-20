@@ -24,7 +24,7 @@ class SqliteTranslationRepository(
     override suspend fun available(): List<TranslationInfo> =
         withContext(ioDispatcher) {
             catalog.translationPacks
-                .filter { it.translationKind == AYAH_PACK_KIND }
+                .filter { it.translationKind in AYAH_TEXT_KINDS }
                 .map { record ->
                     TranslationInfo(
                         id = TranslationId(record.entry.id),
@@ -37,7 +37,7 @@ class SqliteTranslationRepository(
 
     override suspend fun text(id: TranslationId, ayah: AyahRef): TranslationText? =
         withContext(ioDispatcher) {
-            val record = packOf(id.id, AYAH_PACK_KIND) ?: return@withContext null
+            val record = packOf(id.id, AYAH_TEXT_KINDS) ?: return@withContext null
             val file = storage.locate(record) ?: return@withContext null
             val cursor =
                 databases
@@ -58,7 +58,7 @@ class SqliteTranslationRepository(
 
     override suspend fun wordByWord(language: String, ayah: AyahRef): List<String> =
         withContext(ioDispatcher) {
-            val record = packOf("wbw_$language", WORD_PACK_KIND) ?: return@withContext emptyList()
+            val record = packOf("wbw_$language", setOf(WORD_PACK_KIND)) ?: return@withContext emptyList()
             val file = storage.locate(record) ?: return@withContext emptyList()
             val cursor =
                 databases
@@ -79,13 +79,17 @@ class SqliteTranslationRepository(
             if (language == ENGLISH) PhraseRepeats.collapse(ayah, meanings) else meanings
         }
 
-    private fun packOf(id: String, translationKind: String): PackRecord? =
+    private fun packOf(id: String, translationKinds: Set<String>): PackRecord? =
         catalog.translationPacks.firstOrNull {
-            it.entry.id == id && it.translationKind == translationKind
+            it.entry.id == id && it.translationKind in translationKinds
         }
 
     private companion object {
-        const val AYAH_PACK_KIND = "ayah"
+        /**
+         * Packs with one passage per ayah. Catalogue v2 marks transliterations with their own kind;
+         * their table is the same as a translation's.
+         */
+        val AYAH_TEXT_KINDS = setOf("ayah", "transliteration")
         const val WORD_PACK_KIND = "word"
         const val ENGLISH = "en"
     }

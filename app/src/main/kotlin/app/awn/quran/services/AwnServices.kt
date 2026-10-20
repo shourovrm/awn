@@ -2,25 +2,32 @@ package app.awn.quran.services
 
 import android.app.Application
 import app.awn.quran.AppPreferences
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.feature.learn.LearnServices
+import app.awn.quran.feature.learn.fsrs.FsrsRating
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
+import app.awn.quran.feature.recite.AyahGrade
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
 import app.awn.quran.feature.recite.ReciteController
 import app.awn.quran.feature.recite.ReciteSettings
+import app.awn.quran.feature.recite.RevisionQueue
 import app.awn.quran.feature.recite.SpeechFiles
 import app.awn.quran.feature.recite.SpeechPreparation
+import app.awn.quran.player.AndroidNetworkStatus
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.DirectoryFreeSpace
 import app.awn.quran.player.DownloadingAudioPlayer
 import app.awn.quran.player.ExoAudioPlayer
 import app.awn.quran.player.OkHttpAudioDownloads
 import app.awn.quran.player.UnmeteredOnlyPolicy
+import app.awn.quran.player.WorkManagerDownloadRunner
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,14 +54,27 @@ class AwnServices(private val application: Application) {
 
     private val okHttpClient = OkHttpClient()
 
+    private val audioRoot = File(application.filesDir, AUDIO_DIRECTORY)
+
+    private val wifiOnlyPolicy =
+        UnmeteredOnlyPolicy(application) { listenSettings.wifiOnly.first() }
+
     val audioDownloads: AudioDownloads =
         OkHttpAudioDownloads(
-            audioRoot = File(application.filesDir, AUDIO_DIRECTORY),
+            audioRoot = audioRoot,
             reciters = coreData.reciters,
             quranText = coreData.quranText,
             client = okHttpClient,
-            networkPolicy = UnmeteredOnlyPolicy(application) { listenSettings.wifiOnly.first() },
+            networkPolicy = wifiOnlyPolicy,
         )
+
+    /** Free space where audio is stored; checked before every audio download. */
+    val audioFreeSpace = DirectoryFreeSpace(application, audioRoot)
+
+    val networkStatus = AndroidNetworkStatus(application)
+
+    /** Audio downloads run in WorkManager, so they finish after the app closes. */
+    private val audioDownloadRunner = WorkManagerDownloadRunner(application)
 
     private val exoPlayer =
         ExoAudioPlayer(application, coreData.reciters, coreData.quranText, okHttpClient)
@@ -67,6 +87,9 @@ class AwnServices(private val application: Application) {
             coreData.quranText,
             downloadAmount = { listenSettings.downloadAmount.first() },
             scope = applicationScope,
+            runner = audioDownloadRunner,
+            network = networkStatus,
+            networkPolicy = wifiOnlyPolicy,
         )
 
     /** The audio bar, play panel, reciter sheet and audio settings share this. */
@@ -78,6 +101,8 @@ class AwnServices(private val application: Application) {
             coreData.quranText,
             listenSettings,
             applicationScope,
+            downloadRunner = audioDownloadRunner,
+            network = networkStatus,
         )
 
     val readDependencies =
@@ -112,7 +137,24 @@ class AwnServices(private val application: Application) {
             speech = speechPreparation,
             inputFactory = { MicrophoneTrackerInput(application) },
             scope = applicationScope,
+            gradeSink = { ayah, grade -> learn.progress.gradeAyah(ayah, grade.toFsrsRating()) },
+            revisionQueue = RevisionQueue { learn.progress.dueAyahs() },
+            onOpenAyah = { ayah -> openQuranAt(ayah) },
         )
+
+    /**
+     * Opens the Quran screen at an ayah. The navigation host sets it once it exists; revision uses
+     * it to move to the next due ayah.
+     */
+    var openQuranAt: (AyahRef) -> Unit = {}
+
+    private fun AyahGrade.toFsrsRating(): FsrsRating =
+        when (this) {
+            AyahGrade.Easy -> FsrsRating.Easy
+            AyahGrade.Good -> FsrsRating.Good
+            AyahGrade.Hard -> FsrsRating.Hard
+            AyahGrade.Forgot -> FsrsRating.Again
+        }
 
     private companion object {
         const val AUDIO_DIRECTORY = "audio"

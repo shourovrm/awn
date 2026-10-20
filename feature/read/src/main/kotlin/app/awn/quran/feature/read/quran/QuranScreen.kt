@@ -122,6 +122,13 @@ data class QuranScreenSlots(
      * ayah when only one ayah is selected.
      */
     val playPanelRange: (@Composable (first: AyahRef, last: AyahRef, page: Int) -> Unit)? = null,
+    /**
+     * Optional. True while reciting was started outside the screen (revision from Learn), so the
+     * screen shows the recite bar without a long press.
+     */
+    val isReciteActive: Boolean = false,
+    /** Optional. The ayah the reciter is on; the page turns to it as the recitation moves on. */
+    val reciteCurrentAyah: @Composable () -> AyahRef? = { null },
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -183,6 +190,13 @@ fun QuranScreen(
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(target) { viewModel.open(target) }
+    LaunchedEffect(slots.isReciteActive) {
+        if (slots.isReciteActive && !viewModel.state.value.isReciting) viewModel.enterReciteMode()
+    }
+    val recitedAyah = slots.reciteCurrentAyah()
+    LaunchedEffect(recitedAyah, state.isReciting) {
+        if (state.isReciting && recitedAyah != null) viewModel.followRecitation(recitedAyah)
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.setScreenActive(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.setScreenActive(false) }
     BackHandler(enabled = state.hasBackWork) { viewModel.onBack() }

@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
+import app.awn.quran.feature.learn.reminder.ReviseReminderSettingsPage
 import app.awn.quran.feature.listen.AudioSettingsPage
 import app.awn.quran.feature.read.page.MushafSettingsPage
 import app.awn.quran.feature.read.settings.ReadingSettingsPage
@@ -139,5 +140,8 @@ private fun modulePageSlots(services: AwnServices): SettingsPageSlots =
         reading = { ReadingSettingsPage(services.readDependencies) },
         // The audio page draws its own title bar, because its downloads manager opens inside it.
         audio = {},
-        reciteModule = { ReciteSettingsPage(services.reciteSettings) },
+        reciteModule = {
+            ReciteSettingsPage(services.reciteSettings)
+            ReviseReminderSettingsPage()
+        },
     )

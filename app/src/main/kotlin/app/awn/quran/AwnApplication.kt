@@ -2,6 +2,8 @@ package app.awn.quran
 
 import android.app.Application
 import androidx.work.Configuration
+import app.awn.quran.feature.learn.reminder.ReviseReminder
+import app.awn.quran.player.AudioDownloadWork
 import app.awn.quran.services.AwnServices
 import kotlinx.coroutines.launch
 
@@ -22,11 +24,18 @@ class AwnApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         services = AwnServices(this)
+        // Before WorkManager restarts an audio download that died with the process.
+        AudioDownloadWork.install(
+            services.audioDownloads,
+            services.audioFreeSpace,
+            services.networkStatus,
+        )
         // Copies and loads the speech files on a low-priority thread, so the first recite is quick.
         services.recite.prepareSpeech()
         // A download that Android stopped, or that died with the process, starts again.
         services.applicationScope.launch {
             services.coreData.packDownloads.resumeWanted(services.coreData.packs)
         }
+        services.applicationScope.launch { ReviseReminder.rescheduleIfEnabled(this@AwnApplication) }
     }
 }
