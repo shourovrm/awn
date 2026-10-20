@@ -1,0 +1,545 @@
+{
+  "note": "Draft renderings by the Awn project; a reviewer must check them. Hadith are graded sahih as they stand in Sahih al-Bukhari and Sahih Muslim.",
+  "snippets": [
+    {
+      "id": "quran-73-4",
+      "arabic": "أَوْ زِدْ عَلَيْهِ وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا",
+      "reference": "Quran 73:4",
+      "text_en": "Recite the Quran slowly and clearly.",
+      "text_bn": "কুরআন থেমে থেমে স্পষ্ট করে তিলাওয়াত করো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-75-18",
+      "arabic": "فَإِذَا قَرَأْنَـٰهُ فَٱتَّبِعْ قُرْءَانَهُۥ",
+      "reference": "Quran 75:18",
+      "text_en": "When We have recited it, follow its recitation.",
+      "text_bn": "আমি যখন তা পাঠ করি, তখন তুমি সেই পাঠের অনুসরণ করো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-54-17",
+      "arabic": "وَلَقَدْ يَسَّرْنَا ٱلْقُرْءَانَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ",
+      "reference": "Quran 54:17",
+      "text_en": "We have made the Quran easy to remember. Is there anyone who will remember?",
+      "text_bn": "আমি কুরআনকে স্মরণের জন্য সহজ করেছি। তাই কেউ কি স্মরণ রাখবে?",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-17-106",
+      "arabic": "وَقُرْءَانًا فَرَقْنَـٰهُ لِتَقْرَأَهُۥ عَلَى ٱلنَّاسِ عَلَىٰ مُكْثٍ وَنَزَّلْنَـٰهُ تَنزِيلًا",
+      "reference": "Quran 17:106",
+      "text_en": "A Quran We have divided so that you may recite it to people slowly.",
+      "text_bn": "আমি কুরআনকে খণ্ড খণ্ড করে নাযিল করেছি, যাতে তুমি থেমে থেমে মানুষের কাছে পাঠ করতে পারো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-73-20",
+      "arabic": "۞ إِنَّ رَبَّكَ يَعْلَمُ أَنَّكَ تَقُومُ أَدْنَىٰ مِن ثُلُثَىِ ٱلَّيْلِ وَنِصْفَهُۥ وَثُلُثَهُۥ وَطَآئِفَةٌ مِّنَ ٱلَّذِينَ مَعَكَ ۚ وَٱللَّهُ يُقَدِّرُ ٱلَّيْلَ وَٱلنَّهَارَ ۚ عَلِمَ أَن لَّن تُحْصُوهُ فَتَابَ عَلَيْكُمْ ۖ فَٱقْرَءُوا۟ مَا تَيَسَّرَ مِنَ ٱلْقُرْءَانِ ۚ عَلِمَ أَن سَيَكُونُ مِنكُم مَّرْضَىٰ ۙ وَءَاخَرُونَ يَضْرِبُونَ فِى ٱلْأَرْضِ يَبْتَغُونَ مِن فَضْلِ ٱللَّهِ ۙ وَءَاخَرُونَ يُقَـٰتِلُونَ فِى سَبِيلِ ٱللَّهِ ۖ فَٱقْرَءُوا۟ مَا تَيَسَّرَ مِنْهُ ۚ وَأَقِيمُوا۟ ٱلصَّلَوٰةَ وَءَاتُوا۟ ٱلزَّكَوٰةَ وَأَقْرِضُوا۟ ٱللَّهَ قَرْضًا حَسَنًا ۚ وَمَا تُقَدِّمُوا۟ لِأَنفُسِكُم مِّنْ خَيْرٍ تَجِدُوهُ عِندَ ٱللَّهِ هُوَ خَيْرًا وَأَعْظَمَ أَجْرًا ۚ وَٱسْتَغْفِرُوا۟ ٱللَّهَ ۖ إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌۢ",
+      "reference": "Quran 73:20",
+      "text_en": "So recite what is easy of the Quran.",
+      "text_bn": "অতএব কুরআন থেকে যতটা সহজ হয় ততটা পাঠ করো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-96-1",
+      "arabic": " ٱقْرَأْ بِٱسْمِ رَبِّكَ ٱلَّذِى خَلَقَ",
+      "reference": "Quran 96:1",
+      "text_en": "Read in the name of your Lord who created.",
+      "text_bn": "পড়ো তোমার প্রতিপালকের নামে, যিনি সৃষ্টি করেছেন।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-15-9",
+      "arabic": "إِنَّا نَحْنُ نَزَّلْنَا ٱلذِّكْرَ وَإِنَّا لَهُۥ لَحَـٰفِظُونَ",
+      "reference": "Quran 15:9",
+      "text_en": "It is We who sent down the Reminder, and We will protect it.",
+      "text_bn": "আমিই এই স্মারক নাযিল করেছি এবং আমিই এর সংরক্ষণকারী।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-2-152",
+      "arabic": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ وَٱشْكُرُوا۟ لِى وَلَا تَكْفُرُونِ",
+      "reference": "Quran 2:152",
+      "text_en": "Remember Me and I will remember you. Thank Me and do not be ungrateful.",
+      "text_bn": "তোমরা আমাকে স্মরণ করো, আমিও তোমাদের স্মরণ করব। আমার কৃতজ্ঞ হও, অকৃতজ্ঞ হয়ো না।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-13-28",
+      "arabic": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "reference": "Quran 13:28",
+      "text_en": "Those who believe, and whose hearts find rest in the remembrance of Allah. In the remembrance of Allah hearts find rest.",
+      "text_bn": "যারা ঈমান আনে এবং আল্লাহর স্মরণে যাদের অন্তর প্রশান্ত হয়। জেনে রাখো, আল্লাহর স্মরণেই অন্তর প্রশান্ত হয়।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-33-41",
+      "arabic": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱذْكُرُوا۟ ٱللَّهَ ذِكْرًا كَثِيرًا",
+      "reference": "Quran 33:41",
+      "text_en": "You who believe, remember Allah often.",
+      "text_bn": "হে ঈমানদারগণ, তোমরা আল্লাহকে বেশি বেশি স্মরণ করো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-20-114",
+      "arabic": "فَتَعَـٰلَى ٱللَّهُ ٱلْمَلِكُ ٱلْحَقُّ ۗ وَلَا تَعْجَلْ بِٱلْقُرْءَانِ مِن قَبْلِ أَن يُقْضَىٰٓ إِلَيْكَ وَحْيُهُۥ ۖ وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "reference": "Quran 20:114",
+      "text_en": "Do not hurry with the Quran before its revelation is complete, and say: My Lord, increase me in knowledge.",
+      "text_bn": "ওহি সম্পূর্ণ হওয়ার আগে কুরআন পাঠে তাড়াহুড়ো করো না, আর বলো: হে আমার প্রতিপালক, আমার জ্ঞান বাড়িয়ে দিন।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-7-204",
+      "arabic": "وَإِذَا قُرِئَ ٱلْقُرْءَانُ فَٱسْتَمِعُوا۟ لَهُۥ وَأَنصِتُوا۟ لَعَلَّكُمْ تُرْحَمُونَ",
+      "reference": "Quran 7:204",
+      "text_en": "When the Quran is recited, listen to it and be silent, so that you may receive mercy.",
+      "text_bn": "যখন কুরআন পাঠ করা হয়, তখন মন দিয়ে শোনো এবং চুপ থাকো, যাতে তোমাদের প্রতি দয়া করা হয়।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-2-2",
+      "arabic": "ذَٰلِكَ ٱلْكِتَـٰبُ لَا رَيْبَ ۛ فِيهِ ۛ هُدًى لِّلْمُتَّقِينَ",
+      "reference": "Quran 2:2",
+      "text_en": "This is the Book in which there is no doubt, a guidance for those who are mindful of Allah.",
+      "text_bn": "এটি সেই কিতাব, যাতে কোনো সন্দেহ নেই; এটি আল্লাহভীরুদের জন্য পথনির্দেশ।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-17-82",
+      "arabic": "وَنُنَزِّلُ مِنَ ٱلْقُرْءَانِ مَا هُوَ شِفَآءٌ وَرَحْمَةٌ لِّلْمُؤْمِنِينَ ۙ وَلَا يَزِيدُ ٱلظَّـٰلِمِينَ إِلَّا خَسَارًا",
+      "reference": "Quran 17:82",
+      "text_en": "We send down of the Quran what is a healing and a mercy for the believers.",
+      "text_bn": "আমি কুরআনে এমন কিছু নাযিল করি, যা মুমিনদের জন্য আরোগ্য ও রহমত।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-38-29",
+      "arabic": "كِتَـٰبٌ أَنزَلْنَـٰهُ إِلَيْكَ مُبَـٰرَكٌ لِّيَدَّبَّرُوٓا۟ ءَايَـٰتِهِۦ وَلِيَتَذَكَّرَ أُو۟لُوا۟ ٱلْأَلْبَـٰبِ",
+      "reference": "Quran 38:29",
+      "text_en": "A blessed Book We sent down to you, so that they may reflect on its ayahs and those with understanding may take heed.",
+      "text_bn": "এটি বরকতময় কিতাব, যা আমি তোমার প্রতি নাযিল করেছি, যাতে তারা এর আয়াত নিয়ে চিন্তা করে এবং বুদ্ধিমানেরা উপদেশ গ্রহণ করে।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-47-24",
+      "arabic": "أَفَلَا يَتَدَبَّرُونَ ٱلْقُرْءَانَ أَمْ عَلَىٰ قُلُوبٍ أَقْفَالُهَآ",
+      "reference": "Quran 47:24",
+      "text_en": "Do they not reflect on the Quran, or are there locks on their hearts?",
+      "text_bn": "তারা কি কুরআন নিয়ে চিন্তা করে না? নাকি তাদের অন্তরে তালা পড়ে আছে?",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-16-98",
+      "arabic": "فَإِذَا قَرَأْتَ ٱلْقُرْءَانَ فَٱسْتَعِذْ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+      "reference": "Quran 16:98",
+      "text_en": "When you recite the Quran, seek refuge in Allah from the accursed Satan.",
+      "text_bn": "তুমি যখন কুরআন পাঠ করো, তখন অভিশপ্ত শয়তান থেকে আল্লাহর আশ্রয় চাও।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-87-6",
+      "arabic": "سَنُقْرِئُكَ فَلَا تَنسَىٰٓ",
+      "reference": "Quran 87:6",
+      "text_en": "We will make you recite, and you will not forget.",
+      "text_bn": "আমি তোমাকে পাঠ করাব, ফলে তুমি ভুলে যাবে না।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-29-49",
+      "arabic": "بَلْ هُوَ ءَايَـٰتٌۢ بَيِّنَـٰتٌ فِى صُدُورِ ٱلَّذِينَ أُوتُوا۟ ٱلْعِلْمَ ۚ وَمَا يَجْحَدُ بِـَٔايَـٰتِنَآ إِلَّا ٱلظَّـٰلِمُونَ",
+      "reference": "Quran 29:49",
+      "text_en": "Rather, it is clear ayahs in the hearts of those who were given knowledge.",
+      "text_bn": "বরং এটি সুস্পষ্ট আয়াত, যা জ্ঞানপ্রাপ্তদের অন্তরে রয়েছে।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-3-191",
+      "arabic": "ٱلَّذِينَ يَذْكُرُونَ ٱللَّهَ قِيَـٰمًا وَقُعُودًا وَعَلَىٰ جُنُوبِهِمْ وَيَتَفَكَّرُونَ فِى خَلْقِ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ رَبَّنَا مَا خَلَقْتَ هَـٰذَا بَـٰطِلًا سُبْحَـٰنَكَ فَقِنَا عَذَابَ ٱلنَّارِ",
+      "reference": "Quran 3:191",
+      "text_en": "Those who remember Allah standing, sitting and lying on their sides.",
+      "text_bn": "যারা দাঁড়িয়ে, বসে ও কাত হয়ে শুয়ে আল্লাহকে স্মরণ করে।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-20-14",
+      "arabic": "إِنَّنِىٓ أَنَا ٱللَّهُ لَآ إِلَـٰهَ إِلَّآ أَنَا۠ فَٱعْبُدْنِى وَأَقِمِ ٱلصَّلَوٰةَ لِذِكْرِىٓ",
+      "reference": "Quran 20:14",
+      "text_en": "Establish the prayer for My remembrance.",
+      "text_bn": "আমার স্মরণের জন্য সালাত কায়েম করো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-7-205",
+      "arabic": "وَٱذْكُر رَّبَّكَ فِى نَفْسِكَ تَضَرُّعًا وَخِيفَةً وَدُونَ ٱلْجَهْرِ مِنَ ٱلْقَوْلِ بِٱلْغُدُوِّ وَٱلْـَٔاصَالِ وَلَا تَكُن مِّنَ ٱلْغَـٰفِلِينَ",
+      "reference": "Quran 7:205",
+      "text_en": "Remember your Lord within yourself, humbly and in awe, and without raising your voice.",
+      "text_bn": "তোমার প্রতিপালককে মনে মনে স্মরণ করো বিনয় ও ভয়ের সঙ্গে, এবং উচ্চস্বর ছাড়া।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-10-57",
+      "arabic": "يَـٰٓأَيُّهَا ٱلنَّاسُ قَدْ جَآءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَآءٌ لِّمَا فِى ٱلصُّدُورِ وَهُدًى وَرَحْمَةٌ لِّلْمُؤْمِنِينَ",
+      "reference": "Quran 10:57",
+      "text_en": "People, a counsel has come to you from your Lord, and a healing for what is in the hearts.",
+      "text_bn": "হে মানুষ, তোমাদের কাছে তোমাদের প্রতিপালকের পক্ষ থেকে উপদেশ এসেছে এবং অন্তরে যা আছে তার আরোগ্য।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-59-21",
+      "arabic": "لَوْ أَنزَلْنَا هَـٰذَا ٱلْقُرْءَانَ عَلَىٰ جَبَلٍ لَّرَأَيْتَهُۥ خَـٰشِعًا مُّتَصَدِّعًا مِّنْ خَشْيَةِ ٱللَّهِ ۚ وَتِلْكَ ٱلْأَمْثَـٰلُ نَضْرِبُهَا لِلنَّاسِ لَعَلَّهُمْ يَتَفَكَّرُونَ",
+      "reference": "Quran 59:21",
+      "text_en": "Had We sent this Quran down on a mountain, you would see it humbled and split apart out of fear of Allah.",
+      "text_bn": "আমি যদি এই কুরআন কোনো পাহাড়ের ওপর নাযিল করতাম, তুমি দেখতে তা আল্লাহর ভয়ে বিনীত হয়ে ফেটে পড়ছে।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-17-9",
+      "arabic": "إِنَّ هَـٰذَا ٱلْقُرْءَانَ يَهْدِى لِلَّتِى هِىَ أَقْوَمُ وَيُبَشِّرُ ٱلْمُؤْمِنِينَ ٱلَّذِينَ يَعْمَلُونَ ٱلصَّـٰلِحَـٰتِ أَنَّ لَهُمْ أَجْرًا كَبِيرًا",
+      "reference": "Quran 17:9",
+      "text_en": "This Quran guides to what is most upright.",
+      "text_bn": "এই কুরআন সেই পথ দেখায়, যা সবচেয়ে সরল।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-75-16",
+      "arabic": "لَا تُحَرِّكْ بِهِۦ لِسَانَكَ لِتَعْجَلَ بِهِۦٓ",
+      "reference": "Quran 75:16",
+      "text_en": "Do not move your tongue with it to hurry it.",
+      "text_bn": "তাড়াহুড়ো করে তা আয়ত্ত করতে জিহ্বা নাড়িও না।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-55-2",
+      "arabic": "عَلَّمَ ٱلْقُرْءَانَ",
+      "reference": "Quran 55:2",
+      "text_en": "He taught the Quran.",
+      "text_bn": "তিনি কুরআন শিখিয়েছেন।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-56-77",
+      "arabic": "إِنَّهُۥ لَقُرْءَانٌ كَرِيمٌ",
+      "reference": "Quran 56:77",
+      "text_en": "It is a noble Quran.",
+      "text_bn": "নিশ্চয় এটি এক সম্মানিত কুরআন।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-12-2",
+      "arabic": "إِنَّآ أَنزَلْنَـٰهُ قُرْءَٰنًا عَرَبِيًّا لَّعَلَّكُمْ تَعْقِلُونَ",
+      "reference": "Quran 12:2",
+      "text_en": "We sent it down as an Arabic Quran, so that you may understand.",
+      "text_bn": "আমি এটি আরবি কুরআন হিসেবে নাযিল করেছি, যাতে তোমরা বুঝতে পারো।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-73-5",
+      "arabic": "إِنَّا سَنُلْقِى عَلَيْكَ قَوْلًا ثَقِيلًا",
+      "reference": "Quran 73:5",
+      "text_en": "We will send down to you a weighty word.",
+      "text_bn": "আমি তোমার ওপর এক ভারী বাণী নাযিল করব।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-18-27",
+      "arabic": "وَٱتْلُ مَآ أُوحِىَ إِلَيْكَ مِن كِتَابِ رَبِّكَ ۖ لَا مُبَدِّلَ لِكَلِمَـٰتِهِۦ وَلَن تَجِدَ مِن دُونِهِۦ مُلْتَحَدًا",
+      "reference": "Quran 18:27",
+      "text_en": "Recite what has been revealed to you of the Book of your Lord. None can change His words, and you will find no refuge besides Him.",
+      "text_bn": "তোমার প্রতিপালকের কিতাব থেকে তোমার প্রতি যা ওহি করা হয়েছে, তা পাঠ করো। তাঁর বাণী পরিবর্তন করার কেউ নেই, আর তাঁকে ছাড়া তুমি কোনো আশ্রয় পাবে না।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-97-1",
+      "arabic": "إِنَّآ أَنزَلْنَـٰهُ فِى لَيْلَةِ ٱلْقَدْرِ",
+      "reference": "Quran 97:1",
+      "text_en": "We sent it down on the Night of Power.",
+      "text_bn": "আমি এটি কদরের রাতে নাযিল করেছি।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-41-3",
+      "arabic": "كِتَـٰبٌ فُصِّلَتْ ءَايَـٰتُهُۥ قُرْءَانًا عَرَبِيًّا لِّقَوْمٍ يَعْلَمُونَ",
+      "reference": "Quran 41:3",
+      "text_en": "A Book whose ayahs are set out clearly, an Arabic Quran for people who know.",
+      "text_bn": "এমন এক কিতাব, যার আয়াতগুলো বিশদভাবে বর্ণিত, আরবি কুরআন, জ্ঞানী সম্প্রদায়ের জন্য।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "quran-2-121",
+      "arabic": "ٱلَّذِينَ ءَاتَيْنَـٰهُمُ ٱلْكِتَـٰبَ يَتْلُونَهُۥ حَقَّ تِلَاوَتِهِۦٓ أُو۟لَـٰٓئِكَ يُؤْمِنُونَ بِهِۦ ۗ وَمَن يَكْفُرْ بِهِۦ فَأُو۟لَـٰٓئِكَ هُمُ ٱلْخَـٰسِرُونَ",
+      "reference": "Quran 2:121",
+      "text_en": "Those to whom We gave the Book, who recite it as it should be recited, believe in it.",
+      "text_bn": "যাদের আমি কিতাব দিয়েছি, তারা তা যথাযথভাবে তিলাওয়াত করে; তারাই এতে ঈমান আনে।",
+      "url": null,
+      "grade": null
+    },
+    {
+      "id": "bukhari-5027",
+      "arabic": "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
+      "reference": "Sahih al-Bukhari 5027",
+      "text_en": "The best of you are those who learn the Quran and teach it.",
+      "text_bn": "তোমাদের মধ্যে সেই ব্যক্তিই সর্বোত্তম, যে কুরআন শেখে এবং শেখায়।",
+      "url": "https://sunnah.com/bukhari:5027",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-4937",
+      "arabic": "مَثَلُ الَّذِي يَقْرَأُ الْقُرْآنَ وَهْوَ حَافِظٌ لَهُ مَعَ السَّفَرَةِ الْكِرَامِ الْبَرَرَةِ، وَمَثَلُ الَّذِي يَقْرَأُ الْقُرْآنَ وَهْوَ يَتَعَاهَدُهُ وَهْوَ عَلَيْهِ شَدِيدٌ، فَلَهُ أَجْرَانِ",
+      "reference": "Sahih al-Bukhari 4937",
+      "text_en": "The one who recites the Quran and has memorised it is with the noble, obedient angels; the one who keeps at it and finds it hard has two rewards.",
+      "text_bn": "যে কুরআন মুখস্থ রেখে পাঠ করে, সে সম্মানিত ও অনুগত ফেরেশতাদের সঙ্গে থাকবে; আর যে বারবার চর্চা করে এবং তার জন্য তা কঠিন, তার জন্য দুটি প্রতিদান।",
+      "url": "https://sunnah.com/bukhari:4937",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5031",
+      "arabic": "إِنَّمَا مَثَلُ صَاحِبِ الْقُرْآنِ كَمَثَلِ صَاحِبِ الإِبِلِ الْمُعَقَّلَةِ إِنْ عَاهَدَ عَلَيْهَا أَمْسَكَهَا وَإِنْ أَطْلَقَهَا ذَهَبَتْ",
+      "reference": "Sahih al-Bukhari 5031",
+      "text_en": "The one who keeps the Quran is like the owner of tied camels: if he looks after them he keeps them, and if he lets them go they are gone.",
+      "text_bn": "কুরআনের সঙ্গী সেই ব্যক্তির মতো, যার বাঁধা উট আছে: সে যত্ন নিলে উট ধরে রাখে, ছেড়ে দিলে চলে যায়।",
+      "url": "https://sunnah.com/bukhari:5031",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5033",
+      "arabic": "تَعَاهَدُوا الْقُرْآنَ فَوَالَّذِي نَفْسِي بِيَدِهِ لَهُوَ أَشَدُّ تَفَصِّيًا مِنَ الإِبِلِ فِي عُقُلِهَا",
+      "reference": "Sahih al-Bukhari 5033",
+      "text_en": "Keep up the Quran. By Him in whose hand is my soul, it slips away faster than camels from their ropes.",
+      "text_bn": "কুরআনের যত্ন নাও। সেই সত্তার কসম, যাঁর হাতে আমার প্রাণ, এটি দড়ি থেকে উটের পালানোর চেয়েও দ্রুত হারিয়ে যায়।",
+      "url": "https://sunnah.com/bukhari:5033",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5032",
+      "arabic": "اسْتَذْكِرُوا الْقُرْآنَ فَإِنَّهُ أَشَدُّ تَفَصِّيًا مِنْ صُدُورِ الرِّجَالِ مِنَ النَّعَمِ",
+      "reference": "Sahih al-Bukhari 5032",
+      "text_en": "Keep revising the Quran, for it escapes from men's hearts faster than camels from their ropes.",
+      "text_bn": "কুরআন বারবার মনে করো, কারণ এটি মানুষের অন্তর থেকে দড়ি ছাড়ানো উটের চেয়েও দ্রুত পালিয়ে যায়।",
+      "url": "https://sunnah.com/bukhari:5032",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5025",
+      "arabic": "لاَ حَسَدَ إِلاَّ عَلَى اثْنَتَيْنِ، رَجُلٌ آتَاهُ اللَّهُ الْكِتَابَ وَقَامَ بِهِ آنَاءَ اللَّيْلِ",
+      "reference": "Sahih al-Bukhari 5025",
+      "text_en": "No envy is allowed except for two: a man to whom Allah gave the Book and who stands with it through the night.",
+      "text_bn": "দুই ব্যক্তি ছাড়া কারও প্রতি ঈর্ষা জায়েয নয়: এক, যাকে আল্লাহ কিতাব দিয়েছেন এবং সে রাতে তা নিয়ে দাঁড়ায়।",
+      "url": "https://sunnah.com/bukhari:5025",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5013",
+      "arabic": "وَالَّذِي نَفْسِي بِيَدِهِ إِنَّهَا لَتَعْدِلُ ثُلُثَ الْقُرْآنِ",
+      "reference": "Sahih al-Bukhari 5013",
+      "text_en": "By Him in whose hand is my soul, it equals a third of the Quran.",
+      "text_bn": "সেই সত্তার কসম, যাঁর হাতে আমার প্রাণ, এটি কুরআনের এক-তৃতীয়াংশের সমান।",
+      "url": "https://sunnah.com/bukhari:5013",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5009",
+      "arabic": "مَنْ قَرَأَ بِالآيَتَيْنِ مِنْ آخِرِ سُورَةِ الْبَقَرَةِ فِي لَيْلَةٍ كَفَتَاهُ",
+      "reference": "Sahih al-Bukhari 5009",
+      "text_en": "Whoever recites the last two ayahs of Surah al-Baqarah at night, they will be enough for him.",
+      "text_bn": "যে ব্যক্তি রাতে সূরা বাকারার শেষ দুই আয়াত পাঠ করে, তা তার জন্য যথেষ্ট হবে।",
+      "url": "https://sunnah.com/bukhari:5009",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5020",
+      "arabic": "مَثَلُ الَّذِي يَقْرَأُ الْقُرْآنَ كَالأُتْرُجَّةِ طَعْمُهَا طَيِّبٌ وَرِيحُهَا طَيِّبٌ",
+      "reference": "Sahih al-Bukhari 5020",
+      "text_en": "The one who recites the Quran is like a citron: its taste is good and its smell is good.",
+      "text_bn": "যে কুরআন পাঠ করে, সে কমলালেবুর মতো: এর স্বাদ ভালো এবং ঘ্রাণও ভালো।",
+      "url": "https://sunnah.com/bukhari:5020",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5060",
+      "arabic": "اقْرَءُوا الْقُرْآنَ مَا ائْتَلَفَتْ قُلُوبُكُمْ، فَإِذَا اخْتَلَفْتُمْ فَقُومُوا",
+      "reference": "Sahih al-Bukhari 5060",
+      "text_en": "Recite the Quran as long as your hearts agree on it; when you differ, rise and leave it.",
+      "text_bn": "যতক্ষণ তোমাদের অন্তর একমত থাকে, কুরআন পাঠ করো; মতভেদ হলে উঠে যাও।",
+      "url": "https://sunnah.com/bukhari:5060",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-4992",
+      "arabic": "إِنَّ هَذَا الْقُرْآنَ أُنْزِلَ عَلَى سَبْعَةِ أَحْرُفٍ فَاقْرَءُوا مَا تَيَسَّرَ مِنْهُ",
+      "reference": "Sahih al-Bukhari 4992",
+      "text_en": "This Quran was revealed in seven ways, so recite what is easy of it.",
+      "text_bn": "এই কুরআন সাত রীতিতে নাযিল হয়েছে, তাই তার মধ্য থেকে যা সহজ তা পাঠ করো।",
+      "url": "https://sunnah.com/bukhari:4992",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-5049",
+      "arabic": "اقْرَأْ عَلَىَّ الْقُرْآنَ",
+      "reference": "Sahih al-Bukhari 5049",
+      "text_en": "Recite the Quran to me.",
+      "text_bn": "আমাকে কুরআন পড়ে শোনাও।",
+      "url": "https://sunnah.com/bukhari:5049",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-3461",
+      "arabic": "بَلِّغُوا عَنِّي وَلَوْ آيَةً",
+      "reference": "Sahih al-Bukhari 3461",
+      "text_en": "Convey from me, even if it is one ayah.",
+      "text_bn": "আমার পক্ষ থেকে পৌঁছে দাও, যদি তা একটি আয়াতও হয়।",
+      "url": "https://sunnah.com/bukhari:3461",
+      "grade": "sahih"
+    },
+    {
+      "id": "bukhari-6",
+      "arabic": "وَكَانَ يَلْقَاهُ فِي كُلِّ لَيْلَةٍ مِنْ رَمَضَانَ فَيُدَارِسُهُ الْقُرْآنَ",
+      "reference": "Sahih al-Bukhari 6",
+      "text_en": "Gabriel would meet him every night of Ramadan and go over the Quran with him.",
+      "text_bn": "জিবরীল রমযানের প্রতি রাতে তাঁর সঙ্গে সাক্ষাৎ করতেন এবং তাঁর সঙ্গে কুরআন পুনরাবৃত্তি করতেন।",
+      "url": "https://sunnah.com/bukhari:6",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-804a",
+      "arabic": "اقْرَءُوا الْقُرْآنَ فَإِنَّهُ يَأْتِي يَوْمَ الْقِيَامَةِ شَفِيعًا لأَصْحَابِهِ",
+      "reference": "Sahih Muslim 804a",
+      "text_en": "Recite the Quran, for on the Day of Resurrection it will come as an intercessor for its companions.",
+      "text_bn": "কুরআন পাঠ করো, কারণ কিয়ামতের দিন এটি তার সঙ্গীদের জন্য সুপারিশকারী হয়ে আসবে।",
+      "url": "https://sunnah.com/muslim:804a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-798a",
+      "arabic": "الْمَاهِرُ بِالْقُرْآنِ مَعَ السَّفَرَةِ الْكِرَامِ الْبَرَرَةِ وَالَّذِي يَقْرَأُ الْقُرْآنَ وَيَتَتَعْتَعُ فِيهِ وَهُوَ عَلَيْهِ شَاقٌّ لَهُ أَجْرَانِ",
+      "reference": "Sahih Muslim 798a",
+      "text_en": "The one who is skilled in the Quran is with the noble angels; the one who recites with difficulty has two rewards.",
+      "text_bn": "কুরআনে দক্ষ ব্যক্তি সম্মানিত ফেরেশতাদের সঙ্গে থাকবে; যে কষ্ট করে পাঠ করে, তার জন্য দুটি প্রতিদান।",
+      "url": "https://sunnah.com/muslim:798a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-817a",
+      "arabic": "إِنَّ اللَّهَ يَرْفَعُ بِهَذَا الْكِتَابِ أَقْوَامًا وَيَضَعُ بِهِ آخَرِينَ",
+      "reference": "Sahih Muslim 817a",
+      "text_en": "Allah raises some people by this Book and lowers others by it.",
+      "text_bn": "আল্লাহ এই কিতাবের মাধ্যমে কিছু জাতিকে উঁচু করেন এবং অন্যদের নিচু করেন।",
+      "url": "https://sunnah.com/muslim:817a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-2699a",
+      "arabic": "وَمَا اجْتَمَعَ قَوْمٌ فِي بَيْتٍ مِنْ بُيُوتِ اللَّهِ يَتْلُونَ كِتَابَ اللَّهِ وَيَتَدَارَسُونَهُ بَيْنَهُمْ إِلاَّ نَزَلَتْ عَلَيْهِمُ السَّكِينَةُ وَغَشِيَتْهُمُ الرَّحْمَةُ وَحَفَّتْهُمُ الْمَلاَئِكَةُ وَذَكَرَهُمُ اللَّهُ فِيمَنْ عِنْدَهُ",
+      "reference": "Sahih Muslim 2699a",
+      "text_en": "When people gather in one of the houses of Allah, reciting the Book of Allah and studying it together, tranquillity descends on them, mercy covers them, angels surround them, and Allah mentions them to those with Him.",
+      "text_bn": "যখন কিছু মানুষ আল্লাহর কোনো ঘরে জড়ো হয়ে আল্লাহর কিতাব তিলাওয়াত করে এবং নিজেদের মধ্যে তা পড়ে, তখন তাদের ওপর প্রশান্তি নামে, রহমত তাদের ঢেকে নেয়, ফেরেশতারা তাদের ঘিরে রাখে এবং আল্লাহ নিজের কাছের লোকদের কাছে তাদের কথা বলেন।",
+      "url": "https://sunnah.com/muslim:2699a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-814a",
+      "arabic": "أَلَمْ تَرَ آيَاتٍ أُنْزِلَتِ اللَّيْلَةَ لَمْ يُرَ مِثْلُهُنَّ قَطُّ",
+      "reference": "Sahih Muslim 814a",
+      "text_en": "Have you not seen the ayahs sent down tonight, the like of which has never been seen?",
+      "text_bn": "তুমি কি দেখোনি আজ রাতে কেমন আয়াত নাযিল হয়েছে, যার মতো আর কখনো দেখা যায়নি?",
+      "url": "https://sunnah.com/muslim:814a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-811a",
+      "arabic": "أَيَعْجِزُ أَحَدُكُمْ أَنْ يَقْرَأَ فِي لَيْلَةٍ ثُلُثَ الْقُرْآنِ",
+      "reference": "Sahih Muslim 811a",
+      "text_en": "Can any of you not recite a third of the Quran in a night?",
+      "text_bn": "তোমাদের কেউ কি এক রাতে কুরআনের এক-তৃতীয়াংশ পড়তে অক্ষম?",
+      "url": "https://sunnah.com/muslim:811a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-807a",
+      "arabic": "الآيَتَانِ مِنْ آخِرِ سُورَةِ الْبَقَرَةِ مَنْ قَرَأَهُمَا فِي لَيْلَةٍ كَفَتَاهُ",
+      "reference": "Sahih Muslim 807a",
+      "text_en": "The last two ayahs of Surah al-Baqarah: whoever recites them at night, they will be enough for him.",
+      "text_bn": "সূরা বাকারার শেষ দুই আয়াত: যে রাতে তা পাঠ করে, তা তার জন্য যথেষ্ট হবে।",
+      "url": "https://sunnah.com/muslim:807a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-780",
+      "arabic": "لاَ تَجْعَلُوا بُيُوتَكُمْ مَقَابِرَ إِنَّ الشَّيْطَانَ يَنْفِرُ مِنَ الْبَيْتِ الَّذِي تُقْرَأُ فِيهِ سُورَةُ الْبَقَرَةِ",
+      "reference": "Sahih Muslim 780",
+      "text_en": "Do not make your houses graves. Satan runs from the house in which Surah al-Baqarah is recited.",
+      "text_bn": "তোমাদের ঘরকে কবর বানিও না। যে ঘরে সূরা বাকারা পাঠ করা হয়, শয়তান সেখান থেকে পালায়।",
+      "url": "https://sunnah.com/muslim:780",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-810",
+      "arabic": "يَا أَبَا الْمُنْذِرِ أَتَدْرِي أَىُّ آيَةٍ مِنْ كِتَابِ اللَّهِ مَعَكَ أَعْظَمُ",
+      "reference": "Sahih Muslim 810",
+      "text_en": "Abu al-Mundhir, do you know which ayah of the Book of Allah that you know is the greatest?",
+      "text_bn": "আবুল মুনযির, তুমি কি জানো আল্লাহর কিতাবের তোমার জানা কোন আয়াত সবচেয়ে মহান?",
+      "url": "https://sunnah.com/muslim:810",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-797a",
+      "arabic": "مَثَلُ الْمُؤْمِنِ الَّذِي يَقْرَأُ الْقُرْآنَ مَثَلُ الأُتْرُجَّةِ رِيحُهَا طَيِّبٌ وَطَعْمُهَا طَيِّبٌ",
+      "reference": "Sahih Muslim 797a",
+      "text_en": "The believer who recites the Quran is like a citron: its taste is good and its smell is good.",
+      "text_bn": "যে মুমিন কুরআন পাঠ করে, সে কমলালেবুর মতো: এর স্বাদ ভালো এবং ঘ্রাণও ভালো।",
+      "url": "https://sunnah.com/muslim:797a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-789a",
+      "arabic": "إِنَّمَا مَثَلُ صَاحِبِ الْقُرْآنِ كَمَثَلِ الإِبِلِ الْمُعَقَّلَةِ إِنْ عَاهَدَ عَلَيْهَا أَمْسَكَهَا وَإِنْ أَطْلَقَهَا ذَهَبَتْ",
+      "reference": "Sahih Muslim 789a",
+      "text_en": "The one who keeps the Quran is like the owner of tied camels: if he keeps watch over them he holds them, and if he lets them go they leave.",
+      "text_bn": "কুরআনের সঙ্গী বাঁধা উটের মালিকের মতো: সে নজর রাখলে ধরে রাখে, ছেড়ে দিলে চলে যায়।",
+      "url": "https://sunnah.com/muslim:789a",
+      "grade": "sahih"
+    },
+    {
+      "id": "muslim-2667a",
+      "arabic": "اقْرَءُوا الْقُرْآنَ مَا ائْتَلَفَتْ عَلَيْهِ قُلُوبُكُمْ فَإِذَا اخْتَلَفْتُمْ فِيهِ فَقُومُوا",
+      "reference": "Sahih Muslim 2667a",
+      "text_en": "Recite the Quran as long as your hearts agree on it; when you differ, rise and leave it.",
+      "text_bn": "যতক্ষণ তোমাদের অন্তর একমত থাকে, কুরআন পাঠ করো; মতভেদ হলে উঠে যাও।",
+      "url": "https://sunnah.com/muslim:2667a",
+      "grade": "sahih"
+    }
+  ]
+}

@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="learn_title">Learn</string>
+  <string name="learn_progress_link">Progress</string>
+  <string name="learn_pages_caption">pages read this week</string>
+  <string name="learn_due_caption">ayahs due today</string>
+  <string name="learn_all_lessons">All lessons</string>
+  <string name="learn_revise_none">Nothing to revise</string>
+  <plurals name="learn_revise">
+    <item quantity="one">Revise %d ayah</item>
+    <item quantity="other">Revise %d ayahs</item>
+  </plurals>
+
+  <string name="back">Back</string>
+  <string name="surah_number">Surah %d</string>
+
+  <string name="lessons_title">Lessons</string>
+  <string name="lesson_draft">Draft</string>
+  <string name="lesson_examples">Examples</string>
+  <plurals name="lesson_detail_draft">
+    <item quantity="one">%d example · Draft</item>
+    <item quantity="other">%d examples · Draft</item>
+  </plurals>
+  <plurals name="lesson_detail_reviewed">
+    <item quantity="one">%d example · Reviewed</item>
+    <item quantity="other">%d examples · Reviewed</item>
+  </plurals>
+
+  <string name="revision_title">Revise</string>
+  <string name="revision_position">%1$s of %2$s</string>
+  <string name="revision_prompt">Recite it from memory.</string>
+  <string name="revision_show">Show ayah</string>
+  <string name="revision_good">Good</string>
+  <string name="revision_again">Again</string>
+  <string name="revision_empty">All done</string>
+
+  <string name="progress_title">Progress</string>
+  <string name="progress_streak_caption">day streak</string>
+  <plurals name="progress_memorised">
+    <item quantity="one">%1$s ayah memorised</item>
+    <item quantity="other">%1$s ayahs memorised</item>
+  </plurals>
+  <plurals name="progress_memorised_rule">
+    <item quantity="one">Memorised after %1$s clean recital</item>
+    <item quantity="other">Memorised after %1$s clean recitals on different days</item>
+  </plurals>
+  <string name="progress_next_due">Next revision: %s</string>
+  <string name="progress_next_none">No revision planned</string>
 </resources>

@@ -1,0 +1,32 @@
+{
+  "id": "qalqalah",
+  "title_en": "Qalqalah",
+  "title_bn": "কলকলা",
+  "body_en": "Qalqalah means shaking or echoing. It is a slight bounce of sound that is heard when one of five letters has a sukoon or is stopped on. The five letters are ق ط ب ج د, remembered by the phrase قطب جد.\n\nThese letters have both shiddah (the sound stops at the makhraj) and jahr (the voice is held). Because of this, a letter with a sukoon would be closed off and unclear; the echo lets the letter be heard. The echo is not a vowel. Do not add a fatha, damma or kasra to it, and do not make it a separate syllable.\n\nThere are two degrees. Qalqalah in the middle of a word or phrase, where the letter has a sukoon and the reading continues, is the lighter one, called sughra. Qalqalah on a letter at which you stop, such as the last letter of an ayah, is stronger, called kubra, because the sound has nowhere to go and the echo is heard more clearly. The stress is higher still when the letter also has a shadda.\n\nThe echo takes the shape of the letter before it: lightly towards a fatha, damma or kasra, but never as a full vowel. Practise with a teacher so that the bounce is neither missing nor too heavy.",
+  "body_bn": "কলকলা মানে কাঁপানো বা প্রতিধ্বনি। পাঁচটি অক্ষরের কোনোটিতে সুকুন থাকলে বা সেখানে থামলে একটি হালকা লাফানো সুর শোনা যায়। অক্ষর পাঁচটি হলো ق ط ب ج د, যা قطب جد বাক্যে মনে রাখা হয়।\n\nএই অক্ষরগুলোতে শিদ্দাত (উচ্চারণস্থানে শব্দ থেমে যায়) ও জাহর (স্বর আটকে থাকে) দুটিই আছে। এ কারণে সুকুনযুক্ত অবস্থায় অক্ষরটি বন্ধ ও অস্পষ্ট হয়ে যেত; প্রতিধ্বনির মাধ্যমে অক্ষরটি শোনা যায়। এই প্রতিধ্বনি কোনো হরকত নয়। এতে যবর, পেশ বা যের যোগ করবেন না এবং আলাদা সিলেবল বানাবেন না।\n\nএর দুটি স্তর আছে। শব্দ বা বাক্যের মাঝখানে, যেখানে অক্ষরে সুকুন থাকে এবং পড়া চলতে থাকে, সেটি হালকা, যাকে সুগরা বলে। যে অক্ষরে থামা হয়, যেমন আয়াতের শেষ অক্ষর, সেখানে প্রতিধ্বনি বেশি জোরালো, যাকে কুবরা বলে; কারণ শব্দের আর যাওয়ার জায়গা নেই এবং প্রতিধ্বনি আরও স্পষ্ট শোনা যায়। অক্ষরে তাশদীদও থাকলে জোর আরও বেশি হয়।\n\nপ্রতিধ্বনি আগের অক্ষরের হরকতের দিকে সামান্য ঝোঁকে: যবর, পেশ বা যেরের দিকে হালকাভাবে, কিন্তু কখনো পূর্ণ হরকত হিসেবে নয়। শিক্ষকের সঙ্গে অনুশীলন করুন, যাতে লাফানো সুর হারিয়ে না যায়, আবার বেশি ভারীও না হয়।",
+  "examples": [
+    {
+      "surah": 112,
+      "ayah": 3,
+      "word_positions": [2],
+      "note_en": "The dal of يَلِدْ has a sukoon: a qalqalah in the middle of the reading.",
+      "note_bn": "يَلِدْ শব্দের দালে সুকুন আছে: পড়ার মাঝখানে কলকলা।"
+    },
+    {
+      "surah": 2,
+      "ayah": 27,
+      "word_positions": [8],
+      "note_en": "The qaf of يَقْطَعُونَ has a sukoon and is followed by ṭa (ط), so the echo is light.",
+      "note_bn": "يَقْطَعُونَ শব্দের ক্বাফে সুকুন আছে এবং এরপর ত্ব (ط) আছে, তাই প্রতিধ্বনি হালকা।"
+    },
+    {
+      "surah": 112,
+      "ayah": 1,
+      "word_positions": [4],
+      "note_en": "When you stop at the end of the ayah, the dal of أَحَدٌ gets the stronger qalqalah.",
+      "note_bn": "আয়াতের শেষে থামলে أَحَدٌ শব্দের দালে শক্তিশালী কলকলা হয়।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}

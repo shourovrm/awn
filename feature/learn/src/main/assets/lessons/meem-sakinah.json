@@ -1,0 +1,32 @@
+{
+  "id": "meem-sakinah",
+  "title_en": "Meem sakinah",
+  "title_bn": "মীম সাকিনা",
+  "body_en": "Meem sakinah is a meem with a sukoon (مْ). It has three rules, chosen by the letter that follows.\n\nIkhfa shafawi (lip hiding) applies when the next letter is ba (ب). The two lips stay lightly together and a ghunnah of about two counts is held. A count is the length of one short vowel.\n\nIdgham shafawi (lip merging) applies when the next letter is another meem (م). The two meems become one meem with a shadda and a ghunnah of about two counts. It is also called idgham mithlayn saghir, because two letters of the same kind meet and the first is silent.\n\nIzhar shafawi (lip clarity) applies before all other letters. The meem is said clearly from the lips with no ghunnah. Take extra care when the next letter is waw (و) or fa (ف), because the lips are close and the meem can be hidden by mistake.",
+  "body_bn": "মীম সাকিনা হলো সুকুনযুক্ত মীম (مْ)। এর তিনটি নিয়ম আছে, যা পরের অক্ষর দেখে ঠিক হয়।\n\nইখফা শাফাওয়ী (ঠোঁটে গোপন করা) হয় পরের অক্ষর বা (ب) হলে। দুই ঠোঁট হালকাভাবে লেগে থাকে এবং প্রায় দুই মাত্রা গুন্নাহ ধরা হয়। এক মাত্রা হলো একটি হ্রস্ব স্বরের দৈর্ঘ্য।\n\nইদগাম শাফাওয়ী (ঠোঁটে মিলিয়ে ফেলা) হয় পরের অক্ষর আরেকটি মীম (م) হলে। দুই মীম মিলে তাশদীদযুক্ত একটি মীম হয় এবং প্রায় দুই মাত্রা গুন্নাহ থাকে। একে ইদগাম মিসলাইন সাগীরও বলা হয়, কারণ একই ধরনের দুটি অক্ষর মিলিত হয় এবং প্রথমটি সাকিন থাকে।\n\nইযহার শাফাওয়ী (ঠোঁটে স্পষ্ট করা) হয় বাকি সব অক্ষরের আগে। মীম ঠোঁট থেকে স্পষ্ট করে পড়া হয়, গুন্নাহ ছাড়া। পরের অক্ষর ওয়াও (و) বা ফা (ف) হলে বিশেষ সতর্ক থাকুন, কারণ ঠোঁট কাছাকাছি থাকে এবং ভুলে মীম গোপন হয়ে যেতে পারে।",
+  "examples": [
+    {
+      "surah": 105,
+      "ayah": 4,
+      "word_positions": [1, 2],
+      "note_en": "The meem of تَرْمِيهِم before ba (ب) in the next word is ikhfa shafawi.",
+      "note_bn": "পরের শব্দের বা (ب)-এর আগে تَرْمِيهِم-এর মীমে ইখফা শাফাওয়ী হয়।"
+    },
+    {
+      "surah": 2,
+      "ayah": 10,
+      "word_positions": [2, 3],
+      "note_en": "The meem of قُلُوبِهِم meets the meem of مَّرَضٌ: idgham shafawi, one meem with a ghunnah.",
+      "note_bn": "قُلُوبِهِم-এর মীম مَّرَضٌ-এর মীমের সঙ্গে মেলে: ইদগাম শাফাওয়ী, গুন্নাহসহ একটি মীম।"
+    },
+    {
+      "surah": 1,
+      "ayah": 7,
+      "word_positions": [4, 5],
+      "note_en": "The meem of عَلَيْهِمْ before ghayn (غ) is izhar shafawi: clear, with no ghunnah.",
+      "note_bn": "গাইন (غ)-এর আগে عَلَيْهِمْ-এর মীমে ইযহার শাফাওয়ী হয়: স্পষ্ট, গুন্নাহ ছাড়া।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}

@@ -1,0 +1,32 @@
+{
+  "id": "lam-of-allah",
+  "title_en": "The lam of Allah",
+  "title_bn": "আল্লাহ শব্দের লাম",
+  "body_en": "The lam in the name of Allah (اللَّه) is read in one of two ways, and the vowel of the letter before it decides which. This rule is only for the name Allah; every other lam is read light.\n\nWhen the letter before the name has a fatha or a damma, the lam is read full (tafkheem): the back of the tongue rises a little and the sound is thick. Examples are قَالَ اللَّهُ and رَسُولُ اللَّهِ.\n\nWhen the letter before the name has a kasra, the lam is read light (tarqeeq): the tongue stays low and the sound is thin. Examples are بِسْمِ اللَّهِ and الْحَمْدُ لِلَّهِ.\n\nWhen you begin a recitation with the name, there is no letter before it, and the lam is read full.",
+  "body_bn": "আল্লাহ (اللَّه) নামের লাম দুইভাবে পড়া হয়, আর এর আগের অক্ষরের হরকত ঠিক করে কোনটি হবে। এই নিয়ম কেবল আল্লাহ নামের জন্য; অন্য সব লাম হালকা পড়া হয়।\n\nনামের আগের অক্ষরে যবর বা পেশ থাকলে লাম ভরাট পড়া হয় (তাফখীম): জিহ্বার পেছনের অংশ একটু ওপরে ওঠে এবং শব্দ মোটা হয়। উদাহরণ: قَالَ اللَّهُ ও رَسُولُ اللَّهِ।\n\nনামের আগের অক্ষরে যের থাকলে লাম হালকা পড়া হয় (তারকীক): জিহ্বা নিচু থাকে এবং শব্দ চিকন হয়। উদাহরণ: بِسْمِ اللَّهِ ও الْحَمْدُ لِلَّهِ।\n\nনাম দিয়ে তিলাওয়াত শুরু করলে এর আগে কোনো অক্ষর থাকে না এবং লাম ভরাট পড়া হয়।",
+  "examples": [
+    {
+      "surah": 2,
+      "ayah": 7,
+      "word_positions": [1, 2],
+      "note_en": "The name follows a fatha (خَتَمَ), so the lam is full.",
+      "note_bn": "নামের আগে যবর (خَتَمَ), তাই লাম ভরাট।"
+    },
+    {
+      "surah": 112,
+      "ayah": 1,
+      "word_positions": [2, 3],
+      "note_en": "The name follows هُوَ, which ends in a fatha, so the lam is full.",
+      "note_bn": "নামের আগে هُوَ, যার শেষে যবর, তাই লাম ভরাট।"
+    },
+    {
+      "surah": 1,
+      "ayah": 1,
+      "word_positions": [1, 2],
+      "note_en": "The name follows a kasra (بِسْمِ), so the lam is light.",
+      "note_bn": "নামের আগে যের (بِسْمِ), তাই লাম হালকা।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}

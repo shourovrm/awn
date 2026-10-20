@@ -1,4 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="learn_title">শিখুন</string>
+  <string name="learn_progress_link">অগ্রগতি</string>
+  <string name="learn_pages_caption">এই সপ্তাহে পড়া পৃষ্ঠা</string>
+  <string name="learn_due_caption">আজ ঝালানোর আয়াত</string>
+  <string name="learn_all_lessons">সব পাঠ</string>
+  <string name="learn_revise_none">ঝালানোর কিছু নেই</string>
+  <plurals name="learn_revise">
+    <item quantity="one">%dটি আয়াত ঝালিয়ে নিন</item>
+    <item quantity="other">%dটি আয়াত ঝালিয়ে নিন</item>
+  </plurals>
+
+  <string name="back">ফিরে যান</string>
+  <string name="surah_number">সূরা %d</string>
+
+  <string name="lessons_title">পাঠ</string>
+  <string name="lesson_draft">খসড়া</string>
+  <string name="lesson_examples">উদাহরণ</string>
+  <plurals name="lesson_detail_draft">
+    <item quantity="one">%dটি উদাহরণ · খসড়া</item>
+    <item quantity="other">%dটি উদাহরণ · খসড়া</item>
+  </plurals>
+  <plurals name="lesson_detail_reviewed">
+    <item quantity="one">%dটি উদাহরণ · যাচাই করা</item>
+    <item quantity="other">%dটি উদাহরণ · যাচাই করা</item>
+  </plurals>
+
+  <string name="revision_title">ঝালাই</string>
+  <string name="revision_position">%2$s-এর মধ্যে %1$s</string>
+  <string name="revision_prompt">মুখস্থ থেকে পড়ুন।</string>
+  <string name="revision_show">আয়াত দেখুন</string>
+  <string name="revision_good">ভালো</string>
+  <string name="revision_again">আবার</string>
+  <string name="revision_empty">আজকের ঝালাই শেষ</string>
+
+  <string name="progress_title">অগ্রগতি</string>
+  <string name="progress_streak_caption">দিন টানা</string>
+  <plurals name="progress_memorised">
+    <item quantity="one">%1$sটি আয়াত মুখস্থ</item>
+    <item quantity="other">%1$sটি আয়াত মুখস্থ</item>
+  </plurals>
+  <plurals name="progress_memorised_rule">
+    <item quantity="one">ভুল ছাড়া %1$s বার পড়লে মুখস্থ ধরা হয়</item>
+    <item quantity="other">আলাদা আলাদা দিনে ভুল ছাড়া %1$s বার পড়লে মুখস্থ ধরা হয়</item>
+  </plurals>
+  <string name="progress_next_due">পরের ঝালাই: %s</string>
+  <string name="progress_next_none">কোনো ঝালাই ঠিক করা নেই</string>
 </resources>

@@ -1,0 +1,32 @@
+{
+  "id": "hamzat-al-wasl",
+  "title_en": "Hamzat al-wasl",
+  "title_bn": "হামযাতুল ওয়াসল",
+  "body_en": "Hamzat al-wasl (the joining hamza) is an alif at the start of a word that is said only when you begin with that word. When you join it to the word before, it is not said at all. It is written as a plain alif, often with a small ص above it in the Madani mushaf. A hamzat al-qat' (the cutting hamza, ء) is always said, and is written as a hamza.\n\nIn the definite article ال, the alif has a fatha when you begin: الْحَمْدُ. When joined to the word before it, the alif disappears, as in رَبِّ الْعَالَمِينَ, where the ra is joined straight to the lam.\n\nIn a verb, the vowel when you begin depends on the third letter of the verb. If the third letter has a damma, the alif begins with a damma, as in اُدْعُوا. In every other case it begins with a kasra, as in اقْرَأْ and اهْدِنَا. In a noun such as اسْم and ابْن, it begins with a kasra.\n\nThis matters when you stop and start again in the middle of a passage, because you must begin with the right vowel, and when you join, because the alif must not be said.",
+  "body_bn": "হামযাতুল ওয়াসল (সংযোগের হামযা) হলো শব্দের শুরুর একটি আলিফ, যা কেবল ওই শব্দ দিয়ে শুরু করলে উচ্চারিত হয়। আগের শব্দের সঙ্গে মিলিয়ে পড়লে এটি মোটেই উচ্চারিত হয় না। এটি সাধারণ আলিফ হিসেবে লেখা হয়, মাদানী মুসহাফে প্রায়ই এর ওপর ছোট ص থাকে। হামযাতুল কত্ব (কাটার হামযা, ء) সবসময় উচ্চারিত হয় এবং হামযা হিসেবে লেখা হয়।\n\nনির্দিষ্টতাবোধক ال-এ শুরু করার সময় আলিফে যবর থাকে: الْحَمْدُ। আগের শব্দের সঙ্গে মিলিয়ে পড়লে আলিফ হারিয়ে যায়, যেমন رَبِّ الْعَالَمِينَ-এ, যেখানে রা সরাসরি লামের সঙ্গে মিলে যায়।\n\nক্রিয়ায় শুরুর হরকত নির্ভর করে ক্রিয়ার তৃতীয় অক্ষরের ওপর। তৃতীয় অক্ষরে পেশ থাকলে আলিফ পেশ দিয়ে শুরু হয়, যেমন اُدْعُوا-তে। অন্য সব ক্ষেত্রে যের দিয়ে শুরু হয়, যেমন اقْرَأْ ও اهْدِنَا-তে। اسْم ও ابْن-এর মতো বিশেষ্যে যের দিয়ে শুরু হয়।\n\nএটি জরুরি, যখন পাঠের মাঝখানে থেমে আবার শুরু করেন, কারণ তখন সঠিক হরকত দিয়ে শুরু করতে হবে; আর যখন মিলিয়ে পড়েন, কারণ তখন আলিফ উচ্চারণ করা যাবে না।",
+  "examples": [
+    {
+      "surah": 1,
+      "ayah": 2,
+      "word_positions": [1],
+      "note_en": "The alif of ال has a fatha when you begin with ٱلْحَمْدُ.",
+      "note_bn": "ٱلْحَمْدُ দিয়ে শুরু করলে ال-এর আলিফে যবর থাকে।"
+    },
+    {
+      "surah": 96,
+      "ayah": 1,
+      "word_positions": [1],
+      "note_en": "The third letter of اقْرَأْ has a fatha, so the alif begins with a kasra.",
+      "note_bn": "اقْرَأْ-এর তৃতীয় অক্ষরে যবর, তাই আলিফ যের দিয়ে শুরু হয়।"
+    },
+    {
+      "surah": 1,
+      "ayah": 6,
+      "word_positions": [1],
+      "note_en": "The third letter of اهْدِنَا has a kasra, so the alif begins with a kasra.",
+      "note_bn": "اهْدِنَا-এর তৃতীয় অক্ষরে যের, তাই আলিফ যের দিয়ে শুরু হয়।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}

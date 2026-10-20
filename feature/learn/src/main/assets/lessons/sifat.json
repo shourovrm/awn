@@ -1,0 +1,32 @@
+{
+  "id": "sifat",
+  "title_en": "Qualities of letters",
+  "title_bn": "অক্ষরের গুণ",
+  "body_en": "The sifat (singular sifah) are the qualities of a letter: how the breath, the voice and the tongue behave while the letter is made. The makhraj says where a letter is made; the sifah says how. Two letters can share a makhraj and still sound different because of their sifat.\n\nMost qualities come in opposite pairs. Hams means the breath keeps flowing when the letter is made; the hams letters are ف ح ث ه ش خ ص س ك ت. Jahr means the breath is held back; all other letters are jahr. Shiddah means the sound stops completely at the makhraj, as in أ ج د ق ط ب ك ت. Rakhawah means the sound flows. Between the two is tawassut, in the letters ل ن ع م ر.\n\nIsti'la means the back of the tongue rises towards the roof of the mouth and the letter sounds full. The isti'la letters are خ ص ض غ ط ق ظ. All other letters have istifal, a low tongue and a light sound. Itbaq is a stronger form of isti'la in which the tongue presses against the palate; it belongs to ص ض ط ظ.\n\nSome qualities belong to only a few letters. Safir is a whistling sound in ص ز س. Qalqalah is the echo of ق ط ب ج د. Ghunnah is the nasal sound of ن and م. Madd, leen, takrir, tafashshi, istitalah and inhiraf are the others in the usual list.\n\nThe letter lists above are worth learning by heart with a teacher, because many tajweed rules are stated in terms of them: for example, the full and light sounds of ra and lam depend on isti'la letters.",
+  "body_bn": "সিফাত হলো অক্ষরের গুণ, অর্থাৎ অক্ষরটি উচ্চারণের সময় শ্বাস, স্বর ও জিহ্বা কেমন আচরণ করে। মাখরাজ বলে অক্ষর কোথা থেকে উচ্চারিত হয়; সিফাত বলে কীভাবে হয়। দুটি অক্ষরের মাখরাজ এক হলেও সিফাতের কারণে তাদের শব্দ আলাদা হয়।\n\nবেশির ভাগ গুণ বিপরীত জোড়ায় আসে। হামস মানে অক্ষর উচ্চারণের সময় শ্বাস প্রবাহিত থাকে; হামসের অক্ষর হলো ف ح ث ه ش خ ص س ك ت। জাহর মানে শ্বাস আটকে থাকে; বাকি সব অক্ষর জাহর। শিদ্দাত মানে উচ্চারণস্থানে শব্দ পুরোপুরি থেমে যায়, যেমন أ ج د ق ط ب ك ت-এ। রাখাওয়াহ মানে শব্দ প্রবাহিত হয়। দুইয়ের মাঝামাঝি হলো তাওয়াসসুত, যা ل ن ع م ر-এ আছে।\n\nইসতিলা মানে জিহ্বার পেছনের অংশ তালুর দিকে ওঠে এবং অক্ষরটি ভরাট শোনায়। ইসতিলার অক্ষর হলো خ ص ض غ ط ق ظ। বাকি সব অক্ষরে ইসতিফাল, অর্থাৎ জিহ্বা নিচু থাকে এবং শব্দ হালকা হয়। ইতবাক হলো ইসতিলার আরও জোরালো রূপ, যেখানে জিহ্বা তালুর সঙ্গে চেপে যায়; এটি ص ض ط ظ-এর গুণ।\n\nকিছু গুণ কেবল অল্প কয়েকটি অক্ষরের। সাফীর হলো শিসের মতো শব্দ, যা ص ز س-এ আছে। কলকলা হলো ق ط ب ج د-এর প্রতিধ্বনি। গুন্নাহ হলো ن ও م-এর নাকের সুর। সাধারণ তালিকার বাকি গুণগুলো হলো মাদ, লীন, তাকরীর, তাফাশশী, ইসতিতালা ও ইনহিরাফ।\n\nউপরের অক্ষরের তালিকাগুলো শিক্ষকের সঙ্গে মুখস্থ করা ভালো, কারণ তাজবীদের অনেক নিয়ম এগুলোর ভিত্তিতে বলা হয়। যেমন রা ও লামের ভরাট ও হালকা উচ্চারণ ইসতিলার অক্ষরের ওপর নির্ভর করে।",
+  "examples": [
+    {
+      "surah": 1,
+      "ayah": 6,
+      "word_positions": [2],
+      "note_en": "Sad (ص) has isti'la, itbaq and safir together, so it sounds full and whistling.",
+      "note_bn": "সোয়াদ (ص)-এ ইসতিলা, ইতবাক ও সাফীর একসঙ্গে আছে, তাই এটি ভরাট ও শিসের মতো শোনায়।"
+    },
+    {
+      "surah": 1,
+      "ayah": 7,
+      "word_positions": [9],
+      "note_en": "Dad (ض) has isti'la and itbaq and is made from the side of the tongue, which sets it apart from dal.",
+      "note_bn": "দ্বাদ (ض)-এ ইসতিলা ও ইতবাক আছে এবং এটি জিহ্বার পাশ থেকে উচ্চারিত হয়, যা একে দাল থেকে আলাদা করে।"
+    },
+    {
+      "surah": 96,
+      "ayah": 1,
+      "word_positions": [1],
+      "note_en": "Qaf (ق) has isti'la, shiddah and jahr, and it also carries qalqalah when it has a sukoon.",
+      "note_bn": "ক্বাফ (ق)-এ ইসতিলা, শিদ্দাত ও জাহর আছে, আর সাকিন হলে এতে কলকলাও থাকে।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}

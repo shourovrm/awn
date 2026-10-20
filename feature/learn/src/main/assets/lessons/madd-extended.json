@@ -1,0 +1,32 @@
+{
+  "id": "madd-extended",
+  "title_en": "Madd: longer lengths",
+  "title_bn": "মাদ: দীর্ঘতর মাত্রা",
+  "body_en": "A madd letter is lengthened beyond two counts when a hamza or a sukoon follows it. The length depends on the cause. A count is the length of one short vowel. The ranges below are for the reading of Hafs from Asim, the reading of the Madani mushaf; a teacher tells you which length within the range to use and keeps it the same throughout.\n\nMadd muttasil (connected) is a madd letter followed by a hamza in the same word, as in أَضَاءَتْ. It is obligatory and is read for four or five counts.\n\nMadd munfasil (separated) is a madd letter at the end of one word followed by a hamza at the start of the next, as in بِمَا أُنزِلَ. It is permissible and is read for four or five counts in Hafs.\n\nMadd lazim (necessary) is a madd letter followed by a letter that has a sukoon or a shadda in the same word, as in الضَّالِّينَ. It is always six counts.\n\nMadd arid lis-sukun (due to stopping) is a madd letter followed by a letter that has a sukoon only because you stop there. If you stop at the end of an ayah you may read two, four or six counts; if you continue, it is a natural madd.\n\nKeep the same length for the same kind of madd through the whole recitation. Switching between four and five counts in the same passage is a common slip.",
+  "body_bn": "মাদের অক্ষরের পরে হামযা বা সুকুন এলে সেটি দুই মাত্রার বেশি দীর্ঘ করা হয়। দৈর্ঘ্য নির্ভর করে কারণের ওপর। এক মাত্রা হলো একটি হ্রস্ব স্বরের দৈর্ঘ্য। নিচের পরিসর আসিমের সূত্রে হাফসের কিরাআতের জন্য, যা মাদানী মুসহাফের কিরাআত; পরিসরের মধ্যে কোন দৈর্ঘ্য নেবেন তা শিক্ষক বলে দেবেন এবং পুরো তিলাওয়াতে তা একই রাখতে হবে।\n\nমাদ্দে মুত্তাসিল (সংযুক্ত) হলো একই শব্দের মধ্যে মাদের অক্ষরের পরে হামযা থাকা, যেমন أَضَاءَتْ-এ। এটি ওয়াজিব এবং চার বা পাঁচ মাত্রা পড়া হয়।\n\nমাদ্দে মুনফাসিল (বিচ্ছিন্ন) হলো এক শব্দের শেষে মাদের অক্ষর এবং পরের শব্দের শুরুতে হামযা থাকা, যেমন بِمَا أُنزِلَ-এ। এটি জায়েয এবং হাফসে চার বা পাঁচ মাত্রা পড়া হয়।\n\nমাদ্দে লাযিম (আবশ্যক) হলো একই শব্দে মাদের অক্ষরের পরে সুকুন বা তাশদীদযুক্ত অক্ষর থাকা, যেমন الضَّالِّينَ-এ। এটি সবসময় ছয় মাত্রা।\n\nমাদ্দে আরিয কিংবা ওয়াকফের কারণে মাদ হলো মাদের অক্ষরের পরে এমন অক্ষর থাকা, যাতে কেবল থামার কারণে সুকুন হয়। আয়াতের শেষে থামলে দুই, চার বা ছয় মাত্রা পড়া যায়; না থামলে এটি স্বাভাবিক মাদ।\n\nএকই ধরনের মাদে পুরো তিলাওয়াতে একই দৈর্ঘ্য রাখুন। একই অংশে কখনো চার, কখনো পাঁচ মাত্রা পড়া একটি সাধারণ ভুল।",
+  "examples": [
+    {
+      "surah": 2,
+      "ayah": 17,
+      "word_positions": [7],
+      "note_en": "The alif is followed by a hamza in the same word: madd muttasil, four or five counts.",
+      "note_bn": "আলিফের পরে একই শব্দে হামযা আছে: মাদ্দে মুত্তাসিল, চার বা পাঁচ মাত্রা।"
+    },
+    {
+      "surah": 2,
+      "ayah": 4,
+      "word_positions": [3, 4],
+      "note_en": "The alif at the end of بِمَآ meets the hamza that starts أُنزِلَ: madd munfasil.",
+      "note_bn": "بِمَآ শব্দের শেষ আলিফ এবং أُنزِلَ শব্দের শুরুর হামযা মিলেছে: মাদ্দে মুনফাসিল।"
+    },
+    {
+      "surah": 1,
+      "ayah": 7,
+      "word_positions": [9],
+      "note_en": "The alif is followed by a lam with a shadda in the same word: madd lazim, six counts.",
+      "note_bn": "আলিফের পরে একই শব্দে তাশদীদযুক্ত লাম আছে: মাদ্দে লাযিম, ছয় মাত্রা।"
+    }
+  ],
+  "reviewed_by": null,
+  "reviewed_on": null
+}
