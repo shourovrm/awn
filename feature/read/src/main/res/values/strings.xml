@@ -1,31 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- Used by page/MushafPageScreen until the page agent's branch removes it. -->
-  <string name="header_juz_page">Juz %1$d · %2$d</string>
-  <string name="action_bookmark">Bookmark</string>
-  <string name="action_bookmarked">Bookmarked</string>
-  <string name="action_ayah_list">Ayah list</string>
-  <string name="action_browse">Browse</string>
-  <string name="sheet_save_ayah">Save ayah</string>
-  <string name="sheet_saved">Saved</string>
-  <string name="sheet_close">Close</string>
-  <string name="dock_title">%1$s · Ayah %2$d</string>
-  <string name="dock_play">Play</string>
-  <string name="dock_pause">Pause</string>
-  <string name="dock_expand">Open player</string>
 
-  <string name="font_download">Download font</string>
-  <string name="font_downloading">Downloading %1$d%%</string>
-  <string name="font_download_failed">Download failed. Try again</string>
-  <string name="page_unavailable">Page not available</string>
+  <string name="page_unavailable">Can\'t show this page</string>
 
   <string name="bar_index">Index</string>
   <string name="bar_title_subtitle">Page %1$d · Juz %2$d</string>
   <string name="bar_view_mushaf">Mushaf</string>
   <string name="bar_view_translation">Translation</string>
   <string name="bar_view_word_by_word">Word by word</string>
-  <string name="bar_day_mode">Day</string>
-  <string name="bar_night_mode">Night</string>
+  <string name="bar_day_mode">Switch to day</string>
+  <string name="bar_night_mode">Switch to night</string>
   <string name="bar_text_size">Text size</string>
   <string name="bar_more">More</string>
   <string name="action_smaller">Smaller</string>

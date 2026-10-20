@@ -1,29 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="listen_title">Listen</string>
-  <string name="listen_previous">Previous ayah</string>
-  <string name="listen_next">Next ayah</string>
-  <string name="listen_play">Play</string>
-  <string name="listen_pause">Pause</string>
-  <string name="listen_repeat_off">Repeat off</string>
-  <plurals name="listen_repeat_times">
-    <item quantity="one">Repeat %1$d time</item>
-    <item quantity="other">Repeat %1$d times</item>
-  </plurals>
-  <string name="listen_ayah_of">Ayah %1$d of %2$d</string>
-  <string name="listen_error">Cannot play this audio</string>
-  <string name="reciters_title">Reciters</string>
-  <string name="reciter_word_by_word">Word by word</string>
-  <string name="reciter_listening_only">Listening only</string>
-  <string name="reciter_nothing_downloaded">Nothing downloaded</string>
-  <string name="reciter_remove_downloads">Remove downloads</string>
-  <string name="reciters_wifi_only">Wi-Fi only</string>
-  <string name="reciters_downloads">Downloads</string>
-  <string name="downloads_title">Downloads</string>
-  <string name="downloads_download">Download</string>
-  <string name="downloads_downloaded">Downloaded</string>
   <string name="downloads_wifi_needed">Connect to Wi-Fi to download</string>
-  <string name="downloads_failed">Download failed</string>
   <string name="downloads_size_progress">%1$s of %2$s</string>
   <string name="audio_play">Play</string>
   <string name="audio_pause">Pause</string>
@@ -38,28 +15,24 @@
   <string name="audio_cancel">Cancel</string>
   <string name="audio_downloading">Downloading</string>
   <string name="audio_start_from">Start from</string>
-  <string name="audio_error">Cannot play this audio</string>
+  <string name="audio_error">Can\'t play this ayah. Check your connection.</string>
   <string name="audio_back">Back</string>
-  <string name="audio_close">Close</string>
   <string name="repeat_infinite">∞</string>
-  <string name="repeat_infinite_description">Forever</string>
   <string name="speed_value">%1$s×</string>
   <string name="panel_from">From</string>
   <string name="panel_to">To</string>
-  <string name="panel_surah">Surah</string>
-  <string name="panel_ayah">Ayah</string>
   <string name="panel_repeat_each">Repeat each ayah</string>
-  <string name="panel_repeat_range">Repeat the range</string>
+  <string name="panel_repeat_range">Repeat range</string>
   <string name="panel_speed">Speed</string>
-  <string name="panel_only_range">Play only this range</string>
+  <string name="panel_only_range">Only this range</string>
   <string name="reciter_search">Search reciters</string>
-  <string name="reciter_group_page">Downloaded for this page</string>
-  <string name="reciter_group_downloads">With downloads</string>
+  <string name="reciter_group_page">Ready offline</string>
+  <string name="reciter_group_downloads">Partly downloaded</string>
   <string name="reciter_group_all">All</string>
   <string name="reciter_current">Selected</string>
   <string name="audio_settings_title">Audio</string>
   <string name="audio_setting_reciter">Reciter</string>
-  <string name="audio_setting_download_amount">Download amount</string>
+  <string name="audio_setting_download_amount">Download by</string>
   <string name="audio_setting_wifi">Wi-Fi only</string>
   <string name="audio_setting_downloads">Downloads</string>
   <string name="audio_setting_space">Space used</string>
@@ -80,6 +53,6 @@
   <string name="manager_size_estimate">About %1$s</string>
   <string name="manager_size_downloaded">%1$s downloaded</string>
   <string name="manager_part_downloaded">%1$s of %2$s ayahs</string>
-  <string name="manager_failed">Download failed</string>
+  <string name="manager_failed">Download failed. Check your connection.</string>
   <string name="audio_start_choice">%1$s %2$d</string>
 </resources>

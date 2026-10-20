@@ -1,30 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="header_juz_page">পারা %1$d · %2$d</string>
-  <string name="action_bookmark">বুকমার্ক</string>
-  <string name="action_bookmarked">বুকমার্ক করা</string>
-  <string name="action_ayah_list">আয়াত তালিকা</string>
-  <string name="action_browse">সূচি</string>
-  <string name="sheet_save_ayah">আয়াত সংরক্ষণ</string>
-  <string name="sheet_saved">সংরক্ষিত</string>
-  <string name="sheet_close">বন্ধ</string>
-  <string name="dock_title">%1$s · আয়াত %2$d</string>
-  <string name="dock_play">চালান</string>
-  <string name="dock_pause">থামান</string>
-  <string name="dock_expand">প্লেয়ার খুলুন</string>
 
-  <string name="font_download">ফন্ট ডাউনলোড</string>
-  <string name="font_downloading">ডাউনলোড হচ্ছে %1$d%%</string>
-  <string name="font_download_failed">ডাউনলোড হয়নি। আবার চেষ্টা করুন</string>
-  <string name="page_unavailable">পৃষ্ঠা পাওয়া যায়নি</string>
+  <string name="page_unavailable">পৃষ্ঠাটি দেখানো যাচ্ছে না</string>
 
   <string name="bar_index">সূচি</string>
   <string name="bar_title_subtitle">পৃষ্ঠা %1$d · পারা %2$d</string>
   <string name="bar_view_mushaf">মাসহাফ</string>
   <string name="bar_view_translation">অনুবাদ</string>
   <string name="bar_view_word_by_word">শব্দে শব্দে</string>
-  <string name="bar_day_mode">দিন</string>
-  <string name="bar_night_mode">রাত</string>
+  <string name="bar_day_mode">দিনের রঙে যান</string>
+  <string name="bar_night_mode">রাতের রঙে যান</string>
   <string name="bar_text_size">লেখার আকার</string>
   <string name="bar_more">আরও</string>
   <string name="action_smaller">ছোট</string>

@@ -9,21 +9,21 @@
   <string name="font_prompt_size">%1$s MB</string>
   <string name="font_prompt_wifi">Wi-Fi recommended</string>
   <string name="font_prompt_download">Download</string>
-  <string name="font_prompt_keep">Keep Hafs text</string>
+  <string name="font_prompt_keep">Not now</string>
   <string name="font_prompt_progress">Downloading %1$d%%</string>
-  <string name="font_prompt_failed">Download failed. Try again</string>
+  <string name="font_prompt_failed">Download failed. Check your connection.</string>
   <string name="mushaf_type_v2">Madani 1421</string>
   <string name="mushaf_type_v1">Madani 1405</string>
   <string name="mushaf_type_v4">Tajweed colours</string>
   <string name="mushaf_year_v2">1421 print</string>
   <string name="mushaf_year_v1">1405 print</string>
-  <string name="mushaf_year_v4">1421 print, colour coded</string>
+  <string name="mushaf_year_v4">1421 print with tajweed colours</string>
   <string name="mushaf_size_installed">%1$s MB installed</string>
   <string name="mushaf_size_download">%1$s MB to download</string>
   <string name="mushaf_install">Install</string>
   <string name="mushaf_use">Use</string>
   <string name="mushaf_remove">Remove</string>
   <string name="mushaf_in_use">In use</string>
-  <string name="mushaf_show_page_info">Show page info</string>
+  <string name="mushaf_show_page_info">Page details</string>
   <string name="mushaf_preview_description">%1$s, preview of page %2$d</string>
 </resources>

@@ -44,7 +44,7 @@
 
   <string name="appearance_day_colours">দিনের রং</string>
   <string name="appearance_night_colours">রাতের রং</string>
-  <string name="appearance_follow_device">ডিভাইস অনুযায়ী</string>
+  <string name="appearance_follow_device">ফোনের থিম অনুসারে</string>
   <string name="appearance_language">ভাষা</string>
   <string name="appearance_surah_name_meaning">সূরার নামের অর্থ</string>
   <string name="colours_awn">আওন</string>
@@ -54,7 +54,7 @@
 
   <string name="audio_reciter">ক্বারী</string>
   <string name="audio_downloads">ডাউনলোড</string>
-  <string name="audio_space_used">ডাউনলোড করা অডিও</string>
+  <string name="audio_space_used">ব্যবহৃত জায়গা</string>
   <string name="audio_wifi_only">শুধু ওয়াই-ফাই</string>
 
   <string name="recite_memorised_after">মুখস্থ ধরা হবে</string>
@@ -65,9 +65,9 @@
 
   <string name="backup_export">বুকমার্ক এক্সপোর্ট</string>
   <string name="backup_import">বুকমার্ক ইম্পোর্ট</string>
-  <string name="backup_exported">সংরক্ষিত</string>
-  <string name="backup_imported">ইম্পোর্ট হয়েছে</string>
-  <string name="backup_failed">এই ফাইল ব্যবহার করা যাচ্ছে না</string>
+  <string name="backup_exported">বুকমার্ক এক্সপোর্ট হয়েছে</string>
+  <string name="backup_imported">বুকমার্ক ইমপোর্ট হয়েছে</string>
+  <string name="backup_failed">ফাইলটি পড়া যায়নি। আউনের একটি ব্যাকআপ বেছে নিন।</string>
 
   <string name="about_notice">বিজ্ঞপ্তি</string>
   <string name="about_credits">কৃতজ্ঞতা</string>

@@ -28,14 +28,14 @@
 
   <string name="revision_title">Revise</string>
   <string name="revision_position">%1$s of %2$s</string>
-  <string name="revision_prompt">Recite it from memory.</string>
+  <string name="revision_prompt">Recite from memory</string>
   <string name="revision_show">Show ayah</string>
   <string name="revision_good">Good</string>
   <string name="revision_again">Again</string>
   <string name="revision_empty">All done</string>
 
   <string name="progress_title">Progress</string>
-  <string name="progress_streak_caption">day streak</string>
+  <string name="progress_streak_caption">days in a row</string>
   <plurals name="progress_memorised">
     <item quantity="one">%1$s ayah memorised</item>
     <item quantity="other">%1$s ayahs memorised</item>

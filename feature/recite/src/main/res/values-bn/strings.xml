@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="recite_title">তিলাওয়াত</string>
   <string name="recite_start">শুরু</string>
   <string name="recite_stop">থামান</string>
-  <string name="recite_reset">আবার শুরু</string>
-  <string name="recite_hifz">হিফজ</string>
   <string name="recite_hint">ইঙ্গিত</string>
   <string name="recite_speed">গতি</string>
   <string name="recite_slower">ধীর</string>
@@ -13,16 +10,12 @@
   <string name="recite_status_ready">প্রস্তুত</string>
   <string name="recite_status_listening">শুনছি</string>
   <string name="recite_status_stopped">থেমেছে</string>
-  <string name="recite_status_no_text">এই অংশের লেখা নেই</string>
-  <string name="recite_status_no_microphone">মাইক্রোফোন ব্যবহার করা যাচ্ছে না</string>
+  <string name="recite_status_no_text">এই আয়াতগুলো খোলা যাচ্ছে না</string>
+  <string name="recite_status_no_microphone">মাইক্রোফোন ব্যবহার করা যাচ্ছে না। অন্য রেকর্ডিং অ্যাপ বন্ধ করুন।</string>
   <string name="recite_status_skipped">বাদ পড়েছে: আয়াত %1$d, শব্দ %2$d</string>
   <string name="recite_status_inserted">বাড়তি শব্দ: আয়াত %1$d, শব্দ %2$d-এর পরে</string>
   <string name="recite_status_anchored">জায়গা পেয়েছি: আয়াত %1$d, শব্দ %2$d</string>
 
-  <string name="recite_word_confirmed">সঠিক</string>
-  <string name="recite_word_tentative">অনিশ্চিত</string>
-  <string name="recite_word_wrong">ভুল</string>
-  <string name="recite_word_hidden">লুকানো</string>
 
   <string name="recite_review">পর্যালোচনা</string>
   <string name="recite_verdict_skipped">বাদ</string>
@@ -40,20 +33,10 @@
   <string name="recite_yours">আপনার</string>
   <string name="recite_correct">সঠিক</string>
   <string name="recite_hint_clear_letter">অক্ষরটি স্পষ্ট করে বলুন</string>
-  <string name="recite_legend_mistake">ভুল</string>
 
-  <string name="recite_microphone_rationale">আপনার তিলাওয়াত শুনতে আউনের মাইক্রোফোন লাগে। অডিও আপনার ফোনেই থাকে।</string>
   <string name="recite_microphone_allow">মাইক্রোফোনের অনুমতি দিন</string>
-  <string name="recite_microphone_denied">আউনের মাইক্রোফোন বন্ধ আছে। সেটিংসে চালু করুন।</string>
   <string name="recite_microphone_open_settings">সেটিংস খুলুন</string>
 
-  <string name="recite_range_single">%1$s %2$d</string>
-  <string name="recite_range_span">%1$s %2$d–%3$d</string>
-  <string name="recite_range_title">অংশ</string>
-  <string name="recite_range_surah">সূরা</string>
-  <string name="recite_range_from">শুরুর আয়াত</string>
-  <string name="recite_range_to">শেষ আয়াত</string>
-  <string name="recite_range_done">হয়েছে</string>
 
   <string name="recite_settings_title">তিলাওয়াত ও মুখস্থ</string>
   <string name="recite_settings_hide_words">শব্দ লুকান</string>

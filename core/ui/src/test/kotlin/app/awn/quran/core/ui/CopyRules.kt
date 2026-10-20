@@ -13,7 +13,10 @@ object CopyRules {
 
     private val bannedWords =
         Regex(
-            """\b(model|threshold|session|engine|alignment|buffer|sync|verify)s?\b""",
+            "\\b(" +
+                "model|threshold|session|engine|alignment|buffer|sync|verify|" +
+                "fallback|pack|tracker|phoneme|cache|manifest" +
+                ")s?\\b",
             RegexOption.IGNORE_CASE,
         )
     private val bannedAbbreviation = Regex("""\bAI\b""")
