@@ -1,9 +1,14 @@
 package app.awn.quran.core.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
@@ -13,108 +18,32 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-/** The four full-screen field colours. Each mode of the app owns one. */
+/**
+ * The four field colours of Awn mode. A screen names the field it sits on; in the Light, Dark and
+ * Black modes every field draws on that mode's page colour (see [awnFieldColors]).
+ */
 enum class AwnField {
-    /** Read. */
+    /** The Quran page and the index. */
     Paper,
-    /** Listen. */
+    /** A raised surface such as a figure tile. */
     Green,
-    /** Recite, and Read in the system dark theme. */
+    /** The recitation screen. */
     Night,
     /** Learn. */
     Ochre,
 }
 
-/** The user's choice in Settings: always light, always dark, or follow the device. */
-enum class ThemePreference {
-    Light,
-    Dark,
-    System,
-}
+/** The palette in use, set once at the app root from the user's [ColourSettings]. */
+val LocalColourMode = staticCompositionLocalOf { ColourMode.Awn }
 
-/** Set once at the app root so every screen's [AwnTheme] follows the stored preference. */
-val LocalThemePreference = staticCompositionLocalOf { ThemePreference.System }
-
-/** Everything a screen on one field may draw with. */
-data class AwnFieldColors(
-    val background: Color,
-    val content: Color,
-    val buttonFill: Color,
-    val onButton: Color,
-    val confirmedWord: Color,
-    val tentativeWord: Color,
-    val wrongWord: Color,
-    val hiddenWordBlock: Color,
-    val isLight: Boolean,
-    /** Behind the ayah the user long-pressed. */
-    val selectedAyahFill: Color =
-        if (isLight) AwnColors.selectedAyahLight else AwnColors.selectedAyahNight,
-    /** Behind the ayah being played. */
-    val playingAyahFill: Color =
-        if (isLight) AwnColors.playingAyahLight else AwnColors.playingAyahNight,
-    /** Behind the word being played, on top of [playingAyahFill]. */
-    val playingWordFill: Color =
-        if (isLight) AwnColors.playingWordLight else AwnColors.playingWordNight,
-    /** Light mark behind bookmarked ayahs. */
-    val bookmarkedAyahFill: Color =
-        if (isLight) AwnColors.bookmarkedAyahLight else AwnColors.bookmarkedAyahNight,
-)
-
-fun awnFieldColors(field: AwnField): AwnFieldColors =
-    when (field) {
-        AwnField.Paper ->
-            AwnFieldColors(
-                background = AwnColors.paper,
-                content = AwnColors.ink,
-                buttonFill = AwnColors.green,
-                onButton = AwnColors.paper,
-                confirmedWord = AwnColors.green,
-                tentativeWord = AwnColors.ochre,
-                wrongWord = AwnColors.red,
-                hiddenWordBlock = AwnColors.paper,
-                isLight = true,
-            )
-        AwnField.Green ->
-            AwnFieldColors(
-                background = AwnColors.green,
-                content = AwnColors.paper,
-                buttonFill = AwnColors.ochre,
-                onButton = AwnColors.ink,
-                confirmedWord = AwnColors.nightConfirmed,
-                tentativeWord = AwnColors.nightTentative,
-                wrongWord = AwnColors.nightWrong,
-                hiddenWordBlock = AwnColors.paper,
-                isLight = false,
-            )
-        AwnField.Night ->
-            AwnFieldColors(
-                background = AwnColors.ink,
-                content = AwnColors.paper,
-                buttonFill = AwnColors.ochre,
-                onButton = AwnColors.ink,
-                confirmedWord = AwnColors.nightConfirmed,
-                tentativeWord = AwnColors.nightTentative,
-                wrongWord = AwnColors.nightWrong,
-                hiddenWordBlock = AwnColors.paper,
-                isLight = false,
-            )
-        AwnField.Ochre ->
-            AwnFieldColors(
-                background = AwnColors.ochre,
-                content = AwnColors.ink,
-                buttonFill = AwnColors.green,
-                onButton = AwnColors.paper,
-                confirmedWord = AwnColors.green,
-                tentativeWord = AwnColors.ink,
-                wrongWord = AwnColors.red,
-                hiddenWordBlock = AwnColors.paper,
-                isLight = true,
-            )
-    }
+private const val LIGHT_LUMINANCE = 0.5f
 
 private val LocalFieldColors = staticCompositionLocalOf { awnFieldColors(AwnField.Paper) }
 
@@ -125,20 +54,16 @@ object Awn {
 }
 
 /**
- * Paints the whole screen in the field colour and keeps content out of the system bars. Dark mode
- * turns the Read field into the night field (ink ground, paper text, night word states); the
- * Listen, Recite and Learn fields keep their own colours.
+ * Paints the whole screen in the field colour, keeps content out of the system bars and makes the
+ * status-bar and navigation-bar icons dark on light colours and light on dark colours.
  */
 @Composable
-fun AwnTheme(field: AwnField = AwnField.Paper, content: @Composable () -> Unit) {
-    val useDark =
-        when (LocalThemePreference.current) {
-            ThemePreference.Light -> false
-            ThemePreference.Dark -> true
-            ThemePreference.System -> isSystemInDarkTheme()
-        }
-    val effectiveField = if (field == AwnField.Paper && useDark) AwnField.Night else field
-    val colors = awnFieldColors(effectiveField)
+fun AwnTheme(
+    field: AwnField = AwnField.Paper,
+    barBehindStatusBar: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    val colors = awnFieldColors(field, LocalColourMode.current)
     val materialColors =
         if (colors.isLight) {
             lightColorScheme(
@@ -159,6 +84,19 @@ fun AwnTheme(field: AwnField = AwnField.Paper, content: @Composable () -> Unit) 
                 onSurface = colors.content,
             )
         }
+    // A screen that draws its bar behind the status bar (AwnTopBar) leaves the top inset to that
+    // bar, so the status-bar icons must contrast with the bar, not with the page.
+    val statusBarBackground = if (barBehindStatusBar) colors.barBackground else colors.background
+    SystemBarIcons(
+        isLightStatusBar = statusBarBackground.luminance() > LIGHT_LUMINANCE,
+        isLightNavigationBar = colors.isLight,
+    )
+    val contentInsets =
+        if (barBehindStatusBar) {
+            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+        } else {
+            WindowInsets.safeDrawing
+        }
 
     CompositionLocalProvider(LocalFieldColors provides colors) {
         MaterialTheme(
@@ -170,10 +108,40 @@ fun AwnTheme(field: AwnField = AwnField.Paper, content: @Composable () -> Unit) 
                 color = colors.background,
                 contentColor = colors.content,
             ) {
-                Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+                Box(Modifier.fillMaxSize().windowInsetsPadding(contentInsets)) {
                     content()
                 }
             }
         }
     }
 }
+
+/**
+ * Sets the colour of the status-bar and navigation-bar icons from the colour behind them.
+ *
+ * `enableEdgeToEdge()` picks the icon colour once, from the device's night setting, so a Light app
+ * on a dark device kept white icons on cream. The icons must follow the colour the app paints,
+ * which only this theme knows, so it sets them whenever the field changes.
+ */
+@Composable
+private fun SystemBarIcons(isLightStatusBar: Boolean, isLightNavigationBar: Boolean) {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    SideEffect {
+        val window = view.context.findActivity()?.window ?: return@SideEffect
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.isAppearanceLightStatusBars = isLightStatusBar
+        controller.isAppearanceLightNavigationBars = isLightNavigationBar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // The three-button bar otherwise gets a grey scrim that hides the page colour.
+            window.isNavigationBarContrastEnforced = false
+        }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }

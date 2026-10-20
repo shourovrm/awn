@@ -23,8 +23,8 @@ import app.awn.quran.core.ui.theme.AwnTypography
 val LearnField = AwnField.Ochre
 
 /**
- * The Learn screen: two figure tiles, the first lessons, the day's snippet and one primary action,
- * which starts today's revision.
+ * The Learn screen: two figure tiles (days in a row, pages this week), the first lessons, the day's
+ * snippet and one primary action, which starts today's revision.
  */
 @Composable
 fun LearnScreen(
@@ -46,14 +46,14 @@ fun LearnScreen(
                 Row(Modifier.fillMaxWidth()) {
                     FigureTile(
                         field = AwnField.Green,
-                        figure = state.pagesThisWeek,
-                        caption = stringResource(R.string.learn_pages_caption),
+                        figure = state.streakDays,
+                        caption = stringResource(R.string.learn_streak_caption),
                         modifier = Modifier.weight(1f),
                     )
                     FigureTile(
                         field = AwnField.Night,
-                        figure = state.ayahsDueToday,
-                        caption = stringResource(R.string.learn_due_caption),
+                        figure = state.pagesThisWeek,
+                        caption = stringResource(R.string.learn_pages_caption),
                         modifier = Modifier.weight(1f),
                     )
                 }

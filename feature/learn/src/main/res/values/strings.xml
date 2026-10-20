@@ -2,8 +2,8 @@
 <resources>
   <string name="learn_title">Learn</string>
   <string name="learn_progress_link">Progress</string>
+  <string name="learn_streak_caption">days in a row</string>
   <string name="learn_pages_caption">pages read this week</string>
-  <string name="learn_due_caption">ayahs due today</string>
   <string name="learn_all_lessons">All lessons</string>
   <string name="learn_revise_none">Nothing to revise</string>
   <plurals name="learn_revise">

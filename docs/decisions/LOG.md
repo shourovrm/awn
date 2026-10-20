@@ -36,3 +36,9 @@
 2026-10-21 | Speech files, phoneme parse and recogniser load run at app start on a low-priority thread | first start waited about 45 s; topic recite
 2026-10-21 | One review button in the bar, sheet opens when empty | the sheet returned without drawing for an empty list; topic recite
 2026-10-21 | Madd length measured to the next matched token | extra tokens sit inside a held vowel; 8 of 10 flagged, gate 9; tracker.md
+2026-10-21 | Status-bar icon colour is set by AwnTheme from the painted colour | enableEdgeToEdge picks it once from the device night setting (defect 8)
+2026-10-21 | Colour modes Awn, Light, Dark, Black; day, night and follow-device stored separately | replaces Light, Dark, System; old value migrated on read
+2026-10-21 | Search is plain Kotlin over 6,236 ayahs, no inverted index | first query 1.1 s with loading, later under 100 ms on the JVM
+2026-10-21 | Juz tab reads a QuarterTable interface with a 30-row stand-in | the page agent's quarter table in core/data is not merged yet
+2026-10-21 | Every NavHost uses None transitions | Navigation Compose's default 700 ms fade made Back slow
+2026-10-21 | Settings is a hub of seven icon rows; pickers are choice dialogs | compact list, no rows that cycle on tap

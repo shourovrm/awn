@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** The choices of the "Memorised after" picker: the number of days an ayah must be recited. */
+val MEMORISED_AFTER_DAYS = 1..10
+
 /** The values the Listening and Learning groups of Settings show. */
 data class SettingsState(
     val reciterName: String = "",
@@ -69,11 +72,11 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
         viewModelScope.launch { services.listenSettings.setWifiOnly(wifiOnly) }
     }
 
-    /** Raises the number of days by one and returns to the minimum after the maximum. */
-    fun cycleMemorisationThreshold() {
-        val current = state.value.memorisationThreshold
-        val next = if (current >= MAX_THRESHOLD) MIN_THRESHOLD else current + 1
-        viewModelScope.launch { services.learn.settings.setMemorisationThreshold(next) }
+    fun setMemorisationThreshold(days: Int) {
+        require(days in MEMORISED_AFTER_DAYS) {
+            "Memorised-after days must be 1 to 10 but was $days."
+        }
+        viewModelScope.launch { services.learn.settings.setMemorisationThreshold(days) }
     }
 
     /** Writes the bookmarks, saved ayahs and recent pages to the document at [uri]. */
@@ -110,7 +113,5 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
-        const val MIN_THRESHOLD = 1
-        const val MAX_THRESHOLD = 10
     }
 }

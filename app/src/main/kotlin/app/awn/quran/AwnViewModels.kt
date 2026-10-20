@@ -10,7 +10,11 @@ import app.awn.quran.feature.listen.DownloadsViewModel
 import app.awn.quran.feature.listen.ListenViewModel
 import app.awn.quran.feature.listen.RecitersViewModel
 import app.awn.quran.feature.recite.ReciteRange
-import app.awn.quran.home.HomeViewModel
+import app.awn.quran.index.INDEX_SCRIPT
+import app.awn.quran.index.IndexLoader
+import app.awn.quran.index.IndexViewModel
+import app.awn.quran.index.JuzStartQuarterTable
+import app.awn.quran.search.SearchViewModel
 import app.awn.quran.services.AwnServices
 import app.awn.quran.settings.SettingsViewModel
 
@@ -57,7 +61,19 @@ class AwnViewModelFactory(private val services: AwnServices) : ViewModelProvider
                         downloadScope = services.applicationScope,
                     )
                 ReciteViewModel::class.java -> ReciteViewModel(services)
-                HomeViewModel::class.java -> HomeViewModel(services)
+                IndexViewModel::class.java ->
+                    IndexViewModel(
+                        // The quarter table from core/data replaces JuzStartQuarterTable here.
+                        loader = IndexLoader(services.coreData.quranText, JuzStartQuarterTable),
+                        bookmarks = services.coreData.bookmarks,
+                        showSurahNameMeaning = services.preferences.showSurahNameMeaning,
+                    )
+                SearchViewModel::class.java ->
+                    SearchViewModel(
+                        search = services.coreData.search,
+                        quranText = services.coreData.quranText,
+                        script = INDEX_SCRIPT,
+                    )
                 SettingsViewModel::class.java -> SettingsViewModel(services)
                 else -> throw IllegalArgumentException("No view model for ${modelClass.name}.")
             }

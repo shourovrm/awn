@@ -11,4 +11,7 @@ dependencies {
     api(libs.compose.ui)
     api(libs.compose.foundation)
     api(libs.compose.material3)
+
+    // WindowCompat sets the status-bar and navigation-bar icon colours.
+    implementation(libs.androidx.coreKtx)
 }

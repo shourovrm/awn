@@ -50,4 +50,37 @@ class CreditLineTest {
             credits,
         )
     }
+
+    @Test
+    fun namesAreShownWithoutEntitiesAndOneRowPerName() = runBlocking {
+        val packs =
+            FakePackRepository(
+                manifests =
+                    mutableMapOf(
+                        "scripts" to
+                            listOf(
+                                entry(
+                                    "a",
+                                    PackKind.Script,
+                                    "Quran.com &amp; Foundation",
+                                    "https://github.com/quran/x/tree/1",
+                                ),
+                                entry(
+                                    "b",
+                                    PackKind.Script,
+                                    "Quran.com &amp; Foundation",
+                                    "https://github.com/quran/y",
+                                ),
+                            ),
+                    ),
+            )
+
+        val credits = loadCredits(packs)
+
+        assertEquals(
+            listOf(CreditLine("Quran.com & Foundation", "https://github.com/quran/x/tree/1")),
+            credits,
+        )
+        assertEquals("github.com", credits.single().linkLabel)
+    }
 }

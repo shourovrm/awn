@@ -21,9 +21,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import app.awn.quran.core.ui.R as UiR
+import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.LocalColourMode
 import app.awn.quran.core.ui.theme.awnFieldColors
 import java.text.NumberFormat
 
@@ -52,7 +55,11 @@ internal fun LearnBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (startLinkLabel != null) {
-            TextLink(label = startLinkLabel, onClick = onStartLinkClick)
+            AwnIconButton(
+                icon = UiR.drawable.ic_ui_arrow_back,
+                contentDescription = startLinkLabel,
+                onClick = onStartLinkClick,
+            )
         } else {
             Text(text = title, style = AwnTypography.body)
         }
@@ -84,7 +91,8 @@ internal fun FigureTile(
     caption: String,
     modifier: Modifier = Modifier,
 ) {
-    val colors = awnFieldColors(field)
+    // In Awn mode the tiles keep the green and night fields; other modes use their own colours.
+    val colors = awnFieldColors(field, LocalColourMode.current)
     Column(
         modifier =
             modifier.aspectRatio(1f).background(colors.background).padding(AwnSpacing.medium),

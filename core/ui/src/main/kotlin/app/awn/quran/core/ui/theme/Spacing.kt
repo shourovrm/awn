@@ -19,7 +19,11 @@ object AwnSpacing {
     val touchTarget: Dp = 48.dp
     val buttonHeight: Dp = 48.dp
     val posterBandHeight: Dp = 80.dp
-    val settingsRowHeight: Dp = 44.dp
+    val settingsRowHeight: Dp = 48.dp
+    val topBarHeight: Dp = 56.dp
+    val iconSize: Dp = 24.dp
+    val tabIndicatorHeight: Dp = 4.dp
+    val dialogMaxWidth: Dp = 320.dp
 
     val switchWidth: Dp = 48.dp
     val switchHeight: Dp = 28.dp

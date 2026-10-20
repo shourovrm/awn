@@ -15,16 +15,23 @@ object AwnColors {
     val nightTentative = Color(0xFFF2C94C)
     val nightWrong = Color(0xFFFF7A66)
 
-    /**
-     * Fills drawn behind Quran text on the page. Selection and playback use different hues so both
-     * can show at once; see docs/redesign.md, "Highlights".
-     */
-    val selectedAyahLight = Color(0x331F7A8C)
-    val playingAyahLight = Color(0x2E0E5A3C)
-    val playingWordLight = Color(0x66D9A33A)
-    val bookmarkedAyahLight = Color(0x1FD9A33A)
-    val selectedAyahNight = Color(0x4D4FB3C4)
-    val playingAyahNight = Color(0x407CE29A)
-    val playingWordNight = Color(0x66F2C94C)
-    val bookmarkedAyahNight = Color(0x26F2C94C)
+    // Light mode: a white page, neutral grey bars and the Awn green as the accent.
+    val lightPage = Color(0xFFFFFFFF)
+    val lightInk = Color(0xFF1B1B1B)
+    val lightBar = Color(0xFFECEEEF)
+    val lightHiddenWord = Color(0xFFDADDDF)
+    val lightTentative = Color(0xFF8A5F00)
+
+    // Dark mode: #121212 page with light text.
+    val darkPage = Color(0xFF121212)
+    val darkBar = Color(0xFF1F1F1F)
+    val darkHiddenWord = Color(0xFF353535)
+
+    // Black mode: #000000 page for OLED screens.
+    val blackPage = Color(0xFF000000)
+    val blackBar = Color(0xFF121212)
+    val blackHiddenWord = Color(0xFF2A2A2A)
+
+    /** Text on the dark and black pages: warm off-white, easier on the eye than pure white. */
+    val nightText = Color(0xFFE8E2D2)
 }

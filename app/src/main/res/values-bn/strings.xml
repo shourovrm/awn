@@ -1,47 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="home_settings">সেটিংস</string>
-  <string name="home_continue">পড়া চালিয়ে যান</string>
-  <string name="home_streak_caption">দিন টানা</string>
-  <string name="home_pages_caption">পৃষ্ঠা এই সপ্তাহে</string>
-  <string name="home_detail_page">পৃষ্ঠা %d</string>
-  <plurals name="home_detail_due">
-    <item quantity="one">%d বাকি</item>
-    <item quantity="other">%d বাকি</item>
+  <string name="navigate_back">পেছনে</string>
+
+  <string name="index_search">খুঁজুন</string>
+  <string name="index_last_page">শেষ পড়া পৃষ্ঠা</string>
+  <string name="index_learn">শিখুন</string>
+  <string name="index_settings">সেটিংস</string>
+  <string name="index_tab_surahs">সূরা</string>
+  <string name="index_tab_juz">পারা</string>
+  <string name="index_tab_bookmarks">বুকমার্ক</string>
+  <string name="index_juz_header">পারা %1$d</string>
+  <string name="index_page">পৃষ্ঠা %1$s</string>
+  <string name="index_makki">মক্কী</string>
+  <string name="index_madani">মাদানী</string>
+  <plurals name="index_ayah_count">
+    <item quantity="one">%d আয়াত</item>
+    <item quantity="other">%d আয়াত</item>
   </plurals>
-  <string name="home_detail_hifz">হিফজ চালু</string>
-  <string name="mode_read">পড়ুন</string>
-  <string name="mode_listen">শুনুন</string>
-  <string name="mode_recite">তিলাওয়াত</string>
-  <string name="mode_learn">শিখুন</string>
+  <string name="index_hizb_fraction">%1$s হিযব %2$d</string>
+  <string name="index_recent_pages">সাম্প্রতিক পৃষ্ঠা</string>
+  <string name="index_bookmarks_empty">এখনও কোনো বুকমার্ক নেই</string>
+  <string name="index_sort">সাজান</string>
+  <string name="index_sort_date">তারিখ</string>
+  <string name="index_sort_position">অবস্থান</string>
+
+  <string name="search_hint">কুরআনে খুঁজুন</string>
+  <string name="search_clear">মুছুন</string>
+  <plurals name="search_result_count">
+    <item quantity="one">%d ফলাফল</item>
+    <item quantity="other">%d ফলাফল</item>
+  </plurals>
+  <string name="search_result_reference">%1$s %2$d:%3$d · পৃষ্ঠা %4$d</string>
+
+  <string name="quran_open_index">সূচি</string>
+  <string name="quran_toggle_night">দিন বা রাত</string>
 
   <string name="settings_title">সেটিংস</string>
-  <string name="settings_theme">থিম</string>
-  <string name="settings_group_listening">শোনা</string>
-  <string name="settings_group_learning">শেখা</string>
-  <string name="settings_group_app">অ্যাপ</string>
+  <string name="settings_mushaf">মুসহাফ</string>
+  <string name="settings_reading">পড়া</string>
+  <string name="settings_audio">অডিও</string>
+  <string name="settings_recite">তিলাওয়াত ও মুখস্থ</string>
+  <string name="settings_appearance">চেহারা</string>
+  <string name="settings_backup">ব্যাকআপ</string>
+  <string name="settings_about">সম্পর্কে</string>
+  <string name="settings_placeholder">এখনও কোনো সেটিংস নেই</string>
   <string name="settings_reciter">ক্বারী</string>
   <string name="settings_downloads">ডাউনলোড</string>
-  <string name="settings_wifi_only">শুধু ওয়াই-ফাই</string>
-  <string name="settings_audio_size">ডাউনলোড করা অডিও</string>
-  <string name="settings_memorised_after">মুখস্থ ধরা হবে (দিন)</string>
-  <string name="settings_language">ভাষা</string>
-  <string name="settings_backup_export">বুকমার্ক এক্সপোর্ট</string>
-  <string name="settings_backup_import">বুকমার্ক ইম্পোর্ট</string>
-  <string name="settings_backup_exported">সংরক্ষিত</string>
-  <string name="settings_backup_imported">ইম্পোর্ট হয়েছে</string>
-  <string name="settings_backup_failed">এই ফাইল ব্যবহার করা যাচ্ছে না</string>
-  <string name="settings_notice">বিজ্ঞপ্তি</string>
-  <string name="settings_credits">কৃতজ্ঞতা</string>
-  <string name="settings_version">সংস্করণ</string>
-  <string name="theme_light">হালকা</string>
-  <string name="theme_dark">গাঢ়</string>
-  <string name="theme_system">ডিভাইস অনুযায়ী</string>
+
+  <string name="appearance_day_colours">দিনের রং</string>
+  <string name="appearance_night_colours">রাতের রং</string>
+  <string name="appearance_follow_device">ডিভাইস অনুযায়ী</string>
+  <string name="appearance_language">ভাষা</string>
+  <string name="appearance_surah_name_meaning">সূরার নামের অর্থ</string>
+  <string name="colours_awn">আওন</string>
+  <string name="colours_light">হালকা</string>
+  <string name="colours_dark">গাঢ়</string>
+  <string name="colours_black">কালো</string>
+
+  <string name="audio_reciter">ক্বারী</string>
+  <string name="audio_downloads">ডাউনলোড</string>
+  <string name="audio_space_used">ডাউনলোড করা অডিও</string>
+  <string name="audio_wifi_only">শুধু ওয়াই-ফাই</string>
+
+  <string name="recite_memorised_after">মুখস্থ ধরা হবে</string>
+  <plurals name="recite_days">
+    <item quantity="one">%d দিন</item>
+    <item quantity="other">%d দিন</item>
+  </plurals>
+
+  <string name="backup_export">বুকমার্ক এক্সপোর্ট</string>
+  <string name="backup_import">বুকমার্ক ইম্পোর্ট</string>
+  <string name="backup_exported">সংরক্ষিত</string>
+  <string name="backup_imported">ইম্পোর্ট হয়েছে</string>
+  <string name="backup_failed">এই ফাইল ব্যবহার করা যাচ্ছে না</string>
+
+  <string name="about_notice">বিজ্ঞপ্তি</string>
+  <string name="about_credits">কৃতজ্ঞতা</string>
+  <string name="about_version">সংস্করণ</string>
+
+  <string name="mode_listen">শুনুন</string>
 
   <string name="credits_title">কৃতজ্ঞতা</string>
   <string name="credits_data">পাঠ, অনুবাদ ও অডিও</string>
   <string name="credits_recogniser">তিলাওয়াত যাচাই</string>
-  <string name="credits_libraries">ওপেন-সোর্স লাইব্রেরি</string>
+  <string name="credits_libraries">লাইব্রেরি ও আইকন</string>
 
   <string name="listen_choose_surah">সূরা</string>
 

@@ -2,49 +2,99 @@
 <resources>
   <string name="app_name" translatable="false">Awn</string>
 
-  <string name="home_settings">Settings</string>
-  <string name="home_continue">Continue reading</string>
-  <string name="home_streak_caption">days in a row</string>
-  <string name="home_pages_caption">pages this week</string>
-  <string name="home_detail_page">Page %d</string>
-  <plurals name="home_detail_due">
-    <item quantity="one">%d due</item>
-    <item quantity="other">%d due</item>
+  <string name="navigate_back">Back</string>
+
+  <string name="index_search">Search</string>
+  <string name="index_last_page">Last page</string>
+  <string name="index_learn">Learn</string>
+  <string name="index_settings">Settings</string>
+  <string name="index_tab_surahs">Surahs</string>
+  <string name="index_tab_juz">Juz</string>
+  <string name="index_tab_bookmarks">Bookmarks</string>
+  <string name="index_juz_header">Juz %1$d</string>
+  <string name="index_page">Page %1$s</string>
+  <string name="index_makki">Makki</string>
+  <string name="index_madani">Madani</string>
+  <plurals name="index_ayah_count">
+    <item quantity="one">%d ayah</item>
+    <item quantity="other">%d ayahs</item>
   </plurals>
-  <string name="home_detail_hifz">Hifz on</string>
-  <string name="mode_read">Read</string>
-  <string name="mode_listen">Listen</string>
-  <string name="mode_recite">Recite</string>
-  <string name="mode_learn">Learn</string>
+  <string name="index_surah_detail" translatable="false">%1$s · %2$s</string>
+  <string name="index_surah_title" translatable="false">%1$s · %2$s</string>
+  <string name="index_hizb_fraction">%1$s Hizb %2$d</string>
+  <string-array name="hizb_fractions" translatable="false">
+    <item></item>
+    <item>¼</item>
+    <item>½</item>
+    <item>¾</item>
+  </string-array>
+  <string name="index_recent_pages">Recent pages</string>
+  <string name="index_bookmarks_empty">No bookmarks yet</string>
+  <string name="index_sort">Sort</string>
+  <string name="index_sort_date">Date</string>
+  <string name="index_sort_position">Position</string>
+  <string name="index_ayah_reference" translatable="false">%1$s %2$d:%3$d</string>
+
+  <string name="search_hint">Search the Quran</string>
+  <string name="search_clear">Clear</string>
+  <plurals name="search_result_count">
+    <item quantity="one">%d result</item>
+    <item quantity="other">%d results</item>
+  </plurals>
+  <string name="search_result_reference">%1$s %2$d:%3$d · page %4$d</string>
+
+  <string name="quran_open_index">Index</string>
+  <string name="quran_toggle_night">Day or night</string>
 
   <string name="settings_title">Settings</string>
-  <string name="settings_theme">Theme</string>
-  <string name="settings_group_listening">Listening</string>
-  <string name="settings_group_learning">Learning</string>
-  <string name="settings_group_app">App</string>
+  <string name="settings_mushaf">Mushaf</string>
+  <string name="settings_reading">Reading</string>
+  <string name="settings_audio">Audio</string>
+  <string name="settings_recite">Recite and memorise</string>
+  <string name="settings_appearance">Appearance</string>
+  <string name="settings_backup">Backup</string>
+  <string name="settings_about">About</string>
+  <string name="settings_placeholder">No settings yet</string>
   <string name="settings_reciter">Reciter</string>
   <string name="settings_downloads">Downloads</string>
-  <string name="settings_wifi_only">Wi-Fi only</string>
-  <string name="settings_audio_size">Downloaded audio</string>
-  <string name="settings_memorised_after">Memorised after (days)</string>
-  <string name="settings_language">Language</string>
-  <string name="settings_backup_export">Export bookmarks</string>
-  <string name="settings_backup_import">Import bookmarks</string>
-  <string name="settings_backup_exported">Saved</string>
-  <string name="settings_backup_imported">Imported</string>
-  <string name="settings_backup_failed">Can\'t use that file</string>
-  <string name="settings_notice">Notice</string>
-  <string name="settings_credits">Credits</string>
-  <string name="settings_version">Version</string>
-  <string name="theme_light">Light</string>
-  <string name="theme_dark">Dark</string>
-  <string name="theme_system">System</string>
+
+  <string name="appearance_day_colours">Day colours</string>
+  <string name="appearance_night_colours">Night colours</string>
+  <string name="appearance_follow_device">Follow the device</string>
+  <string name="appearance_language">Language</string>
+  <string name="appearance_surah_name_meaning">Surah name meaning</string>
+  <string name="colours_awn">Awn</string>
+  <string name="colours_light">Light</string>
+  <string name="colours_dark">Dark</string>
+  <string name="colours_black">Black</string>
+
+  <string name="audio_reciter">Reciter</string>
+  <string name="audio_downloads">Downloads</string>
+  <string name="audio_space_used">Downloaded audio</string>
+  <string name="audio_wifi_only">Wi-Fi only</string>
+
+  <string name="recite_memorised_after">Memorised after</string>
+  <plurals name="recite_days">
+    <item quantity="one">%d day</item>
+    <item quantity="other">%d days</item>
+  </plurals>
+
+  <string name="backup_export">Export bookmarks</string>
+  <string name="backup_import">Import bookmarks</string>
+  <string name="backup_exported">Saved</string>
+  <string name="backup_imported">Imported</string>
+  <string name="backup_failed">Can\'t use that file</string>
+
+  <string name="about_notice">Notice</string>
+  <string name="about_credits">Credits</string>
+  <string name="about_version">Version</string>
+
+  <string name="mode_listen">Listen</string>
 
   <string name="credits_title">Credits</string>
   <string name="credits_data">Text, translations and audio</string>
   <string name="credits_recogniser">Recitation checker</string>
-  <string name="credits_libraries">Open-source libraries</string>
-  <string name="credits_source_line" translatable="false">%1$s\n%2$s</string>
+  <string name="credits_libraries">Libraries and icons</string>
   <string name="credit_recogniser_entry" translatable="false">Quran-Lab, Zipformer p-arabic v3. Quran-Lab No-Profit License 1.2 (NPL-1.2).</string>
   <string-array name="credit_libraries" translatable="false">
     <item>AndroidX, Jetpack Compose, Room and Media3. Apache License 2.0.</item>
@@ -52,6 +102,7 @@
     <item>OkHttp. Apache License 2.0.</item>
     <item>sherpa-onnx. Apache License 2.0.</item>
     <item>ONNX Runtime. MIT License.</item>
+    <item>Material Symbols (icons), Google. Apache License 2.0.</item>
   </string-array>
 
   <string name="listen_choose_surah">Surahs</string>

@@ -10,6 +10,9 @@ import app.awn.quran.core.data.packs.PackStorage
 import app.awn.quran.core.data.packs.ReadOnlyDatabases
 import app.awn.quran.core.data.quran.SqliteQuranTextRepository
 import app.awn.quran.core.data.reciters.PackReciterRepository
+import app.awn.quran.core.data.search.SearchRepository
+import app.awn.quran.core.data.search.SqliteSearchTexts
+import app.awn.quran.core.data.search.TextSearch
 import app.awn.quran.core.data.translations.SqliteTranslationRepository
 
 /**
@@ -43,6 +46,23 @@ class CoreData(context: Context) {
 
     val translations: TranslationRepository =
         SqliteTranslationRepository(catalog, storage, databases)
+
+    /** Searches the Arabic text and the installed translations; reads them on the first query. */
+    val search: SearchRepository =
+        TextSearch(
+            loadTexts =
+                SqliteSearchTexts(
+                    quranDatabaseFile = { checkNotNull(storage.locate(quranTextRecord())) },
+                    catalog = catalog,
+                    storage = storage,
+                    databases = databases,
+                )::load,
+        )
+
+    private fun quranTextRecord() =
+        requireNotNull(catalog.findPack(QURAN_TEXT_PACK_ID)) {
+            "scripts.json has no '$QURAN_TEXT_PACK_ID' entry."
+        }
 
     val reciters: ReciterRepository = PackReciterRepository(catalog, storage, databases)
 

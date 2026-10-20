@@ -5,7 +5,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import app.awn.quran.core.ui.theme.ThemePreference
+import app.awn.quran.core.ui.theme.ColourSettings
+import app.awn.quran.core.ui.theme.DayColours
+import app.awn.quran.core.ui.theme.NightColours
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,33 +31,106 @@ class AppPreferencesTest {
 
     @After fun cancelScope() = scope.cancel()
 
-    private fun newDataStore(file: File): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+    private fun newDataStore(name: String): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            scope = scope,
+            produceFile = { File(temporaryFolder.root, "$name.preferences_pb") },
+        )
+
+    private val legacyKey = stringPreferencesKey("theme_preference")
 
     @Test
-    fun themeDefaultsToSystem() = runBlocking {
-        val preferences =
-            AppPreferences(newDataStore(File(temporaryFolder.root, "a.preferences_pb")))
+    fun colourSettingsDefaultToAwnByDayDarkByNightFollowingTheDevice() = runBlocking {
+        val preferences = AppPreferences(newDataStore("a"))
 
-        assertEquals(ThemePreference.System, preferences.themePreference.first())
+        assertEquals(ColourSettings(), preferences.colourSettings.first())
+        assertEquals(DayColours.Awn, ColourSettings().day)
+        assertEquals(NightColours.Dark, ColourSettings().night)
+        assertTrue(ColourSettings().followDevice)
     }
 
     @Test
-    fun everyThemeValueSurvivesARoundTrip() = runBlocking {
-        val preferences =
-            AppPreferences(newDataStore(File(temporaryFolder.root, "b.preferences_pb")))
+    fun everyColourChoiceSurvivesARoundTrip() = runBlocking {
+        val preferences = AppPreferences(newDataStore("b"))
 
-        for (choice in ThemePreference.entries) {
-            preferences.setThemePreference(choice)
+        for (day in DayColours.entries) {
+            for (night in NightColours.entries) {
+                val chosen = ColourSettings(day, night, followDevice = false, manualNight = true)
+                preferences.updateColourSettings { chosen }
 
-            assertEquals(choice, preferences.themePreference.first())
+                assertEquals(chosen, preferences.colourSettings.first())
+            }
         }
     }
 
     @Test
+    fun anUpdateChangesOnlyTheFieldsTheTransformChanges() = runBlocking {
+        val preferences = AppPreferences(newDataStore("c"))
+        preferences.updateColourSettings { it.copy(night = NightColours.Black) }
+        preferences.updateColourSettings { it.copy(day = DayColours.Light) }
+
+        assertEquals(
+            ColourSettings(DayColours.Light, NightColours.Black),
+            preferences.colourSettings.first(),
+        )
+    }
+
+    @Test
+    fun legacyLightBecomesTheAwnDayPaletteFixedOnDay() = runBlocking {
+        val dataStore = newDataStore("d")
+        dataStore.edit { it[legacyKey] = "Light" }
+
+        val settings = AppPreferences(dataStore).colourSettings.first()
+
+        assertEquals(ColourSettings(followDevice = false, manualNight = false), settings)
+    }
+
+    @Test
+    fun legacyDarkBecomesTheDarkPaletteFixedOnNight() = runBlocking {
+        val dataStore = newDataStore("e")
+        dataStore.edit { it[legacyKey] = "Dark" }
+
+        val settings = AppPreferences(dataStore).colourSettings.first()
+
+        assertEquals(ColourSettings(followDevice = false, manualNight = true), settings)
+    }
+
+    @Test
+    fun legacySystemAndUnknownNamesFollowTheDevice() = runBlocking {
+        for ((index, name) in listOf("System", "Sepia", null).withIndex()) {
+            val dataStore = newDataStore("f$index")
+            if (name != null) dataStore.edit { it[legacyKey] = name }
+
+            assertEquals(ColourSettings(), AppPreferences(dataStore).colourSettings.first())
+        }
+    }
+
+    @Test
+    fun theFirstUpdateWritesTheMigratedValuesAndRemovesTheLegacyKey() = runBlocking {
+        val dataStore = newDataStore("g")
+        dataStore.edit { it[legacyKey] = "Dark" }
+        val preferences = AppPreferences(dataStore)
+
+        preferences.updateColourSettings { it.copy(night = NightColours.Black) }
+
+        assertEquals(
+            ColourSettings(night = NightColours.Black, followDevice = false, manualNight = true),
+            preferences.colourSettings.first(),
+        )
+        assertFalse(legacyKey in dataStore.data.first())
+    }
+
+    @Test
+    fun anUnknownStoredPaletteNameFallsBackToTheDefault() = runBlocking {
+        val dataStore = newDataStore("h")
+        dataStore.edit { it[stringPreferencesKey("colours_day")] = "Sepia" }
+
+        assertEquals(DayColours.Awn, AppPreferences(dataStore).colourSettings.first().day)
+    }
+
+    @Test
     fun noticeIsNotAcceptedUntilTheUserAccepts() = runBlocking {
-        val preferences =
-            AppPreferences(newDataStore(File(temporaryFolder.root, "c.preferences_pb")))
+        val preferences = AppPreferences(newDataStore("i"))
         assertFalse(preferences.noticeAccepted.first())
 
         preferences.acceptNotice()
@@ -64,10 +139,12 @@ class AppPreferencesTest {
     }
 
     @Test
-    fun unknownStoredThemeNameFallsBackToSystem() = runBlocking {
-        val dataStore = newDataStore(File(temporaryFolder.root, "d.preferences_pb"))
-        dataStore.edit { it[stringPreferencesKey("theme_preference")] = "Sepia" }
+    fun surahNameMeaningIsOffUntilTurnedOn() = runBlocking {
+        val preferences = AppPreferences(newDataStore("j"))
+        assertFalse(preferences.showSurahNameMeaning.first())
 
-        assertEquals(ThemePreference.System, AppPreferences(dataStore).themePreference.first())
+        preferences.setShowSurahNameMeaning(true)
+
+        assertTrue(preferences.showSurahNameMeaning.first())
     }
 }

@@ -9,11 +9,11 @@
 - 12 lessons in `src/main/assets/lessons/<id>.json`, all drafts (`reviewed_by` null, shown with a Draft label). `tools/check_lessons.py` checks every example word against `quran.sqlite` and prints them. The plan asked for examples from QUL tajweed-marked text; they come from the word table and the author's knowledge instead.
 - `src/main/assets/snippets.json` holds 34 ayahs and 26 hadith. `tools/build_snippets.py` writes it; `tools/check_snippets.py` checks it against sunnah.com and the hadith API. English and Bangla renderings are the project's own drafts.
 - Lesson and screen text never says the app checks ghunnah, qalqalah, tafkheem or other sifat; live feedback covers skipped words, substituted letters and madd length only. `LessonContentTest` scans the lesson bodies.
-- `LearnScreen(modifier, quranText)` is the tab entry and routes between Learn, Revision, Progress, lessons and one lesson; the stateless screens take plain UI state. Without a `QuranTextRepository`, Revision and lesson examples show references only.
+- `LearnScreen(modifier, quranText)` is opened from the index; it shows days in a row and pages this week (moved from Home) and keeps the ochre field in Awn mode, the active mode's colours otherwise. It is the entry and routes between Learn, Revision, Progress, lessons and one lesson; the stateless screens take plain UI state. Without a `QuranTextRepository`, Revision and lesson examples show references only.
 
 ## Open items
 - A reviewer must check all 12 lessons and the Bangla and English renderings of the snippets, then fill `reviewed_by` and `reviewed_on`.
-- Home shows the snippet with its English or Bangla rendering; the Learn screen shows the Arabic only.
+- The snippet appears only on the Learn screen (Home is gone), in Arabic without a rendering.
 - Roundo and the Noto Serif Bengali fallback are not bundled, so Bangla uses the platform font.
 
 ## Gotchas

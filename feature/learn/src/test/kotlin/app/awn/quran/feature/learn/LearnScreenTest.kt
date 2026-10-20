@@ -22,6 +22,7 @@ class LearnScreenTest {
 
     private val state =
         LearnUiState(
+            streakDays = 5,
             pagesThisWeek = 14,
             ayahsDueToday = 3,
             lessons =
@@ -58,7 +59,8 @@ class LearnScreenTest {
 
         composeRule.onNodeWithText("14").assertIsDisplayed()
         composeRule.onNodeWithText("pages read this week").assertIsDisplayed()
-        composeRule.onNodeWithText("ayahs due today").assertIsDisplayed()
+        composeRule.onNodeWithText("5").assertIsDisplayed()
+        composeRule.onNodeWithText("days in a row").assertIsDisplayed()
         composeRule.onNodeWithText("Qalqalah").assertIsDisplayed()
         composeRule.onNodeWithText("3 examples · Draft").assertIsDisplayed()
         composeRule.onNodeWithText("Sahih al-Bukhari 5027").assertExists()

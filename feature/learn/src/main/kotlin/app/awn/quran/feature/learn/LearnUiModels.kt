@@ -24,6 +24,7 @@ data class LessonSummary(
 data class SnippetLine(val arabic: String, val reference: String)
 
 data class LearnUiState(
+    val streakDays: Int,
     val pagesThisWeek: Int,
     val ayahsDueToday: Int,
     val lessons: List<LessonSummary>,
@@ -78,6 +79,7 @@ object LearnUiMapper {
         snippet: Snippet?,
     ): LearnUiState =
         LearnUiState(
+            streakDays = snapshot.streakDays,
             pagesThisWeek = snapshot.pagesThisWeek,
             ayahsDueToday = snapshot.dueToday.size,
             lessons = lessons.take(LESSONS_ON_LEARN_SCREEN),

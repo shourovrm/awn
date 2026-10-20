@@ -2,8 +2,8 @@
 <resources>
   <string name="learn_title">শিখুন</string>
   <string name="learn_progress_link">অগ্রগতি</string>
+  <string name="learn_streak_caption">দিন টানা</string>
   <string name="learn_pages_caption">এই সপ্তাহে পড়া পৃষ্ঠা</string>
-  <string name="learn_due_caption">আজ ঝালানোর আয়াত</string>
   <string name="learn_all_lessons">সব পাঠ</string>
   <string name="learn_revise_none">ঝালানোর কিছু নেই</string>
   <plurals name="learn_revise">
