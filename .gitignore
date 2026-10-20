@@ -68,3 +68,16 @@ __pycache__/
 # model files (mirrored in the models data release, not in git)
 awn-models/
 awn-data/
+
+# Gradle and Android build outputs
+.gradle/
+build/
+.kotlin/
+local.properties
+captures/
+
+# Downloaded by fetchNativeLibs (sherpa-onnx AAR, Linux jar, unpacked classes and .so files)
+/libs/
+
+# Browser automation scratch
+.playwright-mcp/

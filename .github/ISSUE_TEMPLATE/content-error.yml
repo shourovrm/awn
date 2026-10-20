@@ -1,0 +1,25 @@
+name: Content error
+description: A mistake in Quran text, a translation or word timing
+labels: [content-error]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: Surah, ayah and word position, for example 2:255:3.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [Quran text, Translation, Word timing, Transliteration, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What is wrong and what it should be
+      description: Include the source that shows the correct text or timing.
+    validations:
+      required: true

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="home_settings">সেটিংস</string>
+  <string name="mode_read">পড়ুন</string>
+  <string name="mode_listen">শুনুন</string>
+  <string name="mode_recite">তিলাওয়াত</string>
+  <string name="mode_learn">শিখুন</string>
+
+  <string name="settings_title">সেটিংস</string>
+  <string name="settings_theme">থিম</string>
+  <string name="settings_about">পরিচিতি</string>
+  <string name="theme_light">হালকা</string>
+  <string name="theme_dark">গাঢ়</string>
+  <string name="theme_system">ডিভাইস অনুযায়ী</string>
+
+  <string name="about_title">পরিচিতি</string>
+
+  <string name="notice_title">বিজ্ঞপ্তি</string>
+  <string name="notice_accept">আমি বুঝেছি</string>
+</resources>

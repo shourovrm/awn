@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history: the version code counts commits and reads tags.
+          fetch-depth: 0
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Cache sherpa-onnx libraries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: libs
+          key: native-libs-${{ hashFiles('gradle/native-libs.sha256') }}
+
+      - name: Cache Zipformer model files
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: awn-models
+          key: models-${{ hashFiles('gradle/models.sha256') }}
+
+      - name: Fetch native libraries and models
+        run: ./gradlew fetchNativeLibs fetchModels
+
+      # Fork pull requests cannot read secrets, so CI signs with a key made for this run.
+      # Release builds use the real key in release.yml.
+      - name: Create a throwaway signing key
+        run: |
+          key_password="$(openssl rand -hex 16)"
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ci.jks" -storetype PKCS12 \
+            -alias ci -keyalg RSA -keysize 2048 -validity 2 \
+            -storepass "$key_password" -keypass "$key_password" -dname "CN=Awn CI"
+          echo "AWN_KEYSTORE_PATH=$RUNNER_TEMP/ci.jks" >> "$GITHUB_ENV"
+          echo "AWN_KEYSTORE_PASSWORD=$key_password" >> "$GITHUB_ENV"
+          echo "AWN_KEY_ALIAS=ci" >> "$GITHUB_ENV"
+          echo "AWN_KEY_PASSWORD=$key_password" >> "$GITHUB_ENV"
+
+      - name: Format
+        run: ./gradlew spotlessCheck
+
+      - name: Static analysis and lint
+        run: ./gradlew detekt lintGithubRelease
+
+      - name: Unit tests, including tracker tests on the JVM
+        run: ./gradlew testGithubReleaseUnitTest
+
+      - name: Build
+        run: ./gradlew assembleGithubRelease

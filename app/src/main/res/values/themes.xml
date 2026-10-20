@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Compose paints the whole window; this only sets the colour shown before the first frame. -->
+  <style name="Theme.Awn" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:windowBackground">@color/launch_background</item>
+  </style>
+</resources>

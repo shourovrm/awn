@@ -1,0 +1,11 @@
+name: Feature
+description: Suggest something the app should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you want to do
+      description: The task you cannot do today, from your point of view.
+    validations:
+      required: true

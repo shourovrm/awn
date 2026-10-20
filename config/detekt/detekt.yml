@@ -1,0 +1,23 @@
+# Detekt defaults (buildUponDefaultConfig = true) plus the few changes Compose code needs.
+build:
+  maxIssues: 0
+
+naming:
+  FunctionNaming:
+    # Composable functions are named like classes.
+    ignoreAnnotated: ['Composable']
+
+  MatchingDeclarationName:
+    # Color.kt, Type.kt and Spacing.kt hold token objects named AwnColors, AwnTypography, ...
+    excludes: ['**/theme/**']
+
+complexity:
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    # Design tokens and test fixtures are number tables by nature.
+    excludes: ['**/theme/**', '**/test/**', '**/androidTest/**', '**/buildSrc/**']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
