@@ -1,17 +1,67 @@
 package app.awn.quran.tracker
 
 /**
+ * Identifies a word by surah, ayah and word position, all 1-based. It repeats the shape of the
+ * `WordKey` in :core:data because this module must not depend on Android modules; the app maps
+ * between the two.
+ */
+data class WordKeyLike(val surah: Int, val ayah: Int, val wordPosition: Int)
+
+/** One word of the text the user should recite, with the phonemes the model should hear for it. */
+data class ReferenceWord(val key: WordKeyLike, val phonemes: List<String>)
+
+/**
+ * [speed] runs from 0 (slow and patient) to 1 (fast and eager) and maps to the alignment thresholds
+ * inside the implementation.
+ */
+data class TrackerConfig(val speed: Float = 0.5f)
+
+/** A change the tracker reports; indexes refer to positions in the list given to [Tracker.load]. */
+sealed interface TrackerEvent {
+    data class WordChanged(val index: Int, val state: WordState) : TrackerEvent
+
+    /** The user left out the word at [index]. */
+    data class Skipped(val index: Int) : TrackerEvent
+
+    /** The user said extra material after the word at [afterIndex]. */
+    data class Inserted(val afterIndex: Int) : TrackerEvent
+
+    /** The tracker re-synchronised to the word at [index] after losing the place. */
+    data class Anchored(val index: Int) : TrackerEvent
+}
+
+/**
  * Follows the user's recitation against a reference text. Words are identified by their index in
- * the reference passed to the implementation, so this module does not depend on the Android-only
- * word key; the app maps between the two.
+ * the reference passed to [load].
  */
 interface Tracker {
 
-    /** Feeds newly heard phonemes. */
-    fun onPhonemes(events: List<PhonemeEvent>)
+    /** Sets the words to follow and puts the current position at [startIndex]; clears all state. */
+    fun load(reference: List<ReferenceWord>, startIndex: Int = 0)
 
-    fun stateOfWord(referenceWordIndex: Int): WordState
+    /** Feeds newly heard phonemes and returns the changes they caused, empty when none. */
+    fun onPhonemes(events: List<PhonemeEvent>): List<TrackerEvent>
 
-    /** Forgets everything heard so far. */
+    /** Returns the state of the word at [index], [WordState.Neutral] when nothing was heard yet. */
+    fun stateOfWord(index: Int): WordState
+
+    /** Returns the index of the first word not yet confirmed or skipped. */
+    fun currentIndex(): Int
+
+    /** Applies [config] to the phonemes fed from now on. */
+    fun setConfig(config: TrackerConfig)
+
+    /** Forgets everything heard so far and keeps the loaded reference. */
     fun reset()
+}
+
+interface TrackerFactory {
+    fun create(config: TrackerConfig): Tracker
+}
+
+/** Backed by `ordered_quran_phonemes.json`. */
+interface ReferencePhonemes {
+
+    /** Returns the words of the ayah in order, or an empty list when the ayah does not exist. */
+    fun forAyah(surah: Int, ayah: Int): List<ReferenceWord>
 }

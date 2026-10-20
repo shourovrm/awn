@@ -5,5 +5,7 @@ plugins {
 android { namespace = "app.awn.quran.player" }
 
 dependencies {
+    api(project(":core:data"))
+    api(libs.kotlinx.coroutinesCore)
     implementation(libs.media3.exoplayer)
 }

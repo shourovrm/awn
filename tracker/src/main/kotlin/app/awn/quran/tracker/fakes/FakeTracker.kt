@@ -1,0 +1,70 @@
+package app.awn.quran.tracker.fakes
+
+import app.awn.quran.tracker.PhonemeEvent
+import app.awn.quran.tracker.ReferencePhonemes
+import app.awn.quran.tracker.ReferenceWord
+import app.awn.quran.tracker.Tracker
+import app.awn.quran.tracker.TrackerConfig
+import app.awn.quran.tracker.TrackerEvent
+import app.awn.quran.tracker.TrackerFactory
+import app.awn.quran.tracker.WordState
+
+/**
+ * A tracker that does no alignment. Each call to [onPhonemes] returns the next batch from
+ * [scriptedBatches] (empty when the script has run out) and applies [TrackerEvent.WordChanged]
+ * events to the word states, so a test controls exactly what the screen under test sees.
+ */
+class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
+
+    val scriptedBatches: ArrayDeque<List<TrackerEvent>> = ArrayDeque()
+    var config: TrackerConfig = initialConfig
+        private set
+
+    private var reference: List<ReferenceWord> = emptyList()
+    private var startIndex = 0
+    private val states = mutableMapOf<Int, WordState>()
+
+    override fun load(reference: List<ReferenceWord>, startIndex: Int) {
+        this.reference = reference
+        this.startIndex = startIndex
+        states.clear()
+    }
+
+    override fun onPhonemes(events: List<PhonemeEvent>): List<TrackerEvent> {
+        val batch = scriptedBatches.removeFirstOrNull().orEmpty()
+        batch.filterIsInstance<TrackerEvent.WordChanged>().forEach { states[it.index] = it.state }
+        return batch
+    }
+
+    override fun stateOfWord(index: Int): WordState = states[index] ?: WordState.Neutral
+
+    override fun currentIndex(): Int {
+        var index = startIndex
+        while (index < reference.size && states[index] == WordState.Confirmed) index++
+        return index
+    }
+
+    override fun setConfig(config: TrackerConfig) {
+        this.config = config
+    }
+
+    override fun reset() {
+        states.clear()
+    }
+}
+
+/** Creates [FakeTracker]s and keeps them in [created] so a test can script the one in use. */
+class FakeTrackerFactory : TrackerFactory {
+    val created = mutableListOf<FakeTracker>()
+
+    override fun create(config: TrackerConfig): Tracker = FakeTracker(config).also { created += it }
+}
+
+/** Serves reference words from a map keyed by surah and ayah. */
+class FakeReferencePhonemes(
+    val words: MutableMap<Pair<Int, Int>, List<ReferenceWord>> = mutableMapOf(),
+) : ReferencePhonemes {
+
+    override fun forAyah(surah: Int, ayah: Int): List<ReferenceWord> =
+        words[surah to ayah].orEmpty()
+}

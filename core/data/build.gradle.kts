@@ -20,6 +20,9 @@ androidComponents {
 }
 
 dependencies {
+    // Flow appears in the public repository interfaces, so consumers need it on their classpath.
+    api(libs.kotlinx.coroutinesCore)
+
     implementation(libs.androidx.roomRuntime)
     implementation(libs.androidx.roomKtx)
     ksp(libs.androidx.roomCompiler)
