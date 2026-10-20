@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** Holds the stored [ReadSettings] and applies the user's changes to them. */
+@Suppress("TooManyFunctions") // One setter per setting.
 class ReadSettingsViewModel(
     private val store: ReadSettingsStore,
     private val translationRepository: TranslationRepository,
@@ -41,7 +42,25 @@ class ReadSettingsViewModel(
 
     fun setPageView(pageView: PageView) = change { it.copy(pageView = pageView) }
 
-    fun setTextSize(textSize: TextSize) = change { it.copy(textSize = textSize) }
+    fun setArabicSizeStep(step: Int) = change {
+        it.copy(arabicSizeStep = TextScale.clampStep(step))
+    }
+
+    fun setTranslationSizeStep(step: Int) = change {
+        it.copy(translationSizeStep = TextScale.clampStep(step))
+    }
+
+    /** Moves the Arabic and the translation size together by [delta] steps (the popup). */
+    fun changeTextSize(delta: Int) = change {
+        it.copy(
+            arabicSizeStep = TextScale.clampStep(it.arabicSizeStep + delta),
+            translationSizeStep = TextScale.clampStep(it.translationSizeStep + delta),
+        )
+    }
+
+    fun setHighlightBookmarks(enabled: Boolean) = change { it.copy(highlightBookmarks = enabled) }
+
+    fun setVolumeKeysTurnPages(enabled: Boolean) = change { it.copy(volumeKeysTurnPages = enabled) }
 
     fun setShowTransliteration(show: Boolean) = change { it.copy(showTransliteration = show) }
 

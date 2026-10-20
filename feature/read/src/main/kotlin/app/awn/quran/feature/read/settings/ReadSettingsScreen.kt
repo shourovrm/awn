@@ -1,6 +1,5 @@
 package app.awn.quran.feature.read.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.ui.components.AwnSwitch
@@ -22,45 +20,23 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.ReadIconButton
+
+private const val PERCENT = 100
 
 /**
- * The "Reading" group of the Settings screen: script, page view, translations (ordered), the
- * transliteration and word-by-word lines, and the text size. :app embeds it in its settings list,
- * inside its own theme.
+ * The Reading page of the Settings hub: translations (choose and order), transliteration,
+ * word-by-word meanings, the Arabic and translation sizes, highlighting of bookmarks and the volume
+ * keys. :app embeds it in its own theme.
  */
 @Composable
-fun ReadSettingsScreen(dependencies: ReadDependencies, modifier: Modifier = Modifier) {
+fun ReadingSettingsPage(dependencies: ReadDependencies, modifier: Modifier = Modifier) {
     val viewModel = rememberReadSettingsViewModel(dependencies)
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val availableTranslations by viewModel.availableTranslations.collectAsStateWithLifecycle()
 
     Column(modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.settings_reading),
-            style = AwnTypography.lead,
-            color = Awn.field.buttonFill,
-            modifier = Modifier.padding(vertical = AwnSpacing.small),
-        )
-        ValueRow(
-            label = stringResource(R.string.setting_script),
-            value = stringResource(settings.script.labelRes()),
-            onClick = { viewModel.setScript(settings.script.next()) },
-        )
-        ValueRow(
-            label = stringResource(R.string.setting_page_view),
-            value = stringResource(settings.pageView.labelRes()),
-            onClick = {
-                viewModel.setPageView(
-                    if (settings.pageView == PageView.Mushaf) PageView.AyahList
-                    else PageView.Mushaf,
-                )
-            },
-        )
-        ValueRow(
-            label = stringResource(R.string.setting_text_size),
-            value = stringResource(settings.textSize.labelRes()),
-            onClick = { viewModel.setTextSize(settings.textSize.next()) },
-        )
+        TranslationSettings(availableTranslations, settings, viewModel)
         SwitchRow(
             label = stringResource(R.string.setting_transliteration),
             checked = settings.showTransliteration,
@@ -71,8 +47,38 @@ fun ReadSettingsScreen(dependencies: ReadDependencies, modifier: Modifier = Modi
             checked = settings.showWordByWord,
             onCheckedChange = viewModel::setShowWordByWord,
         )
-        TranslationSettings(availableTranslations, settings, viewModel)
+        SizeRow(
+            label = stringResource(R.string.setting_arabic_size),
+            step = settings.arabicSizeStep,
+            scale = settings.arabicScale,
+            onStepChange = viewModel::setArabicSizeStep,
+        )
+        SizeRow(
+            label = stringResource(R.string.setting_translation_size),
+            step = settings.translationSizeStep,
+            scale = settings.translationScale,
+            onStepChange = viewModel::setTranslationSizeStep,
+        )
+        SwitchRow(
+            label = stringResource(R.string.setting_highlight_bookmarks),
+            checked = settings.highlightBookmarks,
+            onCheckedChange = viewModel::setHighlightBookmarks,
+        )
+        SwitchRow(
+            label = stringResource(R.string.setting_volume_keys),
+            checked = settings.volumeKeysTurnPages,
+            onCheckedChange = viewModel::setVolumeKeysTurnPages,
+        )
     }
+}
+
+/**
+ * The old Reading group of the Settings list, kept so :app still compiles until the Settings hub
+ * links to [ReadingSettingsPage]. Delete it with that change.
+ */
+@Composable
+fun ReadSettingsScreen(dependencies: ReadDependencies, modifier: Modifier = Modifier) {
+    ReadingSettingsPage(dependencies, modifier)
 }
 
 @Composable
@@ -108,17 +114,30 @@ internal fun orderedForDisplay(
 }
 
 @Composable
-private fun ValueRow(label: String, value: String, onClick: () -> Unit) {
+private fun SizeRow(label: String, step: Int, scale: Float, onStepChange: (Int) -> Unit) {
     Row(
-        modifier =
-            Modifier.fillMaxWidth()
-                .heightIn(min = AwnSpacing.settingsRowHeight)
-                .clickable(role = Role.Button, onClick = onClick),
+        modifier = Modifier.fillMaxWidth().heightIn(min = AwnSpacing.settingsRowHeight),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = AwnTypography.body)
-        Text(text = value, style = AwnTypography.body, color = Awn.field.buttonFill)
+        Text(text = label, style = AwnTypography.body, modifier = Modifier.weight(1f))
+        ReadIconButton(
+            iconRes = R.drawable.ic_read_minus,
+            description = stringResource(R.string.action_smaller),
+            onClick = { onStepChange(step - 1) },
+            isEnabled = step > 0,
+        )
+        Text(
+            text = stringResource(R.string.size_percent, (scale * PERCENT).toInt()),
+            style = AwnTypography.body,
+            color = Awn.field.buttonFill,
+        )
+        ReadIconButton(
+            iconRes = R.drawable.ic_read_plus,
+            description = stringResource(R.string.action_larger),
+            onClick = { onStepChange(step + 1) },
+            isEnabled = step < TextScale.STEP_COUNT - 1,
+        )
     }
 }
 
@@ -148,27 +167,21 @@ private fun TranslationRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = info.name, style = AwnTypography.body, modifier = Modifier.weight(1f))
-        when {
-            !info.installed ->
-                Text(
-                    text = stringResource(R.string.translation_not_installed),
-                    style = AwnTypography.small,
-                    color = Awn.field.buttonFill,
+        if (!info.installed) {
+            Text(
+                text = stringResource(R.string.translation_not_installed),
+                style = AwnTypography.small,
+                color = Awn.field.buttonFill,
+            )
+        } else {
+            if (canMoveUp) {
+                ReadIconButton(
+                    iconRes = R.drawable.ic_read_move_up,
+                    description = stringResource(R.string.action_move_up),
+                    onClick = onMoveUp,
                 )
-            else -> {
-                if (canMoveUp) {
-                    Text(
-                        text = stringResource(R.string.action_move_up),
-                        style = AwnTypography.bodyStrong,
-                        color = Awn.field.buttonFill,
-                        modifier =
-                            Modifier.heightIn(min = AwnSpacing.touchTarget)
-                                .clickable(role = Role.Button, onClick = onMoveUp)
-                                .padding(AwnSpacing.small),
-                    )
-                }
-                AwnSwitch(checked = isEnabled, onCheckedChange = onEnabledChange)
             }
+            AwnSwitch(checked = isEnabled, onCheckedChange = onEnabledChange)
         }
     }
 }

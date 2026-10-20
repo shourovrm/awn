@@ -1,13 +1,14 @@
 package app.awn.quran.feature.read
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ReadSettingsViewModel
-import app.awn.quran.feature.read.settings.TextSize
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -36,11 +37,14 @@ class ReadSettingsTest {
         val changed =
             ReadSettings(
                 script = ScriptId.V2,
-                pageView = PageView.AyahList,
+                pageView = PageView.WordByWord,
                 translations = listOf(TranslationId("en_saheeh"), TranslationId("bn_zakaria")),
                 showTransliteration = false,
                 showWordByWord = false,
-                textSize = TextSize.Large,
+                arabicSizeStep = 6,
+                translationSizeStep = 1,
+                highlightBookmarks = false,
+                volumeKeysTurnPages = true,
             )
         openStore(file, firstScope).update { changed }
         firstScope.cancel()
@@ -50,6 +54,26 @@ class ReadSettingsTest {
         secondScope.cancel()
 
         assertEquals(changed, reloaded)
+    }
+
+    @Test
+    fun theOldThreeStepSizeAndViewNameAreMigrated() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        val dataStore =
+            PreferenceDataStoreFactory.create(scope = scope) {
+                File(folder.root, "legacy.preferences_pb")
+            }
+        dataStore.edit {
+            it[stringPreferencesKey("text_size")] = "Large"
+            it[stringPreferencesKey("page_view")] = "AyahList"
+        }
+
+        val loaded = DataStoreReadSettingsStore(dataStore).settings.first()
+        scope.cancel()
+
+        assertEquals(4, loaded.arabicSizeStep)
+        assertEquals(4, loaded.translationSizeStep)
+        assertEquals(PageView.Translation, loaded.pageView)
     }
 
     @Test
@@ -66,12 +90,13 @@ class ReadSettingsTest {
         val fixture = ReadFixture()
         val viewModel = ReadSettingsViewModel(fixture.store, fixture.translations)
 
-        viewModel.setTextSize(TextSize.Small)
+        viewModel.changeTextSize(-1)
         viewModel.setShowWordByWord(false)
         viewModel.setScript(ScriptId.V1)
 
         val stored = fixture.store.settings.first()
-        assertEquals(TextSize.Small, stored.textSize)
+        assertEquals(2, stored.arabicSizeStep)
+        assertEquals(2, stored.translationSizeStep)
         assertEquals(false, stored.showWordByWord)
         assertEquals(ScriptId.V1, stored.script)
         assertEquals(stored, viewModel.settings.value)

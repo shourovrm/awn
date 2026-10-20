@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.awn.quran.core.data.ScriptId
@@ -40,7 +41,12 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             preferences[TRANSLATIONS_KEY] = updated.translations.joinToString(SEPARATOR) { it.id }
             preferences[TRANSLITERATION_KEY] = updated.showTransliteration
             preferences[WORD_BY_WORD_KEY] = updated.showWordByWord
-            preferences[TEXT_SIZE_KEY] = updated.textSize.name
+            preferences[ARABIC_STEP_KEY] = updated.arabicSizeStep
+            preferences[TRANSLATION_STEP_KEY] = updated.translationSizeStep
+            preferences[HIGHLIGHT_BOOKMARKS_KEY] = updated.highlightBookmarks
+            preferences[VOLUME_KEYS_KEY] = updated.volumeKeysTurnPages
+            // The 3-step size is replaced by the two step keys written above.
+            preferences.remove(LEGACY_TEXT_SIZE_KEY)
         }
     }
 
@@ -54,25 +60,45 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
                 storedTranslations.split(SEPARATOR).filter { it.isNotBlank() }.map(::TranslationId)
             }
         val script = ScriptId.entries.firstOrNull { it.name == preferences[SCRIPT_KEY] }
-        val pageView = PageView.entries.firstOrNull { it.name == preferences[PAGE_VIEW_KEY] }
-        val textSize = TextSize.entries.firstOrNull { it.name == preferences[TEXT_SIZE_KEY] }
+        val pageView = pageViewOf(preferences[PAGE_VIEW_KEY])
+        val legacyStep = TextScale.stepForLegacyName(preferences[LEGACY_TEXT_SIZE_KEY])
+        val arabicStep = preferences[ARABIC_STEP_KEY] ?: legacyStep ?: defaults.arabicSizeStep
+        val translationStep =
+            preferences[TRANSLATION_STEP_KEY] ?: legacyStep ?: defaults.translationSizeStep
         return ReadSettings(
             script = script ?: defaults.script,
             pageView = pageView ?: defaults.pageView,
             translations = translations,
             showTransliteration = preferences[TRANSLITERATION_KEY] ?: defaults.showTransliteration,
             showWordByWord = preferences[WORD_BY_WORD_KEY] ?: defaults.showWordByWord,
-            textSize = textSize ?: defaults.textSize,
+            arabicSizeStep = TextScale.clampStep(arabicStep),
+            translationSizeStep = TextScale.clampStep(translationStep),
+            highlightBookmarks =
+                preferences[HIGHLIGHT_BOOKMARKS_KEY] ?: defaults.highlightBookmarks,
+            volumeKeysTurnPages = preferences[VOLUME_KEYS_KEY] ?: defaults.volumeKeysTurnPages,
         )
     }
 
+    /** "AyahList" is the name the Translation view had before the three-view redesign. */
+    private fun pageViewOf(storedName: String?): PageView? =
+        if (storedName == LEGACY_AYAH_LIST_VIEW) {
+            PageView.Translation
+        } else {
+            PageView.entries.firstOrNull { it.name == storedName }
+        }
+
     private companion object {
         const val SEPARATOR = ","
+        const val LEGACY_AYAH_LIST_VIEW = "AyahList"
         val SCRIPT_KEY = stringPreferencesKey("script")
         val PAGE_VIEW_KEY = stringPreferencesKey("page_view")
         val TRANSLATIONS_KEY = stringPreferencesKey("translations")
         val TRANSLITERATION_KEY = booleanPreferencesKey("transliteration")
         val WORD_BY_WORD_KEY = booleanPreferencesKey("word_by_word")
-        val TEXT_SIZE_KEY = stringPreferencesKey("text_size")
+        val LEGACY_TEXT_SIZE_KEY = stringPreferencesKey("text_size")
+        val ARABIC_STEP_KEY = intPreferencesKey("arabic_size_step")
+        val TRANSLATION_STEP_KEY = intPreferencesKey("translation_size_step")
+        val HIGHLIGHT_BOOKMARKS_KEY = booleanPreferencesKey("highlight_bookmarks")
+        val VOLUME_KEYS_KEY = booleanPreferencesKey("volume_keys_turn_pages")
     }
 }

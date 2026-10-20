@@ -1,63 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="read_title">Read</string>
+  <!-- Used by page/MushafPageScreen until the page agent's branch removes it. -->
   <string name="header_juz_page">Juz %1$d · %2$d</string>
   <string name="action_bookmark">Bookmark</string>
   <string name="action_bookmarked">Bookmarked</string>
   <string name="action_ayah_list">Ayah list</string>
-  <string name="action_mushaf">Mushaf</string>
   <string name="action_browse">Browse</string>
-  <string name="action_close">Close</string>
-  <string name="action_remove">Remove</string>
-  <string name="action_export">Export</string>
-  <string name="action_import">Import</string>
-  <string name="action_move_up">Up</string>
-  <string name="action_previous_page">Previous page</string>
-  <string name="action_next_page">Next page</string>
   <string name="sheet_save_ayah">Save ayah</string>
   <string name="sheet_saved">Saved</string>
   <string name="sheet_close">Close</string>
-  <string name="font_download">Download font</string>
-  <string name="font_downloading">Downloading %1$d%%</string>
-  <string name="font_download_failed">Download failed. Try again</string>
-  <string name="page_unavailable">Page not available</string>
   <string name="dock_title">%1$s · Ayah %2$d</string>
   <string name="dock_play">Play</string>
   <string name="dock_pause">Pause</string>
   <string name="dock_expand">Open player</string>
-  <string name="tab_surahs">Surahs</string>
-  <string name="tab_juz">Juz</string>
-  <string name="tab_page">Page</string>
-  <string name="tab_bookmarks">Bookmarks</string>
-  <string name="tab_saved">Saved</string>
-  <string name="tab_recent">Recent</string>
-  <string name="surah_row_detail">Verses %1$d · page %2$d</string>
-  <string name="juz_row">Juz %1$d</string>
-  <string name="page_row">Page %1$d</string>
-  <string name="ayah_reference">%1$s %2$d</string>
-  <string name="go_to_page_range">Page %1$d to %2$d</string>
-  <string name="go_to_page_action">Go</string>
-  <string name="bookmarks_empty">No bookmarks</string>
-  <string name="saved_empty">No saved ayahs</string>
-  <string name="recent_empty">No recent pages</string>
-  <string name="transfer_exported">Exported</string>
-  <string name="transfer_imported">Imported</string>
-  <string name="transfer_export_failed">Could not save the file</string>
-  <string name="transfer_import_failed">Could not read the file</string>
-  <string name="settings_reading">Reading</string>
-  <string name="setting_script">Script</string>
-  <string name="setting_page_view">Page view</string>
+
+  <string name="font_download">Download font</string>
+  <string name="font_downloading">Downloading %1$d%%</string>
+  <string name="font_download_failed">Download failed. Try again</string>
+  <string name="page_unavailable">Page not available</string>
+
+  <string name="bar_index">Index</string>
+  <string name="bar_title_subtitle">Page %1$d · Juz %2$d</string>
+  <string name="bar_view_mushaf">Mushaf</string>
+  <string name="bar_view_translation">Translation</string>
+  <string name="bar_view_word_by_word">Word by word</string>
+  <string name="bar_day_mode">Day</string>
+  <string name="bar_night_mode">Night</string>
+  <string name="bar_text_size">Text size</string>
+  <string name="bar_more">More</string>
+  <string name="action_smaller">Smaller</string>
+  <string name="action_larger">Larger</string>
+  <string name="action_move_up">Move up</string>
+  <string name="size_percent">%1$d%%</string>
+
+  <string name="menu_search">Search</string>
+  <string name="menu_go_to_page">Go to page</string>
+  <string name="menu_bookmark_page">Bookmark this page</string>
+  <string name="menu_remove_page_bookmark">Remove bookmark</string>
+  <string name="menu_learn">Learn</string>
+  <string name="menu_settings">Settings</string>
+
+  <string name="ayah_play">Play from here</string>
+  <string name="ayah_recite">Recite from here</string>
+  <string name="ayah_bookmark">Bookmark</string>
+  <string name="ayah_remove_bookmark">Remove bookmark</string>
+  <string name="ayah_translation">Translation</string>
+  <string name="ayah_copy">Copy</string>
+  <string name="ayah_share">Share</string>
+  <string name="ayah_title">%1$s %2$d:%3$d</string>
+  <string name="ayah_reference">%1$d:%2$d</string>
+
+  <string name="panel_translation">Translation</string>
+  <string name="panel_play">Play</string>
+  <string name="panel_close">Close</string>
+  <string name="panel_previous_ayah">Previous ayah</string>
+  <string name="panel_next_ayah">Next ayah</string>
+
+  <string name="go_title">Go to page</string>
+  <string name="go_page">Page</string>
+  <string name="go_surah">Surah</string>
+  <string name="go_ayah">Ayah</string>
+  <string name="go_action">Go</string>
+  <string name="go_cancel">Cancel</string>
+
   <string name="setting_translations">Translations</string>
   <string name="setting_transliteration">Transliteration</string>
   <string name="setting_word_by_word">Word by word</string>
-  <string name="setting_text_size">Text size</string>
+  <string name="setting_arabic_size">Arabic size</string>
+  <string name="setting_translation_size">Translation size</string>
+  <string name="setting_highlight_bookmarks">Highlight bookmarks</string>
+  <string name="setting_volume_keys">Volume keys turn pages</string>
   <string name="translation_not_installed">Not installed</string>
-  <string name="script_qpc_hafs">Hafs text</string>
-  <string name="script_v1">Madani 1405</string>
-  <string name="script_v2">Madani 1421</string>
-  <string name="script_v4_tajweed">Tajweed colours</string>
-  <string name="script_indopak">IndoPak</string>
-  <string name="text_size_small">Small</string>
-  <string name="text_size_medium">Medium</string>
-  <string name="text_size_large">Large</string>
 </resources>

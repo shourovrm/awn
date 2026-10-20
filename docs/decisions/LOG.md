@@ -42,3 +42,8 @@
 2026-10-21 | Juz tab reads a QuarterTable interface with a 30-row stand-in | the page agent's quarter table in core/data is not merged yet
 2026-10-21 | Every NavHost uses None transitions | Navigation Compose's default 700 ms fade made Back slow
 2026-10-21 | Settings is a hub of seven icon rows; pickers are choice dialogs | compact list, no rows that cycle on tap
+2026-10-21 | One QuranScreen with Mushaf, Translation and Word by word views cycled by one button | reading, listening and reciting must share a page
+2026-10-21 | Page counts as read after 20 s on screen; recent pages update at once | pages read must not count pages merely viewed
+2026-10-21 | Text size is two 8-step values (0.85 to 1.6) replacing the 3-step TextSize | popup moves both, settings page sets each
+2026-10-21 | Title names the first surah starting on the page, else the continuing one | pages 77, 604 and 50 as the maintainer specified
+2026-10-21 | List views show a Basmalah block before surahs with bismillahPre, not as an ayah | no chip, selection or translation
