@@ -1,5 +1,6 @@
 package app.awn.quran.player
 
+import app.awn.quran.core.data.AyahAudio
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ReciterRepository
@@ -49,7 +50,7 @@ private const val COPY_BUFFER_BYTES = 16 * 1024
 @Suppress("TooManyFunctions") // Disk, state and HTTP helpers of one downloader.
 class OkHttpAudioDownloads(
     audioRoot: File,
-    reciters: ReciterRepository,
+    private val reciters: ReciterRepository,
     private val quranText: QuranTextRepository,
     private val client: OkHttpClient = OkHttpClient(),
     private val networkPolicy: DownloadNetworkPolicy = DownloadNetworkPolicy.Always,
@@ -67,9 +68,81 @@ class OkHttpAudioDownloads(
 
     private class ContentRange(val start: Long?, val total: Long?)
 
+    /** Receives the byte counts of the file being fetched. */
+    private interface FileProgress {
+        /** The file will be [expectedTotal] bytes (null if unknown); [resumedBytes] are on disk. */
+        fun started(expectedTotal: Long?, resumedBytes: Long)
+
+        fun written(bytes: Long)
+    }
+
+    /**
+     * Counts the bytes of one [download] call over all its files. The total is the sum of the sizes
+     * seen so far plus the average of those for the files not yet started, so it settles as the
+     * files go by.
+     */
+    private class BatchProgress(
+        targets: List<Target>,
+        private val report: (DownloadProgress) -> Unit,
+    ) {
+        private val totalFiles = targets.size
+        private var knownFiles = 0
+        private var knownBytes = 0L
+        private var doneBytes = 0L
+        private var currentExpected: Long? = null
+        private var currentDone = 0L
+
+        init {
+            for (target in targets.filter { it.file.isFile }) {
+                knownFiles++
+                knownBytes += target.file.length()
+                doneBytes += target.file.length()
+            }
+        }
+
+        fun fileStarted(expectedTotal: Long?, resumedBytes: Long) {
+            // A retry on another domain starts the same file again; forget the first attempt.
+            currentExpected?.let {
+                knownFiles--
+                knownBytes -= it
+            }
+            doneBytes -= currentDone
+            currentExpected = expectedTotal
+            currentDone = resumedBytes
+            if (expectedTotal != null) {
+                knownFiles++
+                knownBytes += expectedTotal
+            }
+            doneBytes += resumedBytes
+            publish()
+        }
+
+        fun fileWritten(bytes: Long) {
+            currentDone += bytes
+            doneBytes += bytes
+            publish()
+        }
+
+        fun fileFinished() {
+            currentExpected = null
+            currentDone = 0L
+        }
+
+        fun publish() {
+            val total =
+                if (knownFiles == 0) null
+                else knownBytes + knownBytes / knownFiles * (totalFiles - knownFiles)
+            report(DownloadProgress(doneBytes, total?.let { maxOf(it, doneBytes) }))
+        }
+    }
+
     private val store = LocalAudioStore(audioRoot)
     private val resolver = ReciterAudioResolver(reciters, store)
     private val downloadLock = Mutex()
+
+    /** Goes up whenever a file finishes or is deleted, which re-reads [usedBytes]. */
+    private val diskRevision = MutableStateFlow(0)
+    private val bytesPerMillisecond = mutableMapOf<String, Double>()
     private val states = MutableStateFlow<Map<SurahKey, DownloadState>>(emptyMap())
 
     override fun state(reciterId: String, surah: Int): Flow<DownloadState> = flow {
@@ -89,10 +162,79 @@ class OkHttpAudioDownloads(
         download(reciterId, targetsBySurah)
     }
 
+    override suspend fun download(
+        reciterId: String,
+        ayahs: List<AyahRef>,
+        onProgress: (DownloadProgress) -> Unit,
+    ) {
+        val targetsBySurah =
+            ayahs
+                .distinct()
+                .groupBy { it.surah }
+                .toSortedMap()
+                .mapValues { (_, surahAyahs) ->
+                    targetsFor(reciterId, surahAyahs)
+                }
+        download(reciterId, targetsBySurah, onProgress)
+    }
+
     override suspend fun downloadSurah(reciterId: String, surah: Int) {
         val allAyahs = (1..verseCount(surah)).map { AyahRef(surah, it) }
         download(reciterId, mapOf(surah to targetsFor(reciterId, allAyahs)))
     }
+
+    override fun usedBytes(reciterId: String): Flow<Long> = flow {
+        emitAll(diskRevision.map { bytesUsed(reciterId) })
+    }
+
+    override suspend fun status(reciterId: String, ayahs: List<AyahRef>): AudioStatus =
+        withContext(Dispatchers.IO) {
+            val fileLengths =
+                store
+                    .reciterDirectory(reciterId)
+                    .listFiles { file -> file.isFile }
+                    .orEmpty()
+                    .associate { it.name to it.length() }
+            val ayahFiles = usesAyahFiles(reciterId)
+            val names = ayahs.distinct().map { fileNameFor(ayahFiles, it) }
+            val presentNames = names.filter { it in fileLengths }
+            val bytes = presentNames.distinct().sumOf { fileLengths.getValue(it) }
+            AudioStatus(
+                presentBytes = bytes,
+                presentAyahs = presentNames.size,
+                totalAyahs = names.size,
+            )
+        }
+
+    override suspend fun removeAyahs(reciterId: String, ayahs: List<AyahRef>) {
+        downloadLock.withLock {
+            withContext(Dispatchers.IO) {
+                val directory = store.reciterDirectory(reciterId)
+                val ayahFiles = usesAyahFiles(reciterId)
+                for (name in ayahs.map { fileNameFor(ayahFiles, it) }.distinct()) {
+                    File(directory, name).delete()
+                    File(directory, "$name.part").delete()
+                }
+            }
+            refreshStates(reciterId)
+            diskRevision.update { it + 1 }
+        }
+    }
+
+    override suspend fun estimateBytes(reciterId: String, ayahs: List<AyahRef>): Long? =
+        withContext(Dispatchers.IO) {
+            val distinctAyahs = ayahs.distinct()
+            if (distinctAyahs.isEmpty()) return@withContext 0L
+            try {
+                if (usesAyahFiles(reciterId)) {
+                    estimateAyahFiles(reciterId, distinctAyahs)
+                } else {
+                    estimateSurahFiles(reciterId, distinctAyahs)
+                }
+            } catch (@Suppress("SwallowedException") offline: IOException) {
+                null
+            }
+        }
 
     override suspend fun bytesUsed(reciterId: String): Long =
         withContext(Dispatchers.IO) {
@@ -111,7 +253,14 @@ class OkHttpAudioDownloads(
                     if (key.reciterId == reciterId) emptyState(key) else state
                 }
             }
+            diskRevision.update { it + 1 }
         }
+    }
+
+    /** Re-reads the on-disk state of every surah that has a published state for [reciterId]. */
+    private suspend fun refreshStates(reciterId: String) {
+        val keys = states.value.keys.filter { it.reciterId == reciterId }
+        for (key in keys) publish(key, scanDisk(key))
     }
 
     private suspend fun targetsFor(reciterId: String, ayahs: List<AyahRef>): List<Target> =
@@ -128,29 +277,47 @@ class OkHttpAudioDownloads(
             }
             .distinctBy { it.file.path }
 
-    private suspend fun download(reciterId: String, targetsBySurah: Map<Int, List<Target>>) {
+    private suspend fun download(
+        reciterId: String,
+        targetsBySurah: Map<Int, List<Target>>,
+        onProgress: (DownloadProgress) -> Unit = {},
+    ) {
         if (!networkPolicy.mayDownload()) throw DownloadNotAllowedException()
         downloadLock.withLock {
+            val batch = BatchProgress(targetsBySurah.values.flatten(), onProgress)
+            batch.publish()
             for ((surah, targets) in targetsBySurah) {
-                downloadSurahTargets(SurahKey(reciterId, surah), targets)
+                downloadSurahTargets(SurahKey(reciterId, surah), targets, batch)
             }
         }
     }
 
-    private suspend fun downloadSurahTargets(key: SurahKey, targets: List<Target>) {
+    private suspend fun downloadSurahTargets(
+        key: SurahKey,
+        targets: List<Target>,
+        batch: BatchProgress,
+    ) {
         val progress = scanDisk(key)
         publish(key, progress)
+        val fileProgress =
+            object : FileProgress {
+                override fun started(expectedTotal: Long?, resumedBytes: Long) =
+                    batch.fileStarted(expectedTotal, resumedBytes)
+
+                override fun written(bytes: Long) {
+                    progress.bytes += bytes
+                    batch.fileWritten(bytes)
+                    publish(key, progress)
+                }
+            }
         try {
             for (target in targets) {
                 if (target.file.isFile) continue
-                withContext(Dispatchers.IO) {
-                    fetchWithFallback(target) { writtenBytes ->
-                        progress.bytes += writtenBytes
-                        publish(key, progress)
-                    }
-                }
+                withContext(Dispatchers.IO) { fetchWithFallback(target, fileProgress) }
+                batch.fileFinished()
                 progress.filesPresent++
                 publish(key, progress)
+                diskRevision.update { it + 1 }
             }
         } finally {
             // Whatever happened, show what is on disk so the progress never shows stale numbers.
@@ -223,13 +390,13 @@ class OkHttpAudioDownloads(
 
     // region HTTP
 
-    private suspend fun fetchWithFallback(target: Target, onWrittenBytes: (Long) -> Unit) {
+    private suspend fun fetchWithFallback(target: Target, fileProgress: FileProgress) {
         try {
-            fetch(target.url, target.file, onWrittenBytes)
+            fetch(target.url, target.file, fileProgress)
         } catch (primaryFailure: IOException) {
             val fallbackUrl = AudioUrls.fallbackUrl(target.url) ?: throw primaryFailure
             try {
-                fetch(fallbackUrl, target.file, onWrittenBytes)
+                fetch(fallbackUrl, target.file, fileProgress)
             } catch (fallbackFailure: IOException) {
                 fallbackFailure.addSuppressed(primaryFailure)
                 throw fallbackFailure
@@ -255,7 +422,7 @@ class OkHttpAudioDownloads(
     private suspend fun fetch(
         url: String,
         target: File,
-        onWrittenBytes: (Long) -> Unit,
+        fileProgress: FileProgress,
         mayRestart: Boolean = true,
     ) {
         target.parentFile?.mkdirs()
@@ -269,12 +436,15 @@ class OkHttpAudioDownloads(
             client.newCall(request.build()).execute().use { response ->
                 when (val plan = planFor(response, url, resumeFrom)) {
                     Plan.AlreadyComplete -> {
+                        fileProgress.started(resumeFrom, resumeFrom)
                         promote(partFile, target)
                         null
                     }
                     is Plan.Restart -> plan.reason
                     is Plan.Copy -> {
-                        copyBody(response, partFile, plan.append, onWrittenBytes)
+                        val resumed = if (plan.append) resumeFrom else 0L
+                        fileProgress.started(plan.expectedTotal, resumed)
+                        copyBody(response, partFile, plan.append, fileProgress)
                         checkComplete(url, partFile, plan.expectedTotal)
                         promote(partFile, target)
                         null
@@ -284,7 +454,7 @@ class OkHttpAudioDownloads(
         if (restartReason == null) return
         partFile.delete()
         if (!mayRestart) throw IOException("Cannot resume $url: $restartReason")
-        fetch(url, target, onWrittenBytes, mayRestart = false)
+        fetch(url, target, fileProgress, mayRestart = false)
     }
 
     @Suppress("ReturnCount") // One early answer per kind of response.
@@ -306,17 +476,17 @@ class OkHttpAudioDownloads(
         response: Response,
         partFile: File,
         append: Boolean,
-        onWrittenBytes: (Long) -> Unit,
+        fileProgress: FileProgress,
     ) {
         FileOutputStream(partFile, append).use { output ->
-            response.body.byteStream().use { input -> copyStream(input, output, onWrittenBytes) }
+            response.body.byteStream().use { input -> copyStream(input, output, fileProgress) }
         }
     }
 
     private suspend fun copyStream(
         input: InputStream,
         output: OutputStream,
-        onWrittenBytes: (Long) -> Unit,
+        fileProgress: FileProgress,
     ) {
         val buffer = ByteArray(COPY_BUFFER_BYTES)
         while (true) {
@@ -324,7 +494,7 @@ class OkHttpAudioDownloads(
             val readBytes = input.read(buffer)
             if (readBytes < 0) return
             output.write(buffer, 0, readBytes)
-            onWrittenBytes(readBytes.toLong())
+            fileProgress.written(readBytes.toLong())
         }
     }
 
@@ -352,7 +522,97 @@ class OkHttpAudioDownloads(
 
     // endregion
 
+    // region Names and sizes
+
+    /** True when [reciterId] has one file per ayah, false when it has one file per surah. */
+    private suspend fun usesAyahFiles(reciterId: String): Boolean {
+        val reciter = reciters.reciters().firstOrNull { it.id == reciterId } ?: return true
+        return reciter.ayahUrlPattern != null
+    }
+
+    private fun fileNameFor(ayahFiles: Boolean, ayah: AyahRef): String =
+        if (ayahFiles) {
+            AudioUrls.padded(ayah.surah) + AudioUrls.padded(ayah.ayah) + ".mp3"
+        } else {
+            AudioUrls.padded(ayah.surah) + ".mp3"
+        }
+
+    private suspend fun estimateAyahFiles(reciterId: String, ayahs: List<AyahRef>): Long? {
+        val sample = spread(ayahs, ESTIMATE_AYAH_SAMPLE)
+        val timed = sample.mapNotNull { reciters.ayahAudio(reciterId, it) }
+        val withDuration = timed.filter { it.durationMs != null }
+        if (withDuration.isEmpty()) return estimateByMeanFileSize(reciterId, sample, ayahs.size)
+
+        val rate = bytesPerMillisecond(reciterId, withDuration.first())
+        val meanDurationMs = withDuration.map { checkNotNull(it.durationMs) }.average()
+        return (meanDurationMs * rate * ayahs.size).toLong()
+    }
+
+    private fun bytesPerMillisecond(reciterId: String, timed: AyahAudio): Double {
+        bytesPerMillisecond[reciterId]?.let {
+            return it
+        }
+        val length = headLength(timed.url)
+        val rate = length.toDouble() / checkNotNull(timed.durationMs)
+        bytesPerMillisecond[reciterId] = rate
+        return rate
+    }
+
+    private suspend fun estimateByMeanFileSize(
+        reciterId: String,
+        sample: List<AyahRef>,
+        count: Int,
+    ): Long? {
+        val lengths = sample.mapNotNull { ayah ->
+            resolver.resolve(reciterId, ayah)?.source?.url?.let { headLength(it) }
+        }
+        return if (lengths.isEmpty()) null else (lengths.average() * count).toLong()
+    }
+
+    private suspend fun estimateSurahFiles(reciterId: String, ayahs: List<AyahRef>): Long? {
+        val surahs = ayahs.map { it.surah }.distinct()
+        val sample = spread(surahs, ESTIMATE_SURAH_SAMPLE)
+        val lengths = sample.mapNotNull { surah ->
+            resolver.resolve(reciterId, AyahRef(surah, 1))?.source?.url?.let { headLength(it) }
+        }
+        return if (lengths.isEmpty()) null else (lengths.average() * surahs.size).toLong()
+    }
+
+    /** Returns up to [count] items of [items] spread evenly from first to last. */
+    private fun <T> spread(items: List<T>, count: Int): List<T> {
+        if (items.size <= count) return items
+        return (0 until count).map { items[it * (items.size - 1) / (count - 1)] }
+    }
+
+    /**
+     * Asks for the size of the file at [url] without downloading it, trying the fallback domain
+     * too. Throws [IOException] when neither answers with a length.
+     */
+    private fun headLength(url: String): Long {
+        for (candidate in listOfNotNull(url, AudioUrls.fallbackUrl(url))) {
+            try {
+                val request = Request.Builder().url(candidate).head().build()
+                val length =
+                    client.newCall(request).execute().use { response ->
+                        response
+                            .takeIf { it.isSuccessful }
+                            ?.body
+                            ?.contentLength()
+                            ?.takeIf { it >= 0L }
+                    }
+                if (length != null) return length
+            } catch (@Suppress("SwallowedException") unreachable: IOException) {
+                continue
+            }
+        }
+        throw IOException("Cannot read the size of $url")
+    }
+
+    // endregion
+
     private companion object {
+        const val ESTIMATE_AYAH_SAMPLE = 24
+        const val ESTIMATE_SURAH_SAMPLE = 3
         val AYAH_FILE = Regex("\\d{6}\\.mp3")
         val CONTENT_RANGE = Regex("bytes (?:(\\d+)-\\d+|\\*)/(\\d+|\\*)")
     }

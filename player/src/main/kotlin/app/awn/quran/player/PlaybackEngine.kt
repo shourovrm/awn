@@ -1,6 +1,7 @@
 package app.awn.quran.player
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.WordTiming
@@ -34,6 +35,9 @@ interface PlaybackEngine {
     fun pause()
 
     fun resume()
+
+    /** Plays at [speed] times the normal rate without changing the pitch. */
+    fun setSpeed(speed: Float)
 
     fun stop()
 
@@ -74,17 +78,21 @@ fun interface AudioResolver {
 class ReciterAudioResolver(
     private val reciters: ReciterRepository,
     private val store: LocalAudioStore,
+    private val quranText: QuranTextRepository? = null,
 ) : AudioResolver {
+
+    private var chapterNames: Map<Int, String>? = null
 
     override suspend fun resolve(reciterId: String, ayah: AyahRef): ResolvedAudio? {
         val reciter = reciters.reciters().firstOrNull { it.id == reciterId } ?: return null
         val timedAudio = reciters.ayahAudio(reciterId, ayah)
         val ayahUrlPattern = reciter.ayahUrlPattern
         val ayahKey = store.ayahKey(reciterId, ayah)
+        val title = titleOf(ayah)
         return when {
             timedAudio != null ->
                 ResolvedAudio(
-                    source = source(reciter, timedAudio.url, ayahKey, ayah),
+                    source = source(reciter, timedAudio.url, ayahKey, title),
                     durationMs = timedAudio.durationMs?.toLong(),
                     words = timedAudio.words,
                     coversWholeSurah = false,
@@ -92,7 +100,7 @@ class ReciterAudioResolver(
             ayahUrlPattern != null ->
                 ResolvedAudio(
                     source =
-                        source(reciter, AudioUrls.ayahUrl(ayahUrlPattern, ayah), ayahKey, ayah),
+                        source(reciter, AudioUrls.ayahUrl(ayahUrlPattern, ayah), ayahKey, title),
                     durationMs = null,
                     words = emptyList(),
                     coversWholeSurah = false,
@@ -104,7 +112,7 @@ class ReciterAudioResolver(
                             reciter,
                             AudioUrls.surahUrl(reciter.surahUrlPattern, ayah.surah),
                             store.surahKey(reciterId, ayah.surah),
-                            ayah,
+                            title,
                         ),
                     durationMs = null,
                     words = emptyList(),
@@ -113,6 +121,18 @@ class ReciterAudioResolver(
         }
     }
 
-    private fun source(reciter: Reciter, url: String, key: String, ayah: AyahRef) =
-        AudioSource(url = url, localKey = key, title = ayah.toString(), artist = reciter.name)
+    private fun source(reciter: Reciter, url: String, key: String, title: String) =
+        AudioSource(url = url, localKey = key, title = title, artist = reciter.name)
+
+    /** "Al-Baqarah 2:6" when chapter names are available, else "2:6". */
+    private suspend fun titleOf(ayah: AyahRef): String {
+        val names =
+            chapterNames
+                ?: quranText
+                    ?.chapters()
+                    ?.associate { it.number to it.nameSimple }
+                    ?.also { chapterNames = it }
+        val name = names?.get(ayah.surah) ?: return ayah.toString()
+        return "$name $ayah"
+    }
 }

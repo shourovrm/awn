@@ -4,9 +4,11 @@ import app.awn.quran.core.data.AyahRef
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -31,6 +33,7 @@ private class FakeAudioServer : Interceptor {
     var failComHost = false
     var ignoreRange = false
     var truncateBodyTo: Int? = null
+    var offline = false
 
     fun contentOf(url: String): ByteArray {
         val seed = url.substringAfterLast('/').filter { it.isDigit() }.toInt()
@@ -39,6 +42,7 @@ private class FakeAudioServer : Interceptor {
 
     @Suppress("ReturnCount") // Each branch is one canned server answer.
     override fun intercept(chain: Interceptor.Chain): Response {
+        if (offline) throw IOException("offline")
         val request = chain.request()
         val url = request.url.toString()
         val range = request.header("Range")
@@ -98,6 +102,8 @@ private class FakeAudioServer : Interceptor {
         const val FILE_BYTES = 1_000
     }
 }
+
+private const val AWAIT_MS = 5_000L
 
 class OkHttpAudioDownloadsTest {
 
@@ -278,5 +284,115 @@ class OkHttpAudioDownloadsTest {
             }
         }
         assertTrue(server.requests.isEmpty())
+    }
+
+    @Test
+    fun downloadReportsGrowingBytesWithAnEstimatedTotal() = runBlocking {
+        val reports = mutableListOf<DownloadProgress>()
+
+        downloads().download("alafasy", listOf(AyahRef(1, 1), AyahRef(1, 2), AyahRef(2, 1))) {
+            reports += it
+        }
+
+        val doneBytes = reports.map { it.doneBytes }
+        assertEquals(doneBytes.sorted(), doneBytes)
+        assertEquals(DownloadProgress(0L, null), reports.first())
+        assertEquals(DownloadProgress(3_000L, 3_000L), reports.last())
+        assertTrue(reports.all { it.totalBytes == null || it.totalBytes!! >= it.doneBytes })
+    }
+
+    @Test
+    fun downloadSkipsFilesAlreadyPresentAndCountsThemAsDone() = runBlocking {
+        val downloads = downloads()
+        downloads.download("alafasy", listOf(AyahRef(1, 1)))
+        server.requests.clear()
+        val reports = mutableListOf<DownloadProgress>()
+
+        downloads.download("alafasy", listOf(AyahRef(1, 1), AyahRef(1, 2))) { reports += it }
+
+        assertEquals(1, server.requests.size)
+        assertEquals(1_000L, reports.first().doneBytes)
+        assertEquals(2_000L, reports.last().doneBytes)
+    }
+
+    @Test
+    fun statusCountsPresentAyahsAndBytes() = runBlocking {
+        val downloads = downloads()
+        val ayahs = listOf(AyahRef(1, 1), AyahRef(1, 2), AyahRef(1, 3))
+        assertEquals(AudioStatus(0L, 0, 3), downloads.status("alafasy", ayahs))
+
+        downloads.download("alafasy", listOf(AyahRef(1, 2)))
+        assertEquals(AudioStatus(1_000L, 1, 3), downloads.status("alafasy", ayahs))
+        assertFalse(downloads.status("alafasy", ayahs).complete)
+
+        downloads.download("alafasy", ayahs)
+        assertTrue(downloads.status("alafasy", ayahs).complete)
+    }
+
+    @Test
+    fun statusOfASurahFileReciterIsPerSurah() = runBlocking {
+        val downloads = downloads()
+        downloads.downloadSurah("raad", 2)
+
+        val status = downloads.status("raad", listOf(AyahRef(1, 1), AyahRef(2, 1), AyahRef(2, 2)))
+
+        assertEquals(AudioStatus(1_000L, 2, 3), status)
+    }
+
+    @Test
+    fun removeAyahsDeletesOnlyThoseFiles() = runBlocking {
+        val downloads = downloads()
+        downloads.downloadSurah("alafasy", 1)
+
+        downloads.removeAyahs("alafasy", listOf(AyahRef(1, 2)))
+
+        assertFalse(audioFile("001002.mp3").exists())
+        assertTrue(audioFile("001001.mp3").isFile)
+        assertEquals(2_000L, downloads.bytesUsed("alafasy"))
+        assertFalse(downloads.state("alafasy", 1).first().complete)
+    }
+
+    @Test
+    fun usedBytesFlowFollowsDownloadsAndDeletes() = runBlocking {
+        val downloads = downloads()
+        val latest = MutableStateFlow(-1L)
+        val collector = launch { downloads.usedBytes("alafasy").collect { latest.value = it } }
+        suspend fun awaitUsed(expected: Long) =
+            withTimeout(AWAIT_MS) { latest.first { it == expected } }
+
+        awaitUsed(0L)
+        downloads.download("alafasy", listOf(AyahRef(1, 1), AyahRef(1, 2)))
+        awaitUsed(2_000L)
+
+        downloads.removeAyahs("alafasy", listOf(AyahRef(1, 1)))
+        awaitUsed(1_000L)
+
+        downloads.remove("alafasy")
+        awaitUsed(0L)
+        collector.cancel()
+    }
+
+    @Test
+    fun estimateScalesTheMeasuredBitRateByTheTimedDurations() = runBlocking {
+        // The fixture times ayah 1:1 at 1600 ms and the fake server answers 1000 bytes for it.
+        val estimate =
+            downloads()
+                .estimateBytes("alafasy", listOf(AyahRef(1, 1), AyahRef(1, 2), AyahRef(1, 3)))
+
+        assertEquals(3_000L, estimate)
+    }
+
+    @Test
+    fun estimateOfASurahFileReciterAveragesTheSurahFiles() = runBlocking {
+        val estimate = downloads().estimateBytes("raad", listOf(AyahRef(1, 1), AyahRef(2, 1)))
+
+        assertEquals(2_000L, estimate)
+    }
+
+    @Test
+    fun estimateIsNullWhenTheServerCannotBeReached() = runBlocking {
+        server.offline = true
+
+        assertEquals(null, downloads().estimateBytes("alafasy", listOf(AyahRef(1, 1))))
     }
 }

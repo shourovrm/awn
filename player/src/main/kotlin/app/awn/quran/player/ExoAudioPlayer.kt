@@ -42,7 +42,7 @@ class ExoAudioPlayer(
     private val controller =
         PlaybackController(
             engine = engine,
-            resolver = ReciterAudioResolver(reciters, store),
+            resolver = ReciterAudioResolver(reciters, store, quranText),
             playlistBuilder = PlaylistBuilder(quranText),
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
         )
@@ -51,6 +51,8 @@ class ExoAudioPlayer(
     private var serviceConnection: Any? = null
 
     override val state: StateFlow<PlaybackState> = controller.state
+
+    override val options: StateFlow<PlaybackOptions> = controller.options
 
     /** The player the media session shows: play, pause and stop go through the controller. */
     val sessionPlayer: Player = SessionPlayer(engine.player)
@@ -79,7 +81,11 @@ class ExoAudioPlayer(
 
     override fun stop() = controller.stop()
 
-    override fun setRepeat(times: Int) = controller.setRepeat(times)
+    override fun next() = controller.next()
+
+    override fun previous() = controller.previous()
+
+    override fun setOptions(options: PlaybackOptions) = controller.setOptions(options)
 
     /**
      * Connecting a media controller to the service starts it, and Media3 then promotes it to a
@@ -92,6 +98,7 @@ class ExoAudioPlayer(
         serviceConnection = MediaController.Builder(appContext, token).buildAsync()
     }
 
+    @Suppress("TooManyFunctions") // One override per media session command.
     private inner class SessionPlayer(wrapped: Player) : ForwardingPlayer(wrapped) {
 
         private val sessionCommands =
@@ -99,6 +106,10 @@ class ExoAudioPlayer(
                 .addAll(
                     Player.COMMAND_PLAY_PAUSE,
                     Player.COMMAND_STOP,
+                    Player.COMMAND_SEEK_TO_NEXT,
+                    Player.COMMAND_SEEK_TO_PREVIOUS,
+                    Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                    Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
                     Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
                     Player.COMMAND_GET_METADATA,
                     Player.COMMAND_GET_TIMELINE,
@@ -114,6 +125,19 @@ class ExoAudioPlayer(
         override fun pause() = controller.pause()
 
         override fun stop() = controller.stop()
+
+        // The notification asks for the neighbouring "media item"; here that is the next ayah.
+        override fun hasNextMediaItem(): Boolean = true
+
+        override fun hasPreviousMediaItem(): Boolean = true
+
+        override fun seekToNext() = controller.next()
+
+        override fun seekToPrevious() = controller.previous()
+
+        override fun seekToNextMediaItem() = controller.next()
+
+        override fun seekToPreviousMediaItem() = controller.previous()
 
         override fun setPlayWhenReady(playWhenReady: Boolean) {
             if (playWhenReady) controller.resume() else controller.pause()

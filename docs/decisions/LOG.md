@@ -25,3 +25,9 @@
 2026-10-20 | Learn screen hosts Revision, Progress and lessons itself, no separate app routes | LearnScreen(quranText) already routes between them
 2026-10-20 | Exit check runs with -Dorg.gradle.jvmargs=-Xmx2g | R8 runs out of memory in the 1 GB user-level daemon
 
+2026-10-21 | Download on play wraps the player in DownloadingAudioPlayer; refused or failed downloads stream | streaming plays the same audio and always works
+2026-10-21 | Download amount counts from the start ayah (page, surah, juz); later files stream | a range to the end of a surah would otherwise download it all
+2026-10-21 | Word highlight clears 300 ms after a word ends | Alafasy has pauses of 4.7 s inside an ayah; the packs have no overlaps
+2026-10-21 | Reciter list sizes come from AudioDownloads.usedBytes, a live flow | the size was read once at creation and showed Nothing downloaded
+2026-10-21 | Reciter sheet groups are exclusive | a reciter in two groups reads as a duplicate
+2026-10-21 | AudioFeature holds dependencies and the view model factory for the audio composables | :app registers no audio view models

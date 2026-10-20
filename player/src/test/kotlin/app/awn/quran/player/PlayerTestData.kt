@@ -12,7 +12,20 @@ fun chapter(number: Int, verses: Int) =
     Chapter(number, "", "Surah $number", null, verses, "makkah", false)
 
 /** Surah 1 has 3 ayahs and surah 2 has 4, which is enough to cross a surah boundary. */
-fun fakeQuranText() = FakeQuranTextRepository(chapterList = listOf(chapter(1, 3), chapter(2, 4)))
+fun fakeQuranText() =
+    FakeQuranTextRepository(
+        chapterList = listOf(chapter(1, 3), chapter(2, 4)),
+        pageByAyah =
+            mutableMapOf(
+                AyahRef(1, 1) to 1,
+                AyahRef(1, 2) to 1,
+                AyahRef(1, 3) to 1,
+                AyahRef(2, 1) to 2,
+                AyahRef(2, 2) to 2,
+                AyahRef(2, 3) to 3,
+                AyahRef(2, 4) to 3,
+            ),
+    )
 
 val timedReciter =
     Reciter(

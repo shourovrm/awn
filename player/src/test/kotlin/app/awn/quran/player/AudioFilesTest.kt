@@ -1,7 +1,6 @@
 package app.awn.quran.player
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.WordTiming
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -53,19 +52,6 @@ class AudioFilesTest {
         assertNull(store.fileForKey("alafasy/../../x.mp3"))
         assertNull(store.fileForKey("alafasy/001002.mp3.part"))
         assertThrows(IllegalArgumentException::class.java) { store.reciterDirectory("../x") }
-    }
-
-    @Test
-    fun wordTimelineRoundsToFiftyMillisecondsAndHoldsPreviousWordInGaps() {
-        val timeline = WordTimeline(listOf(WordTiming(1, 100, 400), WordTiming(2, 500, 900)))
-        assertNull(timeline.wordPositionAt(99))
-        assertEquals(1, timeline.wordPositionAt(100))
-        assertEquals(1, timeline.wordPositionAt(449)) // gap keeps word 1
-        assertEquals(2, timeline.wordPositionAt(500))
-        assertEquals(2, timeline.wordPositionAt(5_000))
-        // 530 rounds down to 500, so word 2 starts at 500 and not before.
-        assertEquals(2, timeline.wordPositionAt(530))
-        assertEquals(1, timeline.wordPositionAt(499))
     }
 
     @Test

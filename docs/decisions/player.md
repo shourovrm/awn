@@ -1,31 +1,32 @@
 # Player and Listen
 
 ## Current state
-- `:player` plays one file at a time. `PlaybackController` (pure Kotlin logic) drives a `PlaybackEngine`; `ExoPlaybackEngine` is the Media3 ExoPlayer implementation and tests use a fake engine.
-- `ExoAudioPlayer` is created once by :app with the application context. Its first `play` binds a `MediaController` to `AudioPlaybackService`, which holds the media session and the notification (play, pause, stop only). The service finds the player through `ExoAudioPlayer.active`.
-- The player's manifest declares the service (not exported, `mediaPlayback`), `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`. :app must still request `POST_NOTIFICATIONS` on Android 13+.
-- The file to play is the `ayah_audio.url` of the timing pack (the folder the timings were made for), else the reciter's ayah pattern, else the surah file (Raad al-Kurdi). A surah file plays once and its ayahs are skipped; the state's ayah stays at the first one.
-- `setRepeat(n)` repeats each ayah (or the single word) n more times, not the whole range.
-- `playWord` starts at `start_ms` and the engine stops at `end_ms` with a player message (exact, not polled), cut at the file duration if known.
-- Word position is the last word whose start is at or before the position rounded down to 50 ms; it stays on that word in gaps.
-- Downloads go to `filesDir/audio/<reciterId>/<SSS><AAA>.mp3` (or `<SSS>.mp3`), written as `.part`, resumed with `Range`, size-checked against `Content-Length`, renamed when whole, retried once on `.quranicaudio.org`. `LocalFirstDataSource` reads such a file when the media item's cache key names it.
-- `DownloadState.totalBytes` is an estimate while a surah downloads (bytes so far times files/present files); exact when complete.
-- `UnmeteredOnlyPolicy` (Wi-Fi only) is passed to `OkHttpAudioDownloads`; a refused download throws `DownloadNotAllowedException`.
-- The read dock expands to the Listen route in :app; a range started from Read has no loaded playlist in `ListenViewModel`, so previous and next do nothing there.
-- `:feature:listen` holds `ListenPanel`, `RecitersScreen`, `DownloadsScreen`, three ViewModels and `ListenSettings` (DataStore: Wi-Fi only, selected reciter, default `alafasy`). Downloads run in a scope the app passes to `DownloadsViewModel`.
-- `tools/verify_timings.py` cuts words by timing and counts cuts with speech-level sound for most of their length (alafasy, 20 ayahs, seed 1: 258 of 264 words).
+- `:player` plays one file at a time. `PlaybackController` (pure Kotlin) drives a `PlaybackEngine`; `ExoPlaybackEngine` is the Media3 ExoPlayer one and tests use a fake engine.
+- `ExoAudioPlayer` is created once by :app. Its first `play` binds a `MediaController` to `AudioPlaybackService`, which holds the media session and notification (previous, pause, next, stop). The notification title is "Al-Baqarah 2:6" and the artist is the reciter; the session player maps previous and next to `AudioPlayer.previous/next`.
+- `AudioPlayer` contract: `state`, `options` (`PlaybackOptions`: `repeatEachAyah`, `repeatRange` as total plays or `INFINITE_REPEAT`, `speed` 0.75 to 1.5), `play`, `playWord`, `pause`, `resume`, `stop`, `next`, `previous`, `setOptions`; `setRepeat(n)` stays as "n more plays of each ayah".
+- `PlaybackState` adds `Downloading(doneBytes, totalBytes)`. `next` after the last ayah ends or repeats the range as usual. `previous` restarts the ayah after 3 s, else goes back. A surah-file reciter (Raad al-Kurdi) steps by surah.
+- `DownloadingAudioPlayer(player, downloads, quranText, downloadAmount, scope)` wraps the Exo player. `play` returns at once; if the audio at the start of the range is not on disk it downloads it (state `Downloading`), then plays. A refused (Wi-Fi only) or failed download streams instead; `stop` cancels the download.
+- Download amount counts from the start ayah (`DownloadPlan`): Page is the range's ayahs on the start ayah's page (grouped by surah when it holds two), Surah is the whole start surah, Juz is the whole start juz (`JuzTable`). Later ayahs stream.
+- `AudioDownloads` adds `download(reciterId, ayahs, onProgress)`, `usedBytes` (live flow), `status` (bytes and ayahs on disk), `estimateBytes` (HEAD of a few files; ayah files use bitrate times timed durations, surah files the mean) and `removeAyahs`.
+- Word position is the last word started at the exact position and not ended more than 300 ms ago (`WordTimeline`); real alafasy pauses reach 4.7 s inside an ayah, so a gap lights nothing. Checked on all four timed packs: no overlap or backward step, no word ends after the file.
+- Files are in `filesDir/audio/<reciterId>/<SSS><AAA>.mp3` (or `<SSS>.mp3`), written as `.part`, resumed with `Range`, size-checked, retried on `.quranicaudio.org`. `LocalFirstDataSource` reads them.
+- `:feature:listen`: `AudioFeature` (holds the player, downloads, repositories, settings, application scope and the view model factory; `controller.playFrom(ayah)`), composables `AudioBar`, `PlayRangePanel`, `ReciterSheet`, `AudioSettingsPage` (with the downloads manager), `ListenSettings` (reciter, Wi-Fi only, download amount). Icons are `ic_listen_*` vector drawables.
+- Still present for :app until it is rewired: `ListenPanel`, `ListenViewModel`, `ListenField`, `RecitersScreen`/`RecitersViewModel`, `DownloadsScreen`/`DownloadsViewModel`.
 
 ## Open items
-- The Alafasy timing pack lists `https://verses.quran.com/Alafasy/mp3/...`, not quranicaudio hosts, so the `.org` fallback does not apply to it; check that host stays up.
+- :app must wrap the player in `DownloadingAudioPlayer`, build `AudioFeature`, fill the three slots and link `AudioSettingsPage`, then delete the old Listen route and screens.
 - Downloads stop when the app process dies; a foreground service or WorkManager job would continue them.
-- Notification has no previous/next buttons; the panel has them.
+- Repeat and speed are not saved between launches.
 - Gap between ayahs is the time ExoPlayer needs to open the next file; no preloading.
-- The Zipformer check of word cuts (milestone 4) replaces the energy test in `verify_timings.py`.
+- The audio bar uses `Awn.field.buttonFill` and `onButton`; the shell agent's colour modes may want a dedicated bar colour.
 
 ## Gotchas
 - Lint wants `androidx.annotation.OptIn` plus `@UnstableApi` on classes, not a Kotlin file-level opt-in.
-- Gradle daemons are shared by all agents on this machine; `--stop` from another session kills a running build. A private registry avoids it: `-Dorg.gradle.daemon.registry.base=/tmp/<name>`.
+- In `runTest`, `advanceUntilIdle()` skips tasks that only `backgroundScope` holds; call `runCurrent()` too.
+- Gradle daemons are shared by all agents on this machine; `--stop` from another session kills a running build.
 
 ## Tried / rejected
 - Kotlin `@file:OptIn(UnstableApi::class)`: lint ignores it.
 - A percentile-based silence threshold for the timing check: recitations with no silence made every word fail.
+- Rounding the position down to 50 ms for the word lookup: it delayed the highlight and missed 44 short Alafasy words; the 50 ms publish tick is the only step now.
+- Listing a reciter in all three sheet groups: the same name twice; groups are exclusive.

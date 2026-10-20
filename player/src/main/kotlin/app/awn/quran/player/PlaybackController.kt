@@ -33,7 +33,12 @@ class PlaybackController(
         val singleWordPosition: Int?,
     ) {
         var index = 0
+
+        /** Plays of the current ayah finished so far. */
         var completedPlays = 0
+
+        /** Times the whole range has finished so far. */
+        var completedRounds = 0
 
         val currentAyah: AyahRef
             get() = ayahs[index]
@@ -52,9 +57,11 @@ class PlaybackController(
     private val mutableState = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
     val state: StateFlow<PlaybackState> = mutableState
 
+    private val mutableOptions = MutableStateFlow(PlaybackOptions())
+    val options: StateFlow<PlaybackOptions> = mutableOptions
+
     private var session: Session? = null
     private var currentFile: CurrentFile? = null
-    private var repeatTimes = 0
     private var generation = 0
     private var tickerJob: Job? = null
 
@@ -101,9 +108,26 @@ class PlaybackController(
         mutableState.value = PlaybackState.Idle
     }
 
-    /** Each ayah (or the single word) plays [times] more times before the next one starts. */
-    fun setRepeat(times: Int) {
-        repeatTimes = times.coerceAtLeast(0)
+    /** Applies [newOptions] at once: the speed to the engine, the repeats at the next boundary. */
+    fun setOptions(newOptions: PlaybackOptions) {
+        mutableOptions.value = newOptions.coerced()
+        engine.setSpeed(mutableOptions.value.speed)
+    }
+
+    /** Skips to the next ayah; after the last one the range ends or repeats as usual. */
+    fun next() {
+        val active = rangeSession() ?: return
+        restartSession(active) { advance(active) }
+    }
+
+    /** Restarts the ayah when it has played past [RESTART_AFTER_MS], else plays the one before. */
+    fun previous() {
+        val active = rangeSession() ?: return
+        val playedMs = engine.positionMs()
+        restartSession(active) {
+            if (playedMs <= RESTART_AFTER_MS) stepBack(active)
+            startCurrentAyah()
+        }
     }
 
     override fun onEnded() {
@@ -170,6 +194,7 @@ class PlaybackController(
             windowFor(active, audio, timeline)
                 ?: return "No word timing for ${active.singleWordPosition} of $ayah"
         currentFile = CurrentFile(audio, timeline, window)
+        engine.setSpeed(mutableOptions.value.speed)
         engine.start(audio.source, window.startMs, window.stopAtMs)
         publishPlaying()
         startTicker()
@@ -192,17 +217,41 @@ class PlaybackController(
         return if (endMs > startMs) PlayWindow(startMs, endMs) else null
     }
 
+    /** The running session when it plays a range of ayahs, not a single word. */
+    private fun rangeSession(): Session? = session?.takeIf { it.singleWordPosition == null }
+
+    /** Drops what is loading now and runs [block] for [active] on the controller's thread. */
+    private fun restartSession(active: Session, block: suspend () -> Unit) {
+        generation++
+        active.completedPlays = 0
+        scope.launch { runGuarded { block() } }
+    }
+
+    /** Moves to the ayah before the current one; a surah file is one step back by surah. */
+    private fun stepBack(active: Session) {
+        if (active.index == 0) return
+        val playingSurahFile = currentFile?.audio?.coversWholeSurah == true
+        active.index--
+        if (playingSurahFile) {
+            val surah = active.ayahs[active.index].surah
+            active.index = active.ayahs.indexOfFirst { it.surah == surah }
+        }
+    }
+
     private suspend fun finishOnePlay() {
         val active = session ?: return
         active.completedPlays++
-        val playsWanted = repeatTimes + 1
-        if (active.completedPlays < playsWanted) {
+        if (!isFinished(active.completedPlays, mutableOptions.value.repeatEachAyah)) {
             startCurrentAyah()
             return
         }
         active.completedPlays = 0
         advance(active)
     }
+
+    /** True once [completed] plays reach [wanted]; an infinite repeat never finishes. */
+    private fun isFinished(completed: Int, wanted: Int): Boolean =
+        wanted != PlaybackOptions.INFINITE_REPEAT && completed >= wanted
 
     private suspend fun advance(active: Session) {
         val finishedSurah = active.currentAyah.surah
@@ -214,7 +263,19 @@ class PlaybackController(
                 active.index < active.ayahs.size &&
                 active.ayahs[active.index].surah == finishedSurah
         )
-        if (active.index >= active.ayahs.size) stop() else startCurrentAyah()
+        if (active.index < active.ayahs.size) {
+            startCurrentAyah()
+            return
+        }
+        active.completedRounds++
+        val roundsWanted =
+            if (active.singleWordPosition == null) mutableOptions.value.repeatRange else 1
+        if (isFinished(active.completedRounds, roundsWanted)) {
+            stop()
+        } else {
+            active.index = 0
+            startCurrentAyah()
+        }
     }
 
     private fun publishPlaying() {
@@ -256,5 +317,10 @@ class PlaybackController(
         } catch (@Suppress("TooGenericExceptionCaught") error: RuntimeException) {
             fail("Playback failed: ${error.message}")
         }
+    }
+
+    private companion object {
+        /** Past this much playing time "previous" restarts the ayah instead of leaving it. */
+        const val RESTART_AFTER_MS = 3_000L
     }
 }

@@ -20,6 +20,11 @@ private class FakePlaybackEngine : PlaybackEngine {
     var position = 0L
     var paused = false
     var stopped = false
+    var lastSpeed = 1f
+
+    override fun setSpeed(speed: Float) {
+        lastSpeed = speed
+    }
 
     override fun start(source: AudioSource, startMs: Long, stopAtMs: Long?) {
         starts += Start(source, startMs, stopAtMs)
@@ -53,13 +58,13 @@ class PlaybackControllerTest {
         val store = LocalAudioStore(java.io.File("unused"))
         return PlaybackController(
             engine = engine,
-            resolver = ReciterAudioResolver(fakeReciters(), store),
+            resolver = ReciterAudioResolver(fakeReciters(), store, fakeQuranText()),
             playlistBuilder = PlaylistBuilder(fakeQuranText()),
             scope = backgroundScope,
         )
     }
 
-    private fun playedAyahs() = engine.starts.map { it.source.title }
+    private fun playedAyahs() = engine.starts.map { it.source.title.substringAfterLast(' ') }
 
     @Test
     fun playsEveryAyahOfTheSurahInOrderThenStops() = runTest {
@@ -88,7 +93,7 @@ class PlaybackControllerTest {
     @Test
     fun repeatPlaysEachAyahTheRequestedNumberOfExtraTimes() = runTest {
         val controller = controller()
-        controller.setRepeat(2)
+        controller.setOptions(PlaybackOptions(repeatEachAyah = 3))
         controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
         repeat(5) {
             engine.listener!!.onEnded()
@@ -100,7 +105,7 @@ class PlaybackControllerTest {
     @Test
     fun repeatZeroPlaysEachAyahOnce() = runTest {
         val controller = controller()
-        controller.setRepeat(0)
+        controller.setOptions(PlaybackOptions(repeatEachAyah = 1))
         controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
         engine.listener!!.onEnded()
         runCurrent()
@@ -162,7 +167,7 @@ class PlaybackControllerTest {
     @Test
     fun repeatedWordRestartsAtWordStart() = runTest {
         val controller = controller()
-        controller.setRepeat(1)
+        controller.setOptions(PlaybackOptions(repeatEachAyah = 2))
         controller.playWord("alafasy", AyahRef(1, 1), 1)
         engine.listener!!.onEnded()
         runCurrent()
@@ -228,5 +233,158 @@ class PlaybackControllerTest {
         val controller = controller()
         controller.play("alafasy", AyahRef(1, 99), null)
         assertTrue(controller.state.value is PlaybackState.Error)
+    }
+
+    private fun TestScope.endCurrentPlays(count: Int) {
+        repeat(count) {
+            engine.listener!!.onEnded()
+            runCurrent()
+        }
+    }
+
+    @Test
+    fun repeatEachAyahAndRepeatRangeMultiplyPlays() = runTest {
+        val controller = controller()
+        controller.setOptions(PlaybackOptions(repeatEachAyah = 2, repeatRange = 2))
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        endCurrentPlays(7)
+
+        assertEquals(
+            listOf("1:2", "1:2", "1:3", "1:3", "1:2", "1:2", "1:3", "1:3"),
+            playedAyahs(),
+        )
+        assertTrue(controller.state.value is PlaybackState.Playing)
+
+        endCurrentPlays(1)
+        assertEquals(PlaybackState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun infiniteRangeRepeatNeverEndsTheRange() = runTest {
+        val controller = controller()
+        controller.setOptions(PlaybackOptions(repeatRange = PlaybackOptions.INFINITE_REPEAT))
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        endCurrentPlays(40)
+
+        assertEquals(41, engine.starts.size)
+        assertEquals("1:2", playedAyahs()[40])
+        assertTrue(controller.state.value is PlaybackState.Playing)
+    }
+
+    @Test
+    fun infiniteAyahRepeatStaysOnTheAyah() = runTest {
+        val controller = controller()
+        controller.setOptions(PlaybackOptions(repeatEachAyah = PlaybackOptions.INFINITE_REPEAT))
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        endCurrentPlays(25)
+
+        assertEquals(setOf("1:2"), playedAyahs().toSet())
+    }
+
+    @Test
+    fun rangeRepeatDoesNotRepeatASingleWord() = runTest {
+        val controller = controller()
+        controller.setOptions(PlaybackOptions(repeatRange = 3))
+        controller.playWord("alafasy", AyahRef(1, 1), 1)
+        endCurrentPlays(1)
+
+        assertEquals(1, engine.starts.size)
+        assertEquals(PlaybackState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun nextAndPreviousCrossASurahBoundary() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(1, 3), AyahRef(2, 2))
+
+        controller.next()
+        runCurrent()
+        assertEquals("2:1", (controller.state.value as PlaybackState.Playing).ayah.toString())
+
+        controller.previous()
+        runCurrent()
+        assertEquals("1:3", (controller.state.value as PlaybackState.Playing).ayah.toString())
+    }
+
+    @Test
+    fun previousAfterThreeSecondsRestartsTheAyah() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        controller.next()
+        runCurrent()
+        engine.position = 3_500
+
+        controller.previous()
+        runCurrent()
+
+        assertEquals(listOf("1:2", "1:3", "1:3"), playedAyahs())
+    }
+
+    @Test
+    fun previousAtTheFirstAyahRestartsIt() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+
+        controller.previous()
+        runCurrent()
+
+        assertEquals(listOf("1:2", "1:2"), playedAyahs())
+    }
+
+    @Test
+    fun nextAfterTheLastAyahEndsTheRange() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        controller.next()
+        runCurrent()
+        controller.next()
+        runCurrent()
+
+        assertEquals(PlaybackState.Idle, controller.state.value)
+    }
+
+    @Test
+    fun nextWhilePausedPlaysTheNextAyah() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(1, 2), AyahRef(1, 3))
+        controller.pause()
+
+        controller.next()
+        runCurrent()
+
+        assertEquals("1:3", (controller.state.value as PlaybackState.Playing).ayah.toString())
+    }
+
+    @Test
+    fun nextWithSurahFileReciterJumpsToTheNextSurahFile() = runTest {
+        val controller = controller()
+        controller.play("raad", AyahRef(1, 1), AyahRef(2, 2))
+
+        controller.next()
+        runCurrent()
+
+        assertEquals(
+            "https://download.quranicaudio.com/quran/raad/mp3/002.mp3",
+            engine.starts.last().source.url,
+        )
+    }
+
+    @Test
+    fun speedIsClampedAndGivenToTheEngine() = runTest {
+        val controller = controller()
+        controller.setOptions(PlaybackOptions(speed = 3f))
+        assertEquals(1.5f, controller.options.value.speed)
+
+        controller.setOptions(PlaybackOptions(speed = 0.25f))
+        controller.play("alafasy", AyahRef(1, 2), null)
+        assertEquals(0.75f, engine.lastSpeed)
+    }
+
+    @Test
+    fun titleHoldsSurahNameAndAyahReference() = runTest {
+        val controller = controller()
+        controller.play("alafasy", AyahRef(2, 1), null)
+        assertEquals("Surah 2 2:1", engine.starts.single().source.title)
+        assertEquals("Alafasy", engine.starts.single().source.artist)
     }
 }

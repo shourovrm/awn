@@ -11,6 +11,7 @@ dependencies {
     api(project(":player"))
     implementation(project(":core:ui"))
     implementation(libs.androidx.datastorePreferences)
+    implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.lifecycleViewmodelCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)
 

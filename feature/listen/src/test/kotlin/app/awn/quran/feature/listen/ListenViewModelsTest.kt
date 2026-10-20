@@ -1,15 +1,14 @@
 package app.awn.quran.feature.listen
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeReciterRepository
 import app.awn.quran.player.AudioDownloads
+import app.awn.quran.player.AudioStatus
 import app.awn.quran.player.DownloadNotAllowedException
+import app.awn.quran.player.DownloadProgress
 import app.awn.quran.player.DownloadState
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.player.fakes.FakeAudioDownloads
@@ -18,9 +17,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -236,22 +235,23 @@ class ListenViewModelsTest {
         override suspend fun downloadSurah(reciterId: String, surah: Int) =
             throw DownloadNotAllowedException()
 
+        override suspend fun download(
+            reciterId: String,
+            ayahs: List<AyahRef>,
+            onProgress: (DownloadProgress) -> Unit,
+        ) = throw DownloadNotAllowedException()
+
         override suspend fun bytesUsed(reciterId: String) = 0L
 
+        override fun usedBytes(reciterId: String): Flow<Long> = flowOf(0L)
+
+        override suspend fun status(reciterId: String, ayahs: List<AyahRef>) =
+            AudioStatus(0L, 0, ayahs.size)
+
+        override suspend fun estimateBytes(reciterId: String, ayahs: List<AyahRef>): Long? = null
+
+        override suspend fun removeAyahs(reciterId: String, ayahs: List<AyahRef>) = Unit
+
         override suspend fun remove(reciterId: String) = Unit
-    }
-}
-
-/** A DataStore that lives in memory, so tests do not wait for file reads on another thread. */
-private class InMemoryPreferences : DataStore<Preferences> {
-
-    private val preferences = MutableStateFlow(emptyPreferences())
-
-    override val data: Flow<Preferences> = preferences
-
-    override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
-        val updated = transform(preferences.value)
-        preferences.value = updated
-        return updated
     }
 }

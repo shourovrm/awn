@@ -79,6 +79,10 @@ class ExoPlaybackEngine(
         player.play()
     }
 
+    override fun setSpeed(speed: Float) {
+        player.setPlaybackSpeed(speed)
+    }
+
     override fun stop() {
         player.stop()
         player.clearMediaItems()
