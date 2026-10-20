@@ -41,6 +41,17 @@ jobs:
           path: awn-models
           key: models-${{ hashFiles('gradle/models.sha256') }}
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      # The key covers the fixture list and the ffmpeg conversion settings, which all live in the
+      # tracker build file, so editing either rebuilds the fixtures once.
+      - name: Cache tracker test fixtures
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tracker/fixtures
+          key: tracker-fixtures-${{ hashFiles('tracker/build.gradle.kts') }}
+
       - name: Fetch native libraries and models
         run: ./gradlew fetchNativeLibs fetchModels
 
