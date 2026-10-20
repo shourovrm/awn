@@ -81,4 +81,5 @@
   <string name="manager_size_downloaded">%1$s downloaded</string>
   <string name="manager_part_downloaded">%1$s of %2$s ayahs</string>
   <string name="manager_failed">Download failed</string>
+  <string name="audio_start_choice">%1$s %2$d</string>
 </resources>

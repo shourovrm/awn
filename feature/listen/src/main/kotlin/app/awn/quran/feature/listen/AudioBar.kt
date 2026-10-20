@@ -181,7 +181,17 @@ private fun StartFromMenu(choices: List<StartChoice>, actions: AudioBarActions) 
         )
         for (choice in choices) {
             DropdownMenuItem(
-                text = { Text("${choice.surahName} ${choice.ayah}", style = AwnTypography.body) },
+                text = {
+                    Text(
+                        text =
+                            stringResource(
+                                R.string.audio_start_choice,
+                                choice.surahName,
+                                choice.ayah,
+                            ),
+                        style = AwnTypography.body,
+                    )
+                },
                 onClick = { actions.onChooseStart(choice) },
             )
         }

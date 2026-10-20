@@ -43,9 +43,6 @@
   </plurals>
   <string name="search_result_reference">%1$s %2$d:%3$d · page %4$d</string>
 
-  <string name="quran_open_index">Index</string>
-  <string name="quran_toggle_night">Day or night</string>
-
   <string name="settings_title">Settings</string>
   <string name="settings_mushaf">Mushaf</string>
   <string name="settings_reading">Reading</string>
@@ -55,8 +52,6 @@
   <string name="settings_backup">Backup</string>
   <string name="settings_about">About</string>
   <string name="settings_placeholder">No settings yet</string>
-  <string name="settings_reciter">Reciter</string>
-  <string name="settings_downloads">Downloads</string>
 
   <string name="appearance_day_colours">Day colours</string>
   <string name="appearance_night_colours">Night colours</string>
@@ -89,8 +84,6 @@
   <string name="about_credits">Credits</string>
   <string name="about_version">Version</string>
 
-  <string name="mode_listen">Listen</string>
-
   <string name="credits_title">Credits</string>
   <string name="credits_data">Text, translations and audio</string>
   <string name="credits_recogniser">Recitation checker</string>
@@ -105,13 +98,10 @@
     <item>Material Symbols (icons), Google. Apache License 2.0.</item>
   </string-array>
 
-  <string name="listen_choose_surah">Surahs</string>
-
   <string name="notice_title">Notice</string>
   <string name="notice_accept">I understand</string>
   <!-- The three notice texts are always shown together, so they are not per-language resources. -->
   <string name="notice_english" translatable="false">This app is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</string>
   <string name="notice_bangla" translatable="false">এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।</string>
   <string name="notice_arabic" translatable="false">هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.</string>
-  <string name="surah_row">%1$d  %2$s</string>
 </resources>

@@ -50,7 +50,8 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tracker/fixtures
-          key: tracker-fixtures-${{ hashFiles('tracker/build.gradle.kts') }}
+          # The test code builds the fixtures, so a change to it must rebuild them.
+          key: tracker-fixtures-${{ hashFiles('tracker/build.gradle.kts', 'tracker/src/test/**') }}
 
       - name: Fetch native libraries and models
         run: ./gradlew fetchNativeLibs fetchModels

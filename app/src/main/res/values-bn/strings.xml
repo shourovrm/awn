@@ -32,9 +32,6 @@
   </plurals>
   <string name="search_result_reference">%1$s %2$d:%3$d · পৃষ্ঠা %4$d</string>
 
-  <string name="quran_open_index">সূচি</string>
-  <string name="quran_toggle_night">দিন বা রাত</string>
-
   <string name="settings_title">সেটিংস</string>
   <string name="settings_mushaf">মুসহাফ</string>
   <string name="settings_reading">পড়া</string>
@@ -44,8 +41,6 @@
   <string name="settings_backup">ব্যাকআপ</string>
   <string name="settings_about">সম্পর্কে</string>
   <string name="settings_placeholder">এখনও কোনো সেটিংস নেই</string>
-  <string name="settings_reciter">ক্বারী</string>
-  <string name="settings_downloads">ডাউনলোড</string>
 
   <string name="appearance_day_colours">দিনের রং</string>
   <string name="appearance_night_colours">রাতের রং</string>
@@ -78,16 +73,11 @@
   <string name="about_credits">কৃতজ্ঞতা</string>
   <string name="about_version">সংস্করণ</string>
 
-  <string name="mode_listen">শুনুন</string>
-
   <string name="credits_title">কৃতজ্ঞতা</string>
   <string name="credits_data">পাঠ, অনুবাদ ও অডিও</string>
   <string name="credits_recogniser">তিলাওয়াত যাচাই</string>
   <string name="credits_libraries">লাইব্রেরি ও আইকন</string>
 
-  <string name="listen_choose_surah">সূরা</string>
-
   <string name="notice_title">বিজ্ঞপ্তি</string>
   <string name="notice_accept">আমি বুঝেছি</string>
-  <string name="surah_row">%1$d  %2$s</string>
 </resources>

@@ -40,6 +40,17 @@ object RepositorySources {
 
     private fun File.invariantPath(): String = path.replace(File.separatorChar, '/')
 
+    // ".claude" holds agent worktrees: whole copies of the repository that are not this checkout.
     private val IGNORED_DIRECTORY_NAMES =
-        setOf("build", ".gradle", ".kotlin", ".git", "buildSrc", "awn-models", "awn-data", "libs")
+        setOf(
+            "build",
+            ".gradle",
+            ".kotlin",
+            ".git",
+            ".claude",
+            "buildSrc",
+            "awn-models",
+            "awn-data",
+            "libs",
+        )
 }

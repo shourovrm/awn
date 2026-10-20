@@ -81,4 +81,5 @@
   <string name="manager_size_downloaded">%1$s ডাউনলোড হয়েছে</string>
   <string name="manager_part_downloaded">%2$s আয়াতের %1$s টি</string>
   <string name="manager_failed">ডাউনলোড ব্যর্থ হয়েছে</string>
+  <string name="audio_start_choice">%1$s %2$d</string>
 </resources>
