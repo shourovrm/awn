@@ -2,6 +2,7 @@
 
 package app.awn.quran.core.data.packs
 
+import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.MapBundledAssets
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.createPackDatabase
@@ -38,6 +39,7 @@ class FilePackRepositoryTest {
     private val servedFiles = mutableMapOf<String, ByteArray>()
     private val rangeHeadersSeen = mutableListOf<String?>()
     private var serverHonoursRange = true
+    private var freeBytes = Long.MAX_VALUE
     private lateinit var repository: FilePackRepository
     private lateinit var storage: PackStorage
     private lateinit var catalog: ManifestCatalog
@@ -117,8 +119,19 @@ class FilePackRepositoryTest {
         servedFiles["en_test.sqlite"] = translation.readBytes()
         catalog =
             ManifestCatalog(assets, releaseBaseUrl = "http://127.0.0.1:${server.address.port}")
-        storage = PackStorage(temporaryFolder.newFolder("files"), assets, catalog)
-        repository = FilePackRepository(catalog, storage, ReadOnlyDatabases())
+        storage =
+            PackStorage(
+                temporaryFolder.newFolder("files"),
+                assets,
+                catalog,
+                usableBytesOf = { freeBytes },
+            )
+        repository =
+            FilePackRepository(
+                catalog,
+                storage,
+                ReadOnlyDatabases(),
+            )
     }
 
     private fun translationPackFile(formatVersion: Int = 1): File {
@@ -196,6 +209,113 @@ class FilePackRepositoryTest {
 
         assertEquals(listOf<String?>("bytes=1000-"), rangeHeadersSeen)
         assertEquals(whole.toList(), File(storage.root, "en_test.sqlite").readBytes().toList())
+    }
+
+    @Test
+    fun catalogueListsDownloadableItemsWithTheirGroupAndState() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+
+        val before = repository.catalogue().associateBy { it.id }
+
+        // The bundled Hafs font is the app's own text font, not a page type to download.
+        assertEquals(setOf("v1", "v2", "v4-tajweed", "en_test"), before.keys)
+        assertEquals(CatalogueGroup.PageType, before.getValue("v2").group)
+        assertEquals(CatalogueGroup.Translation, before.getValue("en_test").group)
+        assertEquals("en", before.getValue("en_test").language)
+        assertFalse(before.getValue("en_test").isInstalled)
+        assertNull(before.getValue("en_test").installedBytes)
+        assertEquals(
+            servedFiles.getValue("en_test.sqlite").size.toLong(),
+            before.getValue("en_test").downloadBytes,
+        )
+
+        repository.install(entry("en_test")) {}
+
+        val after = repository.catalogue().first { it.id == "en_test" }
+        assertTrue(after.isInstalled)
+        assertTrue(after.canRemove)
+        assertFalse(after.hasUpdate)
+        assertEquals(servedFiles.getValue("en_test.sqlite").size.toLong(), after.installedBytes)
+    }
+
+    @Test
+    fun installedPackShowsAnUpdateWhenTheManifestChecksumChanged() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        repository.install(entry("en_test")) {}
+        val record = catalog.findPack("en_test")!!
+
+        // The installed copy came from an older manifest with another checksum.
+        storage.recordInstalledSha(record, "0".repeat(64))
+        assertTrue(repository.catalogue().first { it.id == "en_test" }.hasUpdate)
+
+        repository.install(entry("en_test")) {}
+        assertFalse(repository.catalogue().first { it.id == "en_test" }.hasUpdate)
+    }
+
+    @Test
+    fun removeClearsTheRecordedChecksumAndTheInstalledState() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        repository.install(entry("en_test")) {}
+
+        repository.remove("en_test")
+
+        val item = repository.catalogue().first { it.id == "en_test" }
+        assertFalse(item.isInstalled)
+        assertNull(storage.installedSha(catalog.findPack("en_test")!!))
+    }
+
+    @Test
+    fun installStopsBeforeDownloadingWhenTheSpaceIsShort() {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        freeBytes = 10L
+
+        val error =
+            assertThrows(PackInstallException::class.java) {
+                runBlocking { repository.install(entry("en_test")) {} }
+            }
+
+        assertEquals(PackFailureReason.NoSpace, error.reason)
+        assertEquals(servedFiles.getValue("en_test.sqlite").size.toLong(), error.neededBytes)
+        assertEquals(10L, error.freeBytes)
+        assertTrue("no request may be made", rangeHeadersSeen.isEmpty())
+    }
+
+    @Test
+    fun fontArchiveNeedsRoomToUnpackAndAPartialDownloadLowersTheNeed() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        val zipBytes = fontArchive.size.toLong()
+        assertEquals(
+            zipBytes * 3,
+            repository.catalogue().first { it.id == "v2" }.requiredFreeBytes,
+        )
+
+        val partial = File(storage.downloadsDirectory, "v2.zip.part")
+        partial.parentFile!!.mkdirs()
+        partial.writeBytes(ByteArray(10))
+
+        assertEquals(
+            zipBytes * 3 - 10,
+            repository.catalogue().first { it.id == "v2" }.requiredFreeBytes,
+        )
+    }
+
+    @Test
+    fun failuresCarryTheCauseTheUserCanActOn() {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        val original = servedFiles.getValue("en_test.sqlite")
+        servedFiles.remove("en_test.sqlite")
+        val missing =
+            assertThrows(PackInstallException::class.java) {
+                runBlocking { repository.install(entry("en_test")) {} }
+            }
+        assertEquals(PackFailureReason.ServerError, missing.reason)
+
+        servedFiles["en_test.sqlite"] = original.copyOf().also { it[100] = (it[100] + 1).toByte() }
+        val damaged =
+            assertThrows(PackInstallException::class.java) {
+                runBlocking { repository.install(entry("en_test")) {} }
+            }
+        assertEquals(PackFailureReason.Damaged, damaged.reason)
     }
 
     @Test

@@ -17,12 +17,14 @@ import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.feature.listen.AudioSettingsPage
 import app.awn.quran.feature.read.page.MushafSettingsPage
 import app.awn.quran.feature.read.settings.ReadingSettingsPage
+import app.awn.quran.feature.read.settings.rememberCatalogueViewModel
 import app.awn.quran.feature.recite.ReciteSettingsPage
 import app.awn.quran.services.AwnServices
 import app.awn.quran.settings.AboutPage
 import app.awn.quran.settings.AppearancePage
 import app.awn.quran.settings.BackupPage
 import app.awn.quran.settings.CreditsScreen
+import app.awn.quran.settings.DownloadsPage
 import app.awn.quran.settings.NoticeAgainScreen
 import app.awn.quran.settings.RecitePage
 import app.awn.quran.settings.SettingsHubScreen
@@ -59,6 +61,14 @@ internal fun NavGraphBuilder.settingsDestinations(
             onShowSurahNameMeaningChange = {
                 scope.launch { services.preferences.setShowSurahNameMeaning(it) }
             },
+            onBack = goBack,
+        )
+    }
+    composable(SettingsSection.Downloads.route) {
+        val catalogueViewModel = rememberCatalogueViewModel(services.readDependencies)
+        DownloadsPage(
+            viewModel = catalogueViewModel,
+            onOpenReciters = { navController.navigate(SettingsSection.Audio.route) },
             onBack = goBack,
         )
     }

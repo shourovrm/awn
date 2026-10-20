@@ -54,5 +54,4 @@
   <string name="setting_translation_size">অনুবাদের আকার</string>
   <string name="setting_highlight_bookmarks">বুকমার্ক চিহ্নিত করুন</string>
   <string name="setting_volume_keys">ভলিউম কী পৃষ্ঠা উল্টায়</string>
-  <string name="translation_not_installed">ইনস্টল নেই</string>
 </resources>

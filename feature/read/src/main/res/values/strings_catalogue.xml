@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="catalogue_download">Download</string>
+  <string name="catalogue_update">Update</string>
+  <string name="catalogue_cancel">Cancel download</string>
+  <string name="catalogue_remove">Remove</string>
+  <string name="catalogue_dialog_cancel">Cancel</string>
+
+  <string name="catalogue_status_waiting">Waiting to download</string>
+  <string name="catalogue_status_downloading">Downloading %1$d%%</string>
+  <string name="catalogue_status_update">Update available, %1$s</string>
+  <string name="catalogue_status_installed">Downloaded, %1$s</string>
+  <string name="catalogue_status_included">Included with the app</string>
+
+  <string name="catalogue_error_no_space">Needs %1$s, %2$s free</string>
+  <string name="catalogue_error_no_internet">No connection. Check your internet.</string>
+  <string name="catalogue_error_server">Server not available. Try again later.</string>
+  <string name="catalogue_error_damaged">Download was damaged. Try again.</string>
+  <string name="catalogue_error_other">Download failed. Try again.</string>
+
+  <string name="catalogue_remove_title">Remove %1$s?</string>
+  <string name="catalogue_remove_translation">Deletes this translation from your phone. You can download it again.</string>
+  <string name="catalogue_remove_page_type">Deletes this page type from your phone. You can download it again.</string>
+  <string name="catalogue_remove_word_by_word">Deletes these word meanings from your phone. You can download them again.</string>
+  <string name="catalogue_remove_transliteration">Deletes this transliteration from your phone. You can download it again.</string>
+
+  <string name="translation_missing">%1$s isn\'t downloaded</string>
+  <string name="translation_missing_progress">Downloading %1$s, %2$d%%</string>
+</resources>

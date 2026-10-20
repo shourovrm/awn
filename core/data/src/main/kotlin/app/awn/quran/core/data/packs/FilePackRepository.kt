@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.packs
 
+import app.awn.quran.core.data.CatalogueItem
 import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.PackSize
@@ -57,14 +58,23 @@ class FilePackRepository(
         return PackSize(downloadBytes = record.bytes, installedBytes = installedBytes)
     }
 
+    override suspend fun catalogue(): List<CatalogueItem> =
+        withContext(ioDispatcher) {
+            catalog.allPacks.mapNotNull { record -> catalogueItemOf(record) }
+        }
+
+    override fun freeBytes(): Long = storage.freeBytes()
+
     override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) {
         val record = requireRecord(entry.id)
         withContext(ioDispatcher) {
             installMutex.withLock {
                 val partFile = File(storage.downloadsDirectory, "${record.fileName}.part")
+                requireFreeSpace(record)
                 downloadAndVerify(entry, record, partFile, onProgress)
                 place(record, partFile)
                 partFile.delete()
+                storage.recordInstalledSha(record, entry.sha256)
             }
         }
         changeCounter.update { it + 1 }
@@ -100,6 +110,52 @@ class FilePackRepository(
         }
     }
 
+    /** Maps a manifest record to its catalogue row; reciter timings are not catalogue items. */
+    private fun catalogueItemOf(record: PackRecord): CatalogueItem? {
+        val group = CatalogueGrouping.groupOf(record, storage.isBundled(record)) ?: return null
+        val location = storage.locate(record)
+        val installedSha = storage.installedSha(record)
+        return CatalogueItem(
+            id = record.entry.id,
+            name = record.displayName,
+            group = group,
+            language = record.language,
+            downloadBytes = record.bytes,
+            requiredFreeBytes =
+                PackSpace.requiredFreeBytes(
+                    record.layout,
+                    record.bytes,
+                    storage.partialDownloadBytes(record),
+                ),
+            isInstalled = location != null,
+            installedBytes = location?.let { storage.sizeOnDisk(it) },
+            isBundled = storage.isBundled(record),
+            hasUpdate =
+                location != null && PackUpdate.isAvailable(installedSha, record.entry.sha256),
+            entry = record.entry,
+        )
+    }
+
+    /** Fails before any byte is downloaded when the phone cannot hold the pack. */
+    private fun requireFreeSpace(record: PackRecord) {
+        val required =
+            PackSpace.requiredFreeBytes(
+                record.layout,
+                record.bytes,
+                storage.partialDownloadBytes(record),
+            )
+        val free = storage.freeBytes()
+        if (PackSpace.shortfall(required, free) > 0) {
+            throw PackInstallException(
+                record.fileName,
+                "needs $required bytes but only $free are free",
+                reason = PackFailureReason.NoSpace,
+                neededBytes = required,
+                freeBytes = free,
+            )
+        }
+    }
+
     private fun requireRecord(id: String): PackRecord =
         requireNotNull(catalog.findPack(id)) { "There is no pack '$id' in the manifests." }
 
@@ -119,6 +175,7 @@ class FilePackRepository(
             throw PackInstallException(
                 record.fileName,
                 "expected ${record.bytes} bytes but received ${partFile.length()}",
+                reason = PackFailureReason.Damaged,
             )
         }
         val actualHash = PackDownloader.sha256Of(partFile)
@@ -127,6 +184,7 @@ class FilePackRepository(
             throw PackInstallException(
                 record.fileName,
                 "SHA-256 mismatch: expected ${entry.sha256} but got $actualHash; download discarded",
+                reason = PackFailureReason.Damaged,
             )
         }
     }
@@ -158,6 +216,7 @@ class FilePackRepository(
                 record.fileName,
                 "could not install: ${error.message}",
                 error,
+                PackFailureReason.of(error),
             )
         }
     }

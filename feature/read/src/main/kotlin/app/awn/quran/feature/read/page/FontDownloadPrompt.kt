@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
+import app.awn.quran.feature.read.settings.failureMessage
 import java.util.Locale
 
 private const val BYTES_PER_MEGABYTE = 1_000_000.0
@@ -32,14 +34,14 @@ internal fun megabytesOf(bytes: Long): String =
  * The prompt shown over a page that is drawn in the fallback font because the font pack of the
  * chosen page type is missing. It names the page type ([pageTypeName]) and its download size
  * ([sizeBytes], null while unknown), recommends Wi-Fi, and offers the download with its progress
- * ([progress] is 0 to 1 while downloading, [failed] after an error) or keeping the fallback.
+ * ([progress] is 0 to 1 while downloading, [failure] after an error) or keeping the fallback.
  */
 @Composable
 fun FontDownloadPrompt(
     pageTypeName: String,
     sizeBytes: Long?,
     progress: Float?,
-    failed: Boolean,
+    failure: PackTransfer.Failed?,
     onDownload: () -> Unit,
     onKeepFallback: () -> Unit,
     modifier: Modifier = Modifier,
@@ -57,9 +59,9 @@ fun FontDownloadPrompt(
             style = AwnTypography.small,
             color = field.content,
         )
-        if (failed) {
+        if (failure != null) {
             Text(
-                text = stringResource(R.string.font_prompt_failed),
+                text = failureMessage(failure),
                 style = AwnTypography.small,
                 color = field.wrongWord,
             )

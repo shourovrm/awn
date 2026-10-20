@@ -36,6 +36,15 @@
   <string name="settings_mushaf">মুসহাফ</string>
   <string name="settings_reading">পড়া</string>
   <string name="settings_audio">অডিও</string>
+  <string name="settings_downloads">ডাউনলোড</string>
+  <string name="downloads_space_used">ব্যবহৃত জায়গা</string>
+  <string name="downloads_page_types">পৃষ্ঠার ধরন</string>
+  <string name="downloads_translations">অনুবাদ</string>
+  <string name="downloads_word_by_word">শব্দে শব্দে</string>
+  <string name="downloads_transliteration">উচ্চারণ</string>
+  <string name="downloads_reciters">ক্বারী</string>
+  <string name="downloads_reciters_open">ক্বারীর ডাউনলোড</string>
+  <string name="downloads_language_other">অন্যান্য</string>
   <string name="settings_recite">তিলাওয়াত ও মুখস্থ</string>
   <string name="settings_appearance">চেহারা</string>
   <string name="settings_backup">ব্যাকআপ</string>

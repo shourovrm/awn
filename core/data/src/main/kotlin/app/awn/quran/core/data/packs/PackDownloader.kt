@@ -9,9 +9,19 @@ import java.security.MessageDigest
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
-/** A pack could not be downloaded, verified or installed; [fileName] says which file. */
-class PackInstallException(val fileName: String, message: String, cause: Throwable? = null) :
-    IOException("$fileName: $message", cause)
+/**
+ * A pack could not be downloaded, verified or installed; [fileName] says which file. [reason] is
+ * the cause in the user's terms. For [PackFailureReason.NoSpace], [neededBytes] and [freeBytes]
+ * hold the numbers to show.
+ */
+class PackInstallException(
+    val fileName: String,
+    message: String,
+    cause: Throwable? = null,
+    val reason: PackFailureReason = PackFailureReason.Other,
+    val neededBytes: Long? = null,
+    val freeBytes: Long? = null,
+) : IOException("$fileName: $message", cause)
 
 /**
  * Downloads one file with HTTP Range resume. Call it from a background dispatcher: every method
@@ -47,7 +57,12 @@ class PackDownloader(
         } catch (error: PackInstallException) {
             throw error
         } catch (error: IOException) {
-            throw PackInstallException(fileName, "download failed: ${error.message}", error)
+            throw PackInstallException(
+                fileName,
+                "download failed: ${error.message}",
+                error,
+                PackFailureReason.of(error),
+            )
         }
     }
 
@@ -93,7 +108,11 @@ class PackDownloader(
                     downloadFrom(url, partFile, fileName, expectedBytes, onBytes, false)
                 }
                 else ->
-                    throw PackInstallException(fileName, "server answered HTTP $status for $url")
+                    throw PackInstallException(
+                        fileName,
+                        "server answered HTTP $status for $url",
+                        reason = PackFailureReason.ServerError,
+                    )
             }
         } finally {
             connection.disconnect()
@@ -133,7 +152,11 @@ class PackDownloader(
             }
         }
         if (bodyLength >= 0 && written != startOffset + bodyLength) {
-            throw PackInstallException(fileName, "connection ended after $written bytes")
+            throw PackInstallException(
+                fileName,
+                "connection ended after $written bytes",
+                reason = PackFailureReason.NoInternet,
+            )
         }
     }
 

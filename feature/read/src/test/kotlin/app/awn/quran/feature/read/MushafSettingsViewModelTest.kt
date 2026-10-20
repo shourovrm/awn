@@ -1,10 +1,8 @@
 package app.awn.quran.feature.read
 
-import app.awn.quran.core.data.PackSize
+import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.ScriptId
-import app.awn.quran.core.data.packs.Credit
-import app.awn.quran.core.data.packs.PackEntry
-import app.awn.quran.core.data.packs.PackKind
+import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.feature.read.page.MushafSettingsViewModel
 import app.awn.quran.feature.read.page.megabytesOf
 import kotlinx.coroutines.test.runTest
@@ -21,20 +19,19 @@ class MushafSettingsViewModelTest {
     private val fixture = ReadFixture()
     private val viewModel by lazy { MushafSettingsViewModel(fixture.dependencies) }
 
-    private fun scriptPack(id: String) =
-        PackEntry(
-            id = id,
-            kind = PackKind.Script,
-            formatVersion = 1,
-            sha256 = "0".repeat(64),
-            downloadUrl = "https://example.org/$id.zip",
-            credit = Credit("test", "https://example.org", "test"),
+    private fun pageType(id: String, downloadBytes: Long, installedBytes: Long? = null) =
+        fakeCatalogueItem(
+            id,
+            group = CatalogueGroup.PageType,
+            language = null,
+            downloadBytes = downloadBytes,
+            installedBytes = installedBytes,
         )
 
     @Test
     fun everyPageTypeShowsItsSizeBeforeItIsInstalled() = runTest {
-        fixture.packs.sizes["v2"] = PackSize(137_055_055, null)
-        fixture.packs.sizes["v1"] = PackSize(54_470_805, null)
+        fixture.packs.catalogueItems += pageType("v2", 137_055_055)
+        fixture.packs.catalogueItems += pageType("v1", 54_470_805)
 
         val statuses = viewModel.statuses.value
 
@@ -46,7 +43,7 @@ class MushafSettingsViewModelTest {
 
     @Test
     fun installingAPageTypePutsItInUseWhenTheFontIsOnThePhone() = runTest {
-        fixture.packs.manifests["scripts"] = listOf(scriptPack("v1"))
+        fixture.packs.catalogueItems += pageType("v1", 54_470_805)
 
         viewModel.install(ScriptId.V1)
 
@@ -56,8 +53,7 @@ class MushafSettingsViewModelTest {
 
     @Test
     fun theInstalledSizeReplacesTheDownloadSizeAfterInstall() = runTest {
-        fixture.packs.manifests["scripts"] = listOf(scriptPack("v2"))
-        fixture.packs.sizes["v2"] = PackSize(137_055_055, 208_100_000)
+        fixture.packs.catalogueItems += pageType("v2", 137_055_055, installedBytes = 208_100_000)
 
         viewModel.install(ScriptId.V2)
 
@@ -66,7 +62,8 @@ class MushafSettingsViewModelTest {
 
     @Test
     fun theTypeInUseCannotBeRemovedButAnotherCanBe() = runTest {
-        fixture.packs.manifests["scripts"] = listOf(scriptPack("v2"), scriptPack("v1"))
+        fixture.packs.catalogueItems += pageType("v2", 137_055_055)
+        fixture.packs.catalogueItems += pageType("v1", 54_470_805)
         viewModel.install(ScriptId.V2)
         viewModel.install(ScriptId.V1)
         assertEquals(ScriptId.V1, viewModel.settings.value.script)

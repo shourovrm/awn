@@ -89,6 +89,7 @@ class AwnServices(private val application: Application) {
             progressEvents = progressEvents,
             audioPlayer = audioPlayer,
             settingsStore = DataStoreReadSettingsStore(application),
+            downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
         )

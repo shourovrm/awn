@@ -24,7 +24,8 @@ class MushafSettingsViewModel(private val dependencies: ReadDependencies) : View
             ReadSettings(),
         )
 
-    private val fontPacks = FontPackController(dependencies.packs, viewModelScope)
+    private val fontPacks =
+        FontPackController(dependencies.packs, dependencies.downloads, viewModelScope)
 
     /** The status of each page type, in the order of [pageTypeScripts]. */
     val statuses: StateFlow<Map<ScriptId, FontPackStatus>> = fontPacks.statuses

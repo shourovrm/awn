@@ -3,11 +3,14 @@ package app.awn.quran.feature.read
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.fakes.FakeBookmarkRepository
 import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.core.data.fakes.FakeProgressEvents
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
+import app.awn.quran.core.data.fakes.InMemoryWantedPackStore
+import app.awn.quran.core.data.fakes.RecordingPackWorkScheduler
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
@@ -46,6 +49,7 @@ class ReadScreenInstrumentedTest {
                 FakeProgressEvents(),
                 FakeAudioPlayer(),
                 MemoryStore(),
+                PackDownloads(InMemoryWantedPackStore(), RecordingPackWorkScheduler()),
             )
 
         composeRule.setContent {

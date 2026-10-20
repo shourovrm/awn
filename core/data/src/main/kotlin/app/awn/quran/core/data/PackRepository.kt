@@ -27,7 +27,20 @@ interface PackRepository {
     /** Returns the sizes of pack [id], or null when no manifest lists it. */
     suspend fun sizeOf(id: String): PackSize?
 
-    /** Downloads, verifies and installs [entry], reporting progress from 0.0 to 1.0. */
+    /**
+     * Returns every item the manifests list for download, with its state on this phone, in manifest
+     * order. Reciter timing files are not listed: they follow the audio downloads.
+     */
+    suspend fun catalogue(): List<CatalogueItem>
+
+    /** Returns the free bytes on the volume that holds the downloads. */
+    fun freeBytes(): Long
+
+    /**
+     * Downloads, verifies and installs [entry], reporting progress from 0.0 to 1.0. Throws
+     * [app.awn.quran.core.data.packs.PackInstallException] with the cause when it fails; the
+     * partial download stays on disk so the next call resumes it.
+     */
     suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit)
 
     suspend fun remove(id: String)

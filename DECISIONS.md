@@ -15,7 +15,7 @@
 - docs/redesign.md: single-page Quran screen spec (merged); docs/copy.md: vocabulary and copy rules.
 
 ## Next
-- Next wave (after phone check): download catalogue (translations install, IndoPak, more reciters), usability rules and code lessons in sessions/baseline.
+- Download catalogue UI is on branch worktree-agent-a67c3c7a552d75408; IndoPak and more reciters wait for the catalogue-data manifests. Phone check still due.
 - Bundle the Roundo and Noto Serif Bengali fonts; the theme uses the platform sans-serif until then.
 
 ## Gotchas (cross-cutting)

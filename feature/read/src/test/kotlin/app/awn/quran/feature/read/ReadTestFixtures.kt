@@ -11,11 +11,14 @@ import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.data.TranslationText
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.fakes.FakeBookmarkRepository
 import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.core.data.fakes.FakeProgressEvents
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
+import app.awn.quran.core.data.fakes.ImmediatePackWorkScheduler
+import app.awn.quran.core.data.fakes.InMemoryWantedPackStore
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ReadSettingsStore
 import app.awn.quran.player.fakes.FakeAudioPlayer
@@ -56,7 +59,16 @@ class ReadFixture(settings: ReadSettings = ReadSettings()) {
     val store = InMemorySettingsStore(settings)
 
     val dependencies =
-        ReadDependencies(text, translations, bookmarks, packs, progress, player, store)
+        ReadDependencies(
+            text,
+            translations,
+            bookmarks,
+            packs,
+            progress,
+            player,
+            store,
+            PackDownloads(InMemoryWantedPackStore(), ImmediatePackWorkScheduler(packs)),
+        )
 
     init {
         text.chapterList = listOf(fatiha, baqarah)

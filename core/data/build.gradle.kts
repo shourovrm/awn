@@ -70,10 +70,15 @@ dependencies {
     // Flow appears in the public repository interfaces, so consumers need it on their classpath.
     api(libs.kotlinx.coroutinesCore)
 
+    // Background installs: WorkManager types appear in the app's Configuration.Provider.
+    api(libs.androidx.work)
+    implementation(libs.androidx.coreKtx)
+
     implementation(libs.androidx.roomRuntime)
     implementation(libs.androidx.roomKtx)
     ksp(libs.androidx.roomCompiler)
 
+    testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.androidx.roomTesting)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testExtJunit)

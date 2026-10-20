@@ -16,6 +16,11 @@ enum class SettingsSection(
     Mushaf("settings/mushaf", R.drawable.ic_app_menu_book, R.string.settings_mushaf),
     Reading("settings/reading", R.drawable.ic_app_text_fields, R.string.settings_reading),
     Audio("settings/audio", R.drawable.ic_app_headphones, R.string.settings_audio),
+    Downloads(
+        "settings/downloads",
+        R.drawable.ic_app_file_download,
+        R.string.settings_downloads,
+    ),
     Recite("settings/recite", R.drawable.ic_app_mic, R.string.settings_recite),
     Appearance("settings/appearance", R.drawable.ic_app_palette, R.string.settings_appearance),
     Backup("settings/backup", R.drawable.ic_app_backup, R.string.settings_backup),

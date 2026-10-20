@@ -60,3 +60,6 @@
 2026-10-21 | Any pack install drops loaded layouts and rebuilds the font cache | page types appeared not to change after a download
 2026-10-21 | Copy pass: docs/copy.md vocabulary and rules, 62 dead strings removed, 23 rewritten | design-system copy review
 2026-10-21 | App icon is concept 3, Voice page, scaled 0.948 into the safe zone | maintainer's choice
+2026-10-21 | Pack installs run in WorkManager with a wanted flag restarted at launch | a 137 MB font download died with the screen or the process
+2026-10-21 | Downloads stay in filesDir; update means recorded checksum differs from the manifest | phone cleaners emptied Quran for Android's external folder
+2026-10-21 | Reading settings and a Downloads page install, update and remove translations | no code installed translations, so they were never available

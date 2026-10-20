@@ -121,7 +121,8 @@ class QuranViewModel(
     wordLanguage: String,
     private val pageReadDelayMs: Long = PAGE_READ_DELAY_MS,
 ) : ViewModel() {
-    private val fontPacks = FontPackController(dependencies.packs, viewModelScope)
+    private val fontPacks =
+        FontPackController(dependencies.packs, dependencies.downloads, viewModelScope)
 
     private val mutableState = MutableStateFlow(QuranUiState())
     val state: StateFlow<QuranUiState> = mutableState
@@ -506,7 +507,13 @@ class QuranViewModel(
     private suspend fun followInstalledPacks() {
         dependencies.packs.installed().drop(1).collect {
             mutableState.update {
-                it.copy(packRevision = it.packRevision + 1, layouts = emptyMap())
+                // The page lists hold translation text, so a new or removed translation redoes
+                // them.
+                it.copy(
+                    packRevision = it.packRevision + 1,
+                    layouts = emptyMap(),
+                    contents = emptyMap(),
+                )
             }
             if (mutableState.value.hasStarted) {
                 val page = mutableState.value.currentPage

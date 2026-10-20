@@ -8,10 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
-import app.awn.quran.core.data.TranslationInfo
-import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.feature.read.ReadDependencies
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -19,24 +16,10 @@ import kotlinx.coroutines.launch
 
 /** Holds the stored [ReadSettings] and applies the user's changes to them. */
 @Suppress("TooManyFunctions") // One setter per setting.
-class ReadSettingsViewModel(
-    private val store: ReadSettingsStore,
-    private val translationRepository: TranslationRepository,
-) : ViewModel() {
+class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() {
 
     val settings: StateFlow<ReadSettings> =
         store.settings.stateIn(viewModelScope, SharingStarted.Eagerly, ReadSettings())
-
-    private val availableTranslationState = MutableStateFlow<List<TranslationInfo>>(emptyList())
-
-    /** Every translation in the manifest, so the user can enable and order them. */
-    val availableTranslations: StateFlow<List<TranslationInfo>> = availableTranslationState
-
-    init {
-        viewModelScope.launch {
-            availableTranslationState.value = translationRepository.available()
-        }
-    }
 
     fun setScript(script: ScriptId) = change { it.copy(script = script) }
 
@@ -85,9 +68,7 @@ fun rememberReadSettingsViewModel(dependencies: ReadDependencies): ReadSettingsV
     viewModel(
         factory =
             viewModelFactory {
-                initializer {
-                    ReadSettingsViewModel(dependencies.settingsStore, dependencies.translations)
-                }
+                initializer { ReadSettingsViewModel(dependencies.settingsStore) }
             },
     )
 

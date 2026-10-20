@@ -88,7 +88,7 @@ class ReadSettingsTest {
     @Test
     fun viewModelWritesChangesToTheStore() = runTest {
         val fixture = ReadFixture()
-        val viewModel = ReadSettingsViewModel(fixture.store, fixture.translations)
+        val viewModel = ReadSettingsViewModel(fixture.store)
 
         viewModel.changeTextSize(-1)
         viewModel.setShowWordByWord(false)
@@ -105,7 +105,7 @@ class ReadSettingsTest {
     @Test
     fun translationsCanBeEnabledDisabledAndReordered() = runTest {
         val fixture = ReadFixture()
-        val viewModel = ReadSettingsViewModel(fixture.store, fixture.translations)
+        val viewModel = ReadSettingsViewModel(fixture.store)
         val english = TranslationId("en_saheeh")
         val bangla = TranslationId("bn_zakaria")
         val third = TranslationId("en_abdul_haleem")

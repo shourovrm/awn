@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.packs
 
+import android.annotation.SuppressLint
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
 import java.io.IOException
@@ -13,14 +14,19 @@ import java.nio.file.StandardCopyOption
  * font archive is extracted to `packs/fonts/<id>/pN.ttf`; unfinished downloads sit in
  * `packs/.downloads/`.
  */
+@Suppress("TooManyFunctions") // One small function per storage question.
 class PackStorage(
     filesDirectory: File,
     private val assets: BundledAssets,
     private val catalog: ManifestCatalog,
+    private val usableBytesOf: (File) -> Long = { directory -> usableBytesOnDisk(directory) },
 ) {
 
     val root = File(filesDirectory, "packs")
     val downloadsDirectory = File(root, ".downloads")
+
+    /** One small file per installed pack holding the checksum it was installed with. */
+    private val installedRecordsDirectory = File(root, ".installed")
 
     private val bundledNames: Set<String> by lazy {
         catalog.allPacks.map { it.fileName }.filter { assets.exists(it) }.toSet()
@@ -66,6 +72,32 @@ class PackStorage(
             location.length()
         }
 
+    /** Remembers that [record] was installed from a file with checksum [sha256]. */
+    fun recordInstalledSha(record: PackRecord, sha256: String) {
+        installedRecordsDirectory.mkdirs()
+        File(installedRecordsDirectory, record.entry.id).writeText(sha256)
+    }
+
+    /**
+     * Returns the checksum [record] was installed with, or null when the app did not install it
+     * (bundled, or installed by an older app version): such a pack is never offered an update.
+     */
+    fun installedSha(record: PackRecord): String? =
+        File(installedRecordsDirectory, record.entry.id).takeIf { it.isFile }?.readText()?.trim()
+
+    /** Returns the bytes of the unfinished download of [record], or 0. */
+    fun partialDownloadBytes(record: PackRecord): Long =
+        File(downloadsDirectory, "${record.fileName}.part").let {
+            if (it.isFile) it.length() else 0L
+        }
+
+    /** Returns the free bytes on the volume that holds the packs. */
+    fun freeBytes(): Long {
+        var existing: File? = root
+        while (existing != null && !existing.exists()) existing = existing.parentFile
+        return existing?.let(usableBytesOf) ?: 0L
+    }
+
     /** Deletes the installed copy of [record] and any unfinished download of it. */
     @Synchronized
     fun delete(record: PackRecord) {
@@ -74,6 +106,7 @@ class PackStorage(
             throw IOException("Could not delete ${location.path}.")
         }
         File(downloadsDirectory, "${record.fileName}.part").delete()
+        File(installedRecordsDirectory, record.entry.id).delete()
     }
 
     private fun copyBundledIfNeeded(record: PackRecord) {
@@ -105,3 +138,11 @@ class ReadOnlyDatabases {
         openDatabases.remove(file.path)?.close()
     }
 }
+
+/**
+ * Returns the bytes free on the volume of [directory]. The lint advice is `getAllocatableBytes`,
+ * which also counts cache that the system would clear; downloads are not worth another app losing
+ * its cache, so the plain free figure is the right one here.
+ */
+@SuppressLint("UsableSpace")
+private fun usableBytesOnDisk(directory: File): Long = directory.usableSpace

@@ -292,10 +292,14 @@ private fun QuranContent(
                         pageTypeName = stringResource(pageTypeText(state.settings.script).name),
                         sizeBytes = status?.downloadBytes,
                         progress = status?.progress,
-                        failed = status?.failed == true,
+                        failure = status?.failure,
                         onDownload = viewModel::downloadFont,
                         onKeepFallback = viewModel::keepFallbackFont,
                     )
+                }
+                // An enabled translation is missing: say so and offer it, instead of showing none.
+                if (state.settings.pageView == PageView.Translation) {
+                    MissingTranslationPrompt(dependencies, state.settings.translations)
                 }
                 if (state.isReciting) {
                     slots.reciteBar(viewModel::exitReciteMode)

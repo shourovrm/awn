@@ -40,6 +40,7 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.settings.failureMessage
 
 private const val PERCENT = 100
 private const val INACTIVE_DOT_ALPHA = 0.3f
@@ -220,9 +221,9 @@ private fun PageTypeControl(
                 )
             }
         else -> {
-            if (status.failed) {
+            status.failure?.let { failure ->
                 Text(
-                    text = stringResource(R.string.font_prompt_failed),
+                    text = failureMessage(failure),
                     style = AwnTypography.small,
                     color = Awn.field.wrongWord,
                 )

@@ -3,6 +3,11 @@ package app.awn.quran.core.data
 import android.content.Context
 import app.awn.quran.core.data.bookmarks.RoomBookmarkRepository
 import app.awn.quran.core.data.database.AwnDatabase
+import app.awn.quran.core.data.downloads.PackDownloads
+import app.awn.quran.core.data.downloads.PackInstallRunner
+import app.awn.quran.core.data.downloads.PackWorkerFactory
+import app.awn.quran.core.data.downloads.SharedPreferencesWantedPackStore
+import app.awn.quran.core.data.downloads.WorkManagerPackScheduler
 import app.awn.quran.core.data.packs.AndroidBundledAssets
 import app.awn.quran.core.data.packs.FilePackRepository
 import app.awn.quran.core.data.packs.ManifestCatalog
@@ -67,6 +72,21 @@ class CoreData(context: Context) {
     val reciters: ReciterRepository = PackReciterRepository(catalog, storage, databases)
 
     val packs: PackRepository = FilePackRepository(catalog, storage, databases)
+
+    private val wantedPacks = SharedPreferencesWantedPackStore(applicationContext)
+
+    /** Background installs: they go on when the app closes and restart on the next launch. */
+    val packDownloads = PackDownloads(wantedPacks, WorkManagerPackScheduler(applicationContext))
+
+    /**
+     * The factory WorkManager needs to build the install worker with this process's [packs]; the
+     * application class returns it from its WorkManager configuration.
+     */
+    val packWorkerFactory =
+        PackWorkerFactory(
+            runner = PackInstallRunner(packs, wantedPacks),
+            displayNameOf = { id -> packs.catalogue().firstOrNull { it.id == id }?.name ?: id },
+        )
 
     val bookmarks: BookmarkRepository by lazy {
         RoomBookmarkRepository(AwnDatabase.open(applicationContext))

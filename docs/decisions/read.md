@@ -18,11 +18,13 @@
 - Fills (`PageDecorations`: selected ayah, playing ayah, playing word, bookmarked ayahs, word states) are drawn behind each line fragment; Hidden words are a 30 % block.
 - Frame: surah left, juz right ("Juz 2 · ¼ Hizb 3" only where a quarter starts, from `Quarters`), page number at the outer corner. `showPageInfo` off removes both.
 - Page fonts: `FontPackController` (install, remove, status with MB) in `QuranViewModel`; `FontDownloadPrompt` shows above the bottom bar while the chosen print has no font and the user has not chosen "Not now". Installing or removing any pack drops the loaded layouts and rebuilds the font cache, so the open page redraws in the new print at once.
+- Reading settings: translation rows come from the download catalogue. A row shows size or status, a download button, remove (after a confirm dialog that names the translation), the order button and the switch. Downloading a translation turns it on; removing turns it off. Word by word and transliteration show the missing download under their switch while on.
+- The Translation view shows `MissingTranslationPrompt` (one line, Download action, then progress) for the first enabled translation that is not on the phone. Any pack install clears the cached page lists, so a new translation appears at once.
+- `FontPackController` is a thin view of `CatalogueModel`, so page fonts download in the background like every other item.
 - Font families are cached per (print, page) for the page plus or minus five (`PageFontCache`).
 
 ## Open items
 - Phone check of the merged screen: long press, panel shift, font prompt, page types, font scale 1.3, Black mode.
-- Translations, word-by-word and transliteration packs have no install path ("Not installed" only): next wave's catalogue.
 - Save the resume position on a short debounce and keep lookups from moving it (sessions/baseline lessons).
 
 ## Gotchas

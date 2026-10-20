@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="catalogue_download">ডাউনলোড</string>
+  <string name="catalogue_update">আপডেট</string>
+  <string name="catalogue_cancel">ডাউনলোড বাতিল</string>
+  <string name="catalogue_remove">মুছুন</string>
+  <string name="catalogue_dialog_cancel">বাতিল</string>
+
+  <string name="catalogue_status_waiting">ডাউনলোডের অপেক্ষায়</string>
+  <string name="catalogue_status_downloading">ডাউনলোড হচ্ছে %1$d%%</string>
+  <string name="catalogue_status_update">আপডেট আছে, %1$s</string>
+  <string name="catalogue_status_installed">ডাউনলোড করা, %1$s</string>
+  <string name="catalogue_status_included">অ্যাপের সাথে দেওয়া</string>
+
+  <string name="catalogue_error_no_space">দরকার %1$s, ফাঁকা আছে %2$s</string>
+  <string name="catalogue_error_no_internet">সংযোগ নেই। ইন্টারনেট দেখুন।</string>
+  <string name="catalogue_error_server">সার্ভার পাওয়া যাচ্ছে না। পরে আবার চেষ্টা করুন।</string>
+  <string name="catalogue_error_damaged">ডাউনলোড নষ্ট হয়েছে। আবার চেষ্টা করুন।</string>
+  <string name="catalogue_error_other">ডাউনলোড হয়নি। আবার চেষ্টা করুন।</string>
+
+  <string name="catalogue_remove_title">%1$s মুছবেন?</string>
+  <string name="catalogue_remove_translation">ফোন থেকে এই অনুবাদ মুছে যাবে। আবার ডাউনলোড করা যাবে।</string>
+  <string name="catalogue_remove_page_type">ফোন থেকে এই পৃষ্ঠার ধরন মুছে যাবে। আবার ডাউনলোড করা যাবে।</string>
+  <string name="catalogue_remove_word_by_word">ফোন থেকে শব্দের অর্থ মুছে যাবে। আবার ডাউনলোড করা যাবে।</string>
+  <string name="catalogue_remove_transliteration">ফোন থেকে এই উচ্চারণ মুছে যাবে। আবার ডাউনলোড করা যাবে।</string>
+
+  <string name="translation_missing">%1$s ডাউনলোড করা নেই</string>
+  <string name="translation_missing_progress">%1$s ডাউনলোড হচ্ছে, %2$d%%</string>
+</resources>

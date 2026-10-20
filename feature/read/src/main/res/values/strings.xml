@@ -55,5 +55,4 @@
   <string name="setting_translation_size">Translation size</string>
   <string name="setting_highlight_bookmarks">Highlight bookmarks</string>
   <string name="setting_volume_keys">Volume keys turn pages</string>
-  <string name="translation_not_installed">Not installed</string>
 </resources>

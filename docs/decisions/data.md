@@ -11,16 +11,25 @@
 - `Quarters` (240 rub' al-hizb, first ayah and page in V1 and V2; juz and hizb follow from the number) is generated from Quran.com `rub_el_hizb_number` by `tools/build_quarters.py` into `QuarterData.kt`; a test pins its SHA-256 (09952942...ef37).
 - `PackRepository.sizeOf(id)` gives the download bytes (manifest) and the installed bytes (null when not installed).
 - User database version 2 adds bookmarked_page, saved_ayah, recent_page (cap 50). The version 1 word `bookmark` table is unused but kept (no drops).
+- Storage: every download lives under `filesDir` (`packs/`, `audio/`, `models/`). Nothing uses external or shared storage and the app asks for no storage permission, so phone cleaners that empty external app folders cannot delete a download (the most discussed Quran for Android problem). Cloud backup and device transfer exclude `filesDir`.
+- `PackRepository.catalogue()` lists `CatalogueItem`s in manifest order. `CatalogueGrouping` sorts them without naming ids: a font that is not bundled is a PageType; translation kind "word" is WordByWord; kind "transliteration" or an id containing it is Transliteration; kind "ayah" is Translation. The text, the bundled Hafs font and reciter timings are not items.
+- An update is offered when the checksum recorded at install (`packs/.installed/<id>`) differs from the manifest's. A copy with no record (bundled, or installed by an older app) never shows an update.
+- `PackSpace`: a database or single font needs the bytes still to download; a font zip needs those plus two more copies of its size (zip and unpacked fonts coexist while unpacking). `install` checks free space first and throws `PackInstallException(reason = NoSpace, neededBytes, freeBytes)`; other reasons are NoInternet, ServerError, Damaged, Other.
+- Installs run in WorkManager (`PackInstallWorker`, unique work `pack-install:<id>`, expedited, network required, foreground notification with Cancel). `PackDownloads.request` writes the id to the wanted list (SharedPreferences `wanted_downloads`) first; success or a failure a retry cannot fix removes it, a dropped connection keeps it and retries, and `AwnApplication` calls `resumeWanted` at every start. `.part` files resume by Range.
+- `CatalogueModel` (state, space check, install, cancel, remove) is shared by the Reading settings, the Downloads page and `FontPackController`.
 - Manifests are read from the bundled JSON only; PackEntry.licence is "Not stated by the source" because manifests carry none.
 
 ## Open items
 - English word-by-word source repeats a phrase on each of its words in surahs 9 to 58 (1,225 rows); `PhraseRepeats` empties the repeats at read time and keeps 4:24:16. The pack is unchanged; rebuilding it with a phrase flag would be cleaner.
 - data-v1 release does not exist yet (404 on 2026-10-20); the download fallback and installs need it.
 - No instrumented test for the asset copy on a device.
+- Downloads use any network; there is no Wi-Fi-only switch for packs yet (audio has one).
+- The 3x space estimate for font zips is 29 MB short for v4-tajweed; the unpack step then fails with NoSpace.
 
 ## Gotchas
 - `org.json` `optString` returns "null" for JSON null; use isNull.
 - HttpURLConnection needs `Accept-Encoding: identity` or Range byte counts break.
 
 ## Tried / rejected
+- WorkManager's default start-up: it runs before `AwnApplication` has built the services the worker needs; the manifest removes it and the application is the `Configuration.Provider`.
 - Editing the contract `PackEntry` to carry bytes/archive info: not allowed; the catalog keeps a side record per id.

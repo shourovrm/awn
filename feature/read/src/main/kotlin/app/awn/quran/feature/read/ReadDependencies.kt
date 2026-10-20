@@ -6,6 +6,7 @@ import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.TranslationRepository
+import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.feature.read.settings.ReadSettingsStore
 import app.awn.quran.player.AudioPlayer
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,8 @@ data class ReadDependencies(
     val progressEvents: ProgressEvents,
     val audioPlayer: AudioPlayer,
     val settingsStore: ReadSettingsStore,
+    /** Starts, cancels and watches the background downloads of the catalogue. */
+    val downloads: PackDownloads,
     /**
      * The reciter list, used to find out whether the chosen reciter has word timings before a word
      * is played. Null means word taps only show the meaning.
