@@ -1,16 +1,18 @@
 # Awn - Quran & Tajweed Helper (عون)
 
-Free, ad-free, account-free Android app for reading the Quran and following recitation word by word on the device, built in Flutter with on-device ONNX models; for Muslims learning to recite and memorise. Licence: Apache-2.0 plus Awn additional conditions (free to all end users, no ads, no charges or in-app purchases, AI-advisory notice, conditions pass through to forks). The repository is source-available, not OSI open source; F-Droid is out of scope for that reason. The plan is `docs/plan.md`.
+Free, ad-free, account-free native Android app (Kotlin, Jetpack Compose, Android only) for reading the Quran and following recitation word by word on the device with on-device ONNX models; for Muslims learning to recite and memorise. Licence: Apache-2.0 plus Awn additional conditions (free to all end users, no ads, no charges or in-app purchases, AI-advisory notice, conditions pass through to forks). The repository is source-available, not OSI open source; F-Droid is out of scope for that reason. Awn depends on no other Quran app's code; the plan is `docs/plan.md`.
 
 ## Commands
-Flutter is not installed on this machine yet (`which flutter` is empty); milestone 0 installs the stable SDK to `~/flutter` and pins the version in `pubspec.yaml`. Until the project is scaffolded the commands below are the intended ones.
-- Setup: `flutter pub get`; Android SDK at `~/android-sdk` with `ANDROID_HOME=$HOME/android-sdk`, `ANDROID_AVD_HOME=$HOME/.config/.android/avd`, and `unset ANDROID_SDK_ROOT` (the shell default points at a read-only `/opt` SDK).
-- Build: `flutter build apk --debug --flavor github` (local); release builds happen only in `release.yml`.
-- Test: `flutter test`; integration: `flutter test integration_test/ -d emulator-5554`.
-- Lint / format: `dart format --set-exit-if-changed . && flutter analyze`.
-- Run locally: `~/android-sdk/emu.sh start` (headless, blocks until boot; ~3.2 GB host RAM, stop when idle), then `flutter run -d emulator-5554 --flavor github`, or `~/android-sdk/emu.sh install build/app/outputs/flutter-apk/app-github-debug.apk`. Phone: `adb devices` then `flutter install -d <serial>`.
-- Verify before any push, in order: 1 `dart format --set-exit-if-changed .`; 2 `flutter analyze`; 3 `flutter test`; 4 integration test on the headless emulator; 5 debug install on the user's phone over USB or wireless ADB; 6 push. CI repeats 1 to 4.
-- Release, in order: 1 confirm `main` is green and `DECISIONS.md` Next is empty of shipped work; 2 `git tag v0.MINOR.PATCH` (every release is a GitHub pre-release; no 1.0 planned); 3 `git push --tags`; 4 `release.yml` builds signed split-per-ABI APKs, writes SHA-256 checksums, attests provenance and runs `gh release create --prerelease --generate-notes`; 5 Google Play upload (later, same signing key, `play` flavor). `versionCode` = MAJOR*10000 + MINOR*100 + PATCH plus a per-ABI offset, computed from the tag in Gradle, never edited by hand.
+The Gradle project is not scaffolded yet; the commands below are the intended ones. Stack: Gradle wrapper 9.8.2, AGP 9.4, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk/targetSdk 36, minSdk 26, versions in `gradle/libs.versions.toml`. No global Gradle is installed (the wrapper handles it).
+- JDK: the system `jdk21-openjdk` is corrupt (`java` fails with "libjli.so: invalid ELF header"; `pacman -Qkk jdk21-openjdk` reports 193 mismatches). Use the working Temurin 21 at `~/.gradle/jdks/temurin-21` on every Gradle call: `JAVA_HOME=~/.gradle/jdks/temurin-21 ./gradlew ...`, or set `org.gradle.java.home` in the user-level `~/.gradle/gradle.properties` (never in the repo). CI uses Temurin 21 via `actions/setup-java`, so local and CI match.
+- Android SDK: `~/android-sdk` (platforms 33–36, build-tools 36.0.0). Shell: `ANDROID_HOME=$HOME/android-sdk`, `ANDROID_AVD_HOME=$HOME/.config/.android/avd`, and `unset ANDROID_SDK_ROOT` (the shell default points at a read-only `/opt` SDK with no images).
+- Setup: `./gradlew help` (downloads the wrapper's Gradle); `sdkmanager --sdk_root=$HOME/android-sdk --licenses`.
+- Build: `./gradlew assembleGithubDebug` (local); release builds happen only in `release.yml`.
+- Test: `./gradlew testGithubDebugUnitTest`; instrumented and Compose UI tests: `./gradlew connectedGithubDebugAndroidTest` (needs the emulator or the phone).
+- Lint / format: `./gradlew spotlessApply` to format (Spotless + ktfmt); `./gradlew spotlessCheck detekt lintGithubDebug` to check.
+- Run locally: `~/android-sdk/emu.sh start` (headless, blocks until boot; ~3.2 GB host RAM, stop when idle), then `./gradlew installGithubDebug && adb shell am start -n org.awn.quran/.MainActivity` (package id pending open question 1 in the plan). Phone: `adb devices`, then the same install task with `ANDROID_SERIAL=<serial>`.
+- Verify before any push, in order: 1 `./gradlew spotlessCheck`; 2 `./gradlew detekt lintGithubDebug`; 3 `./gradlew testGithubDebugUnitTest`; 4 `./gradlew connectedGithubDebugAndroidTest` on the headless emulator; 5 `./gradlew installGithubDebug` on the user's phone over USB or wireless ADB; 6 push. CI repeats 1 to 4.
+- Release, in order: 1 confirm `main` is green and `DECISIONS.md` Next holds no shipped work; 2 `git tag v0.MINOR.PATCH` (every release is a GitHub pre-release; no 1.0 planned); 3 `git push --tags`; 4 `release.yml` builds signed split-per-ABI APKs, writes SHA-256 checksums, attests provenance and runs `gh release create --prerelease --generate-notes`; 5 Google Play upload (later, same signing key, `play` flavor). `versionCode` = MAJOR*10000 + MINOR*100 + PATCH plus a per-ABI offset, computed in Gradle from the tag, never edited by hand.
 - Exclusive resources (one session at a time): the headless emulator (`emu.sh`), the ADB-connected phone.
 
 ## Memory — MANDATORY
@@ -39,21 +41,21 @@ Rules:
 These apply to every contributor and agent; the maintainer's global rules are not available to outside contributors, so the essentials are repeated here.
 - Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `ci:`), imperative subject under 50 characters, body says why. One logical change per commit. No AI co-author trailers.
 - Branching: GitHub Flow. Feature and fix work goes on a branch named `<issue>-<slug>` (for example `42-add-bookmarks`), pull request to `main` with `Refs #n` or `Fixes #n`, squash merge, branch deleted after merge. Small direct commits to `main` are allowed for docs, typos and config tweaks. Agents commit on the branch after each completed change.
-- Before saying "done": format, analyze and tests run locally with real output shown; anything that could not be run is stated first.
-- Secrets (keystore, passwords, tokens) live only in GitHub Secrets and the maintainer's offline backup, never in git, logs or chat. Losing the signing key means users can never update.
+- Before saying "done": format, lint and tests run locally with real output shown; anything that could not be run is stated first.
+- Secrets (keystore, passwords, `HF_TOKEN`) live only in GitHub Secrets and the maintainer's offline backup, never in git, logs or chat. Losing the signing key means users can never update.
 - Change only what the task requires; say what was left alone and why. Code is read in six months by someone else: full names, obvious code over clever code, comments explain why.
-- Never copy code from Quran for Android (GPL-3.0); only its data sources are reused. Never reproduce the azani-w-qiblati Dart code (no licence); read it for parameters only.
+- Independence: never copy code from Quran for Android (GPL-3.0), Natlu, `recite_quran` or azani-w-qiblati; only public data sources and published parameter values are reused. Those projects are a last-resort reference when truly stuck, not a dependency.
 - Wording: never claim "makharij verification" or that the app replaces a teacher; the checker is "experimental feedback on likely mistakes". The AI-advisory notice stays in the first-launch screen and About.
 - Data integrity: every bundled Quran text and translation pack has a recorded source checksum; CI fails if it changes. Content errors (Quran text, translation, word timing) are the top-priority issue type.
 
 ## CI/CD (target setup, GitHub Actions)
-- `ci.yml` on every PR and push to `main`: format check, `flutter analyze`, `flutter test`, Quran-text integrity test (checksums of bundled text and each translation against recorded source checksums), unsigned debug build. Flutter version pinned. The Zipformer int8 model (72,705,392 bytes) is downloaded from the Natlu GitHub release mirror without a token, verified by SHA-256 and cached with `actions/cache` keyed by that hash, so tracking tests run on the real model. The 876 MB Muaalem model is never downloaded in CI; use small fixtures.
-- `smoke.yml` on PRs to `main` (move to nightly if slow): `reactivecircus/android-emulator-runner`, launch the app and open a mushaf page with an integration test.
+- `ci.yml` on every PR and push to `main`: `actions/setup-java` (distribution temurin, java-version 21), `gradle/actions/setup-gradle` for the Gradle cache, then `spotlessCheck`, `detekt`, `lintGithubDebug`, `testGithubDebugUnitTest`, the Quran-text integrity test (checksums of bundled text and each translation against recorded source checksums), and `assembleGithubDebug`. The Zipformer int8 model (72,705,392 bytes) is downloaded from the Quran-Lab Hugging Face repo with a read-only fine-grained `HF_TOKEN` secret, verified by SHA-256 and cached with `actions/cache` keyed by that hash, so tracker tests run on the real model; fork PRs have no secret and skip those tests. The 876 MB Muaalem model is never downloaded in CI; use the small fixtures.
+- `smoke.yml` on PRs to `main` (move to nightly if slow): `reactivecircus/android-emulator-runner` runs `connectedGithubDebugAndroidTest`, which launches the app and opens a mushaf page.
 - `release.yml` on tags `v0.*`: signed split-per-ABI APKs from secrets, SHA-256 checksum file, `actions/attest-build-provenance`, `gh release create --prerelease --generate-notes`.
-- `dependabot.yml` weekly for `pub` and `github-actions`.
+- `dependabot.yml` weekly for `gradle` and `github-actions`.
 - Security: minimal `permissions:` per workflow (`contents: read`; release job `contents: write` plus `attestations: write`, `id-token: write`); actions pinned to commit SHAs; never `pull_request_target`; secrets never available to fork PRs; "require approval for first-time contributors" stays on.
 - Branch protection on `main`: CI required; no required review while solo, 1 approval once outside contributors send PRs; squash merge only; auto-delete branches. No CODEOWNERS, no hotfix branches, no alpha/beta/rc ladder.
-- Flavors: `github` (in-app update check via the GitHub Releases API) and `play` (no self-update). One signing key for both channels; later uploaded to Play App Signing.
+- Gradle product flavors: `github` (in-app update check via the GitHub Releases API) and `play` (no self-update). One signing key for both channels; later uploaded to Play App Signing.
 - Repo files: issue templates (bug, feature, content error), PR template, `CONTRIBUTING.md` stating contributions are under the repo licence. GitHub milestones per `0.x` version; a Project board (Backlog → Doing → Done) is welcome.
 
 ## Parallelism
@@ -62,7 +64,7 @@ When tasks touch disjoint files, run cost-efficient subagents in parallel in the
 ## Agent model tiers
 - cheapest: search, fetch, docs lookup, transcription
 - mid: tests, implementation, verification (fresh-eyes review after every logic-heavy task)
-- strong: complex judgement, adversarial review of risky modules (licence compliance, Quran-text and translation integrity, release signing), final whole-branch review
+- strong: complex judgement, adversarial review of risky modules (licence compliance, Quran-text and translation integrity, the tracker's alignment logic, release signing), final whole-branch review
 - main session: orchestration, builds, and final review; delegate work that touches three or more files or needs research
 
 ## Token economy
