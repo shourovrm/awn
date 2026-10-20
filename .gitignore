@@ -64,3 +64,6 @@ __pycache__/
 # design mockups and taste-skill working files (local only)
 .design-mockups/
 .taste-skill/
+
+# model files (mirrored in the models data release, not in git)
+awn-models/
