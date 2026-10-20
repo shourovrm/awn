@@ -28,6 +28,7 @@ import okhttp3.OkHttpClient
  * Downloads written by [OkHttpAudioDownloads] with the same [audioRoot] play without a network.
  */
 @OptIn(UnstableApi::class)
+@Suppress("TooManyFunctions") // One override per control of the player.
 class ExoAudioPlayer(
     context: Context,
     reciters: ReciterRepository,
@@ -53,6 +54,8 @@ class ExoAudioPlayer(
     override val state: StateFlow<PlaybackState> = controller.state
 
     override val options: StateFlow<PlaybackOptions> = controller.options
+
+    override val sleepTimer: StateFlow<SleepTimer?> = controller.sleepTimer
 
     /** The player the media session shows: play, pause and stop go through the controller. */
     val sessionPlayer: Player = SessionPlayer(engine.player)
@@ -86,6 +89,13 @@ class ExoAudioPlayer(
     override fun previous() = controller.previous()
 
     override fun setOptions(options: PlaybackOptions) = controller.setOptions(options)
+
+    override fun warmUp(reciterId: String) {
+        ensureServiceRunning()
+        controller.warmUp(reciterId)
+    }
+
+    override fun setSleepTimer(timer: SleepTimer?) = controller.setSleepTimer(timer)
 
     /**
      * Connecting a media controller to the service starts it, and Media3 then promotes it to a

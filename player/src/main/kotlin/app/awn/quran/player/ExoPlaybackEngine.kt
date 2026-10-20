@@ -22,6 +22,7 @@ import okhttp3.OkHttpClient
  * first (see [LocalFirstDataSource]). [player] is the instance the media session wraps.
  */
 @UnstableApi
+@Suppress("TooManyFunctions") // The engine interface plus its player listener helpers.
 class ExoPlaybackEngine(
     context: Context,
     httpClient: OkHttpClient,
@@ -56,20 +57,59 @@ class ExoPlaybackEngine(
         player.addListener(PlayerEvents())
     }
 
+    /**
+     * True from the moment the player moved on to the prepared file by itself until the controller
+     * asks for that file: [start] then keeps it playing instead of loading it a second time.
+     */
+    private var movedOnToPreparedFile = false
+
     override fun start(source: AudioSource, startMs: Long, stopAtMs: Long?) {
-        val mediaItem =
-            MediaItem.Builder()
-                .setUri(source.url)
-                .setCustomCacheKey(source.localKey)
-                .setMediaMetadata(
-                    MediaMetadata.Builder().setTitle(source.title).setArtist(source.artist).build(),
-                )
-                .build()
-        player.setMediaItem(mediaItem, startMs)
+        if (continuesPreparedFile(source, startMs, stopAtMs)) {
+            movedOnToPreparedFile = false
+            // Files already played stay in the list only until the controller has caught up.
+            if (player.currentMediaItemIndex > 0)
+                player.removeMediaItems(0, player.currentMediaItemIndex)
+            player.playWhenReady = true
+            return
+        }
+        movedOnToPreparedFile = false
+        player.setMediaItem(mediaItemFor(source), startMs)
         player.prepare()
         player.playWhenReady = true
         if (stopAtMs != null) scheduleStop(stopAtMs)
     }
+
+    override fun prepareNext(source: AudioSource?) {
+        // Index 0 is the file playing (or, just after a hand-over, the one before it); everything
+        // after the current item is replaced.
+        val firstAfterCurrent = player.currentMediaItemIndex + 1
+        if (player.mediaItemCount > firstAfterCurrent) {
+            player.removeMediaItems(firstAfterCurrent, player.mediaItemCount)
+        }
+        if (source != null && player.mediaItemCount > 0) player.addMediaItem(mediaItemFor(source))
+    }
+
+    @Suppress("ReturnCount") // Guard clauses, one per reason the file cannot be continued.
+    private fun continuesPreparedFile(
+        source: AudioSource,
+        startMs: Long,
+        stopAtMs: Long?,
+    ): Boolean {
+        if (!movedOnToPreparedFile || startMs != 0L || stopAtMs != null) return false
+        val playing = player.currentMediaItem ?: return false
+        return playing.mediaId == source.localKey &&
+            playing.localConfiguration?.uri?.toString() == source.url
+    }
+
+    private fun mediaItemFor(source: AudioSource): MediaItem =
+        MediaItem.Builder()
+            .setMediaId(source.localKey)
+            .setUri(source.url)
+            .setCustomCacheKey(source.localKey)
+            .setMediaMetadata(
+                MediaMetadata.Builder().setTitle(source.title).setArtist(source.artist).build(),
+            )
+            .build()
 
     override fun pause() {
         player.pause()
@@ -84,6 +124,7 @@ class ExoPlaybackEngine(
     }
 
     override fun stop() {
+        movedOnToPreparedFile = false
         player.stop()
         player.clearMediaItems()
     }
@@ -111,6 +152,16 @@ class ExoPlaybackEngine(
             if (playbackState == Player.STATE_ENDED) listener?.onEnded()
         }
 
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // The file that was playing ended and the prepared one began with no gap.
+            val movedOnByItself =
+                reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
+            if (!movedOnByItself) return
+            movedOnToPreparedFile = true
+            listener?.onEnded()
+        }
+
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             // Our own pause and play use the user-request reason; anything else (audio focus lost,
             // headphones unplugged) happened without the controller knowing.
@@ -120,6 +171,16 @@ class ExoPlaybackEngine(
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            // A failure while loading the prepared file must not stop the one that plays: drop the
+            // prepared file and carry on. If the playing file is the one that failed, it fails
+            // again
+            // at once and that second error is reported.
+            val preparedFileCount = player.mediaItemCount - (player.currentMediaItemIndex + 1)
+            if (preparedFileCount > 0) {
+                player.removeMediaItems(player.currentMediaItemIndex + 1, player.mediaItemCount)
+                player.prepare()
+                return
+            }
             listener?.onFailed(error.errorCodeName)
         }
     }

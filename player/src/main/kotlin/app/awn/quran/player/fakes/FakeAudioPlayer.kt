@@ -8,6 +8,7 @@ import app.awn.quran.player.DownloadProgress
 import app.awn.quran.player.DownloadState
 import app.awn.quran.player.PlaybackOptions
 import app.awn.quran.player.PlaybackState
+import app.awn.quran.player.SleepTimer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,6 +81,19 @@ class FakeAudioPlayer : AudioPlayer {
     override fun setOptions(options: PlaybackOptions) {
         mutableOptions.value = options.coerced()
     }
+
+    /** A test sets this to show the question before a big download. */
+    val prompt = MutableStateFlow<app.awn.quran.player.DownloadPrompt?>(null)
+
+    override val downloadPrompt: StateFlow<app.awn.quran.player.DownloadPrompt?> = prompt
+
+    private val mutableSleepTimer = MutableStateFlow<SleepTimer?>(null)
+
+    override val sleepTimer: StateFlow<SleepTimer?> = mutableSleepTimer
+
+    override fun setSleepTimer(timer: SleepTimer?) {
+        mutableSleepTimer.value = timer
+    }
 }
 
 /**
@@ -110,6 +124,10 @@ class FakeAudioDownloads(
 
     /** What [estimateBytes] returns for any request. */
     var estimate: Long? = 5_000L
+
+    /** How many times a size was asked for; playing audio that is on disk must not ask. */
+    var estimateCalls = 0
+        private set
 
     override fun state(reciterId: String, surah: Int): Flow<DownloadState> = holdings.map {
         val held = it[reciterId]
@@ -154,7 +172,10 @@ class FakeAudioDownloads(
         return AudioStatus(present * bytesPerAyah, present, ayahs.distinct().size)
     }
 
-    override suspend fun estimateBytes(reciterId: String, ayahs: List<AyahRef>): Long? = estimate
+    override suspend fun estimateBytes(reciterId: String, ayahs: List<AyahRef>): Long? {
+        estimateCalls++
+        return estimate
+    }
 
     override suspend fun removeAyahs(reciterId: String, ayahs: List<AyahRef>) {
         update(reciterId) {

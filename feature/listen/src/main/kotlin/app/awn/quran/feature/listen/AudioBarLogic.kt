@@ -2,6 +2,7 @@ package app.awn.quran.feature.listen
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.player.PlaybackOptions
+import app.awn.quran.player.SleepTimer
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.abs
@@ -11,6 +12,17 @@ internal val REPEAT_CHOICES = listOf(1, 2, 3, 5, 10, PlaybackOptions.INFINITE_RE
 
 /** The speeds the bar's speed button steps through, starting from normal speed. */
 internal val SPEED_CHOICES = listOf(1f, 1.25f, 1.5f, 0.75f)
+
+/** The sleep timer choices of the play options, in menu order; null is "off". */
+internal val SLEEP_TIMER_CHOICES: List<SleepTimer?> =
+    listOf(
+        null,
+        SleepTimer.EndOfAyah,
+        SleepTimer.EndOfSurah,
+        SleepTimer.Minutes(15),
+        SleepTimer.Minutes(30),
+        SleepTimer.Minutes(60),
+    )
 
 private const val SPEED_TOLERANCE = 0.001f
 private const val SPEED_DECIMALS = 2

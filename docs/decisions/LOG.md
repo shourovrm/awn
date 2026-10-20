@@ -73,3 +73,9 @@
 2026-10-21 | Long press finds the nearest ayah and drag makes a range; optional onPlayRange and playPanelRange slots | Play tab needs ranges
 2026-10-21 | Bars show 2 s on open; volume keys only when audio is idle; saved view loaded before the first page | code lessons Y6, Z20, usability 15
 2026-10-21 | Mushaf ayahs exposed as one Unicode node each, drawn glyphs hidden; top bar wraps above font scale 1.3 | TalkBack and 200 % text
+2026-10-21 | Gapless by preparing the next ayah in a two item Exo playlist, not surah files | no surah timing; keeps page sized downloads
+2026-10-21 | Basmalah is its own turn, once per surah per session, from the reciter 1:1 file | rule 7: never between repeats
+2026-10-21 | Cumulative drill is read at range start; repeat, speed and pause apply live | changing them must not restart audio
+2026-10-21 | Big downloads (over 20 MB or metered) ask first via a prompt flow, not a PlaybackState | no surprise downloads; keeps whens exhaustive
+2026-10-21 | Downloads run in AudioDownloadWorker (WorkManager 2.11.2, dataSync foreground) | resume after process death
+2026-10-21 | Stop on task removed is on by default and saved with the playback options | swiping the app away should mean silence

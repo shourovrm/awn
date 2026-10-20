@@ -53,7 +53,7 @@ class ReciterSheetViewModel(
     private val downloads: AudioDownloads,
     private val quranText: QuranTextRepository,
     private val settings: ListenSettings,
-    private val script: ScriptId,
+    private val script: StateFlow<ScriptId>,
 ) : ViewModel() {
 
     private val reciterList = MutableStateFlow<List<Reciter>>(emptyList())
@@ -88,7 +88,7 @@ class ReciterSheetViewModel(
             reciterList.value = list
             idsWithDownloads.value =
                 list.filter { downloads.bytesUsed(it.id) > 0L }.map { it.id }.toSet()
-            val pageAyahs = page?.let { quranText.ayahsOnPage(it, script) }.orEmpty()
+            val pageAyahs = page?.let { quranText.ayahsOnPage(it, script.value) }.orEmpty()
             idsDownloadedForPage.value =
                 if (pageAyahs.isEmpty()) {
                     emptySet()

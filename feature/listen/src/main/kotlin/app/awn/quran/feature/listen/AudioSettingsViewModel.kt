@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.player.AudioDownloads
+import app.awn.quran.player.AudioPlayer
 import app.awn.quran.player.DownloadAmount
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ data class AudioSettingsState(
     val downloadAmount: DownloadAmount = DownloadAmount.Page,
     val wifiOnly: Boolean = true,
     val usedBytes: Long = 0L,
+    val stopOnTaskRemoved: Boolean = true,
 )
 
 /** Drives the Audio settings page. */
@@ -25,20 +27,32 @@ class AudioSettingsViewModel(
     reciters: ReciterRepository,
     downloads: AudioDownloads,
     private val settings: ListenSettings,
+    private val player: AudioPlayer,
 ) : ViewModel() {
 
     private val reciterNames = MutableStateFlow<Map<String, String>>(emptyMap())
     private val totalUsedBytes = MutableStateFlow(0L)
+
+    private val wifiOnlyAndOptions =
+        combine(settings.wifiOnly, player.options) { wifiOnly, options ->
+            wifiOnly to options
+        }
 
     val state: StateFlow<AudioSettingsState> =
         combine(
                 reciterNames,
                 settings.selectedReciterId,
                 settings.downloadAmount,
-                settings.wifiOnly,
+                wifiOnlyAndOptions,
                 totalUsedBytes,
-            ) { names, reciterId, amount, wifiOnly, used ->
-                AudioSettingsState(names[reciterId].orEmpty(), amount, wifiOnly, used)
+            ) { names, reciterId, amount, (wifiOnly, options), used ->
+                AudioSettingsState(
+                    names[reciterId].orEmpty(),
+                    amount,
+                    wifiOnly,
+                    used,
+                    options.stopOnTaskRemoved,
+                )
             }
             .stateIn(
                 viewModelScope,
@@ -59,6 +73,9 @@ class AudioSettingsViewModel(
     fun setDownloadAmount(amount: DownloadAmount) {
         viewModelScope.launch { settings.setDownloadAmount(amount) }
     }
+
+    fun setStopOnTaskRemoved(stop: Boolean) =
+        player.setOptions(player.options.value.copy(stopOnTaskRemoved = stop))
 
     fun setWifiOnly(wifiOnly: Boolean) {
         viewModelScope.launch { settings.setWifiOnly(wifiOnly) }

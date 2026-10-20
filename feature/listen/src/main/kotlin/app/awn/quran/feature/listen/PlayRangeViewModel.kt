@@ -7,7 +7,9 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.PauseAfterAyah
 import app.awn.quran.player.PlaybackOptions
+import app.awn.quran.player.SleepTimer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +22,7 @@ data class PlayRangeState(
     val selection: RangeSelection?,
     val options: PlaybackOptions,
     val chapters: List<Chapter>,
+    val sleepTimer: SleepTimer? = null,
 )
 
 /**
@@ -32,15 +35,19 @@ class PlayRangeViewModel(
     private val player: AudioPlayer,
     private val quranText: QuranTextRepository,
     private val controller: AudioController,
-    private val script: ScriptId,
+    private val script: StateFlow<ScriptId>,
 ) : ViewModel() {
 
     private val selection = MutableStateFlow<RangeSelection?>(null)
     private val chapters = MutableStateFlow<List<Chapter>>(emptyList())
 
     val state: StateFlow<PlayRangeState> =
-        combine(selection, player.options, chapters) { range, options, chapterList ->
-                PlayRangeState(range, options, chapterList)
+        combine(selection, player.options, chapters, player.sleepTimer) {
+                range,
+                options,
+                chapterList,
+                sleepTimer ->
+                PlayRangeState(range, options, chapterList, sleepTimer)
             }
             .stateIn(
                 viewModelScope,
@@ -58,7 +65,7 @@ class PlayRangeViewModel(
      */
     fun load(ayah: AyahRef, page: Int) {
         viewModelScope.launch {
-            val lastOnPage = quranText.ayahsOnPage(page, script).maxOrNull()
+            val lastOnPage = quranText.ayahsOnPage(page, script.value).maxOrNull()
             val end = lastOnPage?.takeIf { it >= ayah } ?: ayah
             selection.value = RangeSelection(from = ayah, to = end)
         }
@@ -80,6 +87,14 @@ class PlayRangeViewModel(
 
     fun setRepeatRange(plays: Int) =
         player.setOptions(player.options.value.copy(repeatRange = plays))
+
+    fun setPauseAfterAyah(pause: PauseAfterAyah) =
+        player.setOptions(player.options.value.copy(pauseAfterAyah = pause))
+
+    fun setCumulative(cumulative: Boolean) =
+        player.setOptions(player.options.value.copy(cumulative = cumulative))
+
+    fun setSleepTimer(timer: SleepTimer?) = player.setSleepTimer(timer)
 
     fun setSpeed(speed: Float) = player.setOptions(player.options.value.copy(speed = speed))
 

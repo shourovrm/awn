@@ -11,7 +11,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private class FakePlaybackEngine : PlaybackEngine {
+internal class FakePlaybackEngine : PlaybackEngine {
 
     class Start(val source: AudioSource, val startMs: Long, val stopAtMs: Long?)
 
@@ -30,6 +30,12 @@ private class FakePlaybackEngine : PlaybackEngine {
         starts += Start(source, startMs, stopAtMs)
         position = startMs
         paused = false
+    }
+
+    val preparedNext = mutableListOf<AudioSource?>()
+
+    override fun prepareNext(source: AudioSource?) {
+        preparedNext += source
     }
 
     override fun pause() {
@@ -61,10 +67,11 @@ class PlaybackControllerTest {
             resolver = ReciterAudioResolver(fakeReciters(), store, fakeQuranText()),
             playlistBuilder = PlaylistBuilder(fakeQuranText()),
             scope = backgroundScope,
+            clockMs = { testScheduler.currentTime },
         )
     }
 
-    private fun playedAyahs() = engine.starts.map { it.source.title.substringAfterLast(' ') }
+    internal fun playedAyahs() = engine.starts.map { it.source.title.substringAfterLast(' ') }
 
     @Test
     fun playsEveryAyahOfTheSurahInOrderThenStops() = runTest {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="download_notification_title">Downloading audio</string>
+  <string name="download_notification_cancel">Cancel</string>
+  <string name="download_channel_name">Audio downloads</string>
+  <string name="media_channel_name">Audio playback</string>
+</resources>

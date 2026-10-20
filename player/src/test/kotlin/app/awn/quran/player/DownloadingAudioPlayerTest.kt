@@ -93,7 +93,11 @@ class DownloadingAudioPlayerTest {
         player.play("alafasy", AyahRef(2, 1), AyahRef(2, 4))
         runCurrent()
 
-        assertEquals(listOf(AyahRef(2, 1), AyahRef(2, 2)), downloads.downloadCalls.single().second)
+        // The Basmalah (1:1) comes along because the page starts surah 2.
+        assertEquals(
+            listOf(AyahRef(1, 1), AyahRef(2, 1), AyahRef(2, 2)),
+            downloads.downloadCalls.single().second,
+        )
     }
 
     @Test
@@ -104,7 +108,7 @@ class DownloadingAudioPlayerTest {
         player.play("alafasy", AyahRef(2, 3), null)
         runCurrent()
 
-        assertEquals(4, downloads.downloadCalls.single().second.size)
+        assertEquals(5, downloads.downloadCalls.single().second.size)
     }
 
     @Test

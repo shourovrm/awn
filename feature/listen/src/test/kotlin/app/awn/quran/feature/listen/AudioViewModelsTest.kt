@@ -13,6 +13,7 @@ import app.awn.quran.player.fakes.FakeAudioDownloads
 import app.awn.quran.player.fakes.FakeAudioPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -72,9 +73,17 @@ class AudioViewModelsTest {
     private fun TestScope.controller() = AudioController(player, settings, backgroundScope)
 
     private fun TestScope.barViewModel() =
-        AudioBarViewModel(player, reciters, quranText, settings, controller(), ScriptId.V2).also {
-            backgroundScope.launch { it.state.collect {} }
-        }
+        AudioBarViewModel(
+                player,
+                reciters,
+                quranText,
+                settings,
+                controller(),
+                MutableStateFlow(ScriptId.V2),
+            )
+            .also {
+                backgroundScope.launch { it.state.collect {} }
+            }
 
     @Test
     fun barIsIdleWithReciterNameThenActiveThenShowsOnlyNonDefaultValues() = runTest {
@@ -185,9 +194,10 @@ class AudioViewModelsTest {
     @Test
     fun panelRangeEndsAtTheLastAyahOfThePage() = runTest {
         val viewModel =
-            PlayRangeViewModel(player, quranText, controller(), ScriptId.V2).also {
-                backgroundScope.launch { it.state.collect {} }
-            }
+            PlayRangeViewModel(player, quranText, controller(), MutableStateFlow(ScriptId.V2))
+                .also {
+                    backgroundScope.launch { it.state.collect {} }
+                }
         viewModel.load(AyahRef(1, 6), page = 1)
         settle()
 
@@ -203,7 +213,8 @@ class AudioViewModelsTest {
 
     @Test
     fun panelPlayHonoursPlayOnlyThisRange() = runTest {
-        val viewModel = PlayRangeViewModel(player, quranText, controller(), ScriptId.V2)
+        val viewModel =
+            PlayRangeViewModel(player, quranText, controller(), MutableStateFlow(ScriptId.V2))
         viewModel.load(AyahRef(2, 10), page = 5)
         settle()
 
@@ -219,7 +230,8 @@ class AudioViewModelsTest {
 
     @Test
     fun panelRepeatAndSpeedReachThePlayerAtOnce() = runTest {
-        val viewModel = PlayRangeViewModel(player, quranText, controller(), ScriptId.V2)
+        val viewModel =
+            PlayRangeViewModel(player, quranText, controller(), MutableStateFlow(ScriptId.V2))
 
         viewModel.setRepeatEachAyah(5)
         viewModel.setRepeatRange(PlaybackOptions.INFINITE_REPEAT)
@@ -261,9 +273,16 @@ class AudioViewModelsTest {
         val downloads = FakeAudioDownloads()
         downloads.download("husary", listOf(AyahRef(2, 10), AyahRef(2, 11)))
         val viewModel =
-            ReciterSheetViewModel(reciters, downloads, quranText, settings, ScriptId.V2).also {
-                backgroundScope.launch { it.state.collect {} }
-            }
+            ReciterSheetViewModel(
+                    reciters,
+                    downloads,
+                    quranText,
+                    settings,
+                    MutableStateFlow(ScriptId.V2),
+                )
+                .also {
+                    backgroundScope.launch { it.state.collect {} }
+                }
 
         viewModel.load(page = 5)
         settle()
@@ -281,7 +300,7 @@ class AudioViewModelsTest {
         downloads.download("alafasy", listOf(AyahRef(1, 1), AyahRef(1, 2)))
         downloads.download("husary", listOf(AyahRef(1, 1)))
         val viewModel =
-            AudioSettingsViewModel(reciters, downloads, settings).also {
+            AudioSettingsViewModel(reciters, downloads, settings, player).also {
                 backgroundScope.launch { it.state.collect {} }
             }
         settle()
@@ -320,5 +339,57 @@ class AudioViewModelsTest {
         viewModel.delete("alafasy", scope)
         settle()
         assertEquals(0, viewModel.items.value.getValue(key).status!!.presentAyahs)
+    }
+
+    @Test
+    fun barAsksBeforeABigDownloadAndNamesAFailureCause() = runTest {
+        val viewModel = barViewModel()
+        player.prompt.value = app.awn.quran.player.DownloadPrompt(32_000_000L, metered = false)
+        settle()
+        assertEquals(AudioBarState.Confirm(32_000_000L, false), viewModel.state.value)
+        player.prompt.value = null
+
+        val problem = app.awn.quran.player.DownloadProblem.NotEnoughSpace(120_000_000L, 40_000_000L)
+        player.currentState.value = PlaybackState.Error("x", problem)
+        settle()
+        assertEquals(problem, (viewModel.state.value as AudioBarState.Idle).problem)
+    }
+
+    @Test
+    fun barShowsTheDrillStep() = runTest {
+        val viewModel = barViewModel()
+        player.currentState.value =
+            PlaybackState.Playing(
+                "alafasy",
+                AyahRef(2, 10),
+                null,
+                0L,
+                null,
+                app.awn.quran.player.PlayStep(3, 7),
+            )
+        settle()
+        assertEquals(
+            app.awn.quran.player.PlayStep(3, 7),
+            (viewModel.state.value as AudioBarState.Active).step,
+        )
+    }
+
+    @Test
+    fun positionTicksDuringPlaybackDoNotChangeTheBarState() = runTest {
+        val viewModel = barViewModel()
+        val seen = mutableListOf<AudioBarState>()
+        backgroundScope.launch { viewModel.state.collect { seen += it } }
+        player.currentState.value = PlaybackState.Playing("alafasy", AyahRef(2, 10), 1, 0L, 5_000L)
+        settle()
+        val countBefore = seen.size
+
+        // The player publishes every 50 ms; the bar must not rebuild for any of them.
+        for (tick in 1..100) {
+            player.currentState.value =
+                PlaybackState.Playing("alafasy", AyahRef(2, 10), tick % 3, tick * 50L, 5_000L)
+        }
+        settle()
+
+        assertEquals(countBefore, seen.size)
     }
 }

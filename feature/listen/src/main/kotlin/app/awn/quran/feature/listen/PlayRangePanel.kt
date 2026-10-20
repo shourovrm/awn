@@ -1,5 +1,8 @@
+@file:Suppress("TooManyFunctions") // One composable per row of the panel.
+
 package app.awn.quran.feature.listen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,7 +41,9 @@ import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.player.PauseAfterAyah
 import app.awn.quran.player.PlaybackOptions
+import app.awn.quran.player.SleepTimer
 import kotlin.math.roundToInt
 
 private const val SPEED_STEPS_PER_UNIT = 20
@@ -89,6 +95,7 @@ fun PlayRangePanel(
             onSelect = viewModel::setRepeatRange,
         )
         SpeedRow(state.options.speed, viewModel::setSpeed)
+        MemorisationControls(state, viewModel)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.panel_only_range),
@@ -192,6 +199,84 @@ private fun RepeatRow(label: String, selected: Int, onSelect: (Int) -> Unit) {
         }
     }
 }
+
+/** Pause after each ayah, cumulative repeat and the sleep timer. */
+@Composable
+private fun MemorisationControls(state: PlayRangeState, viewModel: PlayRangeViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
+        PauseAfterRow(state.options.pauseAfterAyah, viewModel::setPauseAfterAyah)
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.panel_cumulative),
+                    style = AwnTypography.body,
+                    modifier = Modifier.weight(1f),
+                )
+                AwnSwitch(
+                    checked = state.options.cumulative,
+                    onCheckedChange = viewModel::setCumulative,
+                )
+            }
+            Text(
+                text = stringResource(R.string.panel_cumulative_hint),
+                style = AwnTypography.small,
+            )
+        }
+        SleepTimerRow(state.sleepTimer, viewModel::setSleepTimer)
+    }
+}
+
+@Composable
+private fun PauseAfterRow(selected: PauseAfterAyah, onSelect: (PauseAfterAyah) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+        Text(text = stringResource(R.string.panel_pause_after), style = AwnTypography.small)
+        Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+            for (choice in PauseAfterAyah.entries) {
+                Chip(
+                    label = stringResource(pauseLabel(choice)),
+                    isSelected = choice == selected,
+                    onClick = { onSelect(choice) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@StringRes
+private fun pauseLabel(choice: PauseAfterAyah): Int =
+    when (choice) {
+        PauseAfterAyah.Off -> R.string.pause_off
+        PauseAfterAyah.Once -> R.string.pause_once
+        PauseAfterAyah.OneAndHalf -> R.string.pause_one_half
+        PauseAfterAyah.Twice -> R.string.pause_twice
+    }
+
+@Composable
+private fun SleepTimerRow(selected: SleepTimer?, onSelect: (SleepTimer?) -> Unit) {
+    val choices = SLEEP_TIMER_CHOICES
+    val labels = choices.map { sleepTimerLabel(it) }
+    val selectedIndex = choices.indexOf(selected).coerceAtLeast(0)
+    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+        Text(text = stringResource(R.string.panel_sleep), style = AwnTypography.small)
+        Picker(
+            text = labels[selectedIndex],
+            options = labels.mapIndexed { index, label -> index to label },
+            onSelect = { index -> onSelect(choices[index]) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun sleepTimerLabel(timer: SleepTimer?): String =
+    when (timer) {
+        null -> stringResource(R.string.sleep_off)
+        SleepTimer.EndOfAyah -> stringResource(R.string.sleep_end_ayah)
+        SleepTimer.EndOfSurah -> stringResource(R.string.sleep_end_surah)
+        is SleepTimer.Minutes ->
+            pluralStringResource(R.plurals.sleep_minutes, timer.minutes, timer.minutes)
+    }
 
 @Composable
 internal fun Chip(label: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier) {

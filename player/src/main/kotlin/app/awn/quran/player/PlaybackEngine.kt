@@ -32,6 +32,14 @@ interface PlaybackEngine {
      */
     fun start(source: AudioSource, startMs: Long, stopAtMs: Long?)
 
+    /**
+     * Prepares [source] to follow the file now playing, so it starts without a gap when that file
+     * ends; null drops the prepared file. Has no effect on what plays now. When the engine moves on
+     * by itself it calls [Listener.onEnded] for the finished file, and the next [start] of the
+     * prepared file continues it instead of loading it again.
+     */
+    fun prepareNext(source: AudioSource?)
+
     fun pause()
 
     fun resume()
@@ -68,6 +76,12 @@ fun interface AudioResolver {
 
     /** Returns the audio to play for [ayah], or null when the reciter or the file is unknown. */
     suspend fun resolve(reciterId: String, ayah: AyahRef): ResolvedAudio?
+
+    /**
+     * Returns the reciter's Basmalah to play before [before], the first ayah of a surah, or null
+     * when the reciter has none to play on its own (a surah file already starts with it).
+     */
+    suspend fun resolveBasmalah(reciterId: String, before: AyahRef): ResolvedAudio? = null
 }
 
 /**
@@ -119,6 +133,15 @@ class ReciterAudioResolver(
                     coversWholeSurah = true,
                 )
         }
+    }
+
+    @Suppress("ReturnCount") // Guard clauses: no reciter audio, or a surah file.
+    override suspend fun resolveBasmalah(reciterId: String, before: AyahRef): ResolvedAudio? {
+        val fatihahOpening = AyahRef(1, 1)
+        val opening = resolve(reciterId, fatihahOpening) ?: return null
+        if (opening.coversWholeSurah) return null
+        // Same audio as ayah 1:1, but titled with the ayah it introduces.
+        return opening.copy(source = opening.source.copy(title = titleOf(before)))
     }
 
     private fun source(reciter: Reciter, url: String, key: String, title: String) =

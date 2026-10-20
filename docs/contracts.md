@@ -44,12 +44,14 @@ These interfaces are the only surface that feature modules use. Only the maintai
 - `ReferencePhonemes` returns the reference words of an ayah from `ordered_quran_phonemes.json`.
 
 ## :player (package `app.awn.quran.player`)
-- `PlaybackState` is `Idle`, `Downloading`, `Playing`, `Paused` or `Error`.
-- `AudioPlayer` plays ayah ranges or single words, moves to the next or previous ayah, and exposes its state and its `PlaybackOptions` (repeat each ayah, repeat the range, speed) as flows.
-- `DownloadingAudioPlayer` wraps a player and first downloads missing audio by the download amount (page, surah, juz).
+- `PlaybackState` is `Idle`, `Downloading`, `Playing`, `Paused` or `Error`; `Playing` and `Paused` carry `step` (`PlayStep`, the cumulative drill counter), `Error` carries an optional `DownloadProblem`.
+- `AudioPlayer` plays ayah ranges or single words, moves to the next or previous ayah, and exposes its state, its `PlaybackOptions` (repeat each ayah, repeat range, speed, `pauseAfterAyah`, `cumulative`, `stopOnTaskRemoved`), a `SleepTimer`, and a `downloadPrompt` (`DownloadPrompt(sizeBytes, metered)`) answered with `answerDownloadPrompt`. `warmUp(reciterId)` readies it before the first play.
+- `DownloadingAudioPlayer` wraps a player and first downloads missing audio by the download amount (page, surah, juz), asking first above 20 MB or on a metered network.
+- `AudioDownloadRunner` (`DirectDownloadRunner`, `WorkManagerDownloadRunner`), `AudioDownloadWork.install(downloads, freeSpace, network)`, `FreeSpace`, `NetworkStatus` and `DownloadProblem` serve downloads.
 - `DownloadState` is the progress of one reciter's surah download.
 - `AudioDownloads` downloads, measures and removes offline audio.
 - The stub `Reciter` is deleted; use `app.awn.quran.core.data.Reciter`.
+- `:feature:listen` `AudioFeature` takes the reader's print with `useScript(ScriptId)`.
 
 ## Fakes
 - `core.data.fakes`: `FakeQuranTextRepository`, `FakeTranslationRepository`, `FakeReciterRepository`, `FakeBookmarkRepository`, `FakePackRepository`, `FakeProgressEvents`.

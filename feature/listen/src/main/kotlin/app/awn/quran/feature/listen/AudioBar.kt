@@ -1,7 +1,8 @@
-@file:Suppress("MatchingDeclarationName")
+@file:Suppress("MatchingDeclarationName", "TooManyFunctions")
 
 package app.awn.quran.feature.listen
 
+import android.text.format.Formatter
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -24,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,6 +35,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,6 +44,7 @@ import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.player.PlayStep
 
 /** What the buttons of the audio bar do. */
 @Suppress("LongParameterList") // One lambda per button.
@@ -55,6 +61,8 @@ internal class AudioBarActions(
     val onExpand: () -> Unit,
     val onChooseStart: (StartChoice) -> Unit,
     val onDismissStartChoices: () -> Unit,
+    val onDownload: () -> Unit,
+    val onStream: () -> Unit,
 )
 
 /**
@@ -73,6 +81,7 @@ fun AudioBar(
     onExpand: (() -> Unit)? = null,
 ) {
     val viewModel: AudioBarViewModel = viewModel(factory = feature.viewModelFactory)
+    LaunchedEffect(Unit) { viewModel.warmUp() }
     LaunchedEffect(page) { viewModel.showPage(page) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val startChoices by viewModel.startChoices.collectAsStateWithLifecycle()
@@ -80,21 +89,27 @@ fun AudioBar(
     var reciterSheetOpen by rememberSaveable { mutableStateOf(false) }
     var optionsSheetOpen by rememberSaveable { mutableStateOf(false) }
 
+    val currentOnExpand by rememberUpdatedState(onExpand)
+    // One instance for the life of the view model, so a state change does not rebuild every button.
     val actions =
-        AudioBarActions(
-            onPlay = viewModel::play,
-            onPause = viewModel::pause,
-            onStop = viewModel::stop,
-            onPrevious = viewModel::previous,
-            onNext = viewModel::next,
-            onRepeat = viewModel::cycleRepeat,
-            onSpeed = viewModel::cycleSpeed,
-            onCancelDownload = viewModel::stop,
-            onOpenReciters = { reciterSheetOpen = true },
-            onExpand = { if (onExpand != null) onExpand() else optionsSheetOpen = true },
-            onChooseStart = viewModel::choose,
-            onDismissStartChoices = viewModel::dismissStartChoices,
-        )
+        remember(viewModel) {
+            AudioBarActions(
+                onPlay = viewModel::play,
+                onPause = viewModel::pause,
+                onStop = viewModel::stop,
+                onPrevious = viewModel::previous,
+                onNext = viewModel::next,
+                onRepeat = viewModel::cycleRepeat,
+                onSpeed = viewModel::cycleSpeed,
+                onCancelDownload = viewModel::stop,
+                onOpenReciters = { reciterSheetOpen = true },
+                onExpand = { currentOnExpand?.invoke() ?: run { optionsSheetOpen = true } },
+                onChooseStart = viewModel::choose,
+                onDismissStartChoices = viewModel::dismissStartChoices,
+                onDownload = { viewModel.answerDownload(true) },
+                onStream = { viewModel.answerDownload(false) },
+            )
+        }
     AudioBarContent(state, startChoices, actions, modifier)
 
     if (reciterSheetOpen) {
@@ -127,6 +142,7 @@ internal fun AudioBarContent(
             is AudioBarState.Idle -> IdleBar(state, startChoices, actions)
             is AudioBarState.Active -> ActiveBar(state, actions)
             is AudioBarState.Downloading -> DownloadingBar(state, actions)
+            is AudioBarState.Confirm -> ConfirmBar(state, actions)
         }
     }
 }
@@ -148,7 +164,7 @@ private fun RowScope.IdleBar(
         StartFromMenu(choices, actions)
     }
     Text(
-        text = if (state.hasError) stringResource(R.string.audio_error) else state.reciterName,
+        text = idleText(state),
         style = AwnTypography.bodyStrong,
         color = tint,
         maxLines = 1,
@@ -165,6 +181,55 @@ private fun RowScope.IdleBar(
         stringResource(R.string.audio_expand),
         actions.onExpand,
         tint = tint,
+    )
+}
+
+@Composable
+private fun idleText(state: AudioBarState.Idle): String =
+    when {
+        state.problem != null -> problemText(state.problem)
+        state.hasError -> stringResource(R.string.audio_error)
+        else -> state.reciterName
+    }
+
+/** "Download 3.2 MB?" with a Download and a Stream action, in place of the buttons. */
+@Composable
+private fun RowScope.ConfirmBar(state: AudioBarState.Confirm, actions: AudioBarActions) {
+    val tint = Awn.field.onButton
+    IconAction(
+        R.drawable.ic_listen_close,
+        stringResource(R.string.audio_cancel),
+        actions.onStop,
+        tint = tint,
+    )
+    val size = Formatter.formatShortFileSize(LocalContext.current, state.sizeBytes)
+    Text(
+        text = stringResource(R.string.audio_download_question, size),
+        style = AwnTypography.bodyStrong,
+        color = tint,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.weight(1f).padding(horizontal = AwnSpacing.small),
+    )
+    BarTextAction(stringResource(R.string.audio_stream_action), actions.onStream, tint)
+    BarTextAction(stringResource(R.string.audio_download_action), actions.onDownload, tint)
+}
+
+@Composable
+private fun BarTextAction(
+    label: String,
+    onClick: () -> Unit,
+    tint: androidx.compose.ui.graphics.Color,
+) {
+    Text(
+        text = label,
+        style = AwnTypography.bodyStrong,
+        color = tint,
+        modifier =
+            Modifier.heightIn(min = AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onClick)
+                .wrapContentHeight(Alignment.CenterVertically)
+                .padding(horizontal = AwnSpacing.small),
     )
 }
 
@@ -255,6 +320,22 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         valueDescriptionRes = R.string.audio_speed_value,
         onClick = actions.onSpeed,
         modifier = evenly,
+    )
+    state.step?.let { StepCounter(it, tint) }
+}
+
+/** "3/7": where the cumulative drill is, read aloud as "Step 3 of 7". */
+@Composable
+private fun StepCounter(step: PlayStep, tint: androidx.compose.ui.graphics.Color) {
+    val description = stringResource(R.string.audio_step_description, step.number, step.total)
+    Text(
+        text = stringResource(R.string.audio_step, step.number, step.total),
+        style = AwnTypography.bodyStrong,
+        color = tint,
+        modifier =
+            Modifier.padding(horizontal = AwnSpacing.small).semantics {
+                contentDescription = description
+            },
     )
 }
 

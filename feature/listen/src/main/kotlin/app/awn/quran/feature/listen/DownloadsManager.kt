@@ -31,6 +31,7 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.player.DownloadProblem
 import app.awn.quran.player.JuzTable
 
 private const val TAB_SURAH = 0
@@ -148,7 +149,9 @@ private fun ItemRow(
             )
         }
         ItemProgress(item)
-        failureText(item.failure)?.let { Text(text = it, style = AwnTypography.small) }
+        failureText(item.failure, item.problem)?.let {
+            Text(text = it, style = AwnTypography.small)
+        }
     }
     if (confirmingDelete) {
         DeleteConfirmation(
@@ -255,11 +258,12 @@ private fun DeleteConfirmation(
 }
 
 @Composable
-private fun failureText(failure: ItemFailure): String? =
-    when (failure) {
-        ItemFailure.None -> null
-        ItemFailure.WifiRequired -> stringResource(R.string.downloads_wifi_needed)
-        ItemFailure.Failed -> stringResource(R.string.manager_failed)
+private fun failureText(failure: ItemFailure, problem: DownloadProblem?): String? =
+    when {
+        failure == ItemFailure.None -> null
+        problem != null -> problemText(problem)
+        failure == ItemFailure.WifiRequired -> stringResource(R.string.downloads_wifi_needed)
+        else -> stringResource(R.string.manager_failed)
     }
 
 @Composable

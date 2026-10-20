@@ -34,3 +34,36 @@ class UnmeteredOnlyPolicy(
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true
     }
 }
+
+/** What the download code needs to know about the connection. */
+interface NetworkStatus {
+
+    /** True when the phone has a connection that reaches the internet. */
+    fun isOnline(): Boolean
+
+    /** True on mobile data or a hotspot, where downloads cost the user money. */
+    fun isMetered(): Boolean
+
+    companion object {
+        val Unrestricted =
+            object : NetworkStatus {
+                override fun isOnline() = true
+
+                override fun isMetered() = false
+            }
+    }
+}
+
+/** [NetworkStatus] read from the system's connectivity service. */
+class AndroidNetworkStatus(context: Context) : NetworkStatus {
+
+    private val connectivity =
+        context.applicationContext.getSystemService(ConnectivityManager::class.java)
+
+    override fun isOnline(): Boolean {
+        val capabilities = connectivity.getNetworkCapabilities(connectivity.activeNetwork)
+        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }
+
+    override fun isMetered(): Boolean = connectivity.isActiveNetworkMetered
+}

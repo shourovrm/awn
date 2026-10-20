@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.media3.session)
     implementation(libs.media3.datasourceOkhttp)
     implementation(libs.kotlinx.coroutinesAndroid)
+    implementation(libs.androidx.work)
 
     testImplementation(libs.kotlinx.coroutinesTest)
 }

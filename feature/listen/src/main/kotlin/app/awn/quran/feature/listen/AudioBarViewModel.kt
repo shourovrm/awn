@@ -7,6 +7,8 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.DownloadProblem
+import app.awn.quran.player.PlayStep
 import app.awn.quran.player.PlaybackOptions
 import app.awn.quran.player.PlaybackState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +23,27 @@ import kotlinx.coroutines.launch
 sealed interface AudioBarState {
 
     /** Nothing plays. [hasError] is true after the last request failed. */
-    data class Idle(val reciterName: String, val hasError: Boolean) : AudioBarState
+    data class Idle(
+        val reciterName: String,
+        val hasError: Boolean,
+        /** Why a download failed, when the error has a cause the bar can name. */
+        val problem: DownloadProblem? = null,
+    ) : AudioBarState
+
+    /** The audio is missing and big: ask whether to download [sizeBytes] or stream. */
+    data class Confirm(val sizeBytes: Long, val metered: Boolean) : AudioBarState
 
     /**
      * Audio plays ([isPlaying]) or is paused. [repeatCount] and [speed] are null at their defaults,
      * so the bar shows a small value only when they differ.
      */
-    data class Active(val isPlaying: Boolean, val repeatCount: Int?, val speed: Float?) :
-        AudioBarState
+    data class Active(
+        val isPlaying: Boolean,
+        val repeatCount: Int?,
+        val speed: Float?,
+        /** The step of a cumulative drill, or null when the range plays in plain order. */
+        val step: PlayStep? = null,
+    ) : AudioBarState
 
     data class Downloading(val doneBytes: Long, val totalBytes: Long?) : AudioBarState
 }
@@ -42,9 +57,9 @@ class AudioBarViewModel(
     private val player: AudioPlayer,
     reciters: ReciterRepository,
     private val quranText: QuranTextRepository,
-    settings: ListenSettings,
+    private val settings: ListenSettings,
     private val controller: AudioController,
-    private val script: ScriptId,
+    private val script: StateFlow<ScriptId>,
 ) : ViewModel() {
 
     private val page = MutableStateFlow(1)
@@ -61,12 +76,18 @@ class AudioBarViewModel(
     val startChoices: StateFlow<List<StartChoice>> = mutableStartChoices
 
     val state: StateFlow<AudioBarState> =
-        combine(player.state, player.options, settings.selectedReciterId, reciterNames) {
-                playback,
-                options,
-                reciterId,
-                names ->
-                barState(playback, options, names[reciterId].orEmpty())
+        combine(
+                player.state,
+                player.options,
+                settings.selectedReciterId,
+                reciterNames,
+                player.downloadPrompt,
+            ) { playback, options, reciterId, names, prompt ->
+                if (prompt != null) {
+                    AudioBarState.Confirm(prompt.sizeBytes, prompt.metered)
+                } else {
+                    barState(playback, options, names[reciterId].orEmpty())
+                }
             }
             .stateIn(
                 viewModelScope,
@@ -81,12 +102,17 @@ class AudioBarViewModel(
         }
     }
 
+    /** Prepares the player when the bar appears, so the first play starts quickly. */
+    fun warmUp() {
+        viewModelScope.launch { player.warmUp(settings.selectedReciterId.first()) }
+    }
+
     /** Tells the bar which page it is on; Play starts from the first ayah of this page. */
     fun showPage(pageNumber: Int) {
         page.value = pageNumber
         mutableStartChoices.value = emptyList()
         viewModelScope.launch {
-            mutablePageStart.value = quranText.ayahsOnPage(pageNumber, script).minOrNull()
+            mutablePageStart.value = quranText.ayahsOnPage(pageNumber, script.value).minOrNull()
         }
     }
 
@@ -97,7 +123,7 @@ class AudioBarViewModel(
                 player.resume()
                 return@launch
             }
-            val choices = startChoicesFor(quranText.ayahsOnPage(page.value, script))
+            val choices = startChoicesFor(quranText.ayahsOnPage(page.value, script.value))
             when (choices.size) {
                 0 -> Unit
                 1 -> controller.playFrom(choices.single())
@@ -116,6 +142,8 @@ class AudioBarViewModel(
     fun dismissStartChoices() {
         mutableStartChoices.value = emptyList()
     }
+
+    fun answerDownload(download: Boolean) = player.answerDownloadPrompt(download)
 
     fun pause() = player.pause()
 
@@ -143,20 +171,26 @@ class AudioBarViewModel(
         when (playback) {
             is PlaybackState.Downloading ->
                 AudioBarState.Downloading(playback.doneBytes, playback.totalBytes)
-            is PlaybackState.Playing -> active(isPlaying = true, options)
-            is PlaybackState.Paused -> active(isPlaying = false, options)
-            is PlaybackState.Error -> AudioBarState.Idle(reciterName, hasError = true)
+            is PlaybackState.Playing -> active(isPlaying = true, options, playback.step)
+            is PlaybackState.Paused -> active(isPlaying = false, options, playback.step)
+            is PlaybackState.Error ->
+                AudioBarState.Idle(reciterName, hasError = true, problem = playback.problem)
             PlaybackState.Idle -> AudioBarState.Idle(reciterName, hasError = false)
         }
 
     /** The repeat shown is the per-ayah one, else the range one, and only when above 1. */
-    private fun active(isPlaying: Boolean, options: PlaybackOptions): AudioBarState.Active {
+    private fun active(
+        isPlaying: Boolean,
+        options: PlaybackOptions,
+        step: PlayStep?,
+    ): AudioBarState.Active {
         val shownRepeat =
             if (options.repeatEachAyah > 1) options.repeatEachAyah else options.repeatRange
         return AudioBarState.Active(
             isPlaying = isPlaying,
             repeatCount = shownRepeat.takeIf { it > 1 },
             speed = options.speed.takeIf { it != 1f },
+            step = step,
         )
     }
 

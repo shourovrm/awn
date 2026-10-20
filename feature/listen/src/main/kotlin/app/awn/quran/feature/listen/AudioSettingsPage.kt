@@ -91,6 +91,20 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
             )
             AwnSwitch(checked = state.wifiOnly, onCheckedChange = viewModel::setWifiOnly)
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.audio_setting_stop_on_close),
+                style = AwnTypography.body,
+                modifier = Modifier.weight(1f),
+            )
+            AwnSwitch(
+                checked = state.stopOnTaskRemoved,
+                onCheckedChange = viewModel::setStopOnTaskRemoved,
+            )
+        }
         SettingRow(
             label = stringResource(R.string.audio_setting_downloads),
             value = "",

@@ -7,11 +7,14 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
+import app.awn.quran.player.AudioDownloadRunner
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioStatus
-import app.awn.quran.player.DownloadNotAllowedException
+import app.awn.quran.player.DirectDownloadRunner
 import app.awn.quran.player.DownloadPlan
+import app.awn.quran.player.DownloadProblem
 import app.awn.quran.player.DownloadProgress
+import app.awn.quran.player.NetworkStatus
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,6 +57,8 @@ data class ItemState(
     val estimateBytes: Long? = null,
     val progress: DownloadProgress? = null,
     val failure: ItemFailure = ItemFailure.None,
+    /** The named cause behind [failure], when there is one. */
+    val problem: DownloadProblem? = null,
 )
 
 data class ManagerReciter(val id: String, val name: String, val usedBytes: Long)
@@ -69,6 +74,8 @@ class DownloadsManagerViewModel(
     private val reciters: ReciterRepository,
     private val quranText: QuranTextRepository,
     private val downloadScope: CoroutineScope,
+    private val runner: AudioDownloadRunner = DirectDownloadRunner(downloads),
+    private val network: NetworkStatus = NetworkStatus.Unrestricted,
 ) : ViewModel() {
 
     private val plan = DownloadPlan(quranText)
@@ -165,16 +172,25 @@ class DownloadsManagerViewModel(
 
     private suspend fun runDownload(reciterId: String, scope: ItemScope, key: String) {
         changeItem(key) {
-            it.copy(progress = DownloadProgress(0L, null), failure = ItemFailure.None)
+            it.copy(
+                progress = DownloadProgress(0L, null),
+                failure = ItemFailure.None,
+                problem = null,
+            )
         }
         try {
-            downloads.download(reciterId, ayahsOf(scope)) { progress ->
+            runner.run(reciterId, ayahsOf(scope)) { progress ->
                 changeItem(key) { it.copy(progress = progress) }
             }
-        } catch (@Suppress("SwallowedException") refused: DownloadNotAllowedException) {
-            changeItem(key) { it.copy(failure = ItemFailure.WifiRequired) }
-        } catch (@Suppress("SwallowedException") failed: IOException) {
-            changeItem(key) { it.copy(failure = ItemFailure.Failed) }
+        } catch (failed: IOException) {
+            val problem = DownloadProblem.classify(failed, network.isOnline())
+            val failure =
+                if (problem == DownloadProblem.WifiOnly) {
+                    ItemFailure.WifiRequired
+                } else {
+                    ItemFailure.Failed
+                }
+            changeItem(key) { it.copy(failure = failure, problem = problem) }
         } finally {
             withContext(NonCancellable) {
                 refreshStatus(reciterId, scope, key)

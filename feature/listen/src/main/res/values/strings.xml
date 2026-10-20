@@ -55,4 +55,28 @@
   <string name="manager_part_downloaded">%1$s of %2$s ayahs</string>
   <string name="manager_failed">Download failed. Check your connection.</string>
   <string name="audio_start_choice">%1$s %2$d</string>
+  <string name="panel_pause_after">Pause after ayah</string>
+  <string name="pause_off">Off</string>
+  <string name="pause_once">1×</string>
+  <string name="pause_one_half">1.5×</string>
+  <string name="pause_twice">2×</string>
+  <string name="panel_cumulative">Cumulative repeat</string>
+  <string name="panel_cumulative_hint">Plays 1, 2, 1+2, 3, 1+2+3 and so on</string>
+  <string name="panel_sleep">Sleep timer</string>
+  <string name="sleep_off">Off</string>
+  <string name="sleep_end_ayah">End of ayah</string>
+  <string name="sleep_end_surah">End of surah</string>
+  <plurals name="sleep_minutes">
+    <item quantity="one">%1$d minute</item>
+    <item quantity="other">%1$d minutes</item>
+  </plurals>
+  <string name="audio_step">%1$d/%2$d</string>
+  <string name="audio_step_description">Step %1$d of %2$d</string>
+  <string name="audio_setting_stop_on_close">Stop when app closes</string>
+  <string name="download_problem_space">Needs %1$s, %2$s free</string>
+  <string name="download_problem_internet">No internet</string>
+  <string name="download_problem_server">Server not reachable</string>
+  <string name="audio_download_question">Download %1$s?</string>
+  <string name="audio_download_action">Download</string>
+  <string name="audio_stream_action">Stream</string>
 </resources>

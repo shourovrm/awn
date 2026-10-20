@@ -55,4 +55,28 @@
   <string name="manager_part_downloaded">%2$s আয়াতের %1$s টি</string>
   <string name="manager_failed">ডাউনলোড হয়নি। সংযোগ দেখুন।</string>
   <string name="audio_start_choice">%1$s %2$d</string>
+  <string name="panel_pause_after">আয়াতের পর বিরতি</string>
+  <string name="pause_off">বন্ধ</string>
+  <string name="pause_once">1×</string>
+  <string name="pause_one_half">1.5×</string>
+  <string name="pause_twice">2×</string>
+  <string name="panel_cumulative">ধাপে ধাপে পুনরাবৃত্তি</string>
+  <string name="panel_cumulative_hint">১, ২, ১+২, ৩, ১+২+৩ এভাবে চলে</string>
+  <string name="panel_sleep">স্লিপ টাইমার</string>
+  <string name="sleep_off">বন্ধ</string>
+  <string name="sleep_end_ayah">আয়াত শেষে</string>
+  <string name="sleep_end_surah">সূরা শেষে</string>
+  <plurals name="sleep_minutes">
+    <item quantity="one">%1$d মিনিট</item>
+    <item quantity="other">%1$d মিনিট</item>
+  </plurals>
+  <string name="audio_step">%1$d/%2$d</string>
+  <string name="audio_step_description">ধাপ %1$d, মোট %2$d</string>
+  <string name="audio_setting_stop_on_close">অ্যাপ বন্ধ করলে থামান</string>
+  <string name="download_problem_space">%1$s দরকার, খালি আছে %2$s</string>
+  <string name="download_problem_internet">ইন্টারনেট নেই</string>
+  <string name="download_problem_server">সার্ভার পাওয়া যাচ্ছে না</string>
+  <string name="audio_download_question">%1$s ডাউনলোড করবেন?</string>
+  <string name="audio_download_action">ডাউনলোড</string>
+  <string name="audio_stream_action">অনলাইনে শুনুন</string>
 </resources>

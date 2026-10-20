@@ -39,6 +39,7 @@ A bar at the bottom of the Quran screen with three states:
 - Idle: play, reciter name (tap opens the reciter sheet), expand.
 - Playing: stop, previous ayah, pause, next ayah, repeat, speed. Repeat and speed show a small value over the icon only when not at the default ("3", "1.25").
 - Downloading: cancel, "Downloading", a progress bar, and the size ("2.1 of 5.4 MB").
+- Asking: when the missing audio is over 20 MB or the network is metered, "Download 3.2 MB?" with Stream and Download. A failed download names its cause ("Needs 120 MB, 40 MB free", "No internet", "Server not reachable"). In cumulative repeat the playing state also shows the step ("3/7").
 Play starts at the first ayah of the page (or asks "Start from" with the two surahs when a page holds two). Missing audio downloads by the "Download amount" setting (page, surah or juz) and plays when ready.
 
 The Play tab of the ayah panel: From (surah, ayah), To (surah, ayah; default the last ayah of the page), "Repeat each ayah" (1, 2, 3, 5, 10, ∞), "Repeat the range" (1, 2, 3, 5, 10, ∞), speed (0.75 to 1.5), "Play only this range", and "Play". The reciter sheet: a search field, then "Downloaded for this page", "With downloads", "All", a tick on the current reciter. The media notification title is "Al-Baqarah 2:6" with the reciter under it.

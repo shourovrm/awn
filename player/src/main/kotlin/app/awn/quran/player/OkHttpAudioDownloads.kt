@@ -525,6 +525,8 @@ class OkHttpAudioDownloads(
     // region Names and sizes
 
     /** True when [reciterId] has one file per ayah, false when it has one file per surah. */
+    override suspend fun hasAyahFiles(reciterId: String): Boolean = usesAyahFiles(reciterId)
+
     private suspend fun usesAyahFiles(reciterId: String): Boolean {
         val reciter = reciters.reciters().firstOrNull { it.id == reciterId } ?: return true
         return reciter.ayahUrlPattern != null

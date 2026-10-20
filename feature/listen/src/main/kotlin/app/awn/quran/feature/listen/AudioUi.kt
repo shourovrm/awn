@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -26,6 +27,7 @@ import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.player.DownloadProblem
 import app.awn.quran.player.PlaybackOptions
 
 private const val TRACK_ALPHA = 0.3f
@@ -119,3 +121,20 @@ internal fun repeatLabel(plays: Int): String =
     } else {
         plays.toString()
     }
+
+/** The line that names why a download failed, with sizes for the space problem. */
+@Composable
+internal fun problemText(problem: DownloadProblem): String {
+    val context = LocalContext.current
+    return when (problem) {
+        is DownloadProblem.NotEnoughSpace ->
+            stringResource(
+                R.string.download_problem_space,
+                Formatter.formatShortFileSize(context, problem.neededBytes),
+                Formatter.formatShortFileSize(context, problem.freeBytes),
+            )
+        DownloadProblem.NoInternet -> stringResource(R.string.download_problem_internet)
+        DownloadProblem.ServerNotReachable -> stringResource(R.string.download_problem_server)
+        DownloadProblem.WifiOnly -> stringResource(R.string.downloads_wifi_needed)
+    }
+}

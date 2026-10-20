@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="download_notification_title">অডিও ডাউনলোড হচ্ছে</string>
+  <string name="download_notification_cancel">বাতিল</string>
+  <string name="download_channel_name">অডিও ডাউনলোড</string>
+  <string name="media_channel_name">অডিও চলছে</string>
+</resources>

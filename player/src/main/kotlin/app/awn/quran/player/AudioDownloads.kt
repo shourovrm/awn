@@ -23,6 +23,7 @@ data class AudioStatus(val presentBytes: Long, val presentAyahs: Int, val totalA
         get() = totalAyahs > 0 && presentAyahs >= totalAyahs
 }
 
+@Suppress("TooManyFunctions") // Download, measure and delete are one store.
 interface AudioDownloads {
 
     /** Emits the download state of one surah of one reciter, again after every change. */
@@ -44,6 +45,9 @@ interface AudioDownloads {
         ayahs: List<AyahRef>,
         onProgress: (DownloadProgress) -> Unit = {},
     )
+
+    /** True when [reciterId] has one file per ayah; false when it has only whole-surah files. */
+    suspend fun hasAyahFiles(reciterId: String): Boolean = true
 
     /** Returns the bytes of downloaded audio held for [reciterId]. */
     suspend fun bytesUsed(reciterId: String): Long
