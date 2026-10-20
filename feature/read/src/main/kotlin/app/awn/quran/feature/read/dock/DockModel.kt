@@ -12,5 +12,6 @@ fun dockModelOf(state: PlaybackState): DockModel? =
         is PlaybackState.Playing -> DockModel(state.reciterId, state.ayah, isPlaying = true)
         is PlaybackState.Paused -> DockModel(state.reciterId, state.ayah, isPlaying = false)
         is PlaybackState.Idle,
+        is PlaybackState.Downloading,
         is PlaybackState.Error -> null
     }

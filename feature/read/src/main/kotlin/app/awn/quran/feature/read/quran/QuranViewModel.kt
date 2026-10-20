@@ -493,7 +493,9 @@ class QuranViewModel(
                     ayah = playback.ayah
                     wordPosition = null
                 }
+                // Nothing is heard while the audio downloads, so no ayah is highlighted.
                 is PlaybackState.Idle,
+                is PlaybackState.Downloading,
                 is PlaybackState.Error -> {
                     ayah = null
                     wordPosition = null
