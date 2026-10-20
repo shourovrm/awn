@@ -1,5 +1,6 @@
-# Local-only notes: exported chat sessions
+# Local-only: exported chat sessions and Claude Code settings
 /sessions/
+/.claude/
 
 # Secrets: signing keys, passwords, env files
 *.jks
