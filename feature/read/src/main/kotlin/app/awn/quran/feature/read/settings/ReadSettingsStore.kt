@@ -47,6 +47,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             preferences[VOLUME_KEYS_KEY] = updated.volumeKeysTurnPages
             // The 3-step size is replaced by the two step keys written above.
             preferences.remove(LEGACY_TEXT_SIZE_KEY)
+            preferences[SHOW_PAGE_INFO_KEY] = updated.showPageInfo
         }
     }
 
@@ -76,6 +77,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             highlightBookmarks =
                 preferences[HIGHLIGHT_BOOKMARKS_KEY] ?: defaults.highlightBookmarks,
             volumeKeysTurnPages = preferences[VOLUME_KEYS_KEY] ?: defaults.volumeKeysTurnPages,
+            showPageInfo = preferences[SHOW_PAGE_INFO_KEY] ?: defaults.showPageInfo,
         )
     }
 
@@ -100,5 +102,6 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
         val TRANSLATION_STEP_KEY = intPreferencesKey("translation_size_step")
         val HIGHLIGHT_BOOKMARKS_KEY = booleanPreferencesKey("highlight_bookmarks")
         val VOLUME_KEYS_KEY = booleanPreferencesKey("volume_keys_turn_pages")
+        val SHOW_PAGE_INFO_KEY = booleanPreferencesKey("show_page_info")
     }
 }

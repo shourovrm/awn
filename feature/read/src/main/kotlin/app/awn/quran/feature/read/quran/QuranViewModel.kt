@@ -7,6 +7,8 @@ import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.page.FontPackController
+import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.settings.PageView
@@ -18,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -62,7 +65,16 @@ data class QuranUiState(
     val wordPopup: WordPopup? = null,
     val playingAyah: AyahRef? = null,
     val playingWordPosition: Int? = null,
+    /** Install state of the chosen page type's font; null while unknown. */
+    val fontStatus: FontPackStatus? = null,
+    val isFontPromptDismissed: Boolean = false,
+    /** Changes whenever a pack is installed or removed, so cached fonts are looked up again. */
+    val packRevision: Int = 0,
 ) {
+    /** The chosen print's font is missing and the user has not chosen to keep the fallback. */
+    val showFontPrompt: Boolean
+        get() = fontStatus != null && !fontStatus.isInstalled && !isFontPromptDismissed
+
     /**
      * The surah the title names for the page shown: the first surah that starts on it, or else the
      * one that continues there. Null until the page is loaded.
@@ -109,6 +121,7 @@ class QuranViewModel(
     wordLanguage: String,
     private val pageReadDelayMs: Long = PAGE_READ_DELAY_MS,
 ) : ViewModel() {
+    private val fontPacks = FontPackController(dependencies.packs, viewModelScope)
 
     private val mutableState = MutableStateFlow(QuranUiState())
     val state: StateFlow<QuranUiState> = mutableState
@@ -132,6 +145,8 @@ class QuranViewModel(
         viewModelScope.launch { followBookmarks() }
         viewModelScope.launch { followSavedAyahs() }
         viewModelScope.launch { followPlayback() }
+        viewModelScope.launch { followFontStatus() }
+        viewModelScope.launch { followInstalledPacks() }
     }
 
     /**
@@ -449,6 +464,10 @@ class QuranViewModel(
             mutableState.update {
                 it.copy(
                     settings = settings,
+                    isFontPromptDismissed = if (scriptChanged) false else it.isFontPromptDismissed,
+                    fontStatus =
+                        if (scriptChanged) fontPacks.statuses.value[settings.script]
+                        else it.fontStatus,
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
                         if (scriptChanged || translationsChanged) emptyMap() else it.contents,
@@ -456,6 +475,40 @@ class QuranViewModel(
             }
             val needsReload = scriptChanged || translationsChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
+                val page = mutableState.value.currentPage
+                loadPage(page)
+                loadPage(page - 1)
+                loadPage(page + 1)
+            }
+        }
+    }
+
+    /** Downloads the font of the chosen page type; progress and failure show in the state. */
+    fun downloadFont() {
+        fontPacks.install(mutableState.value.settings.script)
+    }
+
+    /** Keeps the fallback font for the chosen page type and hides the prompt. */
+    fun keepFallbackFont() {
+        mutableState.update { it.copy(isFontPromptDismissed = true) }
+    }
+
+    private suspend fun followFontStatus() {
+        fontPacks.statuses.collect { statuses ->
+            mutableState.update { it.copy(fontStatus = statuses[it.settings.script]) }
+        }
+    }
+
+    /**
+     * A newly installed print must replace the fallback already on screen: the layouts loaded with
+     * the fallback are dropped and the visible pages load again with the new font.
+     */
+    private suspend fun followInstalledPacks() {
+        dependencies.packs.installed().drop(1).collect {
+            mutableState.update {
+                it.copy(packRevision = it.packRevision + 1, layouts = emptyMap())
+            }
+            if (mutableState.value.hasStarted) {
                 val page = mutableState.value.currentPage
                 loadPage(page)
                 loadPage(page - 1)

@@ -2,6 +2,7 @@ package app.awn.quran.core.data.fakes
 
 import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.PackRepository
+import app.awn.quran.core.data.PackSize
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.packs.PackEntry
 import java.io.File
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class FakePackRepository(
     val manifests: MutableMap<String, List<PackEntry>> = mutableMapOf(),
     val fontFiles: MutableMap<ScriptId, File> = mutableMapOf(),
+    val sizes: MutableMap<String, PackSize> = mutableMapOf(),
 ) : PackRepository {
 
     private val installedState = MutableStateFlow<List<InstalledPack>>(emptyList())
@@ -23,6 +25,8 @@ class FakePackRepository(
     override fun installed(): Flow<List<InstalledPack>> = installedState
 
     override suspend fun manifest(kind: String): List<PackEntry> = manifests[kind].orEmpty()
+
+    override suspend fun sizeOf(id: String): PackSize? = sizes[id]
 
     override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) {
         onProgress(1f)

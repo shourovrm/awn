@@ -47,3 +47,12 @@
 2026-10-21 | Text size is two 8-step values (0.85 to 1.6) replacing the 3-step TextSize | popup moves both, settings page sets each
 2026-10-21 | Title names the first surah starting on the page, else the continuing one | pages 77, 604 and 50 as the maintainer specified
 2026-10-21 | List views show a Basmalah block before surahs with bismillahPre, not as an ayah | no chip, selection or translation
+2026-10-21 | V2 (1421 print) is the default script; V1 and V4 tajweed stay page types | maintainer wants the standard printed Madani Mushaf
+2026-10-21 | Pause-mark spaces removed in the Hafs fallback text | a combining mark after a space is drawn on a dotted circle (read.md)
+2026-10-21 | Ayah-end sign is the page-font glyph after the last word's code | exact print; checked for every ayah, 41 V1 exceptions mapped to U+FBD3
+2026-10-21 | Banner of a surah that starts on line 1 or 2 goes to the foot of the previous page | print order; the Basmalah was missing on 18 V2 surahs
+2026-10-21 | Quarter table generated from Quran.com into Kotlin with a pinned checksum | Juz index and page header need it; no pack download needed
+2026-10-21 | English wbw phrase repeats emptied at read time | Quran.com repeats a phrase on each word in surahs 9 to 58
+2026-10-21 | Page header names the first surah that starts on the page | page 604 is Al-Ikhlas, page 77 An-Nisa
+2026-10-21 | Mushaf settings previews are bundled WebP images of page 50 | fonts are not installed before the user chooses a print
+2026-10-21 | Late layout loads dropped after a script change | they overwrote the new layout, so switching looked like nothing happened

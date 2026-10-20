@@ -20,6 +20,22 @@
 - Replace `titleSurahNumber` with the page agent's shared header-surah function.
 - Delete `page/MushafPageScreen.kt`, `ReadChrome` toolbar, `dock/` and `ReadSettings.textSize` (`TextZoom`) once nothing uses them.
 - Screenshots at font scale 1.3, night, and a phone check are not done (no emulator or phone).
+- Entry points: `ReadHost` (whole Read mode), `MushafPageScreen`, `AyahListScreen(source = Surah | Page)`, `BrowseScreen`, `ReadSettingsScreen`, `MushafSettingsPage`; all take `ReadDependencies` and make their own view models. The redesign replaces the first four with the reader agent's Quran screen (docs/redesign.md).
+- Settings live in a Preferences DataStore (`DataStoreReadSettingsStore`); defaults are the V2 (1421) print, Mushaf view, translations `bn_zakaria` then `en_saheeh`, transliteration and word by word on, text size Medium, `showPageInfo` on.
+- `MushafPage(layout, chapters, fontFamily, plainFamily, decorations, showPageInfo, onWordClick, onAyahLongPress)` is the stateless page. Words and ayah-end signs are placed by `layoutPage` (PageGeometry.kt, pure, tested): font size is the largest at which the widest line fits the width (capped at 0.8 of a slot), lines at least 80 % of the block are justified to its edges, shorter lines are centred. Text sits so the middle of its ink (0.35 em above the baseline) is the middle of its 1/15 slot.
+- Pages 1 and 2 are a centred block: slot height 1.2 x normal, banner centre at 27 % of the height, block width 0.9, no justification.
+- Glyph pages draw each word's code with the page font; the ayah-end sign is the glyph `AyahEnd.glyphCode` (last word code + 1; V1 `U+FBB1` ends print `U+FBD3`). Without the font the page draws `Word.textUthmani` in QPC Hafs, with a ring and Arabic-Indic number for the end sign.
+- Banner and Basmalah are drawn from Unicode text in every script (page fonts have no glyphs for them): the banner is a double frame with two diamonds and "سُورَةُ" plus the chapter name; the Basmalah is centred at 62 % of the block width. Remaining difference from the print: its ornamental banner and calligraphic Basmalah are not in the data.
+- Fills (`PageDecorations`: selected ayah, playing ayah, playing word, bookmarked ayahs, word states) are drawn behind each line fragment of the ayah; Hidden words are a 30 % block. A long press (500 ms) on a word or end sign calls `onAyahLongPress(ayah, bounds in window coordinates)`; a tap calls `onWordClick`. Taps use the nearest line within 0.75 slot and the nearest token within half a gap.
+- Frame: surah name left, juz right ("Juz 2 · ¼ Hizb 3" only where a quarter starts, from `Quarters`), page number at the outer corner (right on odd pages). `showPageInfo` off removes both. `headerSurah(layout)` is the first surah that starts on the page, else the one that continues.
+- Font packs: `FontPackController` (install, remove, status with download and installed MB) and `FontDownloadPrompt` (name, MB, Wi-Fi, progress, keep fallback). `MushafViewModel.state.showFontPrompt` is true while the chosen print has no font and the user has not kept the fallback.
+- Script changes reload the open page at once; a layout load that finishes after the type changed is dropped (it used to overwrite the new layout).
+- Font families are cached per (script, page) for the page plus or minus five (`PageFontCache`).
+
+## Open items
+- Screenshots at font scale 1.3 and night are not checked (no emulator was available); the page was checked only in a desktop browser with the same fonts and algorithm.
+- The settings row still cycles `ScriptId.entries` (reader's file); it must link to `MushafSettingsPage` instead.
+- `MushafPageScreen` and `ReadHeader` stay for the old Read mode until the reader agent's screen replaces them.
 
 ## Gotchas
 - Tests that build a view model in a field initialiser run before `MainDispatcherRule`; build it lazily.
@@ -29,3 +45,13 @@
 
 ## Tried / rejected
 - `ModalBottomSheet` for the translation sheet: replaced by a plain panel, which runs under Robolectric.
+- Robolectric text widths do not scale with font size, so geometry is measured a second time at the final size.
+- ktfmt rewrites `'۞'` escapes into the raw character; use integer code points for invisible characters.
+
+## Dotted circles (root cause)
+- The Quran.com Unicode text has a space before each pause mark ("رَيْبَ ۛ", 4,362 words) and a combining mark after a space has no letter to sit on, so Android draws it on U+25CC. `normalizeFallbackText` removes the space; after it no word has a mark on a space or at its start (checked over all 77,429 words). U+06DE (199 words) and U+06E9 are symbols with glyphs in the Hafs font, not marks, and are kept. U+06E5 and U+06E6 are letters (Lm). Glyph pages are not affected: a word's code holds the mark as its own private-use glyph.
+- Page 1 first glyph: the V2 font's glyph reaches 545 units (0.22 em) left of its advance box and the old word view clipped to that box; the new page does not clip.
+
+## Tried / rejected
+- `ModalBottomSheet` for the translation sheet: replaced by a plain animated panel, which matches the green sheet of the mockup and runs under Robolectric.
+- Drawing the ۞ sign as a vector: it is a symbol with a real glyph in the font.

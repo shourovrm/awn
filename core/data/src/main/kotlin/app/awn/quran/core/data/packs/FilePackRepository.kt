@@ -2,6 +2,7 @@ package app.awn.quran.core.data.packs
 
 import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.PackRepository
+import app.awn.quran.core.data.PackSize
 import app.awn.quran.core.data.ScriptId
 import java.io.File
 import java.io.IOException
@@ -46,6 +47,15 @@ class FilePackRepository(
             "models" -> emptyList()
             else -> throw IllegalArgumentException("Unknown manifest '$kind'.")
         }.map { it.entry }
+
+    override suspend fun sizeOf(id: String): PackSize? {
+        val record = catalog.findPack(id) ?: return null
+        val installedBytes =
+            withContext(ioDispatcher) {
+                storage.locate(record)?.let { location -> storage.sizeOnDisk(location) }
+            }
+        return PackSize(downloadBytes = record.bytes, installedBytes = installedBytes)
+    }
 
     override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) {
         val record = requireRecord(entry.id)

@@ -77,9 +77,11 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.localName
+import app.awn.quran.feature.read.page.FontDownloadPrompt
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.page.isGlyphScript
+import app.awn.quran.feature.read.page.pageTypeText
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.launch
@@ -209,7 +211,8 @@ private fun QuranContent(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val fontCache = remember(dependencies.packs) { PageFontCache(dependencies.packs) }
+    val fontCache =
+        remember(dependencies.packs, state.packRevision) { PageFontCache(dependencies.packs) }
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     var listAnchor by remember { mutableStateOf<Rect?>(null) }
 
@@ -281,7 +284,19 @@ private fun QuranContent(
             )
         }
         if (!state.isPanelOpen) {
-            Box(Modifier.align(Alignment.BottomCenter)) {
+            Column(Modifier.align(Alignment.BottomCenter)) {
+                // The chosen print's font is missing: offer it above the bar, page stays readable.
+                if (state.showFontPrompt && state.settings.pageView == PageView.Mushaf) {
+                    val status = state.fontStatus
+                    FontDownloadPrompt(
+                        pageTypeName = stringResource(pageTypeText(state.settings.script).name),
+                        sizeBytes = status?.downloadBytes,
+                        progress = status?.progress,
+                        failed = status?.failed == true,
+                        onDownload = viewModel::downloadFont,
+                        onKeepFallback = viewModel::keepFallbackFont,
+                    )
+                }
                 if (state.isReciting) {
                     slots.reciteBar(viewModel::exitReciteMode)
                 } else {
@@ -457,7 +472,6 @@ private fun QuranPager(
                             chapters = state.chapters,
                             fontFamily = fontCache.familyFor(load.layout.script, pageNumber),
                             plainFamily = fontCache.familyFor(ScriptId.QpcHafs, pageNumber),
-                            zoom = state.settings.arabicScale,
                             highlights =
                                 MushafHighlights(
                                     selectedAyah = state.selection,
@@ -471,6 +485,8 @@ private fun QuranPager(
                                     bookmarkedAyahs = state.savedAyahs,
                                 ),
                             wordStates = reciteStates,
+                            showPageInfo = state.settings.showPageInfo,
+                            onTap = viewModel::toggleBars,
                             onAyahPressed = viewModel::selectAyah,
                             modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
                         )

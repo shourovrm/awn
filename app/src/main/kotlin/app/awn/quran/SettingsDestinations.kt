@@ -11,16 +11,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import app.awn.quran.core.ui.theme.AwnField
+import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
-import app.awn.quran.feature.read.settings.ReadSettingsScreen
-import app.awn.quran.feature.recite.ReciteSettingsScreen
+import app.awn.quran.feature.listen.AudioSettingsPage
+import app.awn.quran.feature.read.page.MushafSettingsPage
+import app.awn.quran.feature.read.settings.ReadingSettingsPage
+import app.awn.quran.feature.recite.ReciteSettingsPage
 import app.awn.quran.services.AwnServices
 import app.awn.quran.settings.AboutPage
 import app.awn.quran.settings.AppearancePage
-import app.awn.quran.settings.AudioPlaceholderRows
 import app.awn.quran.settings.BackupPage
 import app.awn.quran.settings.CreditsScreen
-import app.awn.quran.settings.MushafPlaceholderRows
 import app.awn.quran.settings.NoticeAgainScreen
 import app.awn.quran.settings.RecitePage
 import app.awn.quran.settings.SettingsHubScreen
@@ -91,25 +93,24 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
 ) {
     val goBack: () -> Unit = { navController.popBackStack() }
     composable(SettingsSection.Mushaf.route) {
-        val slots = placeholderPageSlots(services, navController, viewModelFactory)
+        val slots = modulePageSlots(services)
         SettingsPage(title = stringResource(R.string.settings_mushaf), onBack = goBack) {
             slots.mushaf()
         }
     }
     composable(SettingsSection.Reading.route) {
-        val slots = placeholderPageSlots(services, navController, viewModelFactory)
+        val slots = modulePageSlots(services)
         SettingsPage(title = stringResource(R.string.settings_reading), onBack = goBack) {
             slots.reading()
         }
     }
     composable(SettingsSection.Audio.route) {
-        val slots = placeholderPageSlots(services, navController, viewModelFactory)
-        SettingsPage(title = stringResource(R.string.settings_audio), onBack = goBack) {
-            slots.audio()
+        AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
+            AudioSettingsPage(feature = services.audio, onBack = goBack)
         }
     }
     composable(SettingsSection.Recite.route) {
-        val slots = placeholderPageSlots(services, navController, viewModelFactory)
+        val slots = modulePageSlots(services)
         val viewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
         RecitePage(
@@ -122,24 +123,11 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
 }
 
 @Composable
-private fun placeholderPageSlots(
-    services: AwnServices,
-    navController: NavController,
-    viewModelFactory: ViewModelProvider.Factory,
-): SettingsPageSlots {
-    val viewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    return SettingsPageSlots(
-        mushaf = { MushafPlaceholderRows() },
-        reading = { ReadSettingsScreen(services.readDependencies) },
-        audio = {
-            AudioPlaceholderRows(
-                state = state,
-                onWifiOnlyChange = viewModel::setWifiOnly,
-                onReciterClick = { navController.navigate(Routes.RECITERS) },
-                onDownloadsClick = { navController.navigate(Routes.DOWNLOADS) },
-            )
-        },
-        reciteModule = { ReciteSettingsScreen(services.reciteSettings) },
+private fun modulePageSlots(services: AwnServices): SettingsPageSlots =
+    SettingsPageSlots(
+        mushaf = { MushafSettingsPage(services.readDependencies) },
+        reading = { ReadingSettingsPage(services.readDependencies) },
+        // The audio page draws its own title bar, because its downloads manager opens inside it.
+        audio = {},
+        reciteModule = { ReciteSettingsPage(services.reciteSettings) },
     )
-}

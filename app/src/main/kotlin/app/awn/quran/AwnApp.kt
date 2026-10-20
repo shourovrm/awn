@@ -8,20 +8,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,24 +28,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.ui.components.AwnIconButton
-import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
-import app.awn.quran.core.ui.theme.awnFieldColors
 import app.awn.quran.feature.learn.LearnScreen
-import app.awn.quran.feature.listen.DownloadsScreen
-import app.awn.quran.feature.listen.DownloadsViewModel
-import app.awn.quran.feature.listen.ListenViewModel
-import app.awn.quran.feature.listen.RecitersScreen
-import app.awn.quran.feature.listen.RecitersViewModel
-import app.awn.quran.feature.read.ReadHost
-import app.awn.quran.feature.recite.ReciteScreen
+import app.awn.quran.feature.listen.AudioBar
+import app.awn.quran.feature.listen.PlayRangePanel
+import app.awn.quran.feature.read.ReadField
+import app.awn.quran.feature.read.quran.QuranScreen
+import app.awn.quran.feature.read.quran.QuranScreenSlots
+import app.awn.quran.feature.read.quran.QuranTarget
+import app.awn.quran.feature.recite.ReciteBar
+import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.IndexActions
 import app.awn.quran.index.IndexScreen
 import app.awn.quran.index.IndexViewModel
-import app.awn.quran.listen.ListenRoute
 import app.awn.quran.notice.NoticeScreen
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
@@ -136,17 +126,6 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
         }
         indexDestinations(navController, viewModelFactory)
         settingsDestinations(services, navController, viewModelFactory, colourSettings)
-        listenDestinations(services, navController, viewModelFactory)
-        composable(Routes.RECITE) {
-            val viewModel: ReciteViewModel = viewModel(factory = viewModelFactory)
-            ReciteScreen(
-                range = viewModel.range,
-                session = viewModel.session,
-                settings = services.reciteSettings,
-                audioPlayer = services.audioPlayer,
-                onRangeChange = { viewModel.range = it },
-            )
-        }
         composable(Routes.LEARN) { LearnScreen(quranText = services.coreData.quranText) }
     }
 }
@@ -198,40 +177,11 @@ private fun NavGraphBuilder.indexDestinations(
     }
 }
 
-private fun NavGraphBuilder.listenDestinations(
-    services: AwnServices,
-    navController: NavController,
-    viewModelFactory: ViewModelProvider.Factory,
-) {
-    composable(Routes.LISTEN) {
-        val viewModel: ListenViewModel = viewModel(factory = viewModelFactory)
-        ListenRoute(
-            viewModel = viewModel,
-            quranText = services.coreData.quranText,
-            onOpenReciters = { navController.navigate(Routes.RECITERS) },
-            onOpenDownloads = { navController.navigate(Routes.DOWNLOADS) },
-        )
-    }
-    composable(Routes.RECITERS) {
-        val viewModel: RecitersViewModel = viewModel(factory = viewModelFactory)
-        RecitersScreen(
-            viewModel = viewModel,
-            onOpenDownloads = { navController.navigate(Routes.DOWNLOADS) },
-        )
-    }
-    composable(Routes.DOWNLOADS) {
-        val viewModel: DownloadsViewModel = viewModel(factory = viewModelFactory)
-        DownloadsScreen(viewModel)
-    }
-}
-
 /**
- * The Quran screen. It calls today's `ReadHost`; the maintainer swaps it for `QuranScreen` and its
- * slots after merging. The route already carries [Routes.AYAH_ARGUMENT] and [Routes.SURAH_ARGUMENT]
- * for the ayah to select, which `ReadHost` ignores.
- *
- * The two icon buttons on the right edge are temporary: they open the index and flip day and night
- * until `QuranScreen` has its own buttons (`onOpenIndex`, `onToggleNight`).
+ * The Quran screen with every feature plugged into its slots: the audio bar and play panel from
+ * :feature:listen, the recite bar from :feature:recite, day and night from the app preferences.
+ * [Routes.SURAH_ARGUMENT] and [Routes.AYAH_ARGUMENT] select an ayah, else [Routes.PAGE_ARGUMENT]
+ * opens a page, else the page read last opens.
  */
 @Composable
 private fun QuranRoute(
@@ -239,36 +189,35 @@ private fun QuranRoute(
     entry: NavBackStackEntry,
     navController: NavController,
 ) {
-    val requestedPage =
-        entry.arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val reciterNames by
-        produceState(emptyMap<String, String>(), services) {
-            value = services.coreData.reciters.reciters().associate { it.id to it.name }
+    val arguments = entry.arguments
+    val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val surah = arguments?.getInt(Routes.SURAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val ayah = arguments?.getInt(Routes.AYAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val target =
+        when {
+            surah != null && ayah != null -> QuranTarget.Ayah(AyahRef(surah, ayah))
+            page != null -> QuranTarget.Page(page)
+            else -> null
         }
     val nightToggle = rememberNightToggle(services.preferences)
-    val iconTint = awnFieldColors(AwnField.Paper, LocalColourMode.current).content
-    Box(Modifier.fillMaxSize()) {
-        ReadHost(
-            dependencies = services.readDependencies,
-            onExpandPlayer = { navController.navigate(Routes.LISTEN) },
-            startPage = requestedPage,
-            reciterName = { reciterId -> reciterNames[reciterId] ?: reciterId },
+    val slots =
+        QuranScreenSlots(
+            audioBar = { currentPage -> AudioBar(services.audio, currentPage) },
+            playPanel = { selected, currentPage ->
+                PlayRangePanel(services.audio, selected, currentPage)
+            },
+            onPlayFrom = services.audio.controller::playFrom,
+            reciteBar = { onExit -> ReciteBar(services.recite, onExit) },
+            onReciteFrom = services.recite::reciteFrom,
+            reciteWordStates = { rememberReciteWordStates(services.recite) },
+            isNight = nightToggle.isNight,
+            onToggleNight = nightToggle.toggle,
+            onOpenIndex = { navController.navigate(Routes.INDEX) },
+            onOpenSearch = { navController.navigate(Routes.SEARCH) },
+            onOpenLearn = { navController.navigate(Routes.LEARN) },
+            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
         )
-        Column(Modifier.align(Alignment.CenterEnd)) {
-            AwnIconButton(
-                icon = R.drawable.ic_app_format_list_bulleted,
-                contentDescription = stringResource(R.string.quran_open_index),
-                onClick = { navController.navigate(Routes.INDEX) },
-                tint = iconTint,
-            )
-            AwnIconButton(
-                icon =
-                    if (nightToggle.isNight) R.drawable.ic_app_light_mode
-                    else R.drawable.ic_app_dark_mode,
-                contentDescription = stringResource(R.string.quran_toggle_night),
-                onClick = nightToggle.toggle,
-                tint = iconTint,
-            )
-        }
+    AwnTheme(field = ReadField) {
+        QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)
     }
 }

@@ -1,20 +1,17 @@
 package app.awn.quran.feature.read
 
 import androidx.compose.ui.text.font.FontFamily
-import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakePackRepository
-import app.awn.quran.feature.read.dock.dockModelOf
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageRow
 import app.awn.quran.feature.read.page.buildPageRows
 import app.awn.quran.feature.read.page.slotCountOf
 import app.awn.quran.feature.read.page.textToDraw
-import app.awn.quran.player.PlaybackState
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -74,15 +71,5 @@ class PageHelpersTest {
 
         assertNull(cache.familyFor(ScriptId.V2, 1))
         assertTrue(cache.cachedPages.isEmpty())
-    }
-
-    @Test
-    fun dockShowsOnlyLoadedAudio() {
-        val ayah = AyahRef(1, 3)
-
-        assertNull(dockModelOf(PlaybackState.Idle))
-        assertNull(dockModelOf(PlaybackState.Error("x")))
-        assertTrue(dockModelOf(PlaybackState.Playing("husary", ayah, null, 0, null))!!.isPlaying)
-        assertEquals(ayah, dockModelOf(PlaybackState.Paused("husary", ayah, 0))!!.ayah)
     }
 }

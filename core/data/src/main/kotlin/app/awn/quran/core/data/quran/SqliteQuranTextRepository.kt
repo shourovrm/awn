@@ -56,7 +56,10 @@ class SqliteQuranTextRepository(
             val wordRows = readWordRows(page, print)
             val markerRows = readMarkerRows(page, print)
             val bismillahBySurah = chapterList.associate { it.number to it.bismillahPre }
-            val lines = PageLayoutBuilder.build(wordRows, markerRows, bismillahBySurah)
+            val nextPageStarts =
+                if (page < PAGE_COUNT) readNextPageStarts(page + 1, print) else emptyList()
+            val lines =
+                PageLayoutBuilder.build(wordRows, markerRows, bismillahBySurah, nextPageStarts)
             PageLayout(page, script, lines)
         }
 
@@ -142,17 +145,51 @@ class SqliteQuranTextRepository(
         }
     }
 
-    private fun readMarkerRows(page: Int, print: LayoutPrint): List<PlacedAyahEnd> {
+    /**
+     * The first words of surahs that start on line 1 or 2 of [page]: their banner is on the page
+     * before.
+     */
+    private fun readNextPageStarts(page: Int, print: LayoutPrint): List<PlacedWord> {
         val cursor =
             database.rawQuery(
-                "SELECT surah, ayah, ${print.lineColumn} FROM ayah_marker " +
-                    "WHERE ${print.pageColumn} = ?",
+                "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, transliteration, " +
+                    "${print.lineColumn} FROM word WHERE ${print.pageColumn} = ? " +
+                    "AND ayah = 1 AND position = 1 AND ${print.lineColumn} <= 2",
                 arrayOf(page.toString()),
             )
         return cursor.use {
             buildList {
                 while (it.moveToNext()) {
-                    add(PlacedAyahEnd(AyahRef(it.getInt(0), it.getInt(1)), line = it.getInt(2)))
+                    add(PlacedWord(readWord(it), line = it.getInt(WORD_LINE_COLUMN)))
+                }
+            }
+        }
+    }
+
+    private fun readMarkerRows(page: Int, print: LayoutPrint): List<PlacedAyahEnd> {
+        // The end sign is printed with the glyph that follows the ayah's last word in the page
+        // font.
+        val cursor =
+            database.rawQuery(
+                "SELECT m.surah, m.ayah, m.${print.lineColumn}, " +
+                    "(SELECT w.${print.codeColumn} FROM word w WHERE w.surah = m.surah " +
+                    "AND w.ayah = m.ayah ORDER BY w.position DESC LIMIT 1) " +
+                    "FROM ayah_marker m WHERE m.${print.pageColumn} = ?",
+                arrayOf(page.toString()),
+            )
+        return cursor.use {
+            buildList {
+                while (it.moveToNext()) {
+                    val lastWordCode =
+                        if (it.isNull(MARKER_LAST_CODE_COLUMN)) null
+                        else it.getString(MARKER_LAST_CODE_COLUMN)
+                    add(
+                        PlacedAyahEnd(
+                            AyahRef(it.getInt(0), it.getInt(1)),
+                            line = it.getInt(MARKER_LINE_COLUMN),
+                            glyphCode = endSignCode(lastWordCode, print),
+                        ),
+                    )
                 }
             }
         }
@@ -175,6 +212,8 @@ class SqliteQuranTextRepository(
     private companion object {
         const val PAGE_COUNT = 604
         const val WORD_LINE_COLUMN = 7
+        const val MARKER_LINE_COLUMN = 2
+        const val MARKER_LAST_CODE_COLUMN = 3
     }
 }
 
@@ -182,9 +221,13 @@ class SqliteQuranTextRepository(
  * Which page and line columns of `word` and `ayah_marker` a script is laid out with. QpcHafs and
  * V4Tajweed use the V2 layout (V4 draws the V2 glyph codes with colour fonts; docs/packs.md).
  */
-internal enum class LayoutPrint(val pageColumn: String, val lineColumn: String) {
-    V1("page_v1", "line_v1"),
-    V2("page_v2", "line_v2");
+internal enum class LayoutPrint(
+    val pageColumn: String,
+    val lineColumn: String,
+    val codeColumn: String,
+) {
+    V1("page_v1", "line_v1", "code_v1"),
+    V2("page_v2", "line_v2", "code_v2");
 
     companion object {
         fun of(script: ScriptId): LayoutPrint =
@@ -200,3 +243,18 @@ internal enum class LayoutPrint(val pageColumn: String, val lineColumn: String) 
             }
     }
 }
+
+/**
+ * The page fonts allot glyph codes in reading order, so the end sign of an ayah has the code after
+ * the one of its last word (checked for all 6,236 ayahs in V2 and for all but 41 in V1). Those 41
+ * end with the shared glyph U+FBB1 and print their sign as U+FBD3. Returns null without a code.
+ */
+internal fun endSignCode(lastWordCode: String?, print: LayoutPrint): String? {
+    val lastGlyph = lastWordCode?.lastOrNull() ?: return null
+    val isSharedV1Glyph = print == LayoutPrint.V1 && lastGlyph.code == V1_SHARED_GLYPH
+    val endCodePoint = if (isSharedV1Glyph) V1_SHARED_GLYPH_END_SIGN else lastGlyph.code + 1
+    return endCodePoint.toChar().toString()
+}
+
+private const val V1_SHARED_GLYPH = 0xFBB1
+private const val V1_SHARED_GLYPH_END_SIGN = 0xFBD3

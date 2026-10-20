@@ -43,6 +43,8 @@ class FilePackRepositoryTest {
     private lateinit var catalog: ManifestCatalog
 
     private val fontArchive = zipOf("p1.ttf" to "one", "p2.ttf" to "two", "p3.ttf" to "three")
+    private val v1Fonts = zipOf("p1.ttf" to "v1-one", "p2.ttf" to "v1-two", "p3.ttf" to "v1-three")
+    private val v4Fonts = zipOf("p1.ttf" to "v4-one", "p2.ttf" to "v4-two", "p3.ttf" to "v4-three")
     private val hafsFont = "hafs-font-bytes".toByteArray()
 
     @Before
@@ -86,11 +88,15 @@ class FilePackRepositoryTest {
     private fun buildWorld(packFiles: Map<String, File>) {
         val hafs = temporaryFolder.newFile("hafs.ttf").also { it.writeBytes(hafsFont) }
         val archive = temporaryFolder.newFile("v2.zip").also { it.writeBytes(fontArchive) }
+        val v1Archive = temporaryFolder.newFile("v1.zip").also { it.writeBytes(v1Fonts) }
+        val v4Archive = temporaryFolder.newFile("v4-tajweed.zip").also { it.writeBytes(v4Fonts) }
         val translation = packFiles.getValue("en_test.sqlite")
         val scripts =
             """{"format_version":1,"packs":[
               |${manifestEntry("qpc-hafs", "font", hafs, "fonts/qpc-hafs/hafs.ttf")},
-              |${manifestEntry("v2", "font", archive, "fonts/v2.zip", extraFields = ""","member_count":3""")}]}"""
+              |${manifestEntry("v2", "font", archive, "fonts/v2.zip", extraFields = ""","member_count":3""")},
+              |${manifestEntry("v1", "font", v1Archive, "fonts/v1.zip", extraFields = ""","member_count":3""")},
+              |${manifestEntry("v4-tajweed", "font", v4Archive, "fonts/v4-tajweed.zip", extraFields = ""","member_count":3""")}]}"""
                 .trimMargin()
         val translations =
             """{"format_version":1,"packs":[
@@ -106,6 +112,8 @@ class FilePackRepositoryTest {
                 ),
             )
         servedFiles["v2.zip"] = fontArchive
+        servedFiles["v1.zip"] = v1Fonts
+        servedFiles["v4-tajweed.zip"] = v4Fonts
         servedFiles["en_test.sqlite"] = translation.readBytes()
         catalog =
             ManifestCatalog(assets, releaseBaseUrl = "http://127.0.0.1:${server.address.port}")
@@ -146,7 +154,7 @@ class FilePackRepositoryTest {
             buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
 
             assertEquals(
-                listOf("qpc-hafs", "v2"),
+                listOf("qpc-hafs", "v2", "v1", "v4-tajweed"),
                 repository.manifest("scripts.json").map { it.id },
             )
             assertEquals(listOf("en_test"), repository.manifest("translations").map { it.id })
@@ -260,6 +268,48 @@ class FilePackRepositoryTest {
         assertNull(repository.fontFile(ScriptId.V1, 1))
         assertThrows(IllegalArgumentException::class.java) { repository.fontFile(ScriptId.V2, 605) }
         assertEquals("font", repository.installed().first().first { it.id == "v2" }.kind)
+    }
+
+    @Test
+    fun everyPageTypeInstallsItsOwnFontFilesAndNoOtherTypeSeesThem() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+        for (script in listOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)) {
+            assertNull(script.name, repository.fontFile(script, 2))
+        }
+
+        repository.install(entry("v1")) {}
+        assertEquals("v1-two", repository.fontFile(ScriptId.V1, 2)!!.readText())
+        assertNull(repository.fontFile(ScriptId.V2, 2))
+        assertNull(repository.fontFile(ScriptId.V4Tajweed, 2))
+
+        repository.install(entry("v4-tajweed")) {}
+        repository.install(entry("v2")) {}
+
+        assertEquals("v1-two", repository.fontFile(ScriptId.V1, 2)!!.readText())
+        assertEquals("two", repository.fontFile(ScriptId.V2, 2)!!.readText())
+        assertEquals("v4-two", repository.fontFile(ScriptId.V4Tajweed, 2)!!.readText())
+        val installedIds = repository.installed().first().map { it.id }
+        assertTrue(installedIds.containsAll(listOf("v1", "v2", "v4-tajweed")))
+    }
+
+    @Test
+    fun sizeOfListsTheDownloadSizeBeforeInstallAndTheDiskSizeAfter() = runBlocking {
+        buildWorld(mapOf("en_test.sqlite" to translationPackFile()))
+
+        val before = repository.sizeOf("v2")!!
+        assertEquals(fontArchive.size.toLong(), before.downloadBytes)
+        assertNull(before.installedBytes)
+
+        repository.install(entry("v2")) {}
+
+        val after = repository.sizeOf("v2")!!
+        assertEquals(before.downloadBytes, after.downloadBytes)
+        assertEquals(
+            repository.installed().first().first { it.id == "v2" }.bytes,
+            after.installedBytes,
+        )
+        assertTrue(after.installedBytes!! > 0)
+        assertNull(repository.sizeOf("no_such_pack"))
     }
 
     @Test

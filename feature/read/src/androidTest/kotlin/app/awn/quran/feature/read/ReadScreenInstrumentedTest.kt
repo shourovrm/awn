@@ -9,7 +9,9 @@ import app.awn.quran.core.data.fakes.FakeProgressEvents
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
 import app.awn.quran.core.ui.theme.AwnTheme
-import app.awn.quran.feature.read.page.MushafPageScreen
+import app.awn.quran.feature.read.quran.QuranScreen
+import app.awn.quran.feature.read.quran.QuranScreenSlots
+import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ReadSettingsStore
 import app.awn.quran.player.fakes.FakeAudioPlayer
@@ -48,12 +50,10 @@ class ReadScreenInstrumentedTest {
 
         composeRule.setContent {
             AwnTheme {
-                MushafPageScreen(
+                QuranScreen(
                     dependencies = dependencies,
-                    startPage = 1,
-                    onTogglePageView = {},
-                    onBrowse = {},
-                    onExpandPlayer = {},
+                    slots = QuranScreenSlots.Empty,
+                    target = QuranTarget.Page(1),
                 )
             }
         }

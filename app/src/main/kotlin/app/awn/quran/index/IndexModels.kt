@@ -2,6 +2,7 @@ package app.awn.quran.index
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.Quarters
 
 /** Where the first ayah of each of the 30 juz is; these are fixed by the Quran's division. */
 object JuzStarts {
@@ -83,7 +84,7 @@ fun groupSurahsByJuz(
 /**
  * Where a quarter of a juz begins. Each juz has 8 quarters, numbered 1 to 8 from the start of the
  * juz. The page agent's table in core/data supplies these; until it is connected, [QuarterTable] is
- * implemented by [JuzStartQuarterTable].
+ * implemented by [CoreQuarterTable].
  */
 data class QuarterStart(val juz: Int, val quarterOfJuz: Int, val firstAyah: AyahRef)
 
@@ -92,13 +93,18 @@ fun interface QuarterTable {
     suspend fun quarters(): List<QuarterStart>
 }
 
-/**
- * Stand-in until the quarter table in core/data is connected: it knows only the first quarter of
- * each juz, so the Juz tab lists 30 rows instead of 240.
- */
-object JuzStartQuarterTable : QuarterTable {
+/** The 240 quarters from core/data, numbered 1 to 8 inside each juz. */
+object CoreQuarterTable : QuarterTable {
+    private const val QUARTERS_PER_JUZ = 8
+
     override suspend fun quarters(): List<QuarterStart> =
-        JuzStarts.ayahs.mapIndexed { index, ayah -> QuarterStart(index + 1, 1, ayah) }
+        Quarters.all.map { quarter ->
+            QuarterStart(
+                juz = quarter.juz,
+                quarterOfJuz = (quarter.number - 1) % QUARTERS_PER_JUZ + 1,
+                firstAyah = quarter.firstAyah,
+            )
+        }
 }
 
 /** One row of the Juz tab. [fraction] is 0 at the start of a hizb and 1 to 3 for ¼, ½ and ¾. */

@@ -6,19 +6,21 @@ import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.learnProgressEvents
+import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
-import app.awn.quran.feature.recite.RecitationSession
+import app.awn.quran.feature.recite.ReciteController
 import app.awn.quran.feature.recite.ReciteSettings
+import app.awn.quran.feature.recite.SpeechFiles
+import app.awn.quran.feature.recite.SpeechPreparation
 import app.awn.quran.player.AudioDownloads
+import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.DownloadingAudioPlayer
 import app.awn.quran.player.ExoAudioPlayer
 import app.awn.quran.player.OkHttpAudioDownloads
 import app.awn.quran.player.UnmeteredOnlyPolicy
-import app.awn.quran.tracker.JsonReferencePhonemes
-import app.awn.quran.tracker.ReferencePhonemes
-import app.awn.quran.tracker.SherpaPhonemeSource
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,9 +47,6 @@ class AwnServices(private val application: Application) {
 
     private val okHttpClient = OkHttpClient()
 
-    val audioPlayer =
-        ExoAudioPlayer(application, coreData.reciters, coreData.quranText, okHttpClient)
-
     val audioDownloads: AudioDownloads =
         OkHttpAudioDownloads(
             audioRoot = File(application.filesDir, AUDIO_DIRECTORY),
@@ -55,6 +54,30 @@ class AwnServices(private val application: Application) {
             quranText = coreData.quranText,
             client = okHttpClient,
             networkPolicy = UnmeteredOnlyPolicy(application) { listenSettings.wifiOnly.first() },
+        )
+
+    private val exoPlayer =
+        ExoAudioPlayer(application, coreData.reciters, coreData.quranText, okHttpClient)
+
+    /** Plays through [exoPlayer], first downloading missing audio by the "Download amount". */
+    val audioPlayer: AudioPlayer =
+        DownloadingAudioPlayer(
+            exoPlayer,
+            audioDownloads,
+            coreData.quranText,
+            downloadAmount = { listenSettings.downloadAmount.first() },
+            scope = applicationScope,
+        )
+
+    /** The audio bar, play panel, reciter sheet and audio settings share this. */
+    val audio =
+        AudioFeature(
+            audioPlayer,
+            audioDownloads,
+            coreData.reciters,
+            coreData.quranText,
+            listenSettings,
+            applicationScope,
         )
 
     val readDependencies =
@@ -66,37 +89,29 @@ class AwnServices(private val application: Application) {
             progressEvents = progressEvents,
             audioPlayer = audioPlayer,
             settingsStore = DataStoreReadSettingsStore(application),
+            reciters = coreData.reciters,
+            selectedReciterId = listenSettings.selectedReciterId,
         )
 
     private val modelFiles =
         ModelFiles(application.assets, File(application.filesDir, MODEL_DIRECTORY))
 
-    // Parsed on first use, which happens off the main thread when the recite screen loads a range.
-    private val referencePhonemes: ReferencePhonemes = LazyReferencePhonemes {
-        JsonReferencePhonemes.fromFile(modelFiles.ensureInstalled().referencePhonemes)
-    }
-
-    /** Builds a session whose work runs in [scope]; the recite view model owns one. */
-    fun createRecitationSession(scope: CoroutineScope): RecitationSession =
-        RecitationSession(
-            quranText = coreData.quranText,
-            referencePhonemes = referencePhonemes,
-            trackerFactory = AlignmentTrackerFactory,
-            progressEvents = progressEvents,
-            phonemeSourceFactory = ::createPhonemeSource,
-            inputFactory = { MicrophoneTrackerInput(application) },
-            scope = scope,
-        )
-
-    private fun createPhonemeSource(): SherpaPhonemeSource {
+    private val speechPreparation = SpeechPreparation.fromFiles {
         val paths = modelFiles.ensureInstalled()
-        return try {
-            SherpaPhonemeSource(paths.model.path, paths.tokens.path)
-        } catch (problem: UnsatisfiedLinkError) {
-            // Turned into the exception the session reports as "can't use the microphone".
-            throw IllegalStateException("The speech library could not be loaded.", problem)
-        }
+        SpeechFiles(paths.model, paths.tokens, paths.referencePhonemes)
     }
+
+    /** Reciting on the Quran screen; [ReciteController.prepareSpeech] runs at app start. */
+    val recite =
+        ReciteController(
+            quranText = coreData.quranText,
+            progressEvents = progressEvents,
+            settings = reciteSettings,
+            audioPlayer = audioPlayer,
+            speech = speechPreparation,
+            inputFactory = { MicrophoneTrackerInput(application) },
+            scope = applicationScope,
+        )
 
     private companion object {
         const val AUDIO_DIRECTORY = "audio"

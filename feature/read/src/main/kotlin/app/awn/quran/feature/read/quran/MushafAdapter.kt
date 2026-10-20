@@ -12,6 +12,7 @@ import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.MushafPage
+import app.awn.quran.feature.read.page.PageDecorations
 import app.awn.quran.feature.read.page.slotCountOf
 import app.awn.quran.tracker.WordState
 
@@ -67,10 +68,8 @@ internal fun Modifier.fixedHeightShifted(fullHeightPx: Int, shiftPx: () -> Int):
     }
 
 /**
- * The one place that calls the page agent's [MushafPage]. It is written against today's signature,
- * which has no ayah highlights and no long press: the playing word is shown through [MushafPage]'s
- * selected-word block and a tap on a word selects its ayah. When PageDecorations lands, this
- * function maps [MushafHighlights] to it and switches the tap to a long press.
+ * The one place that calls [MushafPage]: maps the screen's highlights to [PageDecorations]. A tap
+ * anywhere on the page toggles the bars, a long press on a word selects its ayah.
  */
 @Composable
 internal fun MushafPageHost(
@@ -78,9 +77,10 @@ internal fun MushafPageHost(
     chapters: List<Chapter>,
     fontFamily: FontFamily?,
     plainFamily: FontFamily?,
-    zoom: Float,
     highlights: MushafHighlights,
     wordStates: Map<WordKey, WordState>,
+    showPageInfo: Boolean,
+    onTap: () -> Unit,
     onAyahPressed: (AyahRef) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -90,10 +90,17 @@ internal fun MushafPageHost(
             chapters = chapters,
             fontFamily = fontFamily,
             plainFamily = plainFamily,
-            zoom = zoom,
-            selectedWord = highlights.playingWord,
-            wordStates = { key -> wordStates[key] ?: WordState.Neutral },
-            onWordClick = { key -> onAyahPressed(AyahRef(key.surah, key.ayah)) },
+            decorations =
+                PageDecorations(
+                    selectedAyah = highlights.selectedAyah,
+                    playingAyah = highlights.playingAyah,
+                    playingWord = highlights.playingWord,
+                    bookmarkedAyahs = highlights.bookmarkedAyahs,
+                    wordStates = { key -> wordStates[key] ?: WordState.Neutral },
+                ),
+            showPageInfo = showPageInfo,
+            onWordClick = { onTap() },
+            onAyahLongPress = { ayah, _ -> onAyahPressed(ayah) },
         )
     }
 }

@@ -12,5 +12,7 @@ class AwnApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         services = AwnServices(this)
+        // Copies and loads the speech files on a low-priority thread, so the first recite is quick.
+        services.recite.prepareSpeech()
     }
 }

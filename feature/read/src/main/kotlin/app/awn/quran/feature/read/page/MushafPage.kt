@@ -1,60 +1,59 @@
 package app.awn.quran.feature.read.page
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Density
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.PageLayout
-import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnColors
-import app.awn.quran.core.ui.theme.AwnShapes
-import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.tracker.WordState
+import app.awn.quran.core.ui.theme.AwnFieldColors
+import kotlin.math.roundToInt
 
-internal const val SLOTS_PER_PAGE = 15
-private const val FULL_LINE_SHARE = 0.8f
-private const val HIDDEN_BLOCK_ALPHA = 0.3f
-
-/** The text in the bismillah line; it is not part of the word tables. */
-internal const val BASMALA_TEXT = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
+/** Where the middle of the ink of an Arabic line sits above its baseline, in ems. */
+private const val INK_CENTER_ABOVE_BASELINE_EM = 0.35f
 
 /**
- * One mushaf page: [layout] drawn right to left in numbered line slots. [fontFamily] is the font
- * made for [layout]'s script and page, or null when it is not installed; glyph scripts then draw
- * the Unicode text with [plainFamily] instead.
+ * One mushaf page: [layout] drawn like the print, right to left, with the page frame (surah name
+ * and juz above, page number below) when [showPageInfo] is true.
  *
- * [wordStates] gives the colour state of each word, so reciting screens can reuse the page.
+ * [fontFamily] is the font made for [layout]'s script and page, or null when it is not installed;
+ * glyph scripts then draw the Unicode text with [plainFamily] (QPC Hafs) instead. The surah banner
+ * and the Basmalah are drawn from Unicode text in every script, because the page fonts hold no
+ * glyphs for them.
+ *
+ * A tap on a word calls [onWordClick]. A long press (500 ms) on a word or an ayah-end sign calls
+ * [onAyahLongPress] with the ayah and the union of its line fragments, in the coordinates of the
+ * window, so the caller can put a bar above it.
  */
 @Composable
 fun MushafPage(
@@ -62,228 +61,212 @@ fun MushafPage(
     chapters: List<Chapter>,
     fontFamily: FontFamily?,
     plainFamily: FontFamily?,
-    zoom: Float,
-    selectedWord: WordKey?,
-    wordStates: (WordKey) -> WordState,
-    onWordClick: (WordKey) -> Unit,
     modifier: Modifier = Modifier,
+    decorations: PageDecorations = PageDecorations(),
+    showPageInfo: Boolean = true,
+    onWordClick: (WordKey) -> Unit = {},
+    onAyahLongPress: (AyahRef, Rect) -> Unit = { _, _ -> },
 ) {
-    val hasGlyphFont = fontFamily != null
-    val drawsGlyphs = layout.script in glyphScripts && hasGlyphFont
-    val textFamily = if (layout.script in glyphScripts && !hasGlyphFont) plainFamily else fontFamily
-    val rows = remember(layout, drawsGlyphs) { buildPageRows(layout, drawsGlyphs) }
-    val baseStyle =
-        AwnTypography.quran.copy(
-            fontSize = AwnTypography.quran.fontSize * zoom,
-            fontFamily = textFamily ?: AwnTypography.quran.fontFamily,
-        )
-    val textMeasurer = rememberTextMeasurer()
-    val density = LocalDensity.current
+    val hasGlyphFont = fontFamily != null && layout.script in glyphScripts
+    val rows = remember(layout, hasGlyphFont) { buildPageRows(layout, hasGlyphFont) }
+    val textFamily = if (hasGlyphFont) fontFamily else plainFamily
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        BoxWithConstraints(modifier.fillMaxSize()) {
-            val slotHeight = maxHeight / SLOTS_PER_PAGE
-            val availableWidthPx = with(density) { maxWidth.toPx() }
-            val metrics =
-                remember(rows, baseStyle, availableWidthPx) {
-                    measurePage(rows, baseStyle, availableWidthPx, textMeasurer, density)
-                }
-            val pageStyle = baseStyle.copy(fontSize = baseStyle.fontSize * metrics.fontScale)
-
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                for (slot in 1..slotCountOf(layout)) {
-                    Box(Modifier.fillMaxWidth().height(slotHeight), Alignment.Center) {
-                        when (val row = rows.firstOrNull { it.slot == slot }) {
-                            is PageRow.TextRow ->
-                                TextLine(
-                                    row = row,
-                                    style = pageStyle,
-                                    isJustified = metrics.isJustified(row),
-                                    selectedWord = selectedWord,
-                                    wordStates = wordStates,
-                                    onWordClick = onWordClick,
-                                )
-                            is PageRow.HeaderRow ->
-                                SurahBand(
-                                    name =
-                                        chapters.firstOrNull { it.number == row.surah }?.nameArabic,
-                                    style = pageStyle.copy(fontFamily = plainFamily),
-                                )
-                            is PageRow.BasmalaRow ->
-                                Text(
-                                    text = BASMALA_TEXT,
-                                    style = pageStyle.copy(fontFamily = plainFamily),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 1,
-                                )
-                            null -> Spacer(Modifier)
-                        }
-                    }
-                }
+    // The page is positioned from left to right in pixels; text direction is inside each word.
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(modifier.fillMaxSize()) {
+            if (showPageInfo) PageHeaderRow(layout, chapters)
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val density = LocalDensity.current
+                PageBody(
+                    layout = layout,
+                    rows = rows,
+                    chapters = chapters,
+                    textFamily = textFamily,
+                    plainFamily = plainFamily,
+                    widthPx = with(density) { maxWidth.toPx() },
+                    heightPx = with(density) { maxHeight.toPx() },
+                    decorations = decorations,
+                    onWordClick = onWordClick,
+                    onAyahLongPress = onAyahLongPress,
+                )
             }
+            if (showPageInfo) PageNumberRow(layout.page)
         }
     }
 }
 
-/** How big the text of a page may be so its widest line fits, and which lines fill the width. */
-internal class PageMetrics(
-    val fontScale: Float,
-    private val fullLines: Set<Int>,
-) {
-    fun isJustified(row: PageRow.TextRow): Boolean = row.slot in fullLines
-}
-
-private val tokenGap = 4.dp
-
-private fun measurePage(
+@Composable
+private fun PageBody(
+    layout: PageLayout,
     rows: List<PageRow>,
-    style: TextStyle,
-    availableWidthPx: Float,
-    textMeasurer: TextMeasurer,
-    density: Density,
-): PageMetrics {
-    val fixedGapPx = with(density) { tokenGap.toPx() }
-    val rosettePx = with(density) { AwnSpacing.large.toPx() }
-    val textRows = rows.filterIsInstance<PageRow.TextRow>()
-    val wordWidths = textRows.associate { row ->
-        val words = row.tokens.filterIsInstance<LineToken.WordToken>()
-        row.slot to words.sumOf { textMeasurer.measure(it.text, style).size.width }.toFloat()
-    }
-    val fixedWidths = textRows.associate { row ->
-        val rosettes = row.tokens.count { it is LineToken.RosetteToken }
-        row.slot to rosettes * rosettePx + (row.tokens.size - 1).coerceAtLeast(0) * fixedGapPx
-    }
+    chapters: List<Chapter>,
+    textFamily: FontFamily?,
+    plainFamily: FontFamily?,
+    widthPx: Float,
+    heightPx: Float,
+    decorations: PageDecorations,
+    onWordClick: (WordKey) -> Unit,
+    onAyahLongPress: (AyahRef, Rect) -> Unit,
+) {
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val measured = rememberPageGeometry(layout, rows, textFamily, widthPx, heightPx)
+    val geometry = measured.geometry
+    val measurements = measured.measurements
+    val field = Awn.field
+    var containerPosition by remember { mutableStateOf(Offset.Zero) }
 
-    val scaleToFit =
-        textRows.minOfOrNull { row ->
-            val words = wordWidths.getValue(row.slot)
-            if (words <= 0f) 1f else (availableWidthPx - fixedWidths.getValue(row.slot)) / words
-        } ?: 1f
-    val fontScale = scaleToFit.coerceIn(0f, 1f)
-    val fullLines =
-        textRows
-            .filter { row ->
-                val width =
-                    wordWidths.getValue(row.slot) * fontScale + fixedWidths.getValue(row.slot)
-                width >= availableWidthPx * FULL_LINE_SHARE
+    Box(
+        Modifier.fillMaxSize()
+            .onGloballyPositioned { coordinates: LayoutCoordinates ->
+                containerPosition = coordinates.positionInRoot()
             }
-            .map { it.slot }
-            .toSet()
-    return PageMetrics(fontScale, fullLines)
+            .pageGestures(geometry, containerPosition, onWordClick, onAyahLongPress)
+            .drawBehind { drawFills(geometry, decorations, field) },
+    ) {
+        val fontSizePx = geometry.fontSizePx
+        val style = pageTextStyle(textFamily, fontSizePx, density)
+        val baselineShift = measurements.firstBaselineEm * fontSizePx
+        val inkLift = INK_CENTER_ABOVE_BASELINE_EM * fontSizePx
+
+        for (row in rows) {
+            when (row) {
+                is PageRow.TextRow ->
+                    TextLine(
+                        placement = geometry.textLines.first { it.slot == row.slot },
+                        geometry = geometry,
+                        style = style,
+                        topOfText = geometry.slotCenter(row.slot) + inkLift - baselineShift,
+                        decorations = decorations,
+                        field = field,
+                    )
+                is PageRow.HeaderRow ->
+                    SurahBanner(
+                        name = chapters.firstOrNull { it.number == row.surah }?.nameArabic,
+                        geometry = geometry,
+                        slot = row.slot,
+                        family = plainFamily,
+                        field = field,
+                    )
+                is PageRow.BasmalaRow ->
+                    BasmalaLine(
+                        geometry = geometry,
+                        slot = row.slot,
+                        family = plainFamily,
+                        measurer = textMeasurer,
+                        color = field.content,
+                    )
+            }
+        }
+    }
 }
 
 @Composable
 private fun TextLine(
-    row: PageRow.TextRow,
+    placement: LinePlacement,
+    geometry: PageGeometry,
     style: TextStyle,
-    isJustified: Boolean,
-    selectedWord: WordKey?,
-    wordStates: (WordKey) -> WordState,
-    onWordClick: (WordKey) -> Unit,
+    topOfText: Float,
+    decorations: PageDecorations,
+    field: AwnFieldColors,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement =
-            if (isJustified) {
-                Arrangement.SpaceBetween
-            } else {
-                Arrangement.spacedBy(tokenGap, Alignment.CenterHorizontally)
-            },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        row.tokens.forEach { token ->
-            when (token) {
-                is LineToken.WordToken ->
-                    WordText(
-                        token = token,
+    val density = LocalDensity.current
+    for (tokenPlacement in placement.tokens) {
+        val slotModifier =
+            Modifier.alignedToSlot(
+                left = tokenPlacement.left,
+                slotTop = placement.top,
+                slotHeight = geometry.slotHeightPx,
+                textTop = topOfText,
+            )
+        when (val token = tokenPlacement.token) {
+            is LineToken.WordToken ->
+                Text(
+                    text = token.text,
+                    style = style,
+                    color = wordColor(decorations.wordStates(token.key), field),
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Visible,
+                    modifier = slotModifier,
+                )
+            is LineToken.RosetteToken ->
+                if (token.glyphCode != null) {
+                    Text(
+                        text = token.glyphCode,
                         style = style,
-                        state = wordStates(token.key),
-                        isSelected = token.key == selectedWord,
-                        onClick = { onWordClick(token.key) },
+                        color = field.content,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Visible,
+                        modifier = slotModifier,
                     )
-                is LineToken.RosetteToken -> Rosette(number = token.ayah.ayah)
-            }
+                } else {
+                    AyahRing(
+                        number = token.ayah.ayah,
+                        fontSizePx = geometry.fontSizePx,
+                        slotCenter = geometry.slotCenter(placement.slot),
+                        left = tokenPlacement.left,
+                        density = density,
+                    )
+                }
         }
     }
 }
 
+/**
+ * Gives the text the size and place of its line slot, so the node a test or a screen reader finds
+ * is the same rectangle as the highlight behind it, while the glyphs are drawn at [textTop]. The
+ * text may reach beyond the slot (tall marks do); it is not clipped.
+ */
+private fun Modifier.alignedToSlot(
+    left: Float,
+    slotTop: Float,
+    slotHeight: Float,
+    textTop: Float,
+): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(maxWidth = Constraints.Infinity))
+    layout(placeable.width, slotHeight.roundToInt()) {
+        placeable.place(0, (textTop - slotTop).roundToInt())
+    }
+}
+    .offset { IntOffset(left.roundToInt(), slotTop.roundToInt()) }
+
+/** The placed page and the measurements it was placed with. */
+private class MeasuredPage(val geometry: PageGeometry, val measurements: TokenMeasurements)
+
+/**
+ * Measures the tokens twice: first at a large size to find the font size that fits the page, then
+ * at that size, so the placed rectangles are the widths the text really draws with.
+ */
 @Composable
-private fun WordText(
-    token: LineToken.WordToken,
-    style: TextStyle,
-    state: WordState,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    val field = Awn.field
-    val textColor: Color
-    val blockColor: Color
-    when {
-        isSelected -> {
-            textColor = field.onButton
-            blockColor = field.buttonFill
+private fun rememberPageGeometry(
+    layout: PageLayout,
+    rows: List<PageRow>,
+    textFamily: FontFamily?,
+    widthPx: Float,
+    heightPx: Float,
+): MeasuredPage {
+    val density = LocalDensity.current
+    val textMeasurer = rememberTextMeasurer()
+    val isCentredBlock = isCentredBlockPage(layout)
+    val coarse =
+        remember(rows, textFamily, density) {
+            val style = pageTextStyle(textFamily, MEASURE_FONT_PX, density)
+            measureTokens(rows, style, MEASURE_FONT_PX, textMeasurer)
         }
-        state == WordState.Confirmed -> {
-            textColor = field.confirmedWord
-            blockColor = Color.Transparent
+    val coarseSize =
+        remember(rows, widthPx, heightPx, coarse) {
+            layoutPage(rows, isCentredBlock, widthPx, heightPx, coarse::widthEm).fontSizePx
         }
-        state == WordState.Tentative -> {
-            textColor = field.tentativeWord
-            blockColor = Color.Transparent
+    val measurements =
+        remember(rows, textFamily, density, coarseSize) {
+            val style = pageTextStyle(textFamily, coarseSize, density)
+            measureTokens(rows, style, coarseSize, textMeasurer)
         }
-        state == WordState.Wrong -> {
-            textColor = field.wrongWord
-            blockColor = Color.Transparent
+    val geometry =
+        remember(rows, widthPx, heightPx, measurements) {
+            layoutPage(rows, isCentredBlock, widthPx, heightPx, measurements::widthEm)
         }
-        state == WordState.Hidden -> {
-            textColor = Color.Transparent
-            blockColor = field.content.copy(alpha = HIDDEN_BLOCK_ALPHA)
-        }
-        else -> {
-            textColor = field.content
-            blockColor = Color.Transparent
-        }
-    }
-    Text(
-        text = token.text,
-        style = style,
-        color = textColor,
-        maxLines = 1,
-        softWrap = false,
-        modifier =
-            Modifier.clip(AwnShapes.wordBlock).background(blockColor).clickable(onClick = onClick),
-    )
+    return MeasuredPage(geometry, measurements)
 }
-
-@Composable
-private fun Rosette(number: Int) {
-    Box(
-        modifier = Modifier.size(AwnSpacing.large).clip(CircleShape).background(AwnColors.ochre),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = number.toString(),
-            style = AwnTypography.small,
-            color = AwnColors.ink,
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
-private fun SurahBand(name: String?, style: TextStyle) {
-    val field = Awn.field
-    Box(
-        modifier = Modifier.fillMaxWidth().clip(AwnShapes.wordBlock).background(field.buttonFill),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = name.orEmpty(), style = style, color = field.onButton, maxLines = 1)
-    }
-}
-
-/** True when [script] is drawn with one font per page. */
-internal fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts

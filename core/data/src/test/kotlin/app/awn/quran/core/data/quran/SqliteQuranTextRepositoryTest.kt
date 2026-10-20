@@ -68,6 +68,74 @@ class SqliteQuranTextRepositoryTest {
     }
 
     @Test
+    fun everySurahHasOneBannerAndOneBismillahBeforeItsFirstWordInEveryScript() = runBlocking {
+        val chapters = repository.chapters()
+        for (script in ScriptId.entries - ScriptId.IndoPak) {
+            val banners = mutableMapOf<Int, MutableList<Pair<Int, Int>>>()
+            val bismillahs = mutableMapOf<Int, MutableList<Pair<Int, Int>>>()
+            val firstWords = mutableMapOf<Int, Pair<Int, Int>>()
+            for (page in 1..604) {
+                for (line in repository.pageLayout(page, script).lines) {
+                    for (item in line.items) {
+                        val place = page to line.line
+                        when (item) {
+                            is LineItem.SurahHeader ->
+                                banners.getOrPut(item.surah) { mutableListOf() }.add(place)
+                            is LineItem.Basmala ->
+                                bismillahs.getOrPut(item.surah) { mutableListOf() }.add(place)
+                            is LineItem.WordItem ->
+                                if (item.word.key.ayah == 1 && item.word.key.wordPosition == 1) {
+                                    firstWords[item.word.key.surah] = place
+                                }
+                            is LineItem.AyahEnd -> Unit
+                        }
+                    }
+                }
+            }
+            val printOrder = compareBy<Pair<Int, Int>>({ it.first }, { it.second })
+            for (chapter in chapters) {
+                val label = "$script surah ${chapter.number}"
+                val banner = banners[chapter.number].orEmpty()
+                val bismillah = bismillahs[chapter.number].orEmpty()
+                val firstWord = firstWords.getValue(chapter.number)
+                assertEquals("$label banners", 1, banner.size)
+                assertTrue(
+                    "$label banner before first word",
+                    printOrder.compare(banner[0], firstWord) < 0,
+                )
+                if (chapter.bismillahPre) {
+                    assertEquals("$label bismillahs", 1, bismillah.size)
+                    assertTrue(
+                        "$label banner before bismillah",
+                        printOrder.compare(banner[0], bismillah[0]) < 0,
+                    )
+                    assertTrue(
+                        "$label bismillah before first word",
+                        printOrder.compare(bismillah[0], firstWord) < 0,
+                    )
+                } else {
+                    assertEquals("$label bismillahs", 0, bismillah.size)
+                }
+            }
+            assertEquals(script.name, 112, bismillahs.size)
+        }
+    }
+
+    @Test
+    fun surahStartingOnLineTwoPutsTheBannerOnTheLastLineOfThePreviousPage() = runBlocking {
+        // Surah 4 starts on line 2 of page 77 in V2: the banner is on line 15 of page 76.
+        val previous = repository.pageLayout(76, ScriptId.V2)
+        val page = repository.pageLayout(77, ScriptId.V2)
+
+        assertEquals(LineItem.SurahHeader(4), previous.lines.last().items.single())
+        assertEquals(15, previous.lines.last().line)
+        assertEquals(LineItem.Basmala(4), page.lines[0].items.single())
+        assertTrue(
+            page.lines.flatMap { it.items }.none { it is LineItem.SurahHeader && it.surah == 4 },
+        )
+    }
+
+    @Test
     fun surahWithoutSeparateBismillahGetsOnlyTheBanner() = runBlocking {
         val tawbahPage = repository.pageOf(AyahRef(9, 1), ScriptId.V2)
         val layout = repository.pageLayout(tawbahPage, ScriptId.V2)
@@ -107,6 +175,26 @@ class SqliteQuranTextRepositoryTest {
             assertEquals(script.name, 77_429, wordCount)
             assertEquals(script.name, 6_236, ayahs.size)
         }
+    }
+
+    private fun glyphOf(codePoint: Int): String = codePoint.toChar().toString()
+
+    @Test
+    fun ayahEndSignsCarryTheGlyphOfTheirPageFont() = runBlocking {
+        suspend fun endOf(page: Int, script: ScriptId, ayah: AyahRef): String? =
+            repository
+                .pageLayout(page, script)
+                .lines
+                .flatMap { it.items }
+                .filterIsInstance<LineItem.AyahEnd>()
+                .first { it.ayah == ayah }
+                .glyphCode
+
+        assertEquals(glyphOf(0xFC45), endOf(1, ScriptId.V2, AyahRef(1, 1)))
+        assertEquals(glyphOf(0xFB55), endOf(1, ScriptId.V1, AyahRef(1, 1)))
+        // 2:178 ends with the shared V1 glyph U+FBB1, which prints its sign as U+FBD3.
+        val page = repository.pageOf(AyahRef(2, 178), ScriptId.V1)
+        assertEquals(glyphOf(0xFBD3), endOf(page, ScriptId.V1, AyahRef(2, 178)))
     }
 
     @Test

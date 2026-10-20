@@ -18,10 +18,6 @@ internal object Routes {
     const val SETTINGS = "settings"
     const val NOTICE = "notice"
     const val CREDITS = "credits"
-    const val LISTEN = "listen"
-    const val RECITERS = "reciters"
-    const val DOWNLOADS = "downloads"
-    const val RECITE = "recite"
 
     fun quran(page: Int? = null, ayah: AyahRef? = null): String =
         "quran?$PAGE_ARGUMENT=${page ?: NOT_GIVEN}" +

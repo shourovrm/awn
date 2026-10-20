@@ -68,13 +68,15 @@ class SqliteTranslationRepository(
                             "ORDER BY position",
                         arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
                     )
-            cursor.use {
+            val meanings = cursor.use {
                 buildList {
                     while (it.moveToNext()) {
                         add(it.getString(0))
                     }
                 }
             }
+            // Only the English source repeats a phrase on each of its words.
+            if (language == ENGLISH) PhraseRepeats.collapse(ayah, meanings) else meanings
         }
 
     private fun packOf(id: String, translationKind: String): PackRecord? =
@@ -85,5 +87,6 @@ class SqliteTranslationRepository(
     private companion object {
         const val AYAH_PACK_KIND = "ayah"
         const val WORD_PACK_KIND = "word"
+        const val ENGLISH = "en"
     }
 }

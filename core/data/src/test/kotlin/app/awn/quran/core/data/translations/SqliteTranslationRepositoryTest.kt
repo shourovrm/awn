@@ -84,6 +84,32 @@ class SqliteTranslationRepositoryTest {
     }
 
     @Test
+    fun englishPhraseIsShownOnceInTheBundledPack() = runBlocking {
+        val meanings = realRepository().wordByWord("en", AyahRef(9, 3))
+
+        assertEquals("from Allah", meanings[1])
+        assertEquals("", meanings[2])
+        assertEquals("(of) the greater Pilgrimage", meanings[7])
+        assertEquals("", meanings[8])
+    }
+
+    @Test
+    fun englishMeaningsHaveNoRepeatedNeighboursExceptTheGenuineOne() = runBlocking {
+        val repository = realRepository()
+        val repeats = mutableListOf<String>()
+        for (surah in listOf(4, 9, 10, 58)) {
+            for (ayahNumber in 1..20) {
+                val meanings = repository.wordByWord("en", AyahRef(surah, ayahNumber))
+                meanings.zipWithNext().forEachIndexed { index, (left, right) ->
+                    if (left == right && left.isNotEmpty())
+                        repeats += "$surah:$ayahNumber:${index + 2}"
+                }
+            }
+        }
+        assertEquals(emptyList<String>(), repeats)
+    }
+
+    @Test
     fun mergedRangeReturnsTheSameTextForEveryAyahOfTheRange() = runBlocking {
         val packFile = temporaryFolder.newFile("merged.sqlite").also { it.delete() }
         createPackDatabase(

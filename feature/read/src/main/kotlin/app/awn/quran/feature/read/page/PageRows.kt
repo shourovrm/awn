@@ -11,7 +11,8 @@ import app.awn.quran.core.data.WordKey
 internal sealed interface LineToken {
     data class WordToken(val key: WordKey, val text: String) : LineToken
 
-    data class RosetteToken(val ayah: AyahRef) : LineToken
+    /** The ayah-end sign. [glyphCode] is the printed sign of the page font, null to draw a ring. */
+    data class RosetteToken(val ayah: AyahRef, val glyphCode: String?) : LineToken
 }
 
 /** One numbered slot of the page as the screen draws it. */
@@ -34,7 +35,7 @@ internal val glyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
  * that font is missing, or the pack has no code, the Unicode text is drawn instead.
  */
 internal fun textToDraw(word: Word, script: ScriptId, hasGlyphFont: Boolean): String {
-    if (!hasGlyphFont) return word.textUthmani
+    if (!hasGlyphFont) return normalizeFallbackText(word.textUthmani)
     val glyphCode =
         when (script) {
             ScriptId.V1 -> word.codeV1
@@ -56,19 +57,26 @@ internal fun buildPageRows(layout: PageLayout, hasGlyphFont: Boolean): List<Page
             else ->
                 PageRow.TextRow(
                     line.line,
-                    line.items.mapNotNull { item -> tokenOf(item, layout.script, hasGlyphFont) },
+                    line.items.flatMap { item -> tokensOf(item, layout.script, hasGlyphFont) },
                 )
         }
     }
 
-private fun tokenOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): LineToken? =
+private fun tokensOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): List<LineToken> =
     when (item) {
         is LineItem.WordItem ->
-            LineToken.WordToken(item.word.key, textToDraw(item.word, script, hasGlyphFont))
-        is LineItem.AyahEnd -> LineToken.RosetteToken(item.ayah)
+            listOf(LineToken.WordToken(item.word.key, textToDraw(item.word, script, hasGlyphFont)))
+        is LineItem.AyahEnd ->
+            listOf(LineToken.RosetteToken(item.ayah, item.glyphCode.takeIf { hasGlyphFont }))
         is LineItem.SurahHeader,
-        is LineItem.Basmala -> null
+        is LineItem.Basmala -> emptyList()
     }
 
-/** Slots on the page: 15 on most pages, 8 on pages 1 and 2, whatever the layout holds. */
+/** Pages 1 and 2 are drawn as a centred block, not in the 15-line frame. */
+internal fun isCentredBlockPage(layout: PageLayout): Boolean = layout.page <= 2
+
+/** Lines in the layout, counting banner and Basmalah lines. */
 internal fun slotCountOf(layout: PageLayout): Int = layout.lines.maxOfOrNull { it.line } ?: 0
+
+/** True when [script] is drawn with one font per page. */
+internal fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts

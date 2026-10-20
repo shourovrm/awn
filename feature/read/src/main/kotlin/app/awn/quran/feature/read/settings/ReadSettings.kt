@@ -13,12 +13,10 @@ enum class PageView {
     fun next(): PageView = entries[(ordinal + 1) % entries.size]
 }
 
-/** The zoom factor of the Arabic text; see [ReadSettings.textSize]. */
-data class TextZoom(val zoom: Float)
-
 /** Everything the user can change about reading. */
 data class ReadSettings(
-    val script: ScriptId = ScriptId.QpcHafs,
+    /** The printed Mushaf; the 1421 print unless the user picks another page type. */
+    val script: ScriptId = ScriptId.V2,
     val pageView: PageView = PageView.Mushaf,
     /** Enabled translations, in the order they are shown. */
     val translations: List<TranslationId> = DEFAULT_TRANSLATIONS,
@@ -31,6 +29,8 @@ data class ReadSettings(
     val highlightBookmarks: Boolean = true,
     /** Volume up and down turn the page while the Quran screen is open. */
     val volumeKeysTurnPages: Boolean = false,
+    /** The surah, juz and page number around the Mushaf page. */
+    val showPageInfo: Boolean = true,
 ) {
     /** The factor that multiplies the Arabic font size. */
     val arabicScale: Float
@@ -39,13 +39,6 @@ data class ReadSettings(
     /** The factor that multiplies the translation font size. */
     val translationScale: Float
         get() = TextScale.scaleOf(translationSizeStep)
-
-    /**
-     * Read by page/MushafPageScreen, which the old Mushaf screen still uses. Delete this and
-     * [TextZoom] together with that screen.
-     */
-    val textSize: TextZoom
-        get() = TextZoom(arabicScale)
 
     companion object {
         /** Bangla first, then English, as in the design mockups; both ship inside the app. */

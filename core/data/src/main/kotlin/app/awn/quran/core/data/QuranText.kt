@@ -36,8 +36,11 @@ data class Word(
 sealed interface LineItem {
     data class WordItem(val word: Word) : LineItem
 
-    /** The ayah-end sign of [ayah]. */
-    data class AyahEnd(val ayah: AyahRef) : LineItem
+    /**
+     * The ayah-end sign of [ayah]. [glyphCode] is the private-use character that draws the printed
+     * sign with the page font of the print; null when it is not known (fakes, Unicode scripts).
+     */
+    data class AyahEnd(val ayah: AyahRef, val glyphCode: String? = null) : LineItem
 
     /** The surah name banner above the first ayah of [surah]. */
     data class SurahHeader(val surah: Int) : LineItem

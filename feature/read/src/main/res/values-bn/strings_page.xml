@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="page_juz">পারা %1$d</string>
+  <string name="page_juz_and_hizb">পারা %1$d · %2$s</string>
+  <string name="page_hizb">হিযব %1$d</string>
+  <string name="page_hizb_quarter">¼ হিযব %1$d</string>
+  <string name="page_hizb_half">½ হিযব %1$d</string>
+  <string name="page_hizb_three_quarters">¾ হিযব %1$d</string>
+  <string name="font_prompt_size">%1$s মেগাবাইট</string>
+  <string name="font_prompt_wifi">ওয়াই-ফাই ভালো</string>
+  <string name="font_prompt_download">ডাউনলোড</string>
+  <string name="font_prompt_keep">হাফস লেখাই থাকুক</string>
+  <string name="font_prompt_progress">ডাউনলোড হচ্ছে %1$d%%</string>
+  <string name="font_prompt_failed">ডাউনলোড হয়নি। আবার চেষ্টা করুন</string>
+  <string name="mushaf_type_v2">মাদানী ১৪২১</string>
+  <string name="mushaf_type_v1">মাদানী ১৪০৫</string>
+  <string name="mushaf_type_v4">তাজবীদের রং</string>
+  <string name="mushaf_year_v2">১৪২১ ছাপা</string>
+  <string name="mushaf_year_v1">১৪০৫ ছাপা</string>
+  <string name="mushaf_year_v4">১৪২১ ছাপা, রং করা</string>
+  <string name="mushaf_size_installed">%1$s মেগাবাইট ইনস্টল করা</string>
+  <string name="mushaf_size_download">%1$s মেগাবাইট ডাউনলোড</string>
+  <string name="mushaf_install">ইনস্টল</string>
+  <string name="mushaf_use">ব্যবহার করুন</string>
+  <string name="mushaf_remove">মুছুন</string>
+  <string name="mushaf_in_use">ব্যবহারে আছে</string>
+  <string name="mushaf_show_page_info">পৃষ্ঠার তথ্য দেখান</string>
+  <string name="mushaf_preview_description">%1$s, %2$d নম্বর পৃষ্ঠার প্রিভিউ</string>
+</resources>

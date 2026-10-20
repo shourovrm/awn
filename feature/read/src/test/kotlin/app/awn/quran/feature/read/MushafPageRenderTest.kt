@@ -8,7 +8,6 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.page.MushafPage
-import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -35,9 +34,7 @@ class MushafPageRenderTest {
                     chapters = fixture.text.chapterList,
                     fontFamily = null,
                     plainFamily = null,
-                    zoom = 1f,
-                    selectedWord = null,
-                    wordStates = { WordState.Neutral },
+                    showPageInfo = false,
                     onWordClick = {},
                 )
             }
@@ -45,7 +42,7 @@ class MushafPageRenderTest {
 
         composeRule.onNodeWithText(ReadFixture.FIRST_WORD).assertIsDisplayed()
         composeRule.onNodeWithText(ReadFixture.SECOND_WORD).assertIsDisplayed()
-        composeRule.onNodeWithText("1").assertIsDisplayed()
+        composeRule.onNodeWithText("\u0661").assertIsDisplayed()
     }
 
     @Test
@@ -60,9 +57,7 @@ class MushafPageRenderTest {
                     chapters = fixture.text.chapterList,
                     fontFamily = null,
                     plainFamily = null,
-                    zoom = 1f,
-                    selectedWord = null,
-                    wordStates = { WordState.Neutral },
+                    showPageInfo = false,
                     onWordClick = { tapped += it },
                 )
             }

@@ -7,6 +7,12 @@ import kotlinx.coroutines.flow.Flow
 /** [kind] is one of script, font, translation, timing, model. */
 data class InstalledPack(val id: String, val kind: String, val formatVersion: Int, val bytes: Long)
 
+/**
+ * What a pack costs in storage. [downloadBytes] is the file to download; [installedBytes] is the
+ * space it takes on the phone now, or null when it is not installed.
+ */
+data class PackSize(val downloadBytes: Long, val installedBytes: Long?)
+
 interface PackRepository {
 
     /** Emits the installed packs, again after every install or removal. */
@@ -17,6 +23,9 @@ interface PackRepository {
      * or reciters.json); empty when the manifest could not be read.
      */
     suspend fun manifest(kind: String): List<PackEntry>
+
+    /** Returns the sizes of pack [id], or null when no manifest lists it. */
+    suspend fun sizeOf(id: String): PackSize?
 
     /** Downloads, verifies and installs [entry], reporting progress from 0.0 to 1.0. */
     suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit)
