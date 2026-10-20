@@ -7,8 +7,47 @@ package app.awn.quran.tracker
  */
 data class WordKeyLike(val surah: Int, val ayah: Int, val wordPosition: Int)
 
-/** One word of the text the user should recite, with the phonemes the model should hear for it. */
-data class ReferenceWord(val key: WordKeyLike, val phonemes: List<String>)
+/**
+ * A lengthened vowel in a word: [letter] is the long-vowel phoneme, [rule] the madd type
+ * ("natural", "monfasel", "mottasel", "mottasel_waqf", "aared" or "lazim"), [harakat] the number of
+ * counts the recitation style asks for, and [phonemeIndex] the position of the run's first phoneme
+ * in [ReferenceWord.phonemes].
+ */
+data class MaddAnnotation(
+    val letter: String,
+    val rule: String,
+    val harakat: Int,
+    val phonemeIndex: Int,
+)
+
+/**
+ * One word of the text the user should recite, with the phonemes the model should hear for it and
+ * the lengthened vowels it holds.
+ */
+data class ReferenceWord(
+    val key: WordKeyLike,
+    val phonemes: List<String>,
+    val madds: List<MaddAnnotation> = emptyList(),
+)
+
+enum class DurationVerdict {
+    Ok,
+    Underheld,
+    Overheld,
+}
+
+/**
+ * How long the user held a lengthened vowel of the word at [wordIndex], measured as the time from
+ * the vowel's token onset to the next token's onset, against the time the rule asks for.
+ */
+data class DurationCheck(
+    val wordIndex: Int,
+    val letter: String,
+    val rule: String,
+    val measuredSeconds: Float,
+    val expectedSeconds: Float,
+    val verdict: DurationVerdict,
+)
 
 /**
  * [speed] runs from 0 (slow and patient) to 1 (fast and eager) and maps to the alignment thresholds
@@ -25,6 +64,21 @@ sealed interface TrackerEvent {
 
     /** The user said extra material after the word at [afterIndex]. */
     data class Inserted(val afterIndex: Int) : TrackerEvent
+
+    /**
+     * The user said [heard] where the reference expects [expected], at position [phonemeIndex]
+     * (0-based) in the phonemes of the word at [wordIndex]. Reported once the user has moved on to
+     * a later word. The model leans towards the correct rule, so many real errors never show.
+     */
+    data class Substitution(
+        val wordIndex: Int,
+        val phonemeIndex: Int,
+        val heard: String,
+        val expected: String,
+    ) : TrackerEvent
+
+    /** The user held a lengthened vowel for the time in [check]; reported once per vowel. */
+    data class Duration(val check: DurationCheck) : TrackerEvent
 
     /** The tracker re-synchronised to the word at [index] after losing the place. */
     data class Anchored(val index: Int) : TrackerEvent

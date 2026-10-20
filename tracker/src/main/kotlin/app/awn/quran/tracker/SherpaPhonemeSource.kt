@@ -75,7 +75,7 @@ class SherpaPhonemeSource(modelPath: String, tokensPath: String, numThreads: Int
                 PhonemeEvent(
                     symbol = tokens[index],
                     onsetSeconds = result.timestamps[index],
-                    probability = result.ysProbs[index],
+                    probability = result.ysProbs.getOrElse(index) { UNKNOWN_PROBABILITY },
                 )
         }
         reportedTokenCount = tokens.size
@@ -84,5 +84,8 @@ class SherpaPhonemeSource(modelPath: String, tokensPath: String, numThreads: Int
 
     private companion object {
         const val FEATURE_DIMENSION = 80
+
+        // sherpa-onnx 1.13.8 leaves ysProbs empty for CTC greedy search, so no probability exists.
+        const val UNKNOWN_PROBABILITY = -1f
     }
 }
