@@ -50,6 +50,18 @@ data class AwnFieldColors(
     val wrongWord: Color,
     val hiddenWordBlock: Color,
     val isLight: Boolean,
+    /** Behind the ayah the user long-pressed. */
+    val selectedAyahFill: Color =
+        if (isLight) AwnColors.selectedAyahLight else AwnColors.selectedAyahNight,
+    /** Behind the ayah being played. */
+    val playingAyahFill: Color =
+        if (isLight) AwnColors.playingAyahLight else AwnColors.playingAyahNight,
+    /** Behind the word being played, on top of [playingAyahFill]. */
+    val playingWordFill: Color =
+        if (isLight) AwnColors.playingWordLight else AwnColors.playingWordNight,
+    /** Light mark behind bookmarked ayahs. */
+    val bookmarkedAyahFill: Color =
+        if (isLight) AwnColors.bookmarkedAyahLight else AwnColors.bookmarkedAyahNight,
 )
 
 fun awnFieldColors(field: AwnField): AwnFieldColors =
