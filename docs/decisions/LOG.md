@@ -129,3 +129,4 @@
 2026-10-21 | Unit tests run with a 2-thread Default pool and a 10-minute task timeout | CI hung on blocked Default threads (recite.md)
 2026-10-21 | One-time print card replaces the page-load font prompt; Go to page is a floating card; language screen smaller; Language row on the hub | user decisions (read.md)
 2026-10-21 | Quantum Fatihah 6 ends at the first comma; the rest opens 7 | their 5-6 held the start of Hafs 7 (ops.md)
+2026-10-21 | Quantum shows the translation only: square-bracket notes removed, [সেজদা] kept | maintainer's choice (ops.md)
