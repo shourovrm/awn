@@ -156,6 +156,9 @@ class RecitationSession(
     private var greenAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var hifzAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var nothingToAppend = false
+
+    // Set by [pauseForListening]: the next [start] continues the recitation instead of clearing it.
+    @Volatile private var continuesOnNextStart = false
     private var revealedIndexes: MutableSet<Int> = mutableSetOf()
 
     /** Why the last run ended in [RecitationPhase.Error], for diagnostics and tests. */
@@ -206,6 +209,7 @@ class RecitationSession(
             greenAyahsReported = mutableSetOf()
             hifzAyahsReported = mutableSetOf()
             nothingToAppend = false
+            continuesOnNextStart = false
             revealedIndexes = mutableSetOf()
             mutableGradePrompt.value = null
             mutableWords.value = displayWords
@@ -243,11 +247,27 @@ class RecitationSession(
             scope.launch(recognitionDispatcher) {
                 previousRun?.join()
                 if (mutablePhase.value != RecitationPhase.Listening) return@launch
-                synchronized(lock) { if (hasResults()) clearResults() }
+                synchronized(lock) {
+                    if (continuesOnNextStart) {
+                        tracker?.continueFrom(firstOpenIndex() ?: wordKeys.size)
+                    } else if (hasResults()) {
+                        clearResults()
+                    }
+                    continuesOnNextStart = false
+                }
                 val input = inputFactory()
                 activeInput = input
                 recognise(input)
             }
+    }
+
+    /**
+     * Stops the microphone so it does not hear the reciter being played, and makes the next [start]
+     * go on from the next expected word with every mark kept. A new [load] or [reset] starts fresh.
+     */
+    fun pauseForListening() {
+        continuesOnNextStart = true
+        stop()
     }
 
     /** Closes the audio input; what was heard so far stays on screen. */
@@ -271,6 +291,7 @@ class RecitationSession(
     suspend fun reset() {
         stopAndWait()
         synchronized(lock) { clearResults() }
+        continuesOnNextStart = false
         mutablePhase.value = RecitationPhase.Idle
     }
 

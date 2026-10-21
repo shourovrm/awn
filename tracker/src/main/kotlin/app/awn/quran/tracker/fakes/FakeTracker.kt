@@ -59,6 +59,15 @@ class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
     override fun reset() {
         states.clear()
     }
+
+    /** Every index given to [continueFrom], in order. */
+    val continuedFrom = mutableListOf<Int>()
+
+    override fun continueFrom(index: Int) {
+        continuedFrom += index
+        startIndex = index
+        states.keys.removeAll { it >= index }
+    }
 }
 
 /** Creates [FakeTracker]s and keeps them in [created] so a test can script the one in use. */

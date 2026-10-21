@@ -116,6 +116,13 @@ interface Tracker {
 
     /** Forgets everything heard so far and keeps the loaded reference. */
     fun reset()
+
+    /**
+     * Forgets the audio heard so far but keeps the states of the words before [index], and follows
+     * on from the word at [index]: for a new microphone run that continues the same recitation,
+     * whose phoneme times start again at zero.
+     */
+    fun continueFrom(index: Int)
 }
 
 interface TrackerFactory {

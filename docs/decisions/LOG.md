@@ -122,3 +122,4 @@
 2026-10-21 | Page follows the next expected word, animated for one page, jump for more | audio-style jump hid the recitation (read.md)
 2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
+2026-10-21 | Start after Listen continues the recitation | user: listening must not throw away the marks (recite.md)
