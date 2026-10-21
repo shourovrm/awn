@@ -44,6 +44,8 @@ private enum class HifzPage {
  * after the practice request is stored in [controller] and should open the Quran screen at
  * `request.firstAyah`; [onOpenAyah] opens the Quran screen at an ayah without practice.
  */
+// The tab chooses between its pages in one place.
+@Suppress("LongMethod")
 @Composable
 fun HifzTab(
     controller: HifzController,

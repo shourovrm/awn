@@ -34,13 +34,14 @@ object HifzProgress {
         oldTable: PageTable,
         newTable: PageTable,
         records: Map<Int, PageRecord>,
-    ): Map<Int, PageRecord> = buildMap {
-        for (page in 1..newTable.pageCount) {
-            val firstAyah = newTable.ayahsOn(page).firstOrNull() ?: continue
-            val oldRecord = records[oldTable.startPageOf(firstAyah)] ?: continue
-            put(page, oldRecord.copy(page = page))
-        }
-    }
+    ): Map<Int, PageRecord> =
+        (1..newTable.pageCount)
+            .mapNotNull { page ->
+                val firstAyah = newTable.ayahsOn(page).firstOrNull()
+                val oldRecord = firstAyah?.let { records[oldTable.startPageOf(it)] }
+                oldRecord?.let { page to it.copy(page = page) }
+            }
+            .toMap()
 
     /** A suggested grade for a finished part from the words the user got wrong while reciting. */
     fun suggestedGrade(mistakenWords: Int, ayahCount: Int): PartGrade =

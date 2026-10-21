@@ -5,6 +5,7 @@ import app.awn.quran.core.data.fsrs.FsrsCard
 import java.time.LocalDate
 
 /** How well a page is known. [value] is stored in the database, so it never changes. */
+@Suppress("MagicNumber") // The numbers are the stored values.
 enum class PageStatus(val value: Int) {
     NotStarted(0),
     Learning(1),

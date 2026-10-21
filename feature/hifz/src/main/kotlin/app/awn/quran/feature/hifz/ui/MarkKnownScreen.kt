@@ -34,6 +34,8 @@ private const val JUZ_COUNT = 30
  * "Mark what I know": pick surahs, juz or a run of pages and say how well they are known. It is the
  * way in for people with no method and for people who memorised before using the app.
  */
+// One page of rows and one button; splitting it would only pass its state around.
+@Suppress("LongMethod")
 @Composable
 internal fun MarkKnownScreen(
     table: PageTable,

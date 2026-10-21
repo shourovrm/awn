@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // One small function per name the screens show.
+
 package app.awn.quran.feature.hifz.ui
 
 import androidx.compose.runtime.Composable

@@ -44,6 +44,8 @@ data class PracticeRequest(
 
 object HifzStateBuilder {
 
+    // Every input is a different table of the database; a holder would only rename them.
+    @Suppress("LongParameterList")
     fun build(
         plan: HifzPlan,
         table: PageTable,

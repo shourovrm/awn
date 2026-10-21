@@ -6,6 +6,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
+// One function per query the repository needs.
+@Suppress("TooManyFunctions")
 @Dao
 interface HifzDao {
 

@@ -37,7 +37,6 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
-import app.awn.quran.feature.hifz.HifzBar
 import app.awn.quran.feature.learn.LearnScreen
 import app.awn.quran.feature.listen.AudioBar
 import app.awn.quran.feature.listen.PlayRangePanel
@@ -305,23 +304,7 @@ private fun QuranRoute(
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
-            hifzBar =
-                if (practice == null) {
-                    null
-                } else {
-                    { onExit ->
-                        ReciteBarOrDownload(services, onExit) {
-                            HifzBar(
-                                controller = services.hifz.controller,
-                                recite = services.recite,
-                                playRange = { first, last ->
-                                    services.audio.controller.playRange(first, last)
-                                },
-                                onExit = onExit,
-                            )
-                        }
-                    }
-                },
+            hifzBar = hifzBarSlot(services, isPracticing = practice != null),
         )
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {

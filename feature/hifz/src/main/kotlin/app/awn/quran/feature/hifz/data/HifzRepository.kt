@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.map
  * Reads and writes the hifz database in the terms of the method code. Every write that touches
  * several rows is one transaction, so a crash never leaves a lesson half recorded.
  */
+// One function per thing the screens read or record.
+@Suppress("TooManyFunctions")
 class HifzRepository(
     private val database: HifzDatabase,
     private val clock: () -> Long = System::currentTimeMillis,

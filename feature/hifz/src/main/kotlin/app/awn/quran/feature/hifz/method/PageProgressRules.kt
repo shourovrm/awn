@@ -39,6 +39,8 @@ object PageProgressRules {
      * lesson; a page whose last ayah is inside the lesson becomes Memorised, a page that is only
      * partly covered stays Learning.
      */
+    // The lesson, the day, the time, the records and the scheduler are all inputs of one rule.
+    @Suppress("LongParameterList")
     fun completeLesson(
         table: PageTable,
         part: LessonPart,
@@ -91,6 +93,8 @@ object PageProgressRules {
      * recent lesson again. A Learning page without a card is half a lesson, which revision does not
      * finish, so only its revision date changes.
      */
+    // Guards come first: a half lesson changes only its date, a forgotten page restarts.
+    @Suppress("ReturnCount")
     fun gradeRevision(
         record: PageRecord,
         grade: PartGrade,

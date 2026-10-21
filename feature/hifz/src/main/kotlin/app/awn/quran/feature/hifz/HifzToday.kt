@@ -25,6 +25,8 @@ data class HifzTodayLine(val title: String, val detail: String)
 object HifzToday {
 
     /** The summary of today, null when there is no plan or the method assigns nothing. */
+    // Guards for no plan and nothing assigned come first.
+    @Suppress("ReturnCount")
     fun summaryOf(state: HifzState): HifzTodaySummary? {
         if (state.plan.method == HifzMethodId.TrackOnly) return null
         val assignment = state.assignment
@@ -44,6 +46,7 @@ object HifzToday {
 }
 
 /** The Today line of Hifz for the Quran tab, or null while there is nothing to show. */
+@Suppress("ReturnCount") // Guards: not ready, nothing today.
 @Composable
 fun rememberHifzTodayLine(controller: HifzController): HifzTodayLine? {
     val screenState by controller.screenState.collectAsStateWithLifecycle()

@@ -132,6 +132,7 @@ class HifzController(
     }
 
     /** Opens [kind] for practice and returns the request, or null when today has no such part. */
+    @Suppress("ReturnCount") // Guards: tab not ready, no such part today.
     fun startPractice(kind: PartKind): PracticeRequest? {
         val ready = screenState.value as? HifzScreenState.Ready ?: return null
         val request = HifzStateBuilder.practiceFor(ready.state, kind) ?: return null
@@ -140,6 +141,7 @@ class HifzController(
     }
 
     /** Opens the part the primary button offers, or returns null when today is done. */
+    @Suppress("ReturnCount") // Guards: tab not ready, day done.
     fun startNextPart(): PracticeRequest? {
         val ready = screenState.value as? HifzScreenState.Ready ?: return null
         val next = ready.state.assignment.nextPart() ?: return null

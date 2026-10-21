@@ -44,6 +44,8 @@ data class DayAssignment(
  */
 object AssignmentGenerator {
 
+    // Plan, print, records, log, day and zone are the inputs of one pure function.
+    @Suppress("LongParameterList")
     fun generate(
         plan: HifzPlan,
         table: PageTable,
@@ -64,6 +66,8 @@ object AssignmentGenerator {
         }
     }
 
+    // A finished lesson, then no lesson left, then the next lesson: three exits by design.
+    @Suppress("ReturnCount")
     private fun assignLesson(
         plan: HifzPlan,
         table: PageTable,
@@ -132,6 +136,7 @@ object AssignmentGenerator {
     }
 
     // The oldest-revised pages first, as many as one cycle needs per day, never past the room left.
+    @Suppress("ReturnCount")
     private fun oldPagesFor(
         records: Map<Int, PageRecord>,
         windowStart: LocalDate,
@@ -154,6 +159,7 @@ object AssignmentGenerator {
             .sorted()
     }
 
+    @Suppress("LongParameterList")
     private fun dueRevision(
         plan: HifzPlan,
         lesson: AssignedLesson?,
