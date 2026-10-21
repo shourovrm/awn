@@ -12,12 +12,14 @@ import app.awn.quran.tracker.ReferencePhonemes
 import app.awn.quran.tracker.ReferenceWord
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.TrackerFactory
+import app.awn.quran.tracker.TrackerInput
 import app.awn.quran.tracker.WordKeyLike
 import app.awn.quran.tracker.WordState
 import app.awn.quran.tracker.fakes.FakeReferencePhonemes
 import app.awn.quran.tracker.fakes.FakeTracker
 import app.awn.quran.tracker.fakes.FakeTrackerFactory
 import java.io.File
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,6 +42,10 @@ class ControllerFixture(
     reference: ReferencePhonemes? = null,
     trackerFactory: TrackerFactory? = null,
     val dueAyahs: MutableList<AyahRef> = mutableListOf(),
+    /** Replaces the scripted input, for a test that needs the microphone to stay open. */
+    microphone: (() -> TrackerInput)? = null,
+    /** Replaces the test dispatcher, for an input that blocks its thread. */
+    recognitionThread: CoroutineDispatcher? = null,
 ) {
     val first = WordKey(1, 1, 1)
     val second = WordKey(1, 1, 2)
@@ -122,10 +128,10 @@ class ControllerFixture(
                 settings = settings,
                 audioPlayer = audioPlayer,
                 speech = speech,
-                inputFactory = { ScriptedInput(inputBlocks) },
+                inputFactory = microphone ?: { ScriptedInput(inputBlocks) },
                 scope = CoroutineScope(dispatcher),
                 trackerFactory = trackerFactory ?: fakeTrackers ?: DefaultTrackerFactory,
-                recognitionDispatcher = dispatcher,
+                recognitionDispatcher = recognitionThread ?: dispatcher,
                 gradeSink = { ayah, grade -> graded += ayah to grade },
                 revisionQueue = { dueAyahs.toList() },
                 onOpenAyah = { opened += it },
