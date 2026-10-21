@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,7 +49,8 @@ fun FontDownloadPrompt(
 ) {
     val field = Awn.field
     Column(
-        modifier.fillMaxWidth().padding(AwnSpacing.medium),
+        // Drawn over the page, so it needs the page colour behind it to stay readable.
+        modifier.fillMaxWidth().background(field.background).padding(AwnSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         Text(text = pageTypeName, style = AwnTypography.lead, color = field.content)

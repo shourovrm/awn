@@ -252,7 +252,7 @@ private fun StartFromMenu(choices: List<StartChoice>, actions: AudioBarActions) 
                             stringResource(
                                 R.string.audio_start_choice,
                                 choice.surahName,
-                                choice.ayah,
+                                choice.ayah.ayah,
                             ),
                         style = AwnTypography.body,
                     )

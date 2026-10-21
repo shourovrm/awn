@@ -330,8 +330,13 @@ private fun QuranContent(
         }
         if (!state.isPanelOpen) {
             Column(Modifier.align(Alignment.BottomCenter)) {
-                // The chosen print's font is missing: offer it above the bar, page stays readable.
-                if (state.showFontPrompt && state.settings.pageView == PageView.Mushaf) {
+                // The chosen print's font is missing: offer it above the bar. Only while the bars
+                // show, so it never covers the last lines of a page the reader is reading.
+                if (
+                    state.showFontPrompt &&
+                        state.areBarsVisible &&
+                        state.settings.pageView == PageView.Mushaf
+                ) {
                     val status = state.fontStatus
                     FontDownloadPrompt(
                         pageTypeName = stringResource(pageTypeText(state.settings.script).name),
