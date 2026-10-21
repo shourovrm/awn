@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import app.awn.quran.core.data.PageLayout
+import app.awn.quran.core.data.ScriptId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -151,13 +152,29 @@ internal data class PagePlacement(
     val pageHeightPx: Float,
     val scale: Float,
     val isCentredBlock: Boolean,
+    /** True when the page is taller than the screen body and the body scrolls. */
+    val isScrolling: Boolean = scale > 1f,
 )
 
-/** Compares by reference, so a layout is keyed without hashing every word it holds. */
-private class SameInstance(val value: Any) {
-    override fun equals(other: Any?): Boolean = other is SameInstance && other.value === value
-
-    override fun hashCode(): Int = System.identityHashCode(value)
+/**
+ * What identifies a loaded layout without comparing every word. The screen loads a page again when
+ * it is recreated (after Settings, a rotation), and that load is a new object with the same
+ * content; keying by the object would make the page wait for a new measurement each time.
+ */
+private data class LayoutFingerprint(
+    val page: Int,
+    val script: ScriptId,
+    val lineCount: Int,
+    val itemCount: Int,
+) {
+    constructor(
+        layout: PageLayout,
+    ) : this(
+        page = layout.page,
+        script = layout.script,
+        lineCount = layout.lines.size,
+        itemCount = layout.lines.sumOf { line -> line.items.size },
+    )
 }
 
 /** Everything the placement of a page depends on. */
@@ -168,11 +185,11 @@ internal class PageMeasureKey(
     private val size: PagePlacement,
     private val density: Density,
 ) {
-    private val layoutInstance = SameInstance(layout)
+    private val fingerprint = LayoutFingerprint(layout)
 
     override fun equals(other: Any?): Boolean =
         other is PageMeasureKey &&
-            other.layoutInstance == layoutInstance &&
+            other.fingerprint == fingerprint &&
             other.hasGlyphFont == hasGlyphFont &&
             other.families == families &&
             other.size == size &&
@@ -180,7 +197,7 @@ internal class PageMeasureKey(
             other.density.fontScale == density.fontScale
 
     override fun hashCode(): Int =
-        listOf(layoutInstance, hasGlyphFont, families, size, density.density, density.fontScale)
+        listOf(fingerprint, hasGlyphFont, families, size, density.density, density.fontScale)
             .hashCode()
 }
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** What a cached font family was made for: one page of one script, in day or night colours. */
 internal data class PageFontKey(val script: ScriptId, val page: Int, val isNight: Boolean)
@@ -39,6 +40,7 @@ class PageFontCache(
     prefetchDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
+    private val loadLock = Any()
     private val families = ConcurrentHashMap<PageFontKey, FontFamily>()
     private val prefetchScope = CoroutineScope(SupervisorJob() + prefetchDispatcher)
     private var prefetchJob: Job? = null
@@ -57,14 +59,29 @@ class PageFontCache(
     @Suppress("ReturnCount") // Cache hit, missing font, loaded font: three plain exits.
     fun familyFor(script: ScriptId, page: Int, isNight: Boolean = false): FontFamily? {
         val key = PageFontKey(script, page, isNight)
-        val cached = families[key]
-        if (cached != null) return cached
+        families[key]?.let {
+            return it
+        }
         if (script in glyphScripts) latestRequest = script to isNight
-        // A missing font is not cached, because the pack may be installed a moment later.
-        val file = packs.fontFile(script, page) ?: return null
-        val fileToLoad = if (isNight && hasColourPages(script)) nightCopyOrSame(file) else file
-        return createFamily(fileToLoad).also { families[key] = it }
+        // One load at a time: many words ask for the same page font at once, and two writers of
+        // the same night copy would corrupt it.
+        synchronized(loadLock) {
+            families[key]?.let {
+                return it
+            }
+            // A missing font is not cached, because the pack may be installed a moment later.
+            val file = packs.fontFile(script, page) ?: return null
+            val fileToLoad = if (isNight && hasColourPages(script)) nightCopyOrSame(file) else file
+            return createFamily(fileToLoad).also { families[key] = it }
+        }
     }
+
+    /**
+     * [familyFor] on the IO dispatcher. Screens call this, never [familyFor], so that finding, and
+     * for a night page writing, the font file never happens on the main thread.
+     */
+    suspend fun load(script: ScriptId, page: Int, isNight: Boolean = false): FontFamily? =
+        withContext(Dispatchers.IO) { familyFor(script, page, isNight) }
 
     /**
      * The family already cached for [page], or null; never reads a file, so it is safe anywhere.
@@ -94,6 +111,8 @@ class PageFontCache(
         prefetchJob = prefetchScope.launch {
             for (page in pagesToPrepare(centerPage, prefetchRadius)) {
                 familyFor(script, page, isNight)
+                // The Unicode family is the fallback of a glyph page; a swipe needs it as well.
+                if (script in glyphScripts) familyFor(ScriptId.QpcHafs, page)
             }
         }
     }

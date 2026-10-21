@@ -101,17 +101,23 @@ fun MushafPage(
             ) {
                 val density = LocalDensity.current
                 val pageScale = scale.coerceAtLeast(1f)
+                val widthPx = with(density) { maxWidth.toPx() }
+                val bodyHeightPx = with(density) { maxHeight.toPx() }
+                val pageHeightPx = pageHeightFor(widthPx, bodyHeightPx, pageScale)
+                val isScrolling = pageHeightPx > bodyHeightPx + 1f
                 val scrollState = rememberScrollState()
                 val pageSize =
                     PagePlacement(
-                        widthPx = with(density) { maxWidth.toPx() },
-                        pageHeightPx = with(density) { maxHeight.toPx() } * pageScale,
+                        widthPx = widthPx,
+                        pageHeightPx = pageHeightPx,
                         scale = pageScale,
                         isCentredBlock = isCentredBlockPage(layout),
+                        isScrolling = isScrolling,
                     )
-                // Only a taller page scrolls, so the normal page has no scroll container at all.
+                // Only a page taller than the screen scrolls, so the portrait page at step 0 has
+                // no scroll container at all.
                 val scrollModifier =
-                    if (pageScale > 1f) Modifier.verticalScroll(scrollState) else Modifier
+                    if (isScrolling) Modifier.verticalScroll(scrollState) else Modifier
                 Box(Modifier.fillMaxSize().then(scrollModifier)) {
                     PageBody(
                         layout = layout,
@@ -204,7 +210,7 @@ private fun PageBody(
 
     val pageHeight = with(density) { size.pageHeightPx.toDp() }
     val heightModifier =
-        if (size.scale > 1f) Modifier.height(pageHeight) else Modifier.fillMaxHeight()
+        if (size.isScrolling) Modifier.height(pageHeight) else Modifier.fillMaxHeight()
     Box(
         Modifier.fillMaxWidth()
             .then(heightModifier)

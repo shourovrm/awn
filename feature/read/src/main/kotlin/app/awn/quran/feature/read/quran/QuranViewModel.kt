@@ -682,6 +682,13 @@ class QuranViewModel(
     private fun loadLayout(page: Int) {
         val state = mutableState.value
         if (state.layouts[page] != null) return
+        val remembered = RecentLayouts.get(dependencies.quranText, state.settings.script, page)
+        if (remembered != null) {
+            mutableState.update {
+                it.copy(layouts = it.layouts + (page to PageLoad.Loaded(remembered)))
+            }
+            return
+        }
         mutableState.update { it.copy(layouts = it.layouts + (page to PageLoad.Loading)) }
         viewModelScope.launch {
             val load = fetchLayout(page, state.settings.script)
@@ -732,7 +739,7 @@ class QuranViewModel(
 
     private suspend fun loadInstalledTranslations() {
         val installed = dependencies.translations.available().filter { it.installed }
-        mutableState.update { it.copy(installedTranslations = installed) }
+        mutableState.update { it.copy(installedTranslations = layerTranslations(installed)) }
     }
 
     private suspend fun followSettings() {
@@ -790,6 +797,7 @@ class QuranViewModel(
      */
     private suspend fun followInstalledPacks() {
         dependencies.packs.installed().drop(1).collect {
+            RecentLayouts.clear()
             loadInstalledTranslations()
             mutableState.update {
                 // The page lists hold translation text, so a new or removed translation redoes
@@ -889,6 +897,11 @@ class QuranViewModel(
         val layout =
             layoutOrNull(page, script)
                 ?: if (script == ScriptId.QpcHafs) null else layoutOrNull(page, ScriptId.QpcHafs)
+        // The fallback layout is for a print that is not installed; it is not kept under the
+        // name of the print the reader asked for.
+        if (layout != null && layout.script == script) {
+            RecentLayouts.put(dependencies.quranText, layout)
+        }
         return if (layout == null) PageLoad.Failed else PageLoad.Loaded(layout)
     }
 

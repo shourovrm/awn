@@ -14,8 +14,13 @@ object TextScale {
     /** Step 3 is 1.17, the nearest to the old Medium size of 1.15. */
     const val DEFAULT_STEP = 3
 
-    /** The printed page has five sizes: step 0 fits the width, each step adds 15 %. */
-    const val MUSHAF_LAST_STEP = 4
+    /**
+     * The printed page has two sizes: step 0 fits the width, step 1 prints it 15 % larger. Line
+     * breaks are fixed, so the glyphs stop growing once the widest line fills the width; measured
+     * on the real fonts that is 4 to 12 % (median 8 %) and steps 2 to 4 changed nothing but the
+     * space between lines. A wider page comes from rotating the screen.
+     */
+    const val MUSHAF_LAST_STEP = 1
     private const val MUSHAF_SPAN_PER_STEP = 0.15f
 
     private const val LEGACY_SMALL_ZOOM = 1.0f
@@ -29,7 +34,9 @@ object TextScale {
 
     fun clampStep(step: Int): Int = step.coerceIn(0, LAST_STEP)
 
-    /** The factor that prints the Mushaf page larger than the width: 1.0 at step 0, 1.6 at 4. */
+    /**
+     * The factor that prints the Mushaf page larger than the width: 1.0 at step 0, 1.15 at step 1.
+     */
     fun mushafScaleOf(step: Int): Float = 1f + clampMushafStep(step) * MUSHAF_SPAN_PER_STEP
 
     fun clampMushafStep(step: Int): Int = step.coerceIn(0, MUSHAF_LAST_STEP)

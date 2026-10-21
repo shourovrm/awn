@@ -51,7 +51,7 @@ class ReadSettingsTest {
                 translationSizeStep = 1,
                 transliterationSizeStep = 5,
                 wordByWordSizeStep = 0,
-                mushafSizeStep = 3,
+                mushafSizeStep = 1,
                 quranOrientation = ScreenOrientation.Landscape,
                 appOrientation = ScreenOrientation.Portrait,
                 highlightBookmarks = false,
@@ -169,8 +169,10 @@ class ReadSettingsTest {
     @Test
     fun thePrintedPageFitsTheWidthAtStepZeroAndGrowsFromThere() {
         assertEquals(1f, ReadSettings().mushafScale, 0.001f)
-        assertEquals(1.6f, ReadSettings(mushafSizeStep = 4).mushafScale, 0.001f)
-        assertEquals(4, ReadSettings().withMushafStepMoved(99).mushafSizeStep)
+        assertEquals(1.15f, ReadSettings(mushafSizeStep = 1).mushafScale, 0.001f)
+        // Steps past the second only added line spacing, so a stored 4 reads back as 1.
+        assertEquals(1.15f, ReadSettings(mushafSizeStep = 4).mushafScale, 0.001f)
+        assertEquals(1, ReadSettings().withMushafStepMoved(99).mushafSizeStep)
         assertEquals(0, ReadSettings().withMushafStepMoved(-1).mushafSizeStep)
     }
 

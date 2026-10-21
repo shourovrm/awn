@@ -101,3 +101,10 @@
 2026-10-21 | Index juz headers are plain text, no filled band | the bands were heavy; the list opens at the last-read surah with the list state hoisted
 2026-10-21 | Ship Asad from the Kristories/quran GitHub file, permission pending | maintainer's choice; data.md open items
 2026-10-21 | Asad pack source is alquran.cloud en.asad, not the GitHub copy | its terms allow republishing translations with attribution; data.md
+2026-10-21 | Line view draws glyph prints word by word in each word's page font; recite states are fills there | COLR tajweed glyphs ignore text colour
+2026-10-21 | Font lookups run on IO and screens wait for them; no familyFor on the main thread | page fonts stalled swipes
+2026-10-21 | Mushaf size has 2 steps (1.0, 1.15) | glyphs stop growing at 4 to 12 % because line breaks are fixed
+2026-10-21 | Measured-page key uses layout content; font cache and recent layouts outlive the screen | the page was blank during the Back slide from Settings
+2026-10-21 | Landscape Mushaf is width-fitted at 1.5 x width tall and scrolls | fitting the height printed a narrow block with overlapping lines
+2026-10-21 | Word card uses bar colours and sits at the tapped word; glosses are LTR | the mint fill clashed at night and the card covered other text
+2026-10-21 | Settings moves into the overflow menu when the top bar is short of width | the juz number was cut off

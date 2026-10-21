@@ -6,8 +6,17 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationRepository
+import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.feature.read.page.isGlyphScript
 import app.awn.quran.feature.read.page.normalizeFallbackText
+
+/**
+ * What draws a word in its page font: the glyph [word] and the Mushaf [page] whose font its glyph
+ * code belongs to. A code is valid only with the font of its own page, and an ayah that runs over a
+ * page break holds words of two pages.
+ */
+data class WordGlyphs(val word: Word, val page: Int)
 
 /** One Arabic word with what the word by word view and its popup show. */
 data class AyahWord(
@@ -16,6 +25,8 @@ data class AyahWord(
     /** Null when the word-by-word pack is not installed. */
     val meaning: String?,
     val transliteration: String?,
+    /** Set for the glyph prints (V1, V2, tajweed); null when [arabic] is drawn as plain text. */
+    val glyphs: WordGlyphs? = null,
 )
 
 /** One translation of an ayah. [rangeLabel] is set when a publisher merged several ayahs. */
@@ -56,6 +67,14 @@ data class PageContent(val page: Int, val items: List<PageItem>) {
 
     val ayahs: List<AyahRef>
         get() = items.filterIsInstance<PageItem.Ayah>().map { it.block.ayah }
+
+    /** The Mushaf pages whose fonts draw the words of this list; empty for Unicode prints. */
+    val fontPages: Set<Int>
+        get() =
+            items
+                .filterIsInstance<PageItem.Ayah>()
+                .flatMap { item -> item.block.words }
+                .mapNotNullTo(mutableSetOf()) { word -> word.glyphs?.page }
 }
 
 /** Builds [PageContent] from the text and translation repositories. */
@@ -73,10 +92,11 @@ internal class PageContentLoader(
         chapters: List<Chapter>,
     ): PageContent {
         val names = translations.available().associate { it.id to it.name }
+        val fontPages = if (isGlyphScript(script)) GlyphPageIndex(quranText, script) else null
         val items = mutableListOf<PageItem>()
         for (ayah in quranText.ayahsOnPage(page, script)) {
             if (ayah.ayah == 1) items += surahStartItems(chapters.chapterNumbered(ayah.surah))
-            items += PageItem.Ayah(loadBlock(ayah, enabledTranslations, names))
+            items += PageItem.Ayah(loadBlock(ayah, enabledTranslations, names, script, fontPages))
         }
         return PageContent(page, items)
     }
@@ -90,14 +110,20 @@ internal class PageContentLoader(
             else -> listOf(PageItem.SurahBand(chapter))
         }
 
-    /** The block of one ayah, also used by the ayah panel. */
+    /**
+     * The block of one ayah, also used by the ayah panel. With a glyph [script] and [fontPages],
+     * each word also carries the page font that draws it.
+     */
     suspend fun loadBlock(
         ayah: AyahRef,
         enabledTranslations: List<TranslationId>,
         names: Map<TranslationId, String>? = null,
+        script: ScriptId? = null,
+        fontPages: GlyphPageIndex? = null,
     ): AyahBlock {
         val translationNames = names ?: translations.available().associate { it.id to it.name }
         val words = quranText.wordsOfAyah(ayah)
+        val pageOfWord = if (script != null) fontPages?.pagesOf(ayah, words).orEmpty() else null
         val meanings = translations.wordByWord(wordLanguage, ayah)
         val ayahTranslations = enabledTranslations.mapNotNull { id ->
             val passage = translations.text(id, ayah) ?: return@mapNotNull null
@@ -119,6 +145,7 @@ internal class PageContentLoader(
                         arabic = normalizeFallbackText(word.textUthmani),
                         meaning = meaningAtPosition(meanings, word.key.wordPosition),
                         transliteration = word.transliteration,
+                        glyphs = pageOfWord?.let { glyphsOf(word, script, it) },
                     )
                 },
             transliteration =
@@ -139,3 +166,19 @@ internal class PageContentLoader(
  */
 internal fun meaningAtPosition(meanings: List<String>, position: Int): String? =
     meanings.getOrNull(position - 1)?.takeIf { it.isNotBlank() }
+
+/**
+ * The glyphs of [word] when it has a glyph code in [script] and its page is known in [pageOfWord];
+ * null otherwise, which draws the Unicode text.
+ */
+private fun glyphsOf(word: Word, script: ScriptId?, pageOfWord: Map<WordKey, Int>): WordGlyphs? {
+    val page = pageOfWord[word.key] ?: return null
+    val hasCode =
+        when (script) {
+            ScriptId.V1 -> word.codeV1 != null
+            ScriptId.V2,
+            ScriptId.V4Tajweed -> word.codeV2 != null
+            else -> false
+        }
+    return if (hasCode) WordGlyphs(word, page) else null
+}

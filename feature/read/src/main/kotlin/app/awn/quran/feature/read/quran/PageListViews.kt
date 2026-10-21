@@ -2,7 +2,6 @@ package app.awn.quran.feature.read.quran
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,13 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -37,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -46,7 +44,10 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.BASMALA_TEXT
+import app.awn.quran.feature.read.page.PageFontCache
+import app.awn.quran.feature.read.page.rememberFontsLoaded
 import app.awn.quran.feature.read.settings.ReadSettings
+import app.awn.quran.tracker.WordState
 
 /** The fills behind ayahs and words in the list views, taken from the colour mode. */
 internal class ReaderFills(
@@ -72,6 +73,11 @@ internal fun readerFills(): ReaderFills {
 internal class ListPageEnvironment(
     val settings: ReadSettings,
     val arabicFamily: FontFamily?,
+    /** Page fonts of the glyph prints; each word asks it for the family of its own page. */
+    val fontCache: PageFontCache,
+    /** The recite state of each word while reciting; empty otherwise. */
+    val wordStates: Map<WordKey, WordState>,
+    val isReciting: Boolean,
     val selection: AyahRange?,
     val playingAyah: AyahRef?,
     /** A State, so a word tick is read only by the block that holds the playing ayah. */
@@ -87,7 +93,8 @@ internal class ListPageEnvironment(
     val onTap: () -> Unit,
     /** The ayah the reader pressed for 500 ms, with its bounds in window coordinates. */
     val onAyahLongPress: (AyahRef, Rect?) -> Unit,
-    val onWordTap: (AyahRef, AyahWord) -> Unit,
+    /** The tapped word and where it is, in window coordinates. */
+    val onWordTap: (AyahRef, AyahWord, Rect?) -> Unit,
     val onUserScrolled: () -> Unit,
 )
 
@@ -105,21 +112,16 @@ internal fun PageListView(
 ) {
     val listState = rememberLazyListState()
     val fills = readerFills()
+    val fontPages = remember(content) { content?.fontPages.orEmpty() }
+    val areFontsReady =
+        rememberFontsLoaded(
+            environment.fontCache,
+            environment.settings.script,
+            fontPages,
+            isNight = !Awn.field.isLight,
+        )
     if (content != null && isCurrent) {
-        LaunchedEffect(content, environment.playingAyah, environment.followRequest) {
-            val index = environment.playingAyah?.let(content::indexOf) ?: -1
-            if (index >= 0 && environment.isFollowing) listState.showItem(index)
-        }
-        LaunchedEffect(content, environment.selection?.first, environment.isPanelOpen) {
-            val index = environment.selection?.first?.let(content::indexOf) ?: -1
-            if (index >= 0) listState.showItem(index)
-        }
-        // A reader who scrolls the list by hand stops it following the audio.
-        LaunchedEffect(listState) {
-            listState.interactionSource.interactions.collect { interaction ->
-                if (interaction is DragInteraction.Start) environment.onUserScrolled()
-            }
-        }
+        FollowListTargets(content, environment, listState, areFontsReady)
     }
     LazyColumn(
         state = listState,
@@ -129,7 +131,10 @@ internal fun PageListView(
             },
         contentPadding = environment.contentPadding,
     ) {
-        items(items = content?.items.orEmpty(), key = { itemKey(it) }) { item ->
+        items(
+            items = if (areFontsReady) content?.items.orEmpty() else emptyList(),
+            key = { itemKey(it) },
+        ) { item ->
             when (item) {
                 is PageItem.SurahBand -> SurahBand(item)
                 is PageItem.Basmalah -> BasmalahBlock(environment)
@@ -223,7 +228,7 @@ private fun AyahItem(block: AyahBlock, environment: ListPageEnvironment, fills: 
                 fontSize = AwnTypography.quran.fontSize * settings.arabicScale,
                 fontFamily = environment.arabicFamily ?: AwnTypography.quran.fontFamily,
             )
-        if (settings.showWordByWord) {
+        if (usesWordCells(block, settings, environment)) {
             WordsFlow(
                 block = block,
                 environment = environment,
@@ -266,7 +271,7 @@ private fun TranslationTexts(block: AyahBlock, scale: Float) {
     }
 }
 
-private class CoordinatesHolder {
+internal class CoordinatesHolder {
     var coordinates: LayoutCoordinates? = null
 }
 
@@ -290,18 +295,4 @@ private fun ReferenceChip(ayah: AyahRef) {
             maxLines = 1,
         )
     }
-}
-
-/**
- * Scrolls so that item [index] is on screen, but only when it is not already fully visible, and
- * then leaves [TOP_MARGIN_SHARE] of the list height above it. An ayah that is already in view never
- * moves, so the list does not jump under a reader who is reading it.
- */
-private suspend fun LazyListState.showItem(index: Int) {
-    val info = layoutInfo
-    val visibleTop = info.beforeContentPadding
-    val visibleBottom = info.viewportSize.height - info.afterContentPadding
-    val item = info.visibleItemsInfo.firstOrNull { it.index == index }
-    if (item != null && isFullyVisible(item.offset, item.size, visibleTop, visibleBottom)) return
-    animateScrollToItem(index, -topMarginFor(visibleBottom - visibleTop))
 }

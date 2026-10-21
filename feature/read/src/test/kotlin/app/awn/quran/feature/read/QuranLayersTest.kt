@@ -103,9 +103,9 @@ class QuranLayersTest {
         viewModel.open(QuranTarget.Page(1))
         val arabicBefore = stored().arabicSizeStep
 
-        viewModel.changeMushafSize(2)
+        viewModel.changeMushafSize(1)
 
-        assertEquals(2, stored().mushafSizeStep)
+        assertEquals(1, stored().mushafSizeStep)
         assertEquals(arabicBefore, stored().arabicSizeStep)
     }
 

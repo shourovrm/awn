@@ -42,6 +42,8 @@ internal fun AyahActionBar(
     playMode: PlayButtonMode,
     actions: AyahBarActions,
     modifier: Modifier = Modifier,
+    /** The space taken by the status bar and the top bar; the bar never sits in it. */
+    topClearancePx: Float = 0f,
 ) {
     if (bounds == null) return
     val field = Awn.field
@@ -56,7 +58,7 @@ internal fun AyahActionBar(
                         barSize = IntSize(placeable.width, placeable.height),
                         screenSize = IntSize(constraints.maxWidth, constraints.maxHeight),
                         gapPx = gap,
-                        flipBelowTopPx = (placeable.height + gap).toFloat(),
+                        flipBelowTopPx = topClearancePx + placeable.height + gap,
                     )
                 placeable.place(place)
             }

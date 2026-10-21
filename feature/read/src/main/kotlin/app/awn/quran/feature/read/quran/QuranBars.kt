@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,10 +67,28 @@ internal fun QuranTopBar(
     actions: TopBarActions,
     modifier: Modifier = Modifier,
 ) {
-    val field = Awn.field
     val isLargeText = LocalDensity.current.fontScale > LARGE_TEXT_SCALE
+    val buttonCount =
+        if (state.settings.pageView == PageView.LineByLine) LINE_VIEW_BUTTONS else MUSHAF_BUTTONS
+    // The bar's own width decides, so a split screen or a rotation is handled as well.
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val settingsInMenu = !isLargeText && shouldMoveSettingsToOverflow(maxWidth, buttonCount)
+        TopBarContent(state, surahName, isNight, actions, isLargeText, settingsInMenu)
+    }
+}
+
+@Composable
+private fun TopBarContent(
+    state: QuranUiState,
+    surahName: String,
+    isNight: Boolean,
+    actions: TopBarActions,
+    isLargeText: Boolean,
+    settingsInMenu: Boolean,
+) {
+    val field = Awn.field
     if (isLargeText) {
-        Column(modifier.fillMaxWidth().background(field.barBackground)) {
+        Column(Modifier.fillMaxWidth().background(field.barBackground)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IndexButton(actions)
                 TopBarTitle(
@@ -80,22 +99,26 @@ internal fun QuranTopBar(
                 )
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TopBarButtons(state, isNight, actions)
+                TopBarButtons(state, isNight, actions, settingsInMenu = false)
             }
         }
     } else {
         Row(
-            modifier = modifier.fillMaxWidth().background(field.barBackground),
+            modifier = Modifier.fillMaxWidth().background(field.barBackground),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IndexButton(actions)
             TopBarTitle(state, surahName, maxLines = 1, Modifier.weight(1f))
-            TopBarButtons(state, isNight, actions)
+            TopBarButtons(state, isNight, actions, settingsInMenu)
         }
     }
 }
 
 private const val LARGE_TEXT_TITLE_LINES = 2
+
+/** Buttons right of the title, settings included: the line-by-line view adds the layers one. */
+private const val MUSHAF_BUTTONS = 5
+private const val LINE_VIEW_BUTTONS = 6
 
 @Composable
 private fun IndexButton(actions: TopBarActions) {
@@ -128,12 +151,18 @@ private fun TopBarTitle(
             style = AwnTypography.caption,
             color = field.onBar,
             maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
 @Composable
-private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBarActions) {
+private fun TopBarButtons(
+    state: QuranUiState,
+    isNight: Boolean,
+    actions: TopBarActions,
+    settingsInMenu: Boolean,
+) {
     val field = Awn.field
     val view = state.settings.pageView
     ReadIconButton(
@@ -167,18 +196,20 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
             TextSizeRows(state, actions)
         }
     }
-    ReadIconButton(
-        iconRes = R.drawable.ic_read_settings,
-        description = stringResource(R.string.menu_settings),
-        onClick = actions.onSettings,
-        tint = field.onBar,
-    )
+    if (!settingsInMenu) {
+        ReadIconButton(
+            iconRes = R.drawable.ic_read_settings,
+            description = stringResource(R.string.menu_settings),
+            onClick = actions.onSettings,
+            tint = field.onBar,
+        )
+    }
     MenuButton(R.drawable.ic_read_more, R.string.bar_more, actions.onOpenOverflow) {
         DropdownMenu(
             expanded = state.popup == Popup.Overflow,
             onDismissRequest = actions.onDismissPopup,
         ) {
-            OverflowItems(state, actions)
+            OverflowItems(state, actions, includesSettings = settingsInMenu)
         }
     }
 }

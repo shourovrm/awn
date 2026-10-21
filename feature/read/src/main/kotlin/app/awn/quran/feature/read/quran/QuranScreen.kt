@@ -59,7 +59,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,11 +76,14 @@ import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontDownloadPrompt
+import app.awn.quran.feature.read.page.FontLookup
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.page.SelectionBounds
+import app.awn.quran.feature.read.page.SharedPageFontCache
 import app.awn.quran.feature.read.page.isGlyphScript
 import app.awn.quran.feature.read.page.pageTypeText
+import app.awn.quran.feature.read.page.rememberFontLookup
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.launch
@@ -235,13 +237,26 @@ private fun QuranContent(
     // Not read here: only the page that holds the playing ayah reads the word position.
     val playingWord = viewModel.playingWordPosition.collectAsStateWithLifecycle()
     val fontCache =
-        remember(dependencies.packs, state.packRevision) { PageFontCache(dependencies.packs) }
+        remember(dependencies.packs, state.packRevision) {
+            SharedPageFontCache.obtain(dependencies.packs, state.packRevision)
+        }
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     var listAnchor by remember { mutableStateOf<Rect?>(null) }
     // Where the selected ayahs are on the Mushaf page, in the page's own (unshifted) coordinates.
     var mushafBounds by remember { mutableStateOf<SelectionBounds?>(null) }
     // True from the long press until the finger lifts; the bar waits for the release.
     var isSelecting by remember { mutableStateOf(false) }
+    // Where the tapped word is, in window coordinates, for the word card.
+    var wordAnchor by remember { mutableStateOf<Rect?>(null) }
+    // Remembered, so the pages see the same objects after every state change and can skip.
+    val selectionActions = remember {
+        MushafSelectionActions(
+            onRangeStart = { isSelecting = true },
+            onRangeEnd = { isSelecting = false },
+            onBounds = { mushafBounds = it },
+        )
+    }
+    val onListAnchor: (Rect?) -> Unit = remember { { anchor -> listAnchor = anchor } }
 
     BoxWithConstraints(
         Modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() },
@@ -289,13 +304,17 @@ private fun QuranContent(
             } else {
                 0
             }
-        val barShiftPx by animateIntAsState(barShiftTarget, tween(BAR_FADE_MS))
-        val shiftPx = panelShiftPx + barShiftPx
+        // The animated part is read only when the page is placed, so the 120 ms slide does not
+        // recompose the pager on every frame.
+        val barShiftPx = animateIntAsState(barShiftTarget, tween(BAR_FADE_MS))
+        val currentShiftPx: () -> Int =
+            remember(panelShiftPx, barShiftPx) { { panelShiftPx + barShiftPx.value } }
 
         val reciteStates = if (state.isReciting) slots.reciteWordStates() else emptyMap()
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
-        val arabicFamily = fontCache.familyFor(arabicScript, FIRST_PAGE)
+        // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
+        val arabicLookup = rememberFontLookup(fontCache, arabicScript, FIRST_PAGE, isNight = false)
 
         // The Mushaf page is never resized or clipped: the panel is drawn over it. The lists shrink
         // to the part above the panel so their scrolling keeps the ayah in view.
@@ -305,20 +324,17 @@ private fun QuranContent(
                 state = state,
                 viewModel = viewModel,
                 fontCache = fontCache,
-                arabicFamily = arabicFamily,
+                arabicLookup = arabicLookup,
                 reciteStates = reciteStates,
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
-                shiftPx = shiftPx,
-                selectionActions =
-                    MushafSelectionActions(
-                        onRangeStart = { isSelecting = true },
-                        onRangeEnd = { isSelecting = false },
-                        onBounds = { mushafBounds = it },
-                    ),
-                onListAnchor = { listAnchor = it },
+                shiftPx = currentShiftPx,
+                selectionActions = selectionActions,
+                onListAnchor = onListAnchor,
+                onWordAnchor = { wordAnchor = it },
             )
         }
+        val topClearancePx = topBarClearancePx(state.areBarsVisible)
 
         // Bars float over the page and never resize it.
         AnimatedVisibility(
@@ -390,12 +406,13 @@ private fun QuranContent(
             val bounds =
                 if (isMushaf) {
                     // The page may have slid up to clear the audio bar; the bar follows it.
-                    pageBounds?.translate(Offset(0f, -shiftPx.toFloat()))
+                    pageBounds?.translate(Offset(0f, -currentShiftPx().toFloat()))
                 } else {
                     listAnchor?.translate(-rootOrigin.x, -rootOrigin.y)?.let { listBlockBounds(it) }
                 }
             AyahActionBar(
                 bounds = bounds,
+                topClearancePx = topClearancePx,
                 isBookmarked = range.first in state.savedAyahs,
                 playMode = state.playButtonMode,
                 actions =
@@ -442,8 +459,10 @@ private fun QuranContent(
         state.wordPopup?.let { popup ->
             WordPopupCard(
                 popup = popup,
+                anchor = wordAnchor?.translate(-rootOrigin.x, -rootOrigin.y),
+                topClearancePx = topClearancePx,
                 onDismiss = viewModel::dismissWordPopup,
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier.fillMaxSize(),
             )
         }
 
@@ -471,6 +490,8 @@ private class MushafSelectionActions(
 )
 
 private val IgnoreBounds: (SelectionBounds?) -> Unit = {}
+
+private val NoShift: () -> Int = { 0 }
 
 /** The block of an ayah in a list view: its top slice stands for the first line. */
 @Composable
@@ -509,13 +530,14 @@ private fun QuranPager(
     state: QuranUiState,
     viewModel: QuranViewModel,
     fontCache: PageFontCache,
-    arabicFamily: FontFamily?,
+    arabicLookup: FontLookup?,
     reciteStates: Map<WordKey, WordState>,
     playingWord: State<Int?>,
     fullHeightPx: Int,
-    shiftPx: Int,
+    shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
+    onWordAnchor: (Rect?) -> Unit,
 ) {
     val pagerState =
         rememberPagerState(initialPage = state.currentPage - 1, pageCount = { state.pageCount })
@@ -549,7 +571,20 @@ private fun QuranPager(
         )
     val view = state.settings.pageView
     val tapToggle =
-        Modifier.pointerInput(Unit) { detectTapGestures(onTap = { viewModel.onPageTapped() }) }
+        remember(viewModel) {
+            Modifier.pointerInput(Unit) { detectTapGestures(onTap = { viewModel.onPageTapped() }) }
+        }
+    // One instance of each callback for all pages, so a page whose marks did not change is skipped
+    // when the current page changes.
+    val onPageTapped: () -> Unit = remember(viewModel) { viewModel::onPageTapped }
+    val onAyahPressed: (AyahRef) -> Unit =
+        remember(viewModel, selectionActions) {
+            { ayah ->
+                selectionActions.onRangeStart()
+                viewModel.selectAyah(ayah)
+            }
+        }
+    val onRangeDrag: (AyahRange) -> Unit = remember(viewModel) { viewModel::selectRange }
 
     // Page 1 is on the right, so swiping right turns to the next page.
     HorizontalPager(
@@ -564,12 +599,28 @@ private fun QuranPager(
         LaunchedEffect(pageNumber, view) { viewModel.loadPage(pageNumber) }
         if (view == PageView.Mushaf) {
             when (val load = state.layouts[pageNumber]) {
-                is PageLoad.Loaded ->
-                    Box(
-                        Modifier.fillMaxSize().then(tapToggle).fixedHeightShifted(fullHeightPx) {
-                            if (isCurrent) shiftPx else 0
-                        },
-                    ) {
+                is PageLoad.Loaded -> {
+                    // The page draws nothing until both families are known, so a swipe never
+                    // flashes the Unicode fallback before the glyph font arrives.
+                    val glyphLookup =
+                        rememberFontLookup(
+                            fontCache,
+                            load.layout.script,
+                            pageNumber,
+                            isNight = !Awn.field.isLight,
+                        )
+                    val plainLookup =
+                        rememberFontLookup(fontCache, ScriptId.QpcHafs, pageNumber, isNight = false)
+                    if (glyphLookup == null || plainLookup == null) {
+                        Box(Modifier.fillMaxSize().then(tapToggle))
+                        return@HorizontalPager
+                    }
+                    val pageShift: () -> Int = if (isCurrent) shiftPx else NoShift
+                    val shiftModifier =
+                        remember(fullHeightPx, pageShift) {
+                            Modifier.fixedHeightShifted(fullHeightPx, pageShift)
+                        }
+                    Box(Modifier.fillMaxSize().then(tapToggle).then(shiftModifier)) {
                         MushafPageItem(
                             layout = load.layout,
                             marks =
@@ -584,22 +635,14 @@ private fun QuranPager(
                             host =
                                 MushafHost(
                                     chapters = state.chapters,
-                                    fontFamily =
-                                        fontCache.familyFor(
-                                            load.layout.script,
-                                            pageNumber,
-                                            isNight = !Awn.field.isLight,
-                                        ),
-                                    plainFamily = fontCache.familyFor(ScriptId.QpcHafs, pageNumber),
+                                    fontFamily = glyphLookup.family,
+                                    plainFamily = plainLookup.family,
                                     wordStates = reciteStates,
                                     showPageInfo = state.settings.showPageInfo,
-                                    onTap = viewModel::onPageTapped,
+                                    onTap = onPageTapped,
                                     pageScale = state.settings.mushafScale,
-                                    onAyahPressed = { ayah ->
-                                        selectionActions.onRangeStart()
-                                        viewModel.selectAyah(ayah)
-                                    },
-                                    onRangeDrag = viewModel::selectRange,
+                                    onAyahPressed = onAyahPressed,
+                                    onRangeDrag = onRangeDrag,
                                     onRangeEnd = selectionActions.onRangeEnd,
                                     onSelectionBounds =
                                         if (isCurrent) selectionActions.onBounds else IgnoreBounds,
@@ -607,6 +650,7 @@ private fun QuranPager(
                             modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
                         )
                     }
+                }
                 is PageLoad.Failed ->
                     Box(Modifier.fillMaxSize().then(tapToggle), Alignment.Center) {
                         Text(
@@ -617,6 +661,8 @@ private fun QuranPager(
                 is PageLoad.Loading,
                 null -> Box(Modifier.fillMaxSize())
             }
+        } else if (arabicLookup == null) {
+            Box(Modifier.fillMaxSize())
         } else {
             PageListView(
                 content = state.contents[pageNumber],
@@ -624,7 +670,10 @@ private fun QuranPager(
                 environment =
                     ListPageEnvironment(
                         settings = state.settings,
-                        arabicFamily = arabicFamily,
+                        arabicFamily = arabicLookup.family,
+                        fontCache = fontCache,
+                        wordStates = reciteStates,
+                        isReciting = state.isReciting,
                         selection = state.selectedRange,
                         playingAyah = state.playingAyah,
                         playingWordPosition = playingWord,
@@ -633,12 +682,15 @@ private fun QuranPager(
                         isPanelOpen = state.isPanelOpen,
                         savedAyahs = state.savedAyahs,
                         contentPadding = barPadding,
-                        onTap = viewModel::onPageTapped,
+                        onTap = onPageTapped,
                         onAyahLongPress = { ayah, bounds ->
                             onListAnchor(bounds)
                             viewModel.selectAyah(ayah)
                         },
-                        onWordTap = viewModel::onWordTapped,
+                        onWordTap = { ayah, word, bounds ->
+                            onWordAnchor(bounds)
+                            viewModel.onWordTapped(ayah, word)
+                        },
                         onUserScrolled = viewModel::onPagerDragged,
                     ),
             )

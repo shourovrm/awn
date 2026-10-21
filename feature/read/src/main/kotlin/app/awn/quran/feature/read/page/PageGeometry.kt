@@ -133,6 +133,23 @@ internal class PageGeometry(
     }
 }
 
+/** Height over width of a printed Madani page, used when the screen is wider than it is tall. */
+internal const val LANDSCAPE_PAGE_ASPECT = 1.5f
+
+/**
+ * The height of the whole page in pixels. In portrait the page at scale 1 is as tall as the screen
+ * body, which fits the width on a phone. In landscape the body is too short for 15 lines at the
+ * width of the screen, so the page keeps the proportions of the printed page ([widthPx] times
+ * [LANDSCAPE_PAGE_ASPECT]) and the body scrolls; fitting the page to the height would print a
+ * narrow block in the middle of the screen. [scale] then makes it taller still.
+ */
+internal fun pageHeightFor(widthPx: Float, bodyHeightPx: Float, scale: Float): Float {
+    val baseHeight =
+        if (widthPx > bodyHeightPx) maxOf(bodyHeightPx, widthPx * LANDSCAPE_PAGE_ASPECT)
+        else bodyHeightPx
+    return baseHeight * scale
+}
+
 /**
  * Places the rows of one page. [tokenWidthEm] is the width of a word or end sign in ems of the page
  * font. The font size is the largest at which the widest line fits the text block; short last lines

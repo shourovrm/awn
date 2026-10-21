@@ -18,7 +18,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w411dp-h900dp")
 class QuranScreenRenderTest {
     @get:Rule val composeRule = createComposeRule()
 

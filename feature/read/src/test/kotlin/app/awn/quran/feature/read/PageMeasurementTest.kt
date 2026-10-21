@@ -102,7 +102,7 @@ class PageMeasurementTest {
     }
 
     @Test
-    fun keysOfTheSameLayoutInstanceAndSizeAreEqual() {
+    fun keysOfALayoutLoadedAgainAndOfTheSameSizeAreEqual() {
         val layout = ReadFixture.pageOne()
         fun key(l: PageLayout) =
             PageMeasureKey(
@@ -114,7 +114,9 @@ class PageMeasurementTest {
             )
 
         assertEquals(key(layout), key(layout))
-        assertTrue(key(layout) != key(ReadFixture.pageOne()))
+        // The same page loaded again is another object with the same content.
+        assertEquals(key(layout), key(ReadFixture.pageOne()))
+        assertTrue(key(layout) != key(ReadFixture.pageTwo()))
     }
 
     @Test
@@ -138,7 +140,7 @@ class PageMeasurementTest {
 
         composeRule.setContent {
             AwnTheme {
-                Box(Modifier.width(300.dp).height(450.dp)) {
+                Box(Modifier.width(297.dp).height(453.dp)) {
                     MushafPage(
                         layout = layout,
                         chapters = ReadFixture().text.chapterList,

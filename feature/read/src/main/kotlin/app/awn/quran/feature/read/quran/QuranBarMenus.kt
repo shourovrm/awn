@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -28,6 +30,8 @@ import app.awn.quran.feature.read.settings.TextLayer
 import app.awn.quran.feature.read.settings.TextScale
 
 private const val PERCENT = 100
+private val SIZE_LABEL_WIDTH = AwnSpacing.giant * 2
+private val SIZE_VALUE_WIDTH = AwnSpacing.giant
 
 internal fun layerLabel(layer: TextLayer): Int =
     when (layer) {
@@ -107,6 +111,12 @@ internal fun TextSizeRows(state: QuranUiState, actions: TopBarActions) {
                 canGrow = settings.mushafSizeStep < TextScale.MUSHAF_LAST_STEP,
                 onChange = actions.onMushafSizeChange,
             )
+            // The page keeps its line breaks, so only a wider page makes the letters larger.
+            Text(
+                text = stringResource(R.string.mushaf_size_hint),
+                style = AwnTypography.caption,
+                modifier = Modifier.padding(horizontal = AwnSpacing.medium),
+            )
         } else {
             settings.visibleLayers.forEach { layer ->
                 val step = settings.stepOf(layer)
@@ -135,7 +145,12 @@ private fun SizeRow(
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = AwnTypography.body, modifier = Modifier.weight(1f, false))
+        // Fixed columns, so the buttons line up whatever the label says.
+        Text(
+            text = label,
+            style = AwnTypography.body,
+            modifier = Modifier.width(SIZE_LABEL_WIDTH),
+        )
         ReadIconButton(
             iconRes = R.drawable.ic_read_minus,
             description = stringResource(R.string.action_smaller),
@@ -145,6 +160,8 @@ private fun SizeRow(
         Text(
             text = stringResource(R.string.size_percent, (scale * PERCENT).toInt()),
             style = AwnTypography.body,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(SIZE_VALUE_WIDTH),
         )
         ReadIconButton(
             iconRes = R.drawable.ic_read_plus,
@@ -156,7 +173,11 @@ private fun SizeRow(
 }
 
 @Composable
-internal fun OverflowItems(state: QuranUiState, actions: TopBarActions) {
+internal fun OverflowItems(
+    state: QuranUiState,
+    actions: TopBarActions,
+    includesSettings: Boolean = false,
+) {
     MenuItem(R.string.menu_search, R.drawable.ic_read_search, actions.onSearch)
     MenuItem(R.string.menu_go_to_page, R.drawable.ic_read_go_to_page, actions.onGoToPage)
     MenuItem(
@@ -170,6 +191,9 @@ internal fun OverflowItems(state: QuranUiState, actions: TopBarActions) {
     )
     MenuItem(R.string.bar_rotate, R.drawable.ic_read_screen_rotation, actions.onRotate)
     MenuItem(R.string.menu_learn, R.drawable.ic_read_learn, actions.onLearn)
+    if (includesSettings) {
+        MenuItem(R.string.menu_settings, R.drawable.ic_read_settings, actions.onSettings)
+    }
 }
 
 @Composable

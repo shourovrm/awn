@@ -36,6 +36,7 @@ fun PageFontWord(
     fontCache: PageFontCache,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
+    lineHeight: TextUnit = TextUnit.Unspecified,
     color: Color = Awn.field.content,
     isNight: Boolean = !Awn.field.isLight,
 ) {
@@ -56,7 +57,12 @@ fun PageFontWord(
     val glyphFamily = loaded.glyphFamily
     Text(
         text = textToDraw(word, script, hasGlyphFont = glyphFamily != null),
-        style = TextStyle(fontFamily = glyphFamily ?: loaded.plainFamily, fontSize = fontSize),
+        style =
+            TextStyle(
+                fontFamily = glyphFamily ?: loaded.plainFamily,
+                fontSize = fontSize,
+                lineHeight = lineHeight,
+            ),
         color = color,
         maxLines = 1,
         softWrap = false,
