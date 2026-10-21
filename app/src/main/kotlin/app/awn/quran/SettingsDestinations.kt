@@ -145,6 +145,8 @@ private fun NavGraphBuilder.settingsHubDestination(
                     versionName = versionName,
                 ),
             onBack = goBack,
+            language = AppLanguage.preselectedFor(LocalConfiguration.current.locales[0]),
+            onLanguageChange = AppCompatLanguageApplier::apply,
             onOpenSection = { navController.navigate(it.route) },
             onOpenRow = { route, rowKey ->
                 navController.navigate(

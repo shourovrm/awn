@@ -10,12 +10,14 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import app.awn.quran.core.ui.theme.ColourMode
 import app.awn.quran.core.ui.theme.LocalColourMode
+import app.awn.quran.language.AppLanguage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -49,6 +51,7 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
             SettingsSection.Downloads to "788 kB used",
         )
 
+    private var chosenLanguage: AppLanguage? = null
     private var openedRoute: String? = null
     private var openedRow: String? = null
 
@@ -62,6 +65,8 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
                 SettingsHubScreen(
                     summaries = summaries,
                     onBack = {},
+                    language = AppLanguage.English,
+                    onLanguageChange = { chosenLanguage = it },
                     onOpenSection = {},
                     onOpenRow = { route, rowKey ->
                         openedRoute = route
@@ -99,6 +104,27 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
 
         composeRule.onNodeWithContentDescription("Search settings").performTextInput("ওয়াই-ফাই")
         composeRule.onNodeWithText("Wi-Fi only").assertIsDisplayed()
+    }
+
+    @Test
+    fun theHubHasALanguageRowThatShowsTheCurrentLanguageAndOpensTheChoice() {
+        showHub()
+
+        composeRule.onNodeWithText("Language").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("English").assertIsDisplayed()
+        composeRule.onNodeWithText("Language").performClick()
+        composeRule.onNodeWithText("বাংলা").performClick()
+
+        assertEquals(AppLanguage.Bangla, chosenLanguage)
+    }
+
+    @Test
+    fun searchFindsLanguageInEnglishAndInBangla() {
+        showHub()
+
+        composeRule.onNodeWithContentDescription("Search settings").performTextInput("ভাষা")
+
+        composeRule.onNodeWithText("Language").assertIsDisplayed()
     }
 
     @Test
