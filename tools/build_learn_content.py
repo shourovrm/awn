@@ -31,6 +31,7 @@ FRAGMENT_PATTERN = re.compile(r"\[\[([^\]]*)\]\]")
 ARABIC_PATTERN = re.compile("[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
 HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer): (.+)$")
 URL_PATTERN = re.compile(r"https?://\S+")
+TERM_PATTERN = re.compile(r"^(.+?) \((.+)\)$")
 
 
 class LessonError(Exception):
@@ -145,8 +146,31 @@ def parse_blocks(lines, where, used_keys):
             used_keys.append(key)
             blocks.append({"type": "ayah", "key": key})
         else:
-            blocks.append({"type": "paragraph", "text": scan_text(text, where, used_keys)})
+            equation = parse_equation(text, where, used_keys)
+            if equation:
+                blocks.append(equation)
+            else:
+                blocks.append({"type": "paragraph", "text": scan_text(text, where, used_keys)})
     return blocks
+
+
+def parse_equation(text, where, used_keys):
+    """Reads `A (gloss) + B (gloss) = C (gloss)` as the parts of a word and the word they make.
+
+    Returns None when the paragraph is not of that form, so that ordinary sentences with a plus
+    sign stay paragraphs.
+    """
+    if " + " not in text or text.count(" = ") != 1:
+        return None
+    left, right = text.split(" = ")
+    terms = [match for match in (TERM_PATTERN.match(t) for t in left.split(" + ") + [right]) if match]
+    if len(terms) != len(left.split(" + ")) + 1:
+        return None
+    parts = [
+        {"text": scan_text(match.group(1), where, used_keys), "gloss": match.group(2)}
+        for match in terms
+    ]
+    return {"type": "equation", "parts": parts[:-1], "result": parts[-1]}
 
 
 def split_paragraphs(lines):

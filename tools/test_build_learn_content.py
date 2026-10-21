@@ -113,6 +113,31 @@ class ParsingTest(unittest.TestCase):
         self.assertEqual(1, check["answer"])
         self.assertEqual("1:1:1", check["highlight"])
 
+    def test_a_sum_of_parts_becomes_an_equation_block(self):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace(
+            "- first {{1:1:1}}",
+            "[[ب]] (in) + [[سم]] (name) = {{1:1:1}} (in the name)\n\n- first {{1:1:1}}",
+        )
+        fixture.write("en", "basics", "01-first.md", text)
+
+        blocks = fixture.build()["lessons"][0]["languages"]["en"]["screens"][0]["blocks"]
+
+        equation = next(block for block in blocks if block["type"] == "equation")
+        self.assertEqual(["in", "name"], [part["gloss"] for part in equation["parts"]])
+        self.assertEqual("{{1:1:1}}", equation["result"]["text"])
+
+    def test_a_sentence_with_a_plus_sign_stays_a_paragraph(self):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace(
+            "- first {{1:1:1}}", "One + one = two, said once.\n\n- first {{1:1:1}}"
+        )
+        fixture.write("en", "basics", "01-first.md", text)
+
+        blocks = fixture.build()["lessons"][0]["languages"]["en"]["screens"][0]["blocks"]
+
+        self.assertEqual("paragraph", blocks[1]["type"])
+
     def test_references_with_a_link_are_listed_once(self):
         fixture = LessonFixture(self)
         fixture.write("en", "basics", "01-first.md", ENGLISH_LESSON)
