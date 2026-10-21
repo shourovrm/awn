@@ -13,7 +13,10 @@
 - Review sheet: one flat list of flagged words, Listen, Previous/Next, and "Experimental feedback on likely mistakes".
 - `ReciteSettingsPage(settings)` is for the Settings hub. Old `ReciteScreen`, `ReciteRangePicker`, `ReciteWords` and `ReciteSettingsScreen` were removed with the Recite route.
 
+- Speech model stays loaded 2 min after close (`SpeechPreparation.releaseAfterGrace`, cancelled by `prepare()`), released at once by `ReciteController.onLowMemory()` (AwnApplication.onTrimMemory >= RUNNING_LOW). The bar shows only "Preparing…" + progress + Close until `SpeechState.Ready` (`reciteBarMode`). `RecitationSession.wordProblems` feeds the word card (`WordProblem`).
+
 ## Open items
+- Memory after close: live native alloc returns to ~34 MB but the allocator keeps pages for minutes; not yet fixed (see LOG 2026-10-21).
 - Phone check: speech preparation time on every recite start and heap after exit; the page turning when recitation crosses a page (the reader must follow `rememberReciteCurrentAyah`); the reveal and grade icons and the bar height with three rows.
 - A rotation removes the bar and so stops reciting (`onDispose` calls `exit()`), which now also unloads the model; the next recite waits ~5 s again.
 - Any failure to build the phoneme source shows "Can't use the microphone"; a separate line would help.

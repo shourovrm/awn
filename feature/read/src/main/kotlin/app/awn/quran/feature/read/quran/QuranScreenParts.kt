@@ -11,9 +11,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -27,6 +30,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
@@ -42,6 +47,7 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.page.SelectionBounds
 import app.awn.quran.feature.read.settings.ScreenOrientation
 import app.awn.quran.feature.read.settings.requestedOrientation
+import app.awn.quran.tracker.WordProblem
 
 /**
  * Turns the activity to [quranOrientation] while the Quran screen is shown and back to
@@ -117,6 +123,7 @@ internal fun WordPopupCard(
     anchor: Rect?,
     topClearancePx: Float,
     onDismiss: () -> Unit,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
@@ -165,9 +172,50 @@ internal fun WordPopupCard(
             popup.word.transliteration?.let {
                 Text(text = it, style = AwnTypography.small.ltr(), color = field.onBar)
             }
+            popup.problem?.let { problem ->
+                Text(
+                    text = stringResource(problem.messageRes()),
+                    style = AwnTypography.body,
+                    color = field.onBar,
+                    modifier = Modifier.testTag(WORD_PROBLEM_TAG),
+                )
+            }
+            if (popup.canPlay) PlayWordButton(onPlay)
         }
     }
 }
+
+/** What went wrong with a word, in the words of the card. */
+private fun WordProblem.messageRes(): Int =
+    when (this) {
+        WordProblem.Skipped -> R.string.word_problem_skipped
+        WordProblem.NotClear -> R.string.word_problem_not_clear
+        WordProblem.DifferentWord -> R.string.word_problem_different
+    }
+
+/** Plays the reciter's recording of the word on the card. */
+@Composable
+private fun PlayWordButton(onPlay: () -> Unit) {
+    val onBar = Awn.field.onBar
+    Row(
+        Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget)
+            .clickable(role = Role.Button, onClick = onPlay)
+            .padding(horizontal = AwnSpacing.small)
+            .testTag(WORD_PLAY_TAG),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
+    ) {
+        Icon(painterResource(R.drawable.ic_read_play), contentDescription = null, tint = onBar)
+        Text(
+            text = stringResource(R.string.word_play),
+            style = AwnTypography.body,
+            color = onBar,
+        )
+    }
+}
+
+const val WORD_PROBLEM_TAG = "word-problem"
+const val WORD_PLAY_TAG = "word-play"
 
 /** Latin and Bangla glosses read left to right even inside right-to-left Arabic surroundings. */
 internal fun TextStyle.ltr(): TextStyle = copy(textDirection = TextDirection.Ltr)

@@ -39,6 +39,7 @@ import app.awn.quran.feature.read.quran.QuranScreenSlots
 import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.recite.ReciteBar
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
+import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.IndexActions
 import app.awn.quran.index.IndexScreen
@@ -237,6 +238,7 @@ private fun QuranRoute(
             reciteBar = { onExit -> ReciteBar(services.recite, onExit) },
             onReciteFrom = services.recite::reciteFrom,
             reciteWordStates = { rememberReciteWordStates(services.recite) },
+            reciteWordProblems = { rememberReciteWordProblems(services.recite) },
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navController.navigate(Routes.INDEX) },

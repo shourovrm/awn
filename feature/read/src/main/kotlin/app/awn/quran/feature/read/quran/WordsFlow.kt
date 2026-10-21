@@ -127,7 +127,24 @@ internal fun WordsFlow(
                                 )
                             }
                     } else {
-                        Modifier.clip(AwnShapes.wordBlock).background(cellFill)
+                        // Plain cells belong to the whole ayah, except a word recited badly: its
+                        // tap opens the card that says what went wrong.
+                        val isFlagged = state == WordState.Wrong || state == WordState.Tentative
+                        Modifier.clip(AwnShapes.wordBlock)
+                            .background(cellFill)
+                            .onGloballyPositioned { coordinatesHolder.coordinates = it }
+                            .then(
+                                if (isFlagged) {
+                                    Modifier.pointerInput(word.key) {
+                                        detectTapGestures(
+                                            onTap = { tapped() },
+                                            onLongPress = { onAyahLongPress() },
+                                        )
+                                    }
+                                } else {
+                                    Modifier
+                                },
+                            )
                     }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,

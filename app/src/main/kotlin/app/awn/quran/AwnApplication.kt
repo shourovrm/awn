@@ -1,6 +1,7 @@
 package app.awn.quran
 
 import android.app.Application
+import android.content.ComponentCallbacks2
 import androidx.work.Configuration
 import app.awn.quran.feature.learn.reminder.ReviseReminder
 import app.awn.quran.player.AudioDownloadWork
@@ -20,6 +21,19 @@ class AwnApplication : Application(), Configuration.Provider {
     override val workManagerConfiguration: Configuration
         get() =
             Configuration.Builder().setWorkerFactory(services.coreData.packWorkerFactory).build()
+
+    // The speech model that only waits out its grace period after recite closed is the largest
+    // thing this app can give back, so any sign of memory pressure, or the app leaving the screen,
+    // ends the wait.
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) services.recite.onLowMemory()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        services.recite.onLowMemory()
+    }
 
     override fun onCreate() {
         super.onCreate()

@@ -5,6 +5,7 @@ import app.awn.quran.tracker.DurationCheck
 import app.awn.quran.tracker.DurationVerdict
 import app.awn.quran.tracker.TrackerConfig
 import app.awn.quran.tracker.TrackerEvent
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -379,5 +380,34 @@ class RecitationSessionTest {
 
         assertNull(fixture.session.grade(AyahGrade.Good))
         assertTrue(fixture.graded.isEmpty())
+    }
+
+    @Test
+    fun aSkippedWordAndAnUnclearWordAreListedAsProblemsForTheCard() = runTest {
+        val fixture = SessionFixture(inputBlocks = 2)
+        fixture.session.load(fixture.range)
+        fixture.script(TrackerEvent.Skipped(0))
+        fixture.script(TrackerEvent.WordChanged(1, WordState.Tentative))
+        fixture.session.start()
+
+        assertEquals(
+            mapOf(
+                fixture.first to WordProblem.Skipped,
+                fixture.second to WordProblem.NotClear,
+            ),
+            fixture.session.wordProblems.value,
+        )
+    }
+
+    @Test
+    fun unloadingClearsTheProblems() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.script(TrackerEvent.Skipped(0))
+        fixture.session.start()
+
+        fixture.session.unload()
+
+        assertTrue(fixture.session.wordProblems.value.isEmpty())
     }
 }

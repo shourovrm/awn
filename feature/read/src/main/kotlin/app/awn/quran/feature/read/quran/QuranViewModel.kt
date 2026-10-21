@@ -8,6 +8,7 @@ import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationInfo
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
@@ -20,6 +21,7 @@ import app.awn.quran.feature.read.settings.ScreenOrientation
 import app.awn.quran.feature.read.settings.TextLayer
 import app.awn.quran.feature.read.settings.withTranslation
 import app.awn.quran.player.PlaybackState
+import app.awn.quran.tracker.WordProblem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +65,14 @@ enum class PlayButtonMode {
 }
 
 /** The small card that shows the meaning and transliteration of a tapped word. */
-data class WordPopup(val ayah: AyahRef, val word: AyahWord)
+data class WordPopup(
+    val ayah: AyahRef,
+    val word: AyahWord,
+    /** Set when the card opened on a word the user recited wrongly or unclearly. */
+    val problem: WordProblem? = null,
+    /** True when the chosen reciter has a recording of this word, so the card offers Play. */
+    val canPlay: Boolean = false,
+)
 
 data class QuranUiState(
     /** False until the first page is known, so the pager opens on the right page at once. */
@@ -545,12 +554,16 @@ class QuranViewModel(
         }
     }
 
-    /** Shows the word's meaning and plays it when the chosen reciter has word timings. */
-    fun onWordTapped(ayah: AyahRef, word: AyahWord) {
+    /**
+     * Shows the word's meaning and plays it when the chosen reciter has word timings. A word the
+     * user recited wrongly ([problem] set) is not played by itself, because the microphone may be
+     * listening; its card offers Play instead.
+     */
+    fun onWordTapped(ayah: AyahRef, word: AyahWord, problem: WordProblem? = null) {
         // The word card and the ayah bar never show together.
         mutableState.update {
             it.copy(
-                wordPopup = WordPopup(ayah, word),
+                wordPopup = WordPopup(ayah, word, problem),
                 selection = null,
                 selectionEnd = null,
                 selectionPage = null,
@@ -559,10 +572,53 @@ class QuranViewModel(
             )
         }
         viewModelScope.launch {
-            val reciterId = dependencies.selectedReciterId.first()
-            val timings = dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty()
-            if (timings.isNotEmpty()) {
-                dependencies.audioPlayer.playWord(reciterId, ayah, word.key.wordPosition)
+            val hasTimings = wordHasTimings(ayah)
+            if (problem == null) {
+                if (hasTimings) playWord(ayah, word.key.wordPosition)
+            } else {
+                showPlayWhen(hasTimings, word.key)
+            }
+        }
+    }
+
+    /**
+     * A tap on a word of the Mushaf page that was recited wrongly or unclearly: the page knows only
+     * the key, so the word's text, meaning and transliteration are read before the card opens.
+     */
+    fun onProblemWordTapped(key: WordKey, problem: WordProblem) {
+        viewModelScope.launch {
+            val ayah = AyahRef(key.surah, key.ayah)
+            val block =
+                contentLoader.loadBlock(ayah, enabledTranslations = emptyList(), names = emptyMap())
+            val word = block.words.firstOrNull { it.key == key } ?: return@launch
+            onWordTapped(ayah, word, problem)
+        }
+    }
+
+    /** Plays the reciter's recording of the word on the open card. */
+    fun playPopupWord() {
+        val popup = mutableState.value.wordPopup ?: return
+        viewModelScope.launch { playWord(popup.ayah, popup.word.key.wordPosition) }
+    }
+
+    private suspend fun wordHasTimings(ayah: AyahRef): Boolean {
+        val reciterId = dependencies.selectedReciterId.first()
+        return dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
+    }
+
+    private suspend fun playWord(ayah: AyahRef, position: Int) {
+        val reciterId = dependencies.selectedReciterId.first()
+        dependencies.audioPlayer.playWord(reciterId, ayah, position)
+    }
+
+    // The card may have closed, or moved to another word, while the timings were read.
+    private fun showPlayWhen(hasTimings: Boolean, key: WordKey) {
+        mutableState.update { state ->
+            val popup = state.wordPopup
+            if (popup != null && popup.word.key == key) {
+                state.copy(wordPopup = popup.copy(canPlay = hasTimings))
+            } else {
+                state
             }
         }
     }

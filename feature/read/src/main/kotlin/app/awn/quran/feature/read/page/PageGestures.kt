@@ -29,7 +29,20 @@ internal class PageTouchActions(
     val onRangeDrag: (AyahRange) -> Unit,
     /** The finger lifted after a long press. */
     val onRangeEnd: () -> Unit,
-)
+) {
+    /** The same actions, plus [report] with the word whenever a tap lands on one. */
+    fun withWordTapReport(report: (WordKey) -> Unit) =
+        PageTouchActions(
+            onTap = onTap,
+            onWordClick = { key ->
+                onWordClick(key)
+                report(key)
+            },
+            onLongPress = onLongPress,
+            onRangeDrag = onRangeDrag,
+            onRangeEnd = onRangeEnd,
+        )
+}
 
 /**
  * Reports a tap the moment the finger lifts, so nothing waits for a second tap (the page has no

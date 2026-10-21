@@ -16,6 +16,7 @@ import app.awn.quran.tracker.TrackerConfig
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.TrackerFactory
 import app.awn.quran.tracker.TrackerInput
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
@@ -112,6 +113,7 @@ class RecitationSession(
     private val mutableHint = MutableStateFlow<ReciteHint?>(null)
     private val mutableSkippedWords = MutableStateFlow<Set<WordKey>>(emptySet())
     private val mutableGradePrompt = MutableStateFlow<GradePrompt?>(null)
+    private val mutableWordProblems = MutableStateFlow<Map<WordKey, WordProblem>>(emptyMap())
     private val mutableReviews = MutableStateFlow<Map<AyahRef, List<WordReview>>>(emptyMap())
 
     val phase: StateFlow<RecitationPhase> = mutablePhase.asStateFlow()
@@ -137,6 +139,9 @@ class RecitationSession(
 
     /** The ayah just finished in hide-words mode, waiting for [grade]; null when none waits. */
     val gradePrompt: StateFlow<GradePrompt?> = mutableGradePrompt.asStateFlow()
+
+    /** What went wrong with each flagged word, for the card that opens on a tap. */
+    val wordProblems: StateFlow<Map<WordKey, WordProblem>> = mutableWordProblems.asStateFlow()
 
     /** The skipped and wrong words of each ayah that has any, in reading order. */
     val reviews: StateFlow<Map<AyahRef, List<WordReview>>> = mutableReviews.asStateFlow()
@@ -521,6 +526,8 @@ class RecitationSession(
         val hintedKey = mutableHint.value?.key
         if (hintedKey != null && hintedKey != current) mutableHint.value = null
         mutableSkippedWords.value = skippedIndexes.map { wordKeys[it] }.toSet()
+        mutableWordProblems.value =
+            ReviewRules.problemsByWord(wordKeys, trackerStates.toList(), skippedIndexes)
         mutableReviews.value =
             ReviewRules.reviewsByAyah(
                 wordKeys,
@@ -600,6 +607,7 @@ class RecitationSession(
         mutableWordStates.value = emptyMap()
         mutableCurrentWord.value = null
         mutableReviews.value = emptyMap()
+        mutableWordProblems.value = emptyMap()
         mutableSkippedWords.value = emptySet()
     }
 

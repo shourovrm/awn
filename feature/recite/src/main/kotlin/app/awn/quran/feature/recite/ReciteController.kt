@@ -14,6 +14,7 @@ import app.awn.quran.tracker.Tracker
 import app.awn.quran.tracker.TrackerConfig
 import app.awn.quran.tracker.TrackerFactory
 import app.awn.quran.tracker.TrackerInput
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +41,7 @@ fun interface RevisionQueue {
  *
  * Create it once per process (for example in `AwnServices`) with a [scope] that outlives the
  * screens. The speech model (about 144 MB of native memory) is loaded when recite mode starts and
- * released when [exit] has unloaded the session.
+ * released after a grace period once [exit] has unloaded the session.
  */
 // Each argument is a collaborator that :app supplies, and the entry points of recite mode (recite,
 // revise, grade, exit, speed, hide words) are the controller's whole purpose.
@@ -203,8 +204,21 @@ class ReciteController(
             previous?.cancelAndJoin()
             session.unload()
             // Only after the session let go of the recogniser: closing it earlier would free the
-            // native model under a running recognition.
-            speech.release()
+            // native model under a running recognition. The model stays for a grace period so a
+            // restart is instant; it is released when that ends, or at once on [onLowMemory].
+            speech.releaseAfterGrace()
+        }
+    }
+
+    /**
+     * Frees the loaded speech model now when recite mode is not on, for the system's low-memory and
+     * trim calls. While reciting it does nothing: the model is in use.
+     */
+    fun onLowMemory() {
+        val previous = loadJob
+        loadJob = scope.launch {
+            previous?.join()
+            if (!mutableActive.value) speech.release()
         }
     }
 
@@ -230,6 +244,16 @@ class ReciteController(
 fun rememberReciteCurrentAyah(controller: ReciteController): AyahRef? {
     val word by controller.session.currentWord.collectAsState()
     return word?.let { AyahRef(it.surah, it.ayah) }
+}
+
+/**
+ * What went wrong with each flagged word while reciting, empty otherwise. The Quran screen opens a
+ * card with this when the user taps a red or yellow word.
+ */
+@Composable
+fun rememberReciteWordProblems(controller: ReciteController): Map<WordKey, WordProblem> {
+    val problems by controller.session.wordProblems.collectAsState()
+    return problems
 }
 
 /** The real tracker, used when the caller does not pass a factory. */

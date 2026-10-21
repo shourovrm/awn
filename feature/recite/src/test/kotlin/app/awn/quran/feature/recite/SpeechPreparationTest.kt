@@ -165,4 +165,97 @@ class SpeechPreparationTest {
         assertEquals(false, waiter.isAlive)
         assertEquals(true, waiterOutcome.get() is IllegalStateException)
     }
+
+    @Test
+    fun theModelStaysReadyDuringTheGracePeriodAndIsReleasedWhenItEnds() {
+        val runner = ManualDelayedRunner()
+        val prepared = FakePrepared()
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) { prepared }
+        preparation.prepare()
+
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+
+        assertEquals(SpeechState.Ready, preparation.state.value)
+        assertEquals(false, prepared.closed)
+        assertEquals(120_000L, runner.scheduled.single().delayMillis)
+
+        runner.fireAll()
+
+        assertEquals(true, prepared.closed)
+        assertEquals(SpeechState.Idle, preparation.state.value)
+    }
+
+    @Test
+    fun aRestartInsideTheGracePeriodReusesTheModelAndCancelsTheRelease() {
+        val runner = ManualDelayedRunner()
+        var builds = 0
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) {
+                builds++
+                FakePrepared()
+            }
+        preparation.prepare()
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+
+        preparation.prepare()
+        runner.fireAll()
+
+        assertEquals(1, builds)
+        assertEquals(SpeechState.Ready, preparation.state.value)
+        assertEquals(true, runner.scheduled.single().cancelled)
+    }
+
+    @Test
+    fun aGraceTimerThatFiresAfterARestartDoesNotReleaseTheNewModel() {
+        val runner = ManualDelayedRunner()
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) { FakePrepared() }
+        preparation.prepare()
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+        preparation.prepare()
+
+        // A timer thread that was already past its cancel check when prepare ran.
+        runner.scheduled.single().action.run()
+
+        assertEquals(SpeechState.Ready, preparation.state.value)
+    }
+
+    @Test
+    fun releaseNowCancelsThePendingGraceTimer() {
+        val runner = ManualDelayedRunner()
+        val prepared = FakePrepared()
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) { prepared }
+        preparation.prepare()
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+
+        preparation.release()
+
+        assertEquals(true, prepared.closed)
+        assertEquals(true, runner.scheduled.single().cancelled)
+    }
+
+    @Test
+    fun aSecondGracePeriodReplacesTheFirst() {
+        val runner = ManualDelayedRunner()
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) { FakePrepared() }
+        preparation.prepare()
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+        preparation.releaseAfterGrace(graceMillis = 60_000)
+
+        assertEquals(listOf(true, false), runner.scheduled.map { it.cancelled })
+    }
+
+    @Test
+    fun graceWithNothingLoadedSchedulesNothing() {
+        val runner = ManualDelayedRunner()
+        val preparation =
+            SpeechPreparation(executor = { it.run() }, delayedRunner = runner) { FakePrepared() }
+
+        preparation.releaseAfterGrace(graceMillis = 120_000)
+
+        assertEquals(0, runner.scheduled.size)
+    }
 }

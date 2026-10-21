@@ -9,6 +9,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontFamily
 import app.awn.quran.core.data.AyahRef
@@ -122,6 +123,8 @@ internal data class MushafHost(
     val fontFamily: FontFamily?,
     val plainFamily: FontFamily?,
     val wordStates: Map<WordKey, WordState>,
+    /** A tap on a word, with the word's place in the screen body. */
+    val onWordTap: (WordKey, Rect) -> Unit,
     val showPageInfo: Boolean,
     /**
      * How much larger than the screen width the page prints (1 fits the width). The page scrolls
@@ -165,6 +168,7 @@ internal fun MushafPageHost(
             fontFamily = host.fontFamily,
             plainFamily = host.plainFamily,
             decorations = decorations,
+            onWordTap = host.onWordTap,
             showPageInfo = host.showPageInfo,
             scale = host.pageScale,
             onTap = host.onTap,

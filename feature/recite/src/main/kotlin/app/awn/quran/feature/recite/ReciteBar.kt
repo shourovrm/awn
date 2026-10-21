@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import app.awn.quran.core.ui.theme.Awn
@@ -50,6 +52,7 @@ import kotlinx.coroutines.launch
 const val RECITE_BAR_MIC_TAG = "recite-bar-mic"
 const val RECITE_BAR_CLOSE_TAG = "recite-bar-close"
 const val RECITE_BAR_STATUS_TAG = "recite-bar-status"
+const val RECITE_BAR_PROGRESS_TAG = "recite-bar-progress"
 const val RECITE_BAR_REVIEW_TAG = "recite-bar-review"
 const val RECITE_BAR_SPEED_TAG = "recite-bar-speed"
 const val RECITE_BAR_HIDE_TAG = "recite-bar-hide-words"
@@ -106,8 +109,8 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val permission = rememberMicrophonePermission()
     val access = permission.access
     val listening = phase == RecitationPhase.Listening
-    val preparing = speechState == SpeechState.Preparing
-    val canListen = !preparing && words.isNotEmpty()
+    val barMode = reciteBarMode(speechState)
+    val canListen = barMode == ReciteBarMode.Controls && words.isNotEmpty()
 
     Column(
         modifier
@@ -118,93 +121,107 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
             .background(colors.background)
             .padding(AwnSpacing.small),
     ) {
-        Text(
-            text = barStatusText(controller, phase, preparing, access),
-            style = AwnTypography.small,
-            color = colors.content,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier =
-                Modifier.padding(horizontal = AwnSpacing.small).testTag(RECITE_BAR_STATUS_TAG),
-        )
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BarIconButton(
-                icon = R.drawable.ic_recite_close,
-                description = stringResource(R.string.recite_close),
-                onClick = {
+        if (barMode == ReciteBarMode.Preparing) {
+            PreparingRow(
+                onClose = {
                     controller.exit()
                     onExit()
                 },
-                tag = RECITE_BAR_CLOSE_TAG,
                 colors = colors,
             )
-            SpeedButton(speed = speed, onSpeedChange = controller::setSpeed, colors = colors)
-            BarToggleButton(
-                icon = R.drawable.ic_recite_hide_words,
-                description = stringResource(R.string.recite_hide_words),
-                checked = hideWords,
-                onCheckedChange = controller::setHideWords,
-                tag = RECITE_BAR_HIDE_TAG,
-                colors = colors,
+        } else {
+            Text(
+                text = barStatusText(controller, phase, access),
+                style = AwnTypography.small,
+                color = colors.content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier =
+                    Modifier.padding(horizontal = AwnSpacing.small).testTag(RECITE_BAR_STATUS_TAG),
             )
-            if (hintEnabled) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 BarIconButton(
-                    icon = R.drawable.ic_recite_hint,
-                    description = stringResource(R.string.recite_hint),
-                    onClick = session::requestHint,
-                    enabled = hideWords,
-                    tag = RECITE_BAR_HINT_TAG,
+                    icon = R.drawable.ic_recite_close,
+                    description = stringResource(R.string.recite_close),
+                    onClick = {
+                        controller.exit()
+                        onExit()
+                    },
+                    tag = RECITE_BAR_CLOSE_TAG,
+                    colors = colors,
+                )
+                SpeedButton(speed = speed, onSpeedChange = controller::setSpeed, colors = colors)
+                BarToggleButton(
+                    icon = R.drawable.ic_recite_hide_words,
+                    description = stringResource(R.string.recite_hide_words),
+                    checked = hideWords,
+                    onCheckedChange = controller::setHideWords,
+                    tag = RECITE_BAR_HIDE_TAG,
+                    colors = colors,
+                )
+                if (hintEnabled) {
+                    BarIconButton(
+                        icon = R.drawable.ic_recite_hint,
+                        description = stringResource(R.string.recite_hint),
+                        onClick = session::requestHint,
+                        enabled = hideWords,
+                        tag = RECITE_BAR_HINT_TAG,
+                        colors = colors,
+                    )
+                }
+                if (phase == RecitationPhase.Stopped) {
+                    BarIconButton(
+                        icon = R.drawable.ic_recite_review,
+                        description = stringResource(R.string.recite_review),
+                        onClick = { reviewOpen = true },
+                        tag = RECITE_BAR_REVIEW_TAG,
+                        colors = colors,
+                    )
+                }
+                MicrophoneButton(
+                    listening = listening,
+                    access = access,
+                    enabled = canListen || listening,
+                    colors = colors,
+                    onClick = {
+                        when {
+                            listening -> session.stop()
+                            access == MicrophoneAccess.Granted -> session.start()
+                            access == MicrophoneAccess.CanAsk -> permission.requestAccess()
+                            else -> permission.openAppSettings()
+                        }
+                    },
+                )
+            }
+            if (hideWords) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    BarIconButton(
+                        icon = R.drawable.ic_recite_reveal_word,
+                        description = stringResource(R.string.recite_reveal_word),
+                        onClick = session::revealNextWord,
+                        tag = RECITE_BAR_REVEAL_WORD_TAG,
+                        colors = colors,
+                    )
+                    BarIconButton(
+                        icon = R.drawable.ic_recite_reveal_ayah,
+                        description = stringResource(R.string.recite_reveal_ayah),
+                        onClick = session::revealAyah,
+                        tag = RECITE_BAR_REVEAL_AYAH_TAG,
+                        colors = colors,
+                    )
+                }
+            }
+            gradePrompt?.let { prompt ->
+                GradeButtons(
+                    suggested = prompt.suggested,
+                    onGrade = controller::grade,
                     colors = colors,
                 )
             }
-            if (phase == RecitationPhase.Stopped) {
-                BarIconButton(
-                    icon = R.drawable.ic_recite_review,
-                    description = stringResource(R.string.recite_review),
-                    onClick = { reviewOpen = true },
-                    tag = RECITE_BAR_REVIEW_TAG,
-                    colors = colors,
-                )
-            }
-            MicrophoneButton(
-                listening = listening,
-                access = access,
-                enabled = canListen || listening,
-                colors = colors,
-                onClick = {
-                    when {
-                        listening -> session.stop()
-                        access == MicrophoneAccess.Granted -> session.start()
-                        access == MicrophoneAccess.CanAsk -> permission.requestAccess()
-                        else -> permission.openAppSettings()
-                    }
-                },
-            )
-        }
-        if (hideWords) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                BarIconButton(
-                    icon = R.drawable.ic_recite_reveal_word,
-                    description = stringResource(R.string.recite_reveal_word),
-                    onClick = session::revealNextWord,
-                    tag = RECITE_BAR_REVEAL_WORD_TAG,
-                    colors = colors,
-                )
-                BarIconButton(
-                    icon = R.drawable.ic_recite_reveal_ayah,
-                    description = stringResource(R.string.recite_reveal_ayah),
-                    onClick = session::revealAyah,
-                    tag = RECITE_BAR_REVEAL_AYAH_TAG,
-                    colors = colors,
-                )
-            }
-        }
-        gradePrompt?.let { prompt ->
-            GradeButtons(suggested = prompt.suggested, onGrade = controller::grade, colors = colors)
         }
     }
 
@@ -223,11 +240,50 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     }
 }
 
+/**
+ * What the bar shows while the speech model loads: a small progress indicator, one waiting word and
+ * the close button. Nothing else can be used before the model is ready.
+ */
+@Composable
+private fun PreparingRow(onClose: () -> Unit, colors: ReciteBarColors) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            Modifier.padding(horizontal = AwnSpacing.small),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(AwnSpacing.large).testTag(RECITE_BAR_PROGRESS_TAG),
+                color = colors.content,
+                strokeWidth = 2.dp,
+            )
+            Text(
+                text = stringResource(R.string.recite_status_preparing),
+                style = AwnTypography.small,
+                color = colors.content,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier =
+                    Modifier.padding(start = AwnSpacing.small).testTag(RECITE_BAR_STATUS_TAG),
+            )
+        }
+        BarIconButton(
+            icon = R.drawable.ic_recite_close,
+            description = stringResource(R.string.recite_close),
+            onClick = onClose,
+            tag = RECITE_BAR_CLOSE_TAG,
+            colors = colors,
+        )
+    }
+}
+
 @Composable
 private fun barStatusText(
     controller: ReciteController,
     phase: RecitationPhase,
-    preparing: Boolean,
     access: MicrophoneAccess,
 ): String {
     val session = controller.session
@@ -241,7 +297,6 @@ private fun barStatusText(
     val currentPrompt = gradePrompt
     val listening = phase == RecitationPhase.Listening
     return when {
-        preparing -> stringResource(R.string.recite_status_preparing)
         access == MicrophoneAccess.CanAsk && !listening ->
             stringResource(R.string.recite_status_allow_microphone)
         access == MicrophoneAccess.DeniedPermanently && !listening ->

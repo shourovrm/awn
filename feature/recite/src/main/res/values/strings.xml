@@ -47,7 +47,7 @@
   <string name="recite_speed_slowest">Slowest</string>
   <string name="recite_speed_normal">Normal</string>
   <string name="recite_speed_fastest">Fastest</string>
-  <string name="recite_status_preparing">Getting ready</string>
+  <string name="recite_status_preparing">Preparing…</string>
   <string name="recite_status_hint">Next word starts with %1$s</string>
   <string name="recite_status_allow_microphone">Allow the microphone to recite</string>
   <string name="recite_status_microphone_off">Microphone is off for Awn</string>

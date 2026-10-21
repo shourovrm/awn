@@ -23,6 +23,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -77,6 +78,7 @@ fun MushafPage(
     showPageInfo: Boolean = true,
     scale: Float = 1f,
     onWordClick: (WordKey) -> Unit = {},
+    onWordTap: (WordKey, Rect) -> Unit = { _, _ -> },
     onTap: () -> Unit = {},
     onAyahLongPress: (AyahRef) -> Unit = {},
     onRangeDrag: (AyahRange) -> Unit = {},
@@ -132,6 +134,7 @@ fun MushafPage(
                         bodyTop = bodyTop,
                         scrollOffsetPx = { scrollState.value },
                         onSelectionBounds = onSelectionBounds,
+                        onWordTap = onWordTap,
                     )
                 }
             }
@@ -182,6 +185,7 @@ private fun PageBody(
     bodyTop: Float,
     scrollOffsetPx: () -> Int,
     onSelectionBounds: (SelectionBounds?) -> Unit,
+    onWordTap: (WordKey, Rect) -> Unit,
 ) {
     val density = LocalDensity.current
     val measured =
@@ -207,15 +211,25 @@ private fun PageBody(
         onSelectionBounds,
     )
     val playingFade = rememberPlayingFade(decorations.playingAyah)
+    // A tapped word is reported with its place in the screen body, like the selection bounds.
+    val currentBodyTop by rememberUpdatedState(bodyTop)
+    val currentWordTap by rememberUpdatedState(onWordTap)
+    val gestures =
+        remember(touchActions, geometry) {
+            touchActions.withWordTapReport { key ->
+                val rect = geometry.wordRect(key) ?: return@withWordTapReport
+                val shift = Offset(0f, currentBodyTop - scrollOffsetPx())
+                currentWordTap(key, rect.translate(shift))
+            }
+        }
 
     val pageHeight = with(density) { size.pageHeightPx.toDp() }
     val heightModifier =
         if (size.isScrolling) Modifier.height(pageHeight) else Modifier.fillMaxHeight()
     Box(
-        Modifier.fillMaxWidth()
-            .then(heightModifier)
-            .pageGestures(geometry, touchActions)
-            .drawBehind { drawFills(geometry, decorations, field, playingFade.snapshot()) },
+        Modifier.fillMaxWidth().then(heightModifier).pageGestures(geometry, gestures).drawBehind {
+            drawFills(geometry, decorations, field, playingFade.snapshot())
+        },
     ) {
         PageRowsLayer(
             rows = rows,

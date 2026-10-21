@@ -6,6 +6,7 @@ import app.awn.quran.player.fakes.FakeAudioPlayer
 import app.awn.quran.tracker.DurationCheck
 import app.awn.quran.tracker.DurationVerdict
 import app.awn.quran.tracker.TrackerEvent
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -108,5 +109,37 @@ class ReviewRulesTest {
         playWord(player, "husary", WordKey(2, 255, 4))
 
         assertEquals(listOf(Triple("husary", AyahRef(2, 255), 4)), player.wordCalls)
+    }
+
+    @Test
+    fun problemsNameWhatWentWrongWithEachFlaggedWord() {
+        val states = listOf(WordState.Wrong, WordState.Tentative, WordState.Wrong)
+
+        val problems = ReviewRules.problemsByWord(keys, states, setOf(0))
+
+        assertEquals(
+            mapOf(
+                keys[0] to WordProblem.Skipped,
+                keys[1] to WordProblem.NotClear,
+                keys[2] to WordProblem.DifferentWord,
+            ),
+            problems,
+        )
+    }
+
+    @Test
+    fun aWrongWordNeitherSkippedNorSubstitutedIsADifferentWord() {
+        val states = listOf(WordState.Wrong, WordState.Confirmed, WordState.Neutral)
+
+        val problems = ReviewRules.problemsByWord(keys, states, emptySet())
+
+        assertEquals(mapOf(keys[0] to WordProblem.DifferentWord), problems)
+    }
+
+    @Test
+    fun confirmedHiddenAndUntouchedWordsHaveNoProblem() {
+        val states = listOf(WordState.Confirmed, WordState.Hidden, WordState.Neutral)
+
+        assertTrue(ReviewRules.problemsByWord(keys, states, emptySet()).isEmpty())
     }
 }

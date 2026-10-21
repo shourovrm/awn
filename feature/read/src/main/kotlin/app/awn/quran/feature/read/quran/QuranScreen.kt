@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -85,6 +86,7 @@ import app.awn.quran.feature.read.page.isGlyphScript
 import app.awn.quran.feature.read.page.pageTypeText
 import app.awn.quran.feature.read.page.rememberFontLookup
 import app.awn.quran.feature.read.settings.PageView
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.launch
 
@@ -99,6 +101,11 @@ data class QuranScreenSlots(
     val reciteBar: @Composable (onExit: () -> Unit) -> Unit,
     val onReciteFrom: (AyahRef) -> Unit,
     val reciteWordStates: @Composable () -> Map<WordKey, WordState>,
+    /**
+     * Optional. What went wrong with each red or yellow word while reciting; a tap on such a word
+     * opens a card with it.
+     */
+    val reciteWordProblems: @Composable () -> Map<WordKey, WordProblem> = { emptyMap() },
     val isNight: Boolean,
     val onToggleNight: () -> Unit,
     val onOpenIndex: () -> Unit,
@@ -311,6 +318,7 @@ private fun QuranContent(
             remember(panelShiftPx, barShiftPx) { { panelShiftPx + barShiftPx.value } }
 
         val reciteStates = if (state.isReciting) slots.reciteWordStates() else emptyMap()
+        val reciteProblems = if (state.isReciting) slots.reciteWordProblems() else emptyMap()
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
         // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
@@ -326,12 +334,17 @@ private fun QuranContent(
                 fontCache = fontCache,
                 arabicLookup = arabicLookup,
                 reciteStates = reciteStates,
+                reciteProblems = reciteProblems,
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
                 shiftPx = currentShiftPx,
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
                 onWordAnchor = { wordAnchor = it },
+                // The page reports the word in its own coordinates, which start one margin in.
+                onMushafWordAnchor = { rect ->
+                    wordAnchor = rect.translate(rootOrigin.x + marginPx, rootOrigin.y)
+                },
             )
         }
         val topClearancePx = topBarClearancePx(state.areBarsVisible)
@@ -462,6 +475,7 @@ private fun QuranContent(
                 anchor = wordAnchor?.translate(-rootOrigin.x, -rootOrigin.y),
                 topClearancePx = topClearancePx,
                 onDismiss = viewModel::dismissWordPopup,
+                onPlay = viewModel::playPopupWord,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -532,12 +546,14 @@ private fun QuranPager(
     fontCache: PageFontCache,
     arabicLookup: FontLookup?,
     reciteStates: Map<WordKey, WordState>,
+    reciteProblems: Map<WordKey, WordProblem>,
     playingWord: State<Int?>,
     fullHeightPx: Int,
     shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
     onWordAnchor: (Rect?) -> Unit,
+    onMushafWordAnchor: (Rect) -> Unit,
 ) {
     val pagerState =
         rememberPagerState(initialPage = state.currentPage - 1, pageCount = { state.pageCount })
@@ -585,6 +601,20 @@ private fun QuranPager(
             }
         }
     val onRangeDrag: (AyahRange) -> Unit = remember(viewModel) { viewModel::selectRange }
+
+    // Only a word that was recited badly has a card; the lambda is remembered so the pages do not
+    // see a new callback each time the problems change.
+    val currentProblems by rememberUpdatedState(reciteProblems)
+    val onProblemWordTap: (WordKey, Rect) -> Unit =
+        remember(viewModel, onMushafWordAnchor) {
+            { key, bounds ->
+                val problem = currentProblems[key]
+                if (problem != null) {
+                    onMushafWordAnchor(bounds)
+                    viewModel.onProblemWordTapped(key, problem)
+                }
+            }
+        }
 
     // Page 1 is on the right, so swiping right turns to the next page.
     HorizontalPager(
@@ -638,6 +668,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteStates,
+                                    onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
                                     onTap = onPageTapped,
                                     pageScale = state.settings.mushafScale,
@@ -689,7 +720,7 @@ private fun QuranPager(
                         },
                         onWordTap = { ayah, word, bounds ->
                             onWordAnchor(bounds)
-                            viewModel.onWordTapped(ayah, word)
+                            viewModel.onWordTapped(ayah, word, reciteProblems[word.key])
                         },
                         onUserScrolled = viewModel::onPagerDragged,
                     ),

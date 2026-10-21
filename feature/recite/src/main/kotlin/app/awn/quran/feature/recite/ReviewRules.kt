@@ -6,6 +6,7 @@ import app.awn.quran.player.AudioPlayer
 import app.awn.quran.tracker.DurationCheck
 import app.awn.quran.tracker.DurationVerdict
 import app.awn.quran.tracker.TrackerEvent
+import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 
 /** One thing found about a word. */
@@ -54,6 +55,29 @@ internal object ReviewRules {
             }
         }
         return reviews.groupBy { AyahRef(it.key.surah, it.key.ayah) }
+    }
+
+    /**
+     * Names the problem of each word that is drawn red or yellow: skipped, a different word (wrong)
+     * or not clear (tentative). A word that is confirmed, hidden or untouched is left out.
+     */
+    fun problemsByWord(
+        keys: List<WordKey>,
+        trackerStates: List<WordState>,
+        skippedIndexes: Set<Int>,
+    ): Map<WordKey, WordProblem> {
+        val problems = LinkedHashMap<WordKey, WordProblem>()
+        keys.forEachIndexed { index, key ->
+            val problem =
+                when {
+                    index in skippedIndexes -> WordProblem.Skipped
+                    trackerStates[index] == WordState.Wrong -> WordProblem.DifferentWord
+                    trackerStates[index] == WordState.Tentative -> WordProblem.NotClear
+                    else -> null
+                }
+            if (problem != null) problems[key] = problem
+        }
+        return problems
     }
 }
 

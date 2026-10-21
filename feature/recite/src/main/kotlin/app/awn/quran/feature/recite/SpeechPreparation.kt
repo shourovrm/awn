@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,13 @@ interface PreparedSpeech : AutoCloseable {
 
     /** Opens the recogniser for one recitation. */
     fun newPhonemeSource(): PhonemeSource
+}
+
+/** Runs something once after a delay, for the grace period before the model is released. */
+fun interface DelayedRunner {
+
+    /** Runs [action] after [delayMillis]; the returned function cancels it if it has not run. */
+    fun runAfter(delayMillis: Long, action: Runnable): () -> Unit
 }
 
 enum class SpeechState {
@@ -46,12 +55,18 @@ enum class SpeechState {
  */
 class SpeechPreparation(
     private val executor: Executor = backgroundExecutor,
+    private val delayedRunner: DelayedRunner = timerRunner,
     private val build: () -> PreparedSpeech,
 ) {
 
     private val lock = Any()
     private val mutableState = MutableStateFlow(SpeechState.Idle)
     private var pending = CompletableFuture<PreparedSpeech>()
+
+    // Cancels the release that [releaseAfterGrace] scheduled; null when none is waiting. The token
+    // names that release, so a timer that is already running when it is cancelled can tell.
+    private var cancelGraceRelease: (() -> Unit)? = null
+    private var graceToken: Any? = null
 
     // Counts releases. A build remembers the number it started under; when [release] has run since,
     // its result belongs to nobody and must be closed instead of published.
@@ -72,6 +87,7 @@ class SpeechPreparation(
         val future: CompletableFuture<PreparedSpeech>
         val startedGeneration: Int
         synchronized(lock) {
+            cancelPendingGraceRelease()
             val current = mutableState.value
             if (current == SpeechState.Preparing || current == SpeechState.Ready) return
             if (current == SpeechState.Failed) pending = CompletableFuture()
@@ -145,6 +161,7 @@ class SpeechPreparation(
      */
     fun release() {
         synchronized(lock) {
+            cancelPendingGraceRelease()
             generation += 1
             // A failed future throws on getNow, so only a finished build is closed here.
             if (mutableState.value == SpeechState.Ready) pending.getNow(null)?.close()
@@ -154,7 +171,47 @@ class SpeechPreparation(
         }
     }
 
+    /**
+     * Keeps the model for [graceMillis] and then releases it, so that reciting again soon after
+     * closing starts at once. [prepare] inside that time cancels the release, and [release] does it
+     * now. A later call replaces an earlier one.
+     */
+    fun releaseAfterGrace(graceMillis: Long = DEFAULT_GRACE_MILLIS) {
+        synchronized(lock) {
+            cancelPendingGraceRelease()
+            if (mutableState.value == SpeechState.Idle) return
+            val token = Any()
+            graceToken = token
+            cancelGraceRelease =
+                delayedRunner.runAfter(graceMillis) {
+                    // A restart cancels the timer, but a timer already running can still arrive
+                    // here: only the release that is still waiting may end the model.
+                    if (synchronized(lock) { graceToken === token }) release()
+                }
+        }
+    }
+
+    // Must be called with [lock] held.
+    private fun cancelPendingGraceRelease() {
+        cancelGraceRelease?.invoke()
+        cancelGraceRelease = null
+        graceToken = null
+    }
+
     companion object {
+        /** How long the model stays loaded after the recite bar closes. */
+        const val DEFAULT_GRACE_MILLIS = 120_000L
+
+        private val timerRunner = DelayedRunner { delayMillis, action ->
+            val future = graceTimer.schedule(action, delayMillis, TimeUnit.MILLISECONDS)
+            return@DelayedRunner { future.cancel(false) }
+        }
+
+        private val graceTimer: ScheduledExecutorService =
+            Executors.newSingleThreadScheduledExecutor { runnable ->
+                Thread(runnable, "awn-speech-grace").apply { isDaemon = true }
+            }
+
         // One thread at the lowest priority: the copy and parse must not slow the first screen.
         private val backgroundExecutor: Executor = Executors.newSingleThreadExecutor { runnable ->
             Thread(runnable, "awn-speech-prepare").apply {

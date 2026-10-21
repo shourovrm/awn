@@ -70,10 +70,19 @@ class ControllerFixture(
     var closedModelCount = 0
         private set
 
+    /** The grace period timer: nothing is released after a close until a test fires it. */
+    val graceTimer = ManualDelayedRunner()
+
+    /** How many times a speech model was built. */
+    var builtModelCount = 0
+        private set
+
     val speech =
         SpeechPreparation(
             executor = { work -> if (prepareImmediately) work.run() else pendingWork += work },
+            delayedRunner = graceTimer,
         ) {
+            builtModelCount++
             object : PreparedSpeech {
                 override val referencePhonemes: ReferencePhonemes = reference ?: referenceWords()
 
