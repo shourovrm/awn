@@ -136,6 +136,11 @@ internal data class MushafHost(
     val onRangeDrag: (AyahRange) -> Unit,
     val onRangeEnd: () -> Unit,
     val onSelectionBounds: (SelectionBounds?) -> Unit,
+    /** The flagged word under review, drawn with a ring. */
+    val focusedWord: WordKey? = null,
+    /** The word the screen keeps above the recite bar, and where it reports that word's place. */
+    val trackedWord: WordKey? = null,
+    val onTrackedWordBounds: (Rect?) -> Unit = {},
 )
 
 /**
@@ -152,12 +157,13 @@ internal fun MushafPageHost(
     val wordStates = host.wordStates
     // Remembered, so equal marks give an equal PageDecorations and the page can skip recomposing.
     val decorations =
-        remember(highlights, wordStates) {
+        remember(highlights, wordStates, host.focusedWord) {
             PageDecorations(
                 selectedAyahs = highlights.selectedAyahs,
                 playingAyah = highlights.playingAyah,
                 playingWord = highlights.playingWord,
                 bookmarkedAyahs = highlights.bookmarkedAyahs,
+                focusedWord = host.focusedWord,
                 wordStates = { key -> wordStates[key] ?: WordState.Neutral },
             )
         }
@@ -176,6 +182,8 @@ internal fun MushafPageHost(
             onRangeDrag = host.onRangeDrag,
             onRangeEnd = host.onRangeEnd,
             onSelectionBounds = host.onSelectionBounds,
+            trackedWord = host.trackedWord,
+            onTrackedWordBounds = host.onTrackedWordBounds,
         )
     }
 }

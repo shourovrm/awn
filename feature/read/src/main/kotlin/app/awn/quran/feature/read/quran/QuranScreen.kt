@@ -265,6 +265,8 @@ private fun QuranContent(
     var isSelecting by remember { mutableStateOf(false) }
     // Where the tapped word is, in window coordinates, for the word card.
     var wordAnchor by remember { mutableStateOf<Rect?>(null) }
+    // Where the word the reciter is on lies on the Mushaf page, in the page's own coordinates.
+    var trackedWordBounds by remember { mutableStateOf<Rect?>(null) }
     // The height of everything stacked at the bottom while reciting; the lists end above it.
     var bottomStackHeightPx by remember { mutableIntStateOf(0) }
     // Remembered, so the pages see the same objects after every state change and can skip.
@@ -276,6 +278,7 @@ private fun QuranContent(
         )
     }
     val onListAnchor: (Rect?) -> Unit = remember { { anchor -> listAnchor = anchor } }
+    val onTrackedWordBounds: (Rect?) -> Unit = remember { { bounds -> trackedWordBounds = bounds } }
 
     BoxWithConstraints(
         Modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() },
@@ -310,18 +313,30 @@ private fun QuranContent(
         val audioBarClearancePx =
             with(density) { (AwnSpacing.dockHeight + AwnSpacing.small).toPx() }
         val isAudioBarOverPage = state.areBarsVisible && !state.isPanelOpen
+        // While reciting, the recite bar is two or three rows tall and the reciter moves down the
+        // page, so the page slides up to keep the word being recited above the bar.
+        val reciteWordBounds = trackedWordBounds
         val barShiftTarget =
-            if (isAudioBarOverPage && isMushaf && pageBounds != null) {
-                shiftToClearAudioBar(
-                        spanTop = pageBounds.all.top,
-                        spanBottom = pageBounds.all.bottom,
-                        pageHeight = fullHeightPx.toFloat(),
-                        clearance = audioBarClearancePx,
-                        margin = marginPx,
-                    )
-                    .toInt()
-            } else {
-                0
+            when {
+                state.isReciting && isMushaf && reciteWordBounds != null && bottomStackHeightPx > 0 ->
+                    shiftToClearAudioBar(
+                            spanTop = reciteWordBounds.top,
+                            spanBottom = reciteWordBounds.bottom,
+                            pageHeight = fullHeightPx.toFloat(),
+                            clearance = bottomStackHeightPx.toFloat(),
+                            margin = marginPx,
+                        )
+                        .toInt()
+                isAudioBarOverPage && isMushaf && pageBounds != null ->
+                    shiftToClearAudioBar(
+                            spanTop = pageBounds.all.top,
+                            spanBottom = pageBounds.all.bottom,
+                            pageHeight = fullHeightPx.toFloat(),
+                            clearance = audioBarClearancePx,
+                            margin = marginPx,
+                        )
+                        .toInt()
+                else -> 0
             }
         // The animated part is read only when the page is placed, so the 120 ms slide does not
         // recompose the pager on every frame.
@@ -339,6 +354,7 @@ private fun QuranContent(
             } else {
                 ReciteMarks.None
             }
+        val trackedWord = if (state.isReciting) slots.reciteCurrentWord() else null
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
         // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
@@ -363,6 +379,8 @@ private fun QuranContent(
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
                 reciteBarHeight = reciteBarHeight,
+                trackedWord = trackedWord,
+                onTrackedWordBounds = onTrackedWordBounds,
                 shiftPx = currentShiftPx,
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
@@ -531,6 +549,8 @@ private class MushafSelectionActions(
 
 private val IgnoreBounds: (SelectionBounds?) -> Unit = {}
 
+private val IgnoreRect: (Rect?) -> Unit = {}
+
 private val NoShift: () -> Int = { 0 }
 
 /** The block of an ayah in a list view: its top slice stands for the first line. */
@@ -586,6 +606,8 @@ private fun QuranPager(
     playingWord: State<Int?>,
     fullHeightPx: Int,
     reciteBarHeight: Dp?,
+    trackedWord: WordKey?,
+    onTrackedWordBounds: (Rect?) -> Unit,
     shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
@@ -709,6 +731,9 @@ private fun QuranPager(
                                     onRangeEnd = selectionActions.onRangeEnd,
                                     onSelectionBounds =
                                         if (isCurrent) selectionActions.onBounds else IgnoreBounds,
+                                    trackedWord = if (isCurrent) trackedWord else null,
+                                    onTrackedWordBounds =
+                                        if (isCurrent) onTrackedWordBounds else IgnoreRect,
                                 ),
                             modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
                         )

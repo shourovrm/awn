@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
@@ -15,6 +16,7 @@ import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.PageLine
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.MushafPage
@@ -63,8 +65,9 @@ class MushafPageGestureTest {
     private val drags = mutableListOf<AyahRange>()
     private var rangeEnds = 0
     private var bounds: SelectionBounds? = null
+    private var trackedBounds: Rect? = null
 
-    private fun setPage(selected: Set<AyahRef> = emptySet()) {
+    private fun setPage(selected: Set<AyahRef> = emptySet(), trackedWord: WordKey? = null) {
         composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
             AwnTheme {
@@ -82,6 +85,8 @@ class MushafPageGestureTest {
                         onRangeDrag = { drags += it },
                         onRangeEnd = { rangeEnds++ },
                         onSelectionBounds = { bounds = it },
+                        trackedWord = trackedWord,
+                        onTrackedWordBounds = { trackedBounds = it },
                     )
                 }
             }
@@ -189,5 +194,24 @@ class MushafPageGestureTest {
         composeRule.mainClock.advanceTimeByFrame()
 
         assertNull(bounds)
+    }
+
+    @Test
+    fun thePageReportsWhereTheTrackedWordIs() {
+        setPage(trackedWord = WordKey(2, 2, 1))
+        composeRule.mainClock.advanceTimeByFrame()
+
+        val reported = trackedBounds
+        assertNotNull(reported)
+        assertEquals(slotHeight, reported!!.top, 1f)
+        assertEquals(2 * slotHeight, reported.bottom, 1f)
+    }
+
+    @Test
+    fun aTrackedWordOnAnotherPageReportsNothing() {
+        setPage(trackedWord = WordKey(2, 99, 1))
+        composeRule.mainClock.advanceTimeByFrame()
+
+        assertNull(trackedBounds)
     }
 }
