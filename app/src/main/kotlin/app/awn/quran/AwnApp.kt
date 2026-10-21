@@ -41,7 +41,6 @@ import app.awn.quran.feature.read.ReadField
 import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
 import app.awn.quran.feature.read.quran.QuranTarget
-import app.awn.quran.feature.recite.ReciteBar
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteCurrentWord
 import app.awn.quran.feature.recite.rememberReciteWordProblems
@@ -283,7 +282,7 @@ private fun QuranRoute(
                 PlayRangePanel(services.audio, selected, currentPage)
             },
             onPlayFrom = services.audio.controller::playFrom,
-            reciteBar = { onExit -> ReciteBar(services.recite, onExit) },
+            reciteBar = { onExit -> ReciteBarOrDownload(services, onExit) },
             onReciteFrom = services.recite::reciteFrom,
             reciteWordStates = { rememberReciteWordStates(services.recite) },
             reciteWordProblems = { rememberReciteWordProblems(services.recite) },

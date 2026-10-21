@@ -156,14 +156,23 @@ internal fun statusColour(row: CatalogueRow) =
 
 /** Says why a download failed, with the sizes when the phone is too full. */
 @Composable
-internal fun failureMessage(failure: PackTransfer.Failed): String {
+internal fun failureMessage(failure: PackTransfer.Failed): String =
+    failureMessage(failure.reason, failure.neededBytes, failure.freeBytes)
+
+/** Says why a download failed; [neededBytes] and [freeBytes] are shown when the phone is full. */
+@Composable
+internal fun failureMessage(
+    reason: PackFailureReason,
+    neededBytes: Long?,
+    freeBytes: Long?,
+): String {
     val context = LocalContext.current
-    return when (failure.reason) {
+    return when (reason) {
         PackFailureReason.NoSpace ->
             stringResource(
                 R.string.catalogue_error_no_space,
-                sizeText(context, failure.neededBytes ?: 0L),
-                sizeText(context, failure.freeBytes ?: 0L),
+                sizeText(context, neededBytes ?: 0L),
+                sizeText(context, freeBytes ?: 0L),
             )
         PackFailureReason.NoInternet -> stringResource(R.string.catalogue_error_no_internet)
         PackFailureReason.ServerError -> stringResource(R.string.catalogue_error_server)

@@ -8,16 +8,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.R
 import app.awn.quran.core.data.downloads.CatalogueState
+import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.core.ui.components.SettingRowKeys
 import app.awn.quran.core.ui.components.SettingsGroupHeading
 import app.awn.quran.core.ui.components.SettingsInfoRow
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.feature.read.settings.CatalogueViewModel
 import app.awn.quran.feature.read.settings.PackListKind
+import app.awn.quran.feature.read.settings.SpeechModelRow
 
 /**
  * What the phone holds: the space all downloads use, then one row per kind of download that opens
- * its list, and the reciter audio. [audioBytes] is the space the audio of all reciters uses.
+ * its list, the reciter audio and the download that recite needs. [audioBytes] is the space the
+ * audio of all reciters uses; [onSpeechModelRemoved] runs after the user removes [speechModel].
  */
 @Composable
 fun DownloadsPage(
@@ -25,6 +28,8 @@ fun DownloadsPage(
     audioBytes: Long,
     onOpenList: (PackListKind) -> Unit,
     onOpenReciters: () -> Unit,
+    speechModel: SpeechModelStore,
+    onSpeechModelRemoved: () -> Unit,
     onBack: () -> Unit,
     targetRow: String? = null,
 ) {
@@ -75,6 +80,7 @@ fun DownloadsPage(
             onClick = onOpenReciters,
             rowKey = SettingRowKeys.DOWNLOADS_RECITERS,
         )
+        SpeechModelRow(store = speechModel, onRemoved = onSpeechModelRemoved)
     }
 }
 

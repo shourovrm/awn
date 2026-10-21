@@ -8,18 +8,23 @@ import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
 import android.util.Log
+import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.recite.PreparedSpeech
 import app.awn.quran.feature.recite.SpeechPreparation
 import app.awn.quran.tracker.JsonReferencePhonemes
 import app.awn.quran.tracker.PhonemeEvent
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.ReferencePhonemes
+import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
+/** The files the speech process reads from disk. */
+data class ModelPaths(val model: File, val tokens: File, val referencePhonemes: File)
 
 /**
  * Speech preparation backed by [SpeechService] in the `:speech` process: the reference text is
@@ -33,9 +38,17 @@ internal object RemoteSpeech {
         Thread(runnable, "awn-speech-load").apply { isDaemon = true }
     }
 
-    fun preparation(context: Context, modelFiles: ModelFiles): SpeechPreparation =
+    /**
+     * The model is downloaded after install, so preparing fails with [IllegalStateException] until
+     * [speechModel] holds the files; the recite entry offers the download before that can happen.
+     */
+    fun preparation(context: Context, speechModel: SpeechModelStore): SpeechPreparation =
         SpeechPreparation {
-            val paths = modelFiles.ensureInstalled()
+            val installed =
+                checkNotNull(speechModel.installedFiles()) {
+                    "The speech model is not on the phone."
+                }
+            val paths = ModelPaths(installed.model, installed.tokens, installed.referencePhonemes)
             // Starting the other process and loading the model take about 2.5 s; the 13 MB
             // reference text is parsed here meanwhile instead of after it.
             val remote =

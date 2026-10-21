@@ -3,12 +3,12 @@ package app.awn.quran.core.data.models
 import app.awn.quran.core.data.packs.PackDownloader
 import app.awn.quran.core.data.packs.PackFailureReason
 import app.awn.quran.core.data.packs.PackInstallException
+import app.awn.quran.core.data.packs.usableBytesOnDisk
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -89,22 +89,22 @@ data class SpeechModelFiles(val model: File, val tokens: File, val referencePhon
 
 /**
  * Downloads, verifies and removes the speech model in [directory]. A download writes each file to
- * `.downloads/<name>.part` (resuming a part left by an earlier attempt with an HTTP Range
- * request), checks its size and SHA-256, and only then renames it into place, so [isInstalled]
- * never sees a half-written file. A failure ends in [SpeechModelState.Failed] and is never
- * swallowed; the user can try again.
+ * `.downloads/<name>.part` (resuming a part left by an earlier attempt with an HTTP Range request),
+ * checks its size and SHA-256, and only then renames it into place, so [isInstalled] never sees a
+ * half-written file. A failure ends in [SpeechModelState.Failed] and is never swallowed; the user
+ * can try again.
  *
  * Files already in [directory] with the exact size count as installed: earlier app versions copied
  * the same verified files out of the APK into this folder.
  */
+@Suppress("TooManyFunctions") // One small function per step of the download.
 class SpeechModelStore(
     private val directory: File,
     private val scope: CoroutineScope,
     private val files: List<SpeechModelFile> = SpeechModelSpec.files,
     private val baseUrl: String = SpeechModelSpec.RELEASE_URL,
     private val downloader: PackDownloader = PackDownloader(),
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val usableBytesOf: (File) -> Long = { it.usableSpace },
+    private val usableBytesOf: (File) -> Long = ::usableBytesOnDisk,
 ) {
 
     private val partsDirectory = File(directory, ".downloads")
@@ -137,7 +137,7 @@ class SpeechModelStore(
         val running = downloadJob
         if (running != null && running.isActive) return running
         val job =
-            scope.launch(ioDispatcher) {
+            scope.launch(Dispatchers.IO) {
                 try {
                     downloadMissingFiles()
                 } catch (cancelled: CancellationException) {
@@ -156,20 +156,34 @@ class SpeechModelStore(
         downloadJob?.cancel()
     }
 
-    /** Deletes the model and any unfinished download of it. */
+    /**
+     * Deletes the model and any unfinished download of it. A file that cannot be deleted leaves
+     * [SpeechModelState.Failed] behind instead of an exception, because the caller is a button.
+     */
     suspend fun remove() {
         cancel()
         downloadJob?.join()
-        withContext(ioDispatcher) {
-            for (file in files) {
-                val installed = File(directory, file.name)
-                if (installed.exists() && !installed.delete()) {
-                    throw IOException("Could not delete ${installed.path}.")
+        val failure =
+            withContext(Dispatchers.IO) {
+                try {
+                    for (file in files) {
+                        val installed = File(directory, file.name)
+                        if (installed.exists() && !installed.delete()) {
+                            throw IOException("Could not delete ${installed.path}.")
+                        }
+                    }
+                    partsDirectory.deleteRecursively()
+                    null
+                } catch (problem: IOException) {
+                    problem
                 }
             }
-            partsDirectory.deleteRecursively()
-        }
-        mutableState.value = SpeechModelState.NotInstalled
+        mutableState.value =
+            if (failure == null) {
+                SpeechModelState.NotInstalled
+            } else {
+                SpeechModelState.Failed(PackFailureReason.Other, failure.message.orEmpty())
+            }
     }
 
     private suspend fun downloadMissingFiles() {
