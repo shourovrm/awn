@@ -206,6 +206,8 @@ class QuranViewModel(
 
     private val contentLoader =
         PageContentLoader(dependencies.quranText, dependencies.translations, wordLanguage)
+    private val wordAudio = WordAudio(dependencies)
+    private val shareTexts = AyahShareTexts(contentLoader)
 
     private var bookmarkedPages: Set<Int> = emptySet()
     private var openedTarget: QuranTarget? = null
@@ -572,9 +574,9 @@ class QuranViewModel(
             )
         }
         viewModelScope.launch {
-            val hasTimings = wordHasTimings(ayah)
+            val hasTimings = wordAudio.hasTimings(ayah)
             if (problem == null) {
-                if (hasTimings) playWord(ayah, word.key.wordPosition)
+                if (hasTimings) wordAudio.play(ayah, word.key.wordPosition)
             } else {
                 showPlayWhen(hasTimings, word.key)
             }
@@ -598,17 +600,7 @@ class QuranViewModel(
     /** Plays the reciter's recording of the word on the open card. */
     fun playPopupWord() {
         val popup = mutableState.value.wordPopup ?: return
-        viewModelScope.launch { playWord(popup.ayah, popup.word.key.wordPosition) }
-    }
-
-    private suspend fun wordHasTimings(ayah: AyahRef): Boolean {
-        val reciterId = dependencies.selectedReciterId.first()
-        return dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
-    }
-
-    private suspend fun playWord(ayah: AyahRef, position: Int) {
-        val reciterId = dependencies.selectedReciterId.first()
-        dependencies.audioPlayer.playWord(reciterId, ayah, position)
+        viewModelScope.launch { wordAudio.play(popup.ayah, popup.word.key.wordPosition) }
     }
 
     // The card may have closed, or moved to another word, while the timings were read.
@@ -627,23 +619,10 @@ class QuranViewModel(
         mutableState.update { it.copy(wordPopup = null) }
     }
 
-    /** "Arabic — translation (2:255)" with the first enabled translation, for copy and share. */
-    suspend fun shareTextOf(ayah: AyahRef): String {
-        val enabled = mutableState.value.settings.translations.take(1)
-        val block = contentLoader.loadBlock(ayah, enabled)
-        return ayahShareText(block.arabic, block.translations.firstOrNull()?.text, ayah)
-    }
-
-    /** The share text of every ayah in [range], one per line. */
+    /** The copy and share text of [range] with the first enabled translation. */
     suspend fun shareTextOf(range: AyahRange): String {
-        val chapters = mutableState.value.chapters
-        val lines = mutableListOf<String>()
-        var ayah: AyahRef? = range.first
-        while (ayah != null && ayah in range) {
-            lines += shareTextOf(ayah)
-            ayah = adjacentAyah(ayah, 1, chapters)
-        }
-        return lines.joinToString("\n")
+        val state = mutableState.value
+        return shareTexts.of(range, state.settings.translations.take(1), state.chapters)
     }
 
     /**
@@ -707,14 +686,19 @@ class QuranViewModel(
                 isFollowing = isFollowingOn(it.isFollowing, it.playingPage, validPage),
             )
         }
-        loadPage(validPage)
-        loadPage(validPage - 1)
-        loadPage(validPage + 1)
+        loadAroundPage(validPage)
         when (arrival) {
             Arrival.Reading -> resumeTracker.onReading(validPage)
             Arrival.Lookup -> resumeTracker.onLookup(validPage)
         }
         restartReadTimer()
+    }
+
+    /** The page and its neighbours, so a swipe either way shows a page at once. */
+    private fun loadAroundPage(page: Int) {
+        loadPage(page)
+        loadPage(page - 1)
+        loadPage(page + 1)
     }
 
     private fun restartReadTimer() {
@@ -818,10 +802,7 @@ class QuranViewModel(
             }
             val needsReload = scriptChanged || translationsChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
-                val page = mutableState.value.currentPage
-                loadPage(page)
-                loadPage(page - 1)
-                loadPage(page + 1)
+                loadAroundPage(mutableState.value.currentPage)
             }
         }
     }
@@ -865,10 +846,7 @@ class QuranViewModel(
                 )
             }
             if (mutableState.value.hasStarted) {
-                val page = mutableState.value.currentPage
-                loadPage(page)
-                loadPage(page - 1)
-                loadPage(page + 1)
+                loadAroundPage(mutableState.value.currentPage)
             }
         }
     }
@@ -891,25 +869,8 @@ class QuranViewModel(
 
     private suspend fun followPlayback() {
         dependencies.audioPlayer.state.distinctUntilChanged().collect { playback ->
-            val ayah: AyahRef?
-            val wordPosition: Int?
-            when (playback) {
-                is PlaybackState.Playing -> {
-                    ayah = playback.ayah
-                    wordPosition = playback.wordPosition
-                }
-                is PlaybackState.Paused -> {
-                    ayah = playback.ayah
-                    wordPosition = null
-                }
-                // Nothing is heard while the audio downloads, so no ayah is highlighted.
-                is PlaybackState.Idle,
-                is PlaybackState.Downloading,
-                is PlaybackState.Error -> {
-                    ayah = null
-                    wordPosition = null
-                }
-            }
+            val ayah = playback.heardAyah()
+            val wordPosition = (playback as? PlaybackState.Playing)?.wordPosition
             val previousAyah = mutableState.value.playingAyah
             val playingPage = ayah?.let { pageOfAyah(it) }
             mutablePlayingWord.value = wordPosition
@@ -975,3 +936,13 @@ class QuranViewModel(
         const val FIRST_PAGE = 1
     }
 }
+
+/** The ayah the reader hears or has paused on; nothing is heard while the audio downloads. */
+private fun PlaybackState.heardAyah(): AyahRef? =
+    when (this) {
+        is PlaybackState.Playing -> ayah
+        is PlaybackState.Paused -> ayah
+        is PlaybackState.Idle,
+        is PlaybackState.Downloading,
+        is PlaybackState.Error -> null
+    }

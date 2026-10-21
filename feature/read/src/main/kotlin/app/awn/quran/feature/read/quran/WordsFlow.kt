@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -59,7 +60,6 @@ private const val MEANING_MAX_LINES = 2
  * recite fill; taps and long presses then belong to the whole block. With the Arabic layer hidden a
  * cell holds the meaning alone.
  */
-@Suppress("LongMethod") // One flow row with the cell of each word.
 @Composable
 internal fun WordsFlow(
     block: AyahBlock,
@@ -69,19 +69,8 @@ internal fun WordsFlow(
     playingWord: Int?,
     onAyahLongPress: () -> Unit,
 ) {
-    val settings = environment.settings
-    val hasMeanings = settings.showWordByWord
-    val wordArabicStyle =
-        if (hasMeanings) {
-            arabicStyle.copy(lineHeight = arabicStyle.fontSize * WORD_LINE_HEIGHT_FACTOR)
-        } else {
-            arabicStyle
-        }
-    val meaningStyle =
-        scaled(AwnTypography.caption, settings.wordByWordScale)
-            .copy(textAlign = TextAlign.Center)
-            .ltr()
-    val meaningLabel = stringResource(R.string.word_meaning_action)
+    val hasMeanings = environment.settings.showWordByWord
+    val cellStyles = wordCellStyles(environment.settings, arabicStyle)
     val wordGap = if (hasMeanings) AwnSpacing.small else PLAIN_WORD_GAP
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         FlowRow(
@@ -91,82 +80,136 @@ internal fun WordsFlow(
             itemVerticalAlignment = Alignment.Top,
         ) {
             block.words.forEach { word ->
-                val state = environment.wordStates[word.key] ?: WordState.Neutral
-                val isPlayingWord = playingWord == word.key.wordPosition
-                val markFill = wordCellFill(state, Awn.field)
-                val cellFill =
-                    when {
-                        markFill != null -> markFill
-                        isPlayingWord -> fills.playingWord
-                        else -> Color.Transparent
-                    }
-                val coordinatesHolder = remember { CoordinatesHolder() }
-                val tapped = {
-                    environment.onWordTap(
-                        block.ayah,
-                        word,
-                        coordinatesHolder.coordinates?.boundsInWindow(),
-                    )
-                }
-                val cellModifier =
-                    if (hasMeanings) {
-                        Modifier.heightIn(min = AwnSpacing.touchTarget)
-                            .clip(AwnShapes.wordBlock)
-                            .semantics(mergeDescendants = true) {
-                                onClick(label = meaningLabel) {
-                                    tapped()
-                                    true
-                                }
-                            }
-                            .background(cellFill)
-                            .onGloballyPositioned { coordinatesHolder.coordinates = it }
-                            .pointerInput(word.key) {
-                                detectTapGestures(
-                                    onTap = { tapped() },
-                                    onLongPress = { onAyahLongPress() },
-                                )
-                            }
-                    } else {
-                        // Plain cells belong to the whole ayah, except a word recited badly: its
-                        // tap opens the card that says what went wrong.
-                        val isFlagged = state == WordState.Wrong || state == WordState.Tentative
-                        Modifier.clip(AwnShapes.wordBlock)
-                            .background(cellFill)
-                            .onGloballyPositioned { coordinatesHolder.coordinates = it }
-                            .then(
-                                if (isFlagged) {
-                                    Modifier.pointerInput(word.key) {
-                                        detectTapGestures(
-                                            onTap = { tapped() },
-                                            onLongPress = { onAyahLongPress() },
-                                        )
-                                    }
-                                } else {
-                                    Modifier
-                                },
-                            )
-                    }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = cellModifier,
-                ) {
-                    if (settings.showArabic) {
-                        ArabicWord(word, wordArabicStyle, state, environment)
-                    }
-                    if (hasMeanings && word.meaning != null) {
-                        Text(
-                            text = word.meaning,
-                            style = meaningStyle,
-                            maxLines = MEANING_MAX_LINES,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = AwnSpacing.giant + AwnSpacing.large),
-                        )
-                    }
-                }
+                WordCell(
+                    ayah = block.ayah,
+                    word = word,
+                    environment = environment,
+                    styles = cellStyles,
+                    fill = wordFill(environment.wordStates[word.key], playingWord, word, fills),
+                    onAyahLongPress = onAyahLongPress,
+                )
             }
         }
     }
 }
+
+/** The text styles every cell of one ayah shares. */
+private class WordCellStyles(val arabic: TextStyle, val meaning: TextStyle)
+
+@Composable
+private fun wordCellStyles(settings: ReadSettings, arabicStyle: TextStyle): WordCellStyles {
+    val arabic =
+        if (settings.showWordByWord) {
+            arabicStyle.copy(lineHeight = arabicStyle.fontSize * WORD_LINE_HEIGHT_FACTOR)
+        } else {
+            arabicStyle
+        }
+    val meaning =
+        scaled(AwnTypography.caption, settings.wordByWordScale)
+            .copy(textAlign = TextAlign.Center)
+            .ltr()
+    return WordCellStyles(arabic, meaning)
+}
+
+/** A recite mark wins over the playing-word fill, so a word being checked shows its result. */
+@Composable
+private fun wordFill(
+    state: WordState?,
+    playingWord: Int?,
+    word: AyahWord,
+    fills: ReaderFills,
+): Color {
+    val markFill = wordCellFill(state ?: WordState.Neutral, Awn.field)
+    return when {
+        markFill != null -> markFill
+        playingWord == word.key.wordPosition -> fills.playingWord
+        else -> Color.Transparent
+    }
+}
+
+/** One word: its Arabic and, with the word-by-word layer, its meaning under it. */
+@Composable
+private fun WordCell(
+    ayah: AyahRef,
+    word: AyahWord,
+    environment: ListPageEnvironment,
+    styles: WordCellStyles,
+    fill: Color,
+    onAyahLongPress: () -> Unit,
+) {
+    val settings = environment.settings
+    val state = environment.wordStates[word.key] ?: WordState.Neutral
+    val coordinatesHolder = remember { CoordinatesHolder() }
+    val tapped = {
+        environment.onWordTap(ayah, word, coordinatesHolder.coordinates?.boundsInWindow())
+    }
+    val tapModifier =
+        if (settings.showWordByWord) {
+            meaningCellTaps(
+                stringResource(R.string.word_meaning_action),
+                word,
+                tapped,
+                onAyahLongPress,
+            )
+        } else {
+            plainCellTaps(state, word, tapped, onAyahLongPress)
+        }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier =
+            tapModifier.clip(AwnShapes.wordBlock).background(fill).onGloballyPositioned {
+                coordinatesHolder.coordinates = it
+            },
+    ) {
+        if (settings.showArabic) {
+            ArabicWord(word, styles.arabic, state, environment)
+        }
+        if (settings.showWordByWord && word.meaning != null) {
+            Text(
+                text = word.meaning,
+                style = styles.meaning,
+                maxLines = MEANING_MAX_LINES,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = AwnSpacing.giant + AwnSpacing.large),
+            )
+        }
+    }
+}
+
+/** A word-by-word cell is a touch target of its own: a tap opens the word card. */
+private fun meaningCellTaps(
+    meaningLabel: String,
+    word: AyahWord,
+    onTap: () -> Unit,
+    onAyahLongPress: () -> Unit,
+): Modifier =
+    Modifier.heightIn(min = AwnSpacing.touchTarget)
+        .semantics(mergeDescendants = true) {
+            onClick(label = meaningLabel) {
+                onTap()
+                true
+            }
+        }
+        .then(wordTaps(word, onTap, onAyahLongPress))
+
+/**
+ * Plain cells belong to the whole ayah, except a word recited badly: its tap opens the card that
+ * says what went wrong.
+ */
+private fun plainCellTaps(
+    state: WordState,
+    word: AyahWord,
+    onTap: () -> Unit,
+    onAyahLongPress: () -> Unit,
+): Modifier {
+    val isFlagged = state == WordState.Wrong || state == WordState.Tentative
+    return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else Modifier
+}
+
+private fun wordTaps(word: AyahWord, onTap: () -> Unit, onAyahLongPress: () -> Unit): Modifier =
+    Modifier.pointerInput(word.key) {
+        detectTapGestures(onTap = { onTap() }, onLongPress = { onAyahLongPress() })
+    }
 
 /**
  * The Arabic of one word: in its own page font when it has [AyahWord.glyphs] (so tajweed colours

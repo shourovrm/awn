@@ -79,6 +79,10 @@ internal class ListPageEnvironment(
     /** The recite state of each word while reciting; empty otherwise. */
     val wordStates: Map<WordKey, WordState>,
     val isReciting: Boolean,
+    /**
+     * The ayah of the word the reciter is on; the list keeps it in view. Null when not reciting.
+     */
+    val recitedAyah: AyahRef? = null,
     val selection: AyahRange?,
     val playingAyah: AyahRef?,
     /** A State, so a word tick is read only by the block that holds the playing ayah. */
