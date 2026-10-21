@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="hifz_title">হিফজ</string>
+  <string name="hifz_method">পদ্ধতি</string>
+  <string name="hifz_back">ফিরে যান</string>
+
+  <string name="method_sabaq_sabqi_manzil">সবক · সাবকি · মানযিল</string>
+  <string name="method_three_by_three">৩ বাই ৩</string>
+  <string name="method_ayah_chain">আয়াত শিকল, ২০ বার</string>
+  <string name="method_fixed_ayahs">প্রতিদিন নির্দিষ্ট আয়াত</string>
+  <string name="method_track_only">কোনো পদ্ধতি নয়, শুধু হিসাব</string>
+  <string name="method_sabaq_sabqi_manzil_detail">প্রতিদিন একটি নতুন পাঠ, সাম্প্রতিক পৃষ্ঠা আর পুরোনো একটি অংশ। বাংলা ও উর্দু পাঠকদের মধ্যে প্রচলিত।</string>
+  <string name="method_three_by_three_detail">প্রতিটি আয়াত ৩ বার পড়ুন, তারপর মুখস্থ ৩ বার তিলাওয়াত করুন।</string>
+  <string name="method_ayah_chain_detail">একটি আয়াত ২০ বার পড়ুন, তারপর আগেরটির সাথে জুড়ুন।</string>
+  <string name="method_fixed_ayahs_detail">প্রতিদিন একই সংখ্যক নতুন আয়াত।</string>
+  <string name="method_track_only_detail">যা জানেন তা চিহ্নিত করুন, মানচিত্রে দেখুন।</string>
+
+  <string name="choose_method_title">পদ্ধতি বেছে নিন</string>
+  <string name="use_method">এই পদ্ধতি নিন</string>
+  <string name="setting_manzil_cycle">পুরোনো অংশ আবার</string>
+  <string name="setting_lesson_size">প্রতিদিনের নতুন পাঠ</string>
+  <string name="setting_ayahs_per_day">প্রতিদিনের নতুন আয়াত</string>
+  <string name="setting_revision_limit">পুনরাবৃত্তির সীমা</string>
+  <plurals name="days_count">
+    <item quantity="one">%d দিন</item>
+    <item quantity="other">%d দিন</item>
+  </plurals>
+  <plurals name="pages_count">
+    <item quantity="one">%d পৃষ্ঠা</item>
+    <item quantity="other">%d পৃষ্ঠা</item>
+  </plurals>
+  <plurals name="ayahs_count">
+    <item quantity="one">%d আয়াত</item>
+    <item quantity="other">%d আয়াত</item>
+  </plurals>
+  <string name="lesson_one_page">এক পৃষ্ঠা</string>
+  <string name="lesson_half_page">আধা পৃষ্ঠা</string>
+
+  <string name="today">আজ</string>
+  <string name="part_sabaq">সবক</string>
+  <string name="part_sabqi">সাবকি</string>
+  <string name="part_manzil">মানযিল</string>
+  <string name="part_new_lesson">নতুন পাঠ</string>
+  <string name="part_revision">পুনরাবৃত্তি</string>
+  <string name="minutes_short">%d মিনিট</string>
+  <string name="part_done">শেষ</string>
+  <string name="lesson_detail_page">পৃষ্ঠা %1$d · %2$s</string>
+  <string name="lesson_detail_pages">পৃষ্ঠা %1$d থেকে %2$d · %3$s</string>
+  <string name="ayah_range_single">আয়াত %1$d</string>
+  <string name="ayah_range_same_surah">আয়াত %1$d থেকে %2$d</string>
+  <string name="ayah_range_cross">আয়াত %1$s থেকে %2$s</string>
+  <string name="pages_one">পৃষ্ঠা %s</string>
+  <string name="pages_many">পৃষ্ঠা %s</string>
+  <string name="pages_span">%1$d থেকে %2$d</string>
+  <string name="revision_detail_recent">%s · সাম্প্রতিক পাঠ</string>
+  <string name="revision_detail_old">%s · পুরোনো পৃষ্ঠা</string>
+  <string name="revision_today">আজকের পুনরাবৃত্তি</string>
+  <string name="revision_load">%2$d পৃষ্ঠার মধ্যে %1$d</string>
+  <string name="start_sabaq">সবক শুরু</string>
+  <string name="start_sabqi">সাবকি শুরু</string>
+  <string name="start_manzil">মানযিল শুরু</string>
+  <string name="start_lesson">পাঠ শুরু</string>
+  <string name="start_revision">পুনরাবৃত্তি শুরু</string>
+
+  <string name="progress_map">অগ্রগতির মানচিত্র</string>
+  <string name="progress_caption">%d পৃষ্ঠার মধ্যে মুখস্থ</string>
+  <string name="status_not_started">শুরু হয়নি</string>
+  <string name="status_learning">শিখছি</string>
+  <string name="status_memorised">মুখস্থ</string>
+  <string name="status_solid">পাকা</string>
+  <string name="juz_row_description">পারা %1$d, %3$d পৃষ্ঠার মধ্যে %2$d মুখস্থ</string>
+
+  <string name="mark_title">যা জানি তা চিহ্নিত করুন</string>
+  <string name="mark_by">চিহ্নিত করুন</string>
+  <string name="mark_surah">সূরা</string>
+  <string name="mark_juz">পারা</string>
+  <string name="mark_pages">পৃষ্ঠা</string>
+  <string name="mark_from_page">শুরুর পৃষ্ঠা</string>
+  <string name="mark_to_page">শেষ পৃষ্ঠা</string>
+  <string name="mark_state">অবস্থা</string>
+  <string name="mark_save">সংরক্ষণ</string>
+  <string name="juz_label">পারা %d</string>
+  <string name="stepper_decrease">আগের পৃষ্ঠা</string>
+  <string name="stepper_increase">পরের পৃষ্ঠা</string>
+
+  <string name="weak_spots">দুর্বল জায়গা</string>
+  <plurals name="weak_skipped_times">
+    <item quantity="one">এই সপ্তাহে %d বার একটি শব্দ বাদ পড়েছে</item>
+    <item quantity="other">এই সপ্তাহে %d বার একটি শব্দ বাদ পড়েছে</item>
+  </plurals>
+  <plurals name="weak_other_word_times">
+    <item quantity="one">এই সপ্তাহে %d বার অন্য শব্দ বলেছেন</item>
+    <item quantity="other">এই সপ্তাহে %d বার অন্য শব্দ বলেছেন</item>
+  </plurals>
+  <string name="weak_spot_title">%1$s %2$d:%3$d</string>
+
+  <string name="bar_show_words">শব্দ দেখান</string>
+  <string name="bar_hide_words">শব্দ লুকান</string>
+  <string name="bar_play">চালান</string>
+  <string name="bar_stop">থামান</string>
+  <string name="bar_repeat">পুনরাবৃত্তি</string>
+  <string name="bar_repeat_value">×%d</string>
+  <string name="bar_recite">তিলাওয়াত</string>
+  <string name="bar_stop_reciting">তিলাওয়াত থামান</string>
+  <string name="bar_finish">শেষ করুন</string>
+  <string name="bar_close">বন্ধ করুন</string>
+  <string name="bar_getting_ready">প্রস্তুত হচ্ছে</string>
+  <string name="bar_ayah">আয়াত %d</string>
+  <string name="bar_page">পৃষ্ঠা %d</string>
+  <string name="bar_pick_grade">একটি গ্রেড বাছুন</string>
+  <string name="grade_easy">সহজ</string>
+  <string name="grade_good">ভালো</string>
+  <string name="grade_hard">কঠিন</string>
+  <string name="grade_forgot">ভুলে গেছি</string>
+
+  <string name="today_line_title">হিফজ</string>
+  <string name="today_line_sabaq">সবক, পৃষ্ঠা %d</string>
+  <string name="today_line_lesson">পাঠ, পৃষ্ঠা %d</string>
+  <plurals name="today_line_revise">
+    <item quantity="one">%d পৃষ্ঠা পুনরাবৃত্তি</item>
+    <item quantity="other">%d পৃষ্ঠা পুনরাবৃত্তি</item>
+  </plurals>
+  <string name="today_line_done">শেষ</string>
+</resources>

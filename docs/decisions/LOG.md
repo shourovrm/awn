@@ -146,3 +146,4 @@
 2026-10-21 | FSRS port moved from :feature:learn to :core:data | Hifz needs it too, two real callers (learn.md)
 2026-10-21 | Hifz methods and daily assignment are pure Kotlin; no overdue carry-over, revision capped per day | piled-up revision makes users quit (hifz.md)
 2026-10-21 | Hifz pages follow the reader's print (Madani 1421 or 1405); records remap on a print change | a hafiz knows page images (hifz.md)
+2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)

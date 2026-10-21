@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="hifz_title">Hifz</string>
+  <string name="hifz_method">Method</string>
+  <string name="hifz_back">Back</string>
+
+  <string name="method_sabaq_sabqi_manzil">Sabaq · Sabqi · Manzil</string>
+  <string name="method_three_by_three">3 by 3</string>
+  <string name="method_ayah_chain">Ayah chain, 20 times</string>
+  <string name="method_fixed_ayahs">Fixed ayahs a day</string>
+  <string name="method_track_only">No method, just track</string>
+  <string name="method_sabaq_sabqi_manzil_detail">A new lesson, recent pages and an old portion each day. Usual for Bangla and Urdu readers.</string>
+  <string name="method_three_by_three_detail">Read each ayah 3 times, then recite it 3 times from memory.</string>
+  <string name="method_ayah_chain_detail">Repeat one ayah 20 times, then join it to the one before.</string>
+  <string name="method_fixed_ayahs_detail">The same number of new ayahs every day.</string>
+  <string name="method_track_only_detail">Mark what you know and see it on the map.</string>
+
+  <string name="choose_method_title">Choose a method</string>
+  <string name="use_method">Use this method</string>
+  <string name="setting_manzil_cycle">Old portion again after</string>
+  <string name="setting_lesson_size">New lesson each day</string>
+  <string name="setting_ayahs_per_day">New ayahs each day</string>
+  <string name="setting_revision_limit">Revision limit</string>
+  <plurals name="days_count">
+    <item quantity="one">%d day</item>
+    <item quantity="other">%d days</item>
+  </plurals>
+  <plurals name="pages_count">
+    <item quantity="one">%d page</item>
+    <item quantity="other">%d pages</item>
+  </plurals>
+  <plurals name="ayahs_count">
+    <item quantity="one">%d ayah</item>
+    <item quantity="other">%d ayahs</item>
+  </plurals>
+  <string name="lesson_one_page">One page</string>
+  <string name="lesson_half_page">Half a page</string>
+
+  <string name="today">Today</string>
+  <string name="part_sabaq">Sabaq</string>
+  <string name="part_sabqi">Sabqi</string>
+  <string name="part_manzil">Manzil</string>
+  <string name="part_new_lesson">New lesson</string>
+  <string name="part_revision">Revision</string>
+  <string name="minutes_short">%d min</string>
+  <string name="part_done">Done</string>
+  <string name="lesson_detail_page">Page %1$d · %2$s</string>
+  <string name="lesson_detail_pages">Pages %1$d to %2$d · %3$s</string>
+  <string name="ayah_range_single">ayah %1$d</string>
+  <string name="ayah_range_same_surah">ayahs %1$d to %2$d</string>
+  <string name="ayah_range_cross">ayahs %1$s to %2$s</string>
+  <string name="pages_one">Page %s</string>
+  <string name="pages_many">Pages %s</string>
+  <string name="pages_span">%1$d to %2$d</string>
+  <string name="revision_detail_recent">%s · recent lessons</string>
+  <string name="revision_detail_old">%s · older pages</string>
+  <string name="revision_today">Revision today</string>
+  <string name="revision_load">%1$d of %2$d pages</string>
+  <string name="start_sabaq">Start Sabaq</string>
+  <string name="start_sabqi">Start Sabqi</string>
+  <string name="start_manzil">Start Manzil</string>
+  <string name="start_lesson">Start lesson</string>
+  <string name="start_revision">Start revision</string>
+
+  <string name="progress_map">Progress map</string>
+  <string name="progress_caption">of %d pages memorised</string>
+  <string name="status_not_started">Not started</string>
+  <string name="status_learning">Learning</string>
+  <string name="status_memorised">Memorised</string>
+  <string name="status_solid">Solid</string>
+  <string name="juz_row_description">Juz %1$d, %2$d of %3$d pages memorised</string>
+
+  <string name="mark_title">Mark what I know</string>
+  <string name="mark_by">Mark</string>
+  <string name="mark_surah">Surah</string>
+  <string name="mark_juz">Juz</string>
+  <string name="mark_pages">Pages</string>
+  <string name="mark_from_page">From page</string>
+  <string name="mark_to_page">To page</string>
+  <string name="mark_state">State</string>
+  <string name="mark_save">Save</string>
+  <string name="juz_label">Juz %d</string>
+  <string name="stepper_decrease">Previous page</string>
+  <string name="stepper_increase">Next page</string>
+
+  <string name="weak_spots">Weak spots</string>
+  <plurals name="weak_skipped_times">
+    <item quantity="one">Skipped a word %d times this week</item>
+    <item quantity="other">Skipped a word %d times this week</item>
+  </plurals>
+  <plurals name="weak_other_word_times">
+    <item quantity="one">Said another word %d times this week</item>
+    <item quantity="other">Said another word %d times this week</item>
+  </plurals>
+  <string name="weak_spot_title">%1$s %2$d:%3$d</string>
+
+  <string name="bar_show_words">Show words</string>
+  <string name="bar_hide_words">Hide words</string>
+  <string name="bar_play">Play</string>
+  <string name="bar_stop">Stop</string>
+  <string name="bar_repeat">Repeat</string>
+  <string name="bar_repeat_value">×%d</string>
+  <string name="bar_recite">Recite</string>
+  <string name="bar_stop_reciting">Stop reciting</string>
+  <string name="bar_finish">Finish</string>
+  <string name="bar_close">Close</string>
+  <string name="bar_getting_ready">Getting ready</string>
+  <string name="bar_ayah">Ayah %d</string>
+  <string name="bar_page">Page %d</string>
+  <string name="bar_pick_grade">Pick a grade</string>
+  <string name="grade_easy">Easy</string>
+  <string name="grade_good">Good</string>
+  <string name="grade_hard">Hard</string>
+  <string name="grade_forgot">Forgot</string>
+
+  <string name="today_line_title">Hifz</string>
+  <string name="today_line_sabaq">Sabaq page %d</string>
+  <string name="today_line_lesson">Lesson page %d</string>
+  <plurals name="today_line_revise">
+    <item quantity="one">revise %d page</item>
+    <item quantity="other">revise %d pages</item>
+  </plurals>
+  <string name="today_line_done">Done</string>
+</resources>

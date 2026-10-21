@@ -133,6 +133,13 @@ class HifzController(
         return request
     }
 
+    /** Opens the part the primary button offers, or returns null when today is done. */
+    fun startNextPart(): PracticeRequest? {
+        val ready = screenState.value as? HifzScreenState.Ready ?: return null
+        val next = ready.state.assignment.nextPart() ?: return null
+        return startPractice(next)
+    }
+
     /** Leaves practice without recording anything. */
     fun cancelPractice() {
         mutablePractice.value = null
