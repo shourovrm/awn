@@ -64,4 +64,11 @@
     <item quantity="one">%1$d ayah left to revise</item>
     <item quantity="other">%1$d ayahs left to revise</item>
   </plurals>
+  <string name="recite_listen_ayah">Listen to this ayah</string>
+  <string name="recite_listen_pause">Pause audio</string>
+  <string name="recite_listen_resume">Resume audio</string>
+  <string name="recite_listen_stop">Stop audio</string>
+  <string name="recite_status_audio_loading">Getting the audio…</string>
+  <string name="recite_status_audio_playing">Playing ayah %1$d</string>
+  <string name="recite_status_audio_paused">Audio paused</string>
 </resources>

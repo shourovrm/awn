@@ -46,7 +46,8 @@
   <string name="word_problem_skipped">Skipped</string>
   <string name="word_problem_not_clear">Not clear</string>
   <string name="word_problem_different">Different word</string>
-  <string name="word_play">Play word</string>
+  <string name="word_play">Play this word</string>
+  <string name="word_stop">Stop this word</string>
 
   <string name="panel_translation">Translation</string>
   <string name="panel_play">Play</string>

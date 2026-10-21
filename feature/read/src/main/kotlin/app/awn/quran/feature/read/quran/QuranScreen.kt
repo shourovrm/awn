@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -130,6 +131,8 @@ data class QuranScreenSlots(
     val isReciteActive: Boolean = false,
     /** Optional. The ayah the reciter is on; the page turns to it as the recitation moves on. */
     val reciteCurrentAyah: @Composable () -> AyahRef? = { null },
+    /** Optional. The next word the reciter is expected to say; the pager turns to its page. */
+    val reciteCurrentWord: @Composable () -> WordKey? = { null },
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -482,7 +485,9 @@ private fun QuranContent(
                 anchor = wordAnchor?.translate(-rootOrigin.x, -rootOrigin.y),
                 topClearancePx = topClearancePx,
                 onDismiss = viewModel::dismissWordPopup,
+                isPlaying = state.isPopupWordPlaying,
                 onPlay = viewModel::playPopupWord,
+                onStop = viewModel::stopPopupWord,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -545,6 +550,17 @@ private fun PlayTab(slots: QuranScreenSlots, range: AyahRange, page: Int) {
     }
 }
 
+/** The recitation turned the page: slide like a swipe instead of jumping. */
+@Composable
+private fun AnimateRecitationTurns(pagerState: PagerState, state: QuranUiState) {
+    LaunchedEffect(state.animatedTurnToken) {
+        val targetIndex = state.currentPage - 1
+        if (state.animatedTurnToken > 0 && pagerState.currentPage != targetIndex) {
+            pagerState.animateScrollToPage(targetIndex)
+        }
+    }
+}
+
 @Suppress("LongMethod") // The pager with the page of each of the three views.
 @Composable
 private fun QuranPager(
@@ -574,6 +590,7 @@ private fun QuranPager(
         }
     }
     LaunchedEffect(state.currentPage) { fontCache.retainAround(state.currentPage) }
+    AnimateRecitationTurns(pagerState, state)
     // Dragging the pager by hand stops it turning pages for the audio.
     LaunchedEffect(pagerState) {
         pagerState.interactionSource.interactions.collect { interaction ->

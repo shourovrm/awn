@@ -95,6 +95,7 @@ class ReciteBarLayoutTest {
                 RECITE_BAR_SPEED_TAG,
                 RECITE_BAR_HIDE_TAG,
                 RECITE_BAR_HINT_TAG,
+                RECITE_BAR_LISTEN_TAG,
                 RECITE_BAR_MIC_TAG,
                 RECITE_BAR_REVEAL_WORD_TAG,
                 RECITE_BAR_REVEAL_AYAH_TAG,

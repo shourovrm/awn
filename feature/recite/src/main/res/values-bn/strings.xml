@@ -64,4 +64,11 @@
     <item quantity="one">%1$d টি আয়াত বাকি</item>
     <item quantity="other">%1$d টি আয়াত বাকি</item>
   </plurals>
+  <string name="recite_listen_ayah">এই আয়াতটি শুনুন</string>
+  <string name="recite_listen_pause">অডিও বিরতি</string>
+  <string name="recite_listen_resume">অডিও চালু করুন</string>
+  <string name="recite_listen_stop">অডিও থামান</string>
+  <string name="recite_status_audio_loading">অডিও আনা হচ্ছে…</string>
+  <string name="recite_status_audio_playing">আয়াত %1$d চলছে</string>
+  <string name="recite_status_audio_paused">অডিও বিরতিতে</string>
 </resources>

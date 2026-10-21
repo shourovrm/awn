@@ -119,3 +119,6 @@
 2026-10-21 | Line view scrolls to the recited ayah | live recitation moved below the screen, so its fills were never seen (read.md)
 2026-10-21 | Speech model moved to a :speech process | in-process PSS stayed +54 MB after release; separate process returns to baseline (recite.md)
 2026-10-21 | Font lookups reload on key change | tajweed list words stayed black after switching to night (read.md)
+2026-10-21 | Page follows the next expected word, animated for one page, jump for more | audio-style jump hid the recitation (read.md)
+2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
+2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
