@@ -114,6 +114,7 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
         services.openQuranAt = { ayah -> navController.openQuran(page = null, ayah = ayah) }
         onDispose { services.openQuranAt = {} }
     }
+    ApplyAppOrientation(services.readDependencies.settingsStore, navController)
     val viewModelFactory = remember(services) { AwnViewModelFactory(services) }
     NavHost(
         navController = navController,

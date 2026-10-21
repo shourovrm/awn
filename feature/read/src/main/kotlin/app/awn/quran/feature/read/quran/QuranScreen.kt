@@ -289,7 +289,7 @@ private fun QuranContent(
             } else {
                 0
             }
-        val barShiftPx by animateIntAsState(barShiftTarget, tween(BAR_FADE_MS), label = "barShift")
+        val barShiftPx by animateIntAsState(barShiftTarget, tween(BAR_FADE_MS))
         val shiftPx = panelShiftPx + barShiftPx
 
         val reciteStates = if (state.isReciting) slots.reciteWordStates() else emptyMap()
@@ -351,6 +351,7 @@ private fun QuranContent(
                         failure = status?.failure,
                         onDownload = viewModel::downloadFont,
                         onKeepFallback = viewModel::keepFallbackFont,
+                        onCancel = viewModel::cancelFont,
                     )
                 }
                 // An enabled translation is missing: say so and offer it, instead of showing none.
@@ -584,7 +585,11 @@ private fun QuranPager(
                                 MushafHost(
                                     chapters = state.chapters,
                                     fontFamily =
-                                        fontCache.familyFor(load.layout.script, pageNumber),
+                                        fontCache.familyFor(
+                                            load.layout.script,
+                                            pageNumber,
+                                            isNight = !Awn.field.isLight,
+                                        ),
                                     plainFamily = fontCache.familyFor(ScriptId.QpcHafs, pageNumber),
                                     wordStates = reciteStates,
                                     showPageInfo = state.settings.showPageInfo,

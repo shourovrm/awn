@@ -16,8 +16,9 @@ import app.awn.quran.feature.read.settings.TextLayer
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -57,11 +58,11 @@ class ReadSettingsTest {
                 volumeKeysTurnPages = true,
             )
         openStore(file, firstScope).update { changed }
-        firstScope.cancel()
+        firstScope.coroutineContext.job.cancelAndJoin()
 
         val secondScope = CoroutineScope(UnconfinedTestDispatcher() + Job())
         val reloaded = openStore(file, secondScope).settings.first()
-        secondScope.cancel()
+        secondScope.coroutineContext.job.cancelAndJoin()
 
         assertEquals(changed, reloaded)
     }
@@ -79,7 +80,7 @@ class ReadSettingsTest {
         }
 
         val loaded = DataStoreReadSettingsStore(dataStore).settings.first()
-        scope.cancel()
+        scope.coroutineContext.job.cancelAndJoin()
 
         assertEquals(4, loaded.arabicSizeStep)
         assertEquals(4, loaded.translationSizeStep)
@@ -105,7 +106,7 @@ class ReadSettingsTest {
         // Saving once writes the new form; reading it again must give the same settings.
         store.update { it }
         val resaved = store.settings.first()
-        scope.cancel()
+        scope.coroutineContext.job.cancelAndJoin()
 
         assertEquals(PageView.LineByLine, migrated.pageView)
         assertEquals(true, migrated.showWordByWord)
@@ -122,7 +123,7 @@ class ReadSettingsTest {
 
         store.update { it.copy(pageView = PageView.LineByLine, showWordByWord = false) }
         val loaded = store.settings.first()
-        scope.cancel()
+        scope.coroutineContext.job.cancelAndJoin()
 
         assertEquals(false, loaded.showWordByWord)
     }
@@ -177,7 +178,7 @@ class ReadSettingsTest {
     fun anEmptyStoreGivesTheDefaults() = runTest {
         val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
         val loaded = openStore(File(folder.root, "empty.preferences_pb"), scope).settings.first()
-        scope.cancel()
+        scope.coroutineContext.job.cancelAndJoin()
 
         assertEquals(ReadSettings(), loaded)
     }

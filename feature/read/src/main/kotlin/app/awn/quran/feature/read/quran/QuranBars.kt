@@ -69,7 +69,7 @@ internal fun QuranTopBar(
     val field = Awn.field
     val isLargeText = LocalDensity.current.fontScale > LARGE_TEXT_SCALE
     if (isLargeText) {
-        Column(modifier.fillMaxWidth().background(field.buttonFill)) {
+        Column(modifier.fillMaxWidth().background(field.barBackground)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IndexButton(actions)
                 TopBarTitle(
@@ -85,7 +85,7 @@ internal fun QuranTopBar(
         }
     } else {
         Row(
-            modifier = modifier.fillMaxWidth().background(field.buttonFill),
+            modifier = modifier.fillMaxWidth().background(field.barBackground),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IndexButton(actions)
@@ -103,7 +103,7 @@ private fun IndexButton(actions: TopBarActions) {
         iconRes = R.drawable.ic_read_index,
         description = stringResource(R.string.bar_index),
         onClick = actions.onOpenIndex,
-        tint = Awn.field.onButton,
+        tint = Awn.field.onBar,
     )
 }
 
@@ -119,14 +119,14 @@ private fun TopBarTitle(
         Text(
             text = surahName,
             style = AwnTypography.bodyStrong,
-            color = field.onButton,
+            color = field.onBar,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
             text = stringResource(R.string.bar_title_subtitle, state.currentPage, state.juz),
             style = AwnTypography.caption,
-            color = field.onButton,
+            color = field.onBar,
             maxLines = maxLines,
         )
     }
@@ -140,7 +140,7 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
         iconRes = viewIcon(view.other()),
         description = stringResource(viewDescription(view.other())),
         onClick = actions.onSwitchView,
-        tint = field.onButton,
+        tint = field.onBar,
     )
     if (view == PageView.LineByLine) {
         MenuButton(R.drawable.ic_read_layers, R.string.bar_layers, actions.onOpenLayers) {
@@ -157,7 +157,7 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
         description =
             stringResource(if (isNight) R.string.bar_day_mode else R.string.bar_night_mode),
         onClick = actions.onToggleNight,
-        tint = field.onButton,
+        tint = field.onBar,
     )
     MenuButton(R.drawable.ic_read_text_size, R.string.bar_text_size, actions.onOpenTextSize) {
         DropdownMenu(
@@ -171,7 +171,7 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
         iconRes = R.drawable.ic_read_settings,
         description = stringResource(R.string.menu_settings),
         onClick = actions.onSettings,
-        tint = field.onButton,
+        tint = field.onBar,
     )
     MenuButton(R.drawable.ic_read_more, R.string.bar_more, actions.onOpenOverflow) {
         DropdownMenu(
@@ -196,7 +196,7 @@ private fun MenuButton(
             iconRes = iconRes,
             description = stringResource(descriptionRes),
             onClick = onClick,
-            tint = Awn.field.onButton,
+            tint = Awn.field.onBar,
         )
         menu()
     }

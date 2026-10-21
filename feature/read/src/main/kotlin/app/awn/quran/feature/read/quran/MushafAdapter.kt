@@ -166,6 +166,7 @@ internal fun MushafPageHost(
             plainFamily = host.plainFamily,
             decorations = decorations,
             showPageInfo = host.showPageInfo,
+            scale = host.pageScale,
             onTap = host.onTap,
             onAyahLongPress = host.onAyahPressed,
             onRangeDrag = host.onRangeDrag,

@@ -65,7 +65,7 @@ internal fun AyahActionBar(
         Row(
             modifier =
                 Modifier.shadow(AwnSpacing.small, AwnShapes.control)
-                    .background(field.buttonFill, AwnShapes.control),
+                    .background(field.barBackground, AwnShapes.control),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -75,13 +75,13 @@ internal fun AyahActionBar(
                     else R.drawable.ic_read_play,
                 description = stringResource(playDescription(playMode)),
                 onClick = actions.onPlay,
-                tint = field.onButton,
+                tint = field.onBar,
             )
             ReadIconButton(
                 R.drawable.ic_read_recite,
                 stringResource(R.string.ayah_recite),
                 actions.onRecite,
-                tint = field.onButton,
+                tint = field.onBar,
             )
             ReadIconButton(
                 iconRes =
@@ -92,25 +92,25 @@ internal fun AyahActionBar(
                         if (isBookmarked) R.string.ayah_remove_bookmark else R.string.ayah_bookmark,
                     ),
                 onClick = actions.onBookmark,
-                tint = field.onButton,
+                tint = field.onBar,
             )
             ReadIconButton(
                 R.drawable.ic_read_translate,
                 stringResource(R.string.ayah_translation),
                 actions.onTranslation,
-                tint = field.onButton,
+                tint = field.onBar,
             )
             ReadIconButton(
                 R.drawable.ic_read_copy,
                 stringResource(R.string.ayah_copy),
                 actions.onCopy,
-                tint = field.onButton,
+                tint = field.onBar,
             )
             ReadIconButton(
                 R.drawable.ic_read_share,
                 stringResource(R.string.ayah_share),
                 actions.onShare,
-                tint = field.onButton,
+                tint = field.onBar,
             )
         }
     }
@@ -137,7 +137,7 @@ internal fun BackToPlayingButton(onClick: () -> Unit, modifier: Modifier = Modif
         modifier =
             modifier
                 .shadow(AwnSpacing.small, AwnShapes.control)
-                .background(field.buttonFill, AwnShapes.control),
-        tint = field.onButton,
+                .background(field.barBackground, AwnShapes.control),
+        tint = field.onBar,
     )
 }

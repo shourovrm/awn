@@ -134,7 +134,7 @@ internal fun AudioBarContent(
             modifier
                 .fillMaxWidth()
                 .clip(AwnShapes.control)
-                .background(field.buttonFill)
+                .background(field.barBackground)
                 .padding(horizontal = AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -153,7 +153,7 @@ private fun RowScope.IdleBar(
     choices: List<StartChoice>,
     actions: AudioBarActions,
 ) {
-    val tint = Awn.field.onButton
+    val tint = Awn.field.onBar
     Box {
         IconAction(
             R.drawable.ic_listen_play,
@@ -195,7 +195,7 @@ private fun idleText(state: AudioBarState.Idle): String =
 /** "Download 3.2 MB?" with a Download and a Stream action, in place of the buttons. */
 @Composable
 private fun RowScope.ConfirmBar(state: AudioBarState.Confirm, actions: AudioBarActions) {
-    val tint = Awn.field.onButton
+    val tint = Awn.field.onBar
     IconAction(
         R.drawable.ic_listen_close,
         stringResource(R.string.audio_cancel),
@@ -265,7 +265,7 @@ private fun StartFromMenu(choices: List<StartChoice>, actions: AudioBarActions) 
 
 @Composable
 private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarActions) {
-    val tint = Awn.field.onButton
+    val tint = Awn.field.onBar
     val evenly = Modifier.weight(1f)
     IconAction(
         R.drawable.ic_listen_stop,
@@ -356,14 +356,14 @@ private fun ValueButton(
             else stringResource(valueDescriptionRes, valueText),
         onClick = onClick,
         modifier = modifier,
-        tint = Awn.field.onButton,
+        tint = Awn.field.onBar,
         badge = valueText,
     )
 }
 
 @Composable
 private fun RowScope.DownloadingBar(state: AudioBarState.Downloading, actions: AudioBarActions) {
-    val tint = Awn.field.onButton
+    val tint = Awn.field.onBar
     IconAction(
         R.drawable.ic_listen_close,
         stringResource(R.string.audio_cancel),

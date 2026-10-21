@@ -768,6 +768,11 @@ class QuranViewModel(
         fontPacks.install(mutableState.value.settings.script)
     }
 
+    /** Stops the running font download; the prompt offers Download again. */
+    fun cancelFont() {
+        fontPacks.cancel(mutableState.value.settings.script)
+    }
+
     /** Keeps the fallback font for the chosen page type and hides the prompt. */
     fun keepFallbackFont() {
         mutableState.update { it.copy(isFontPromptDismissed = true) }
