@@ -53,4 +53,36 @@ class LearnMigrationTest {
                 .close()
         }
     }
+
+    @Test
+    fun versionTwoKeepsTheAyahCardsAndAddsEmptyWordTables() {
+        val databaseName = "migration-keeps-cards"
+        migrationHelper
+            .createDatabase(databaseName, 1)
+            .apply {
+                execSQL(
+                    "INSERT INTO card (surah, ayah, stability, difficulty, due, last_review, " +
+                        "reps, lapses, state, step) VALUES (2, 255, 3.5, 5.0, 1000, 500, 4, 1, 2, 0)",
+                )
+                close()
+            }
+
+        val migrated =
+            migrationHelper.runMigrationsAndValidate(
+                databaseName,
+                2,
+                true,
+                *LearnDatabase.migrations.toTypedArray(),
+            )
+
+        migrated.query("SELECT reps FROM card WHERE surah = 2 AND ayah = 255").use {
+            assertEquals(true, it.moveToFirst())
+            assertEquals(4, it.getInt(0))
+        }
+        migrated.query("SELECT COUNT(*) FROM word_card").use {
+            it.moveToFirst()
+            assertEquals(0, it.getInt(0))
+        }
+        migrated.close()
+    }
 }
