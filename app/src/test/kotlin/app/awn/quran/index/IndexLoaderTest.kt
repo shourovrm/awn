@@ -2,62 +2,103 @@ package app.awn.quran.index
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.LineItem
+import app.awn.quran.core.data.PageLayout
+import app.awn.quran.core.data.PageLine
+import app.awn.quran.core.data.QuranTextRepository
+import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class IndexLoaderTest {
 
-    private fun word(ayah: AyahRef, position: Int, text: String) =
-        Word(WordKey(ayah.surah, ayah.ayah, position), text, null, null)
+    private fun word(text: String, position: Int) = Word(WordKey(18, 5, position), text, null, null)
 
-    private val quarterAyah = AyahRef(2, 142)
+    private val chapters =
+        (1..114).map { Chapter(it, "", "Surah $it", null, versesCount = 7, "makkah", true) }
+
+    private val pageByAyah: MutableMap<AyahRef, Int> =
+        (JuzStarts.ayahs + (1..114).map { AyahRef(it, 1) })
+            .associateWith { it.surah * 5 - 4 }
+            .toMutableMap()
+            .also { it[AyahRef(18, 5)] = 294 }
+
+    private val textPage =
+        PageLayout(
+            page = 294,
+            script = ScriptId.V2,
+            lines =
+                listOf(
+                    PageLine(1, listOf(LineItem.SurahHeader(18))),
+                    PageLine(
+                        2,
+                        listOf("a", "b", "c").mapIndexed { index, text ->
+                            LineItem.WordItem(word(text, index + 1))
+                        },
+                    ),
+                ),
+        )
+
     private val fakeText =
         FakeQuranTextRepository(
-            chapterList =
-                (1..114).map {
-                    Chapter(it, "", "Surah $it", null, versesCount = 7, "makkah", true)
-                },
-            wordsByAyah =
-                mutableMapOf(
-                    quarterAyah to
-                        listOf("a", "b", "c", "d", "e").mapIndexed { index, text ->
-                            word(quarterAyah, index + 1, text)
-                        },
-                ),
-            pageByAyah =
-                (JuzStarts.ayahs + (1..114).map { AyahRef(it, 1) })
-                    .associateWith { it.surah * 10 + it.ayah }
-                    .toMutableMap(),
+            chapterList = chapters,
+            pageByAyah = pageByAyah,
+            pages = mutableMapOf(294 to textPage, 1 to textPage.copy(page = 1)),
         )
 
-    private val table = QuarterTable {
-        listOf(
-            QuarterStart(juz = 2, quarterOfJuz = 2, firstAyah = quarterAyah),
-            QuarterStart(juz = 2, quarterOfJuz = 1, firstAyah = quarterAyah),
-        )
+    @Test
+    fun contentCarriesThePagesOfTheFirstAyahsInThePrintAsked() = runBlocking {
+        val content = IndexLoader(fakeText).loadContent(ScriptId.V1)
+
+        assertEquals(ScriptId.V1, content.script)
+        val baqarah =
+            content.surahRows.filterIsInstance<SurahRow>().first { it.chapter.number == 2 }
+        assertEquals(6, baqarah.page)
+        assertEquals(30, content.juzRows.size)
+        assertEquals(604, content.pageRows.count { it is PageRow })
     }
 
     @Test
-    fun surahGroupsCarryThePagesOfTheirFirstAyahs() = runBlocking {
-        val content = IndexLoader(fakeText, table).loadContent()
+    fun aScriptWithoutAPageTableFallsBackToTheMadaniPrint() = runBlocking {
+        val withoutIndoPak =
+            object : QuranTextRepository by fakeText {
+                override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int {
+                    if (script == ScriptId.IndoPak) throw UnsupportedOperationException("no table")
+                    return fakeText.pageOf(ayah, script)
+                }
+            }
 
-        val baqarah = content.surahGroups.first().surahs.first { it.chapter.number == 2 }
-        assertEquals(21, baqarah.page)
-        assertEquals(11, content.surahGroups.first().startPage)
+        val content = IndexLoader(withoutIndoPak).loadContent(ScriptId.IndoPak)
+
+        assertEquals(FALLBACK_INDEX_SCRIPT, content.script)
     }
 
     @Test
-    fun aQuarterRowShowsTheFirstFourWordsAndItsPage() = runBlocking {
-        val content = IndexLoader(fakeText, table).loadContent()
+    fun theContinueCardTakesTheFirstLineThatHasWords() = runBlocking {
+        val loader = IndexLoader(fakeText)
+        val content = loader.loadContent(ScriptId.V2)
 
-        val section = content.juzSections.single()
-        assertEquals(2, section.juz)
-        assertEquals(listOf(1, 2), section.quarters.map { it.fraction + 1 })
-        assertEquals("a b c d", section.quarters.first().firstWords)
-        assertEquals(162, section.quarters.first().page)
+        val reading = loader.continueReading(lastPage = 294, content = content)
+
+        assertEquals(listOf("a", "b", "c"), reading.firstLineWords)
+        assertEquals(294, reading.page)
+        assertFalse(reading.isStart)
+    }
+
+    @Test
+    fun withNothingReadTheCardStartsAtPageOne() = runBlocking {
+        val loader = IndexLoader(fakeText)
+        val content = loader.loadContent(ScriptId.V2)
+
+        val reading = loader.continueReading(lastPage = null, content = content)
+
+        assertEquals(1, reading.page)
+        assertTrue(reading.isStart)
     }
 }

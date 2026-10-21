@@ -38,7 +38,7 @@ class AppPreferences(private val dataStore: DataStore<Preferences>) {
     val colourSettings: Flow<ColourSettings> = dataStore.data.map(::readColourSettings)
 
     val showSurahNameMeaning: Flow<Boolean> =
-        dataStore.data.map { it[SURAH_NAME_MEANING_KEY] ?: false }
+        dataStore.data.map { it[SURAH_NAME_MEANING_KEY] ?: true }
 
     suspend fun acceptNotice() {
         dataStore.edit { it[NOTICE_ACCEPTED_KEY] = true }

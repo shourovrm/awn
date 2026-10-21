@@ -2,6 +2,7 @@ package app.awn.quran.index
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,21 +28,43 @@ import app.awn.quran.R
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.components.AwnChoiceDialog
 import app.awn.quran.core.ui.components.AwnIconButton
+import app.awn.quran.core.ui.components.AwnTopBar
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
+import java.text.NumberFormat
+
+/** Recent pages, then the user's bookmarks, under a top bar with Back. */
+@Composable
+fun BookmarksScreen(
+    state: IndexState,
+    onSortChange: (BookmarkSort) -> Unit,
+    onBack: () -> Unit,
+    onOpen: (page: Int, ayah: AyahRef?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
+        Column(modifier.fillMaxSize()) {
+            AwnTopBar(
+                title = stringResource(R.string.index_tab_bookmarks),
+                onNavigateBack = onBack,
+                backDescription = stringResource(R.string.navigate_back),
+            )
+            BookmarksList(state, onSortChange, onOpen)
+        }
+    }
+}
 
 @Composable
-internal fun BookmarksTab(
+private fun BookmarksList(
     state: IndexState,
     onSortChange: (BookmarkSort) -> Unit,
     onOpen: (page: Int, ayah: AyahRef?) -> Unit,
 ) {
     val content = state.content ?: return
-    val chapterNames =
-        content.surahGroups
-            .flatMap { it.surahs }
-            .associate { it.chapter.number to it.chapter.nameSimple }
+    val chapterNames = content.chapters.associate { it.number to it.nameSimple }
     var isSortDialogOpen by remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxSize()) {
         recentPagesSection(state.recentPages, chapterNames, onOpen)
@@ -190,3 +213,7 @@ private fun BookmarkRow(
         Text(text = detail, style = AwnTypography.small, color = field.content)
     }
 }
+
+@Composable
+internal fun pageLabel(page: Int): String =
+    stringResource(R.string.index_page, NumberFormat.getIntegerInstance().format(page))

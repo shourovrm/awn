@@ -2,7 +2,6 @@ package app.awn.quran.index
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
-import app.awn.quran.core.data.Quarters
 
 /** Where the first ayah of each of the 30 juz is; these are fixed by the Quran's division. */
 object JuzStarts {
@@ -47,87 +46,134 @@ object JuzStarts {
     fun juzOf(ayah: AyahRef): Int = ayahs.indexOfLast { it <= ayah } + 1
 }
 
-/** A surah row of the Surahs tab: the chapter and the page its first ayah is on. */
-data class SurahEntry(val chapter: Chapter, val page: Int)
-
-/** The surahs that begin in [juz], under a header that shows the page the juz starts on. */
-data class JuzGroup(val juz: Int, val startPage: Int, val surahs: List<SurahEntry>)
+/**
+ * One row of the index list. Every row knows the [juz] it belongs to, so the juz rail can find the
+ * current juz from the first visible row and the first row of a juz from its number.
+ */
+sealed interface IndexRow {
+    val juz: Int
+}
 
 /**
- * Groups the surahs by the juz they begin in. A juz in which no surah begins (the 2nd, for
- * instance, lies inside Al-Baqarah) has no group; the Juz tab lists it.
+ * The heading of a juz. [continuedChapter] is set when the juz begins inside a surah and no surah
+ * begins in it, which the heading says ("Juz 2 · Al-Baqarah continues"). [startPage] is written
+ * only when [showPage] is true.
+ */
+data class JuzHeading(
+    override val juz: Int,
+    val startPage: Int,
+    val continuedChapter: Chapter?,
+    val showPage: Boolean = true,
+) : IndexRow
+
+/**
+ * A surah row. [page] is the page its first ayah is on; [showPage] is false when the heading above
+ * already shows that page, so the number is not written twice.
+ */
+data class SurahRow(
+    override val juz: Int,
+    val chapter: Chapter,
+    val page: Int,
+    val showPage: Boolean,
+) : IndexRow
+
+/** A row of the Juz list: where the juz starts and the page that holds it. */
+data class JuzStartRow(
+    override val juz: Int,
+    val startAyah: AyahRef,
+    val chapter: Chapter,
+    val page: Int,
+) : IndexRow
+
+/** A row of the Pages list. [startsSurah] is true when [chapter] begins on this page. */
+data class PageRow(
+    override val juz: Int,
+    val page: Int,
+    val chapter: Chapter,
+    val startsSurah: Boolean,
+) : IndexRow
+
+/**
+ * The surahs in Quran order with a heading at the start of every juz, as the Surahs list shows
+ * them. A surah sits under the juz its first ayah is in.
  *
  * [surahPages] maps a surah number to the page of its first ayah and [juzPages] maps a juz number
  * to the page it starts on.
  */
-fun groupSurahsByJuz(
+fun buildSurahRows(
     chapters: List<Chapter>,
     surahPages: Map<Int, Int>,
     juzPages: Map<Int, Int>,
-): List<JuzGroup> =
-    chapters
-        .groupBy { chapter -> JuzStarts.juzOf(AyahRef(chapter.number, 1)) }
-        .toSortedMap()
-        .map { (juz, surahsOfJuz) ->
-            JuzGroup(
-                juz = juz,
-                startPage = juzPages.getValue(juz),
-                surahs =
-                    surahsOfJuz
-                        .sortedBy { it.number }
-                        .map { chapter ->
-                            SurahEntry(chapter, surahPages.getValue(chapter.number))
-                        },
-            )
+): List<IndexRow> {
+    val chaptersByJuz = chapters.groupBy { JuzStarts.juzOf(AyahRef(it.number, 1)) }
+    return (1..JuzStarts.JUZ_COUNT).flatMap { juz ->
+        val surahsOfJuz = chaptersByJuz[juz].orEmpty().sortedBy { it.number }
+        val headingPage = juzPages.getValue(juz)
+        val continuedChapter =
+            if (surahsOfJuz.isEmpty()) {
+                chapters.first { it.number == JuzStarts.ayahs[juz - 1].surah }
+            } else {
+                null
+            }
+        val surahRows = surahsOfJuz.mapIndexed { index, chapter ->
+            val page = surahPages.getValue(chapter.number)
+            // The heading already carries the page when the first surah starts on it.
+            SurahRow(juz, chapter, page, showPage = !(index == 0 && page == headingPage))
         }
+        listOf<IndexRow>(JuzHeading(juz, headingPage, continuedChapter)) + surahRows
+    }
+}
+
+/** The 30 juz, each with the surah and ayah it starts at and its first page. */
+fun buildJuzRows(chapters: List<Chapter>, juzPages: Map<Int, Int>): List<IndexRow> =
+    JuzStarts.ayahs.mapIndexed { index, startAyah ->
+        val juz = index + 1
+        JuzStartRow(
+            juz = juz,
+            startAyah = startAyah,
+            chapter = chapters.first { it.number == startAyah.surah },
+            page = juzPages.getValue(juz),
+        )
+    }
 
 /**
- * Where a quarter of a juz begins. Each juz has 8 quarters, numbered 1 to 8 from the start of the
- * juz. The page agent's table in core/data supplies these; until it is connected, [QuarterTable] is
- * implemented by [CoreQuarterTable].
+ * Every page with its surah, under juz headings. The surah of a page is the first one that begins
+ * on it, else the one that continues from an earlier page.
  */
-data class QuarterStart(val juz: Int, val quarterOfJuz: Int, val firstAyah: AyahRef)
-
-/** The 240 quarters of the Quran (or fewer, when only part of the table is known). */
-fun interface QuarterTable {
-    suspend fun quarters(): List<QuarterStart>
-}
-
-/** The 240 quarters from core/data, numbered 1 to 8 inside each juz. */
-object CoreQuarterTable : QuarterTable {
-    private const val QUARTERS_PER_JUZ = 8
-
-    override suspend fun quarters(): List<QuarterStart> =
-        Quarters.all.map { quarter ->
-            QuarterStart(
-                juz = quarter.juz,
-                quarterOfJuz = (quarter.number - 1) % QUARTERS_PER_JUZ + 1,
-                firstAyah = quarter.firstAyah,
-            )
+fun buildPageRows(
+    chapters: List<Chapter>,
+    surahPages: Map<Int, Int>,
+    juzPages: Map<Int, Int>,
+    pageCount: Int,
+): List<IndexRow> {
+    val juzStartingOnPage = juzPages.entries.associate { (juz, page) -> page to juz }
+    var currentJuz = 1
+    val rows = mutableListOf<IndexRow>()
+    for (page in 1..pageCount) {
+        juzStartingOnPage[page]?.let { juz ->
+            currentJuz = juz
+            rows += JuzHeading(juz, page, continuedChapter = null, showPage = false)
         }
+        val startingHere = chapters.firstOrNull { surahPages.getValue(it.number) == page }
+        val chapter = startingHere ?: chapters.last { surahPages.getValue(it.number) < page }
+        rows += PageRow(currentJuz, page, chapter, startsSurah = startingHere != null)
+    }
+    return rows
 }
 
-/** One row of the Juz tab. [fraction] is 0 at the start of a hizb and 1 to 3 for ¼, ½ and ¾. */
-data class QuarterRow(
-    val juz: Int,
-    val hizb: Int,
-    val fraction: Int,
-    val firstAyah: AyahRef,
-    val firstWords: String,
-    val page: Int,
-)
+/** The list position of [surah]'s row, or null when nothing was read yet or it is not listed. */
+fun rowIndexOfSurah(rows: List<IndexRow>, surah: Int?): Int? {
+    if (surah == null) return null
+    val index = rows.indexOfFirst { it is SurahRow && it.chapter.number == surah }
+    return index.takeIf { it >= 0 }
+}
 
-data class JuzSection(val juz: Int, val startPage: Int, val quarters: List<QuarterRow>)
-
-private const val QUARTERS_PER_HIZB = 4
-private const val HIZB_PER_JUZ = 2
-
-/** The hizb (1 to 60) that quarter [quarterOfJuz] of [juz] lies in. */
-fun hizbOfQuarter(juz: Int, quarterOfJuz: Int): Int =
-    (juz - 1) * HIZB_PER_JUZ + (quarterOfJuz - 1) / QUARTERS_PER_HIZB + 1
-
-/** 0 when the quarter begins a hizb, otherwise 1, 2 or 3 quarters into it. */
-fun fractionOfQuarter(quarterOfJuz: Int): Int = (quarterOfJuz - 1) % QUARTERS_PER_HIZB
+/** The list position of the first row of [juz]: its heading, or its own row in the Juz list. */
+fun rowIndexOfJuz(rows: List<IndexRow>, juz: Int): Int {
+    val index = rows.indexOfFirst { it.juz == juz }
+    check(index >= 0) { "The list has no row for juz $juz." }
+    return index
+}
 
 /** What a bookmarks list row stands for. */
 sealed interface BookmarkEntry {

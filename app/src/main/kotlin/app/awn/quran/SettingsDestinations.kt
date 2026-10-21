@@ -171,7 +171,7 @@ private fun NavGraphBuilder.appearanceAndDownloadsDestinations(
         arguments = rowArguments,
     ) { entry ->
         val showMeaning by
-            services.preferences.showSurahNameMeaning.collectAsStateWithLifecycle(false)
+            services.preferences.showSurahNameMeaning.collectAsStateWithLifecycle(true)
         val scope = rememberCoroutineScope()
         AppearancePage(
             colours = colourSettings,

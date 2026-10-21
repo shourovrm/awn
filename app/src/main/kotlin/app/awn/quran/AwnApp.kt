@@ -21,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
@@ -49,9 +51,10 @@ import app.awn.quran.feature.recite.rememberReciteCurrentWord
 import app.awn.quran.feature.recite.rememberReciteFocusedWord
 import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
-import app.awn.quran.index.IndexActions
-import app.awn.quran.index.IndexScreen
+import app.awn.quran.index.BookmarksScreen
 import app.awn.quran.index.IndexViewModel
+import app.awn.quran.index.QuranTabActions
+import app.awn.quran.index.QuranTabScreen
 import app.awn.quran.language.AppCompatLanguageApplier
 import app.awn.quran.language.AppLanguage
 import app.awn.quran.language.AppLanguageApplier
@@ -63,6 +66,12 @@ import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
 import app.awn.quran.services.AwnServices
+import app.awn.quran.tabs.AwnTab
+import app.awn.quran.tabs.TabActions
+import app.awn.quran.tabs.TabSlots
+import app.awn.quran.tabs.TabsHost
+import app.awn.quran.tabs.TodayNavigation
+import app.awn.quran.tabs.rememberTodayItems
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -72,6 +81,7 @@ import kotlinx.coroutines.launch
 fun AwnApp(
     services: AwnServices,
     languageApplier: AppLanguageApplier = AppCompatLanguageApplier,
+    tabSlots: TabSlots = TabSlots(),
 ) {
     val preferences = services.preferences
     val colourSettings by
@@ -108,7 +118,7 @@ fun AwnApp(
                 NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
             FirstLaunchStep.Done -> {
                 AskForNotificationsWhenAudioStarts(services)
-                AwnNavigation(services = services, colourSettings = colourSettings)
+                AwnNavigation(services, colourSettings, tabSlots)
             }
         }
     }
@@ -159,7 +169,11 @@ private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
  * predictive back, whose back-to-home animation shrank the whole app.
  */
 @Composable
-private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings) {
+private fun AwnNavigation(
+    services: AwnServices,
+    colourSettings: ColourSettings,
+    tabSlots: TabSlots,
+) {
     val navController = rememberNavController()
     // Revision moves to the next due ayah through this; it needs the navigation host.
     DisposableEffect(navController) {
@@ -168,9 +182,16 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
     }
     ApplyAppOrientation(services.readDependencies.settingsStore, navController)
     val viewModelFactory = remember(services) { AwnViewModelFactory(services) }
+    // A fresh start opens the Quran tab; the choice survives rotation but nothing else.
+    var selectedTabName by rememberSaveable { mutableStateOf(AwnTab.Quran.name) }
+    val tabNavigation =
+        TabNavigation(
+            navController = navController,
+            selectTab = { selectedTabName = it.name },
+        )
     NavHost(
         navController = navController,
-        startDestination = Routes.QURAN,
+        startDestination = Routes.TABS,
         enterTransition = ScreenTransitions.enter,
         exitTransition = ScreenTransitions.exit,
         popEnterTransition = ScreenTransitions.popEnter,
@@ -185,20 +206,96 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
                     optionalIntArgument(Routes.AYAH_ARGUMENT),
                 ),
         ) { entry ->
-            QuranRoute(services, entry, navController)
+            QuranRoute(services, entry, tabNavigation)
         }
         indexDestinations(navController, viewModelFactory)
         settingsDestinations(services, navController, viewModelFactory, colourSettings)
-        composable(Routes.LEARN) {
-            LearnScreen(
-                quranText = services.coreData.quranText,
-                onReviseAt = { ayah ->
-                    navController.openQuran(page = null, ayah = ayah)
-                    services.recite.reviseAt(ayah)
-                },
+        composable(Routes.TABS) {
+            TabsRoute(
+                services = services,
+                viewModelFactory = viewModelFactory,
+                navigation = tabNavigation,
+                selected = AwnTab.valueOf(selectedTabName),
+                tabSlots = tabSlots,
             )
         }
     }
+}
+
+/** Moves between the tabs and the screens that open above them. */
+private class TabNavigation(
+    private val navController: NavController,
+    val selectTab: (AwnTab) -> Unit,
+) {
+    fun openQuran(page: Int?, ayah: AyahRef?) = navController.openQuran(page, ayah)
+
+    fun openSettings() = navController.navigate(Routes.SETTINGS)
+
+    fun openSearch() = navController.navigate(Routes.SEARCH)
+
+    fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)
+
+    /** Closes everything above the tabs and shows [tab]. */
+    fun showTab(tab: AwnTab) {
+        selectTab(tab)
+        navController.popBackStack(Routes.TABS, inclusive = false)
+    }
+}
+
+@Composable
+private fun TabsRoute(
+    services: AwnServices,
+    viewModelFactory: ViewModelProvider.Factory,
+    navigation: TabNavigation,
+    selected: AwnTab,
+    tabSlots: TabSlots,
+) {
+    val tabActions = TabActions(navigation::openSettings, navigation::openQuran)
+    val todayNavigation =
+        TodayNavigation(
+            openLearnTab = { navigation.selectTab(AwnTab.Learn) },
+            openHifzTab = { navigation.selectTab(AwnTab.Hifz) },
+            reviseAt = { ayah ->
+                navigation.openQuran(page = null, ayah = ayah)
+                services.recite.reviseAt(ayah)
+            },
+        )
+    TabsHost(
+        selected = selected,
+        onSelect = navigation.selectTab,
+        quranTab = {
+            val viewModel: IndexViewModel = viewModel(factory = viewModelFactory)
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            QuranTabScreen(
+                state = state,
+                todayItems = rememberTodayItems(tabSlots.todayProviders, todayNavigation),
+                actions =
+                    QuranTabActions(
+                        onSearch = navigation::openSearch,
+                        onBookmarks = navigation::openBookmarks,
+                        onSettings = navigation::openSettings,
+                        onOpen = navigation::openQuran,
+                    ),
+            )
+        },
+        learnTab = {
+            LearnScreen(
+                quranText = services.coreData.quranText,
+                onReviseAt = { ayah ->
+                    navigation.openQuran(page = null, ayah = ayah)
+                    services.recite.reviseAt(ayah)
+                },
+                barActions = {
+                    AwnIconButton(
+                        icon = R.drawable.ic_app_settings,
+                        contentDescription = stringResource(R.string.index_settings),
+                        onClick = navigation::openSettings,
+                    )
+                },
+            )
+        },
+        hifzTab = { tabSlots.hifzTab(tabActions) },
+    )
 }
 
 private fun optionalIntArgument(name: String) =
@@ -207,10 +304,13 @@ private fun optionalIntArgument(name: String) =
         defaultValue = Routes.NOT_GIVEN
     }
 
-/** Opens the Quran screen and drops the screens above the old one, so Back never retraces them. */
+/**
+ * Opens the Quran screen directly above the tabs and drops the screens between, so Back always
+ * returns to the tab.
+ */
 private fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
     navigate(Routes.quran(page, ayah)) {
-        popUpTo(Routes.QURAN) { inclusive = true }
+        popUpTo(Routes.TABS) { inclusive = false }
         launchSingleTop = true
     }
 }
@@ -219,19 +319,14 @@ private fun NavGraphBuilder.indexDestinations(
     navController: NavController,
     viewModelFactory: ViewModelProvider.Factory,
 ) {
-    composable(Routes.INDEX) {
+    composable(Routes.BOOKMARKS) {
         val viewModel: IndexViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
-        IndexScreen(
+        BookmarksScreen(
             state = state,
             onSortChange = viewModel::setSort,
-            actions =
-                IndexActions(
-                    onSearch = { navController.navigate(Routes.SEARCH) },
-                    onLearn = { navController.navigate(Routes.LEARN) },
-                    onSettings = { navController.navigate(Routes.SETTINGS) },
-                    onOpen = navController::openQuran,
-                ),
+            onBack = { navController.popBackStack() },
+            onOpen = navController::openQuran,
         )
     }
     composable(Routes.SEARCH) {
@@ -258,7 +353,7 @@ private fun NavGraphBuilder.indexDestinations(
 private fun QuranRoute(
     services: AwnServices,
     entry: NavBackStackEntry,
-    navController: NavController,
+    navigation: TabNavigation,
 ) {
     val arguments = entry.arguments
     val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
@@ -292,11 +387,11 @@ private fun QuranRoute(
             reciteWordProblems = { rememberReciteWordProblems(services.recite) },
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
-            onOpenIndex = { navController.navigate(Routes.INDEX) },
-            onBackWhenIdle = navController::goToHomeFromQuran,
-            onOpenSearch = { navController.navigate(Routes.SEARCH) },
-            onOpenLearn = { navController.navigate(Routes.LEARN) },
-            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+            onOpenIndex = { navigation.showTab(AwnTab.Quran) },
+            onBackWhenIdle = { navigation.showTab(AwnTab.Quran) },
+            onOpenSearch = navigation::openSearch,
+            onOpenLearn = { navigation.showTab(AwnTab.Learn) },
+            onOpenSettings = navigation::openSettings,
             onPlayRange = { first, last -> services.audio.controller.playRange(first, last) },
             isReciteActive = isReciting,
             reciteCurrentAyah = { rememberReciteCurrentAyah(services.recite) },
