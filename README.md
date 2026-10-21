@@ -50,7 +50,7 @@ Make a test key with `keytool -genkeypair -keystore ~/my-awn.jks -alias awn -key
 ./gradlew installGithubRelease       # to a connected phone or running emulator
 ```
 
-The first build downloads the sherpa-onnx libraries (`fetchNativeLibs`) and the speech model files (`fetchModels`) and checks their SHA-256 hashes.
+The first build downloads the sherpa-onnx libraries (`fetchNativeLibs`) and the pinned Quran text and manifests (`:core:data:fetchBundledPacks`) and checks their SHA-256 hashes. `./gradlew fetchModels` fetches the speech model for the tracker tests; the app itself downloads it on first use of recite.
 
 ## Test
 
