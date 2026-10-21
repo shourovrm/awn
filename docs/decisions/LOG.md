@@ -144,3 +144,4 @@
 2026-10-21 | Speech model downloads from models-v1 (SHA-256, atomic rename); recite shows a card first | sherpa loads by path (data.md)
 2026-10-21 | New installs tick no translation; first launch offers en_saheeh+wbw_en or bn_zakaria+wbw_bn | nothing ships (read.md)
 2026-10-21 | FSRS port moved from :feature:learn to :core:data | Hifz needs it too, two real callers (learn.md)
+2026-10-21 | Hifz methods and daily assignment are pure Kotlin; no overdue carry-over, revision capped per day | piled-up revision makes users quit (hifz.md)
