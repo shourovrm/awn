@@ -24,7 +24,8 @@ internal fun FollowListTargets(
     }
     // The reciter moves on below the screen, and a page with translations shows only an ayah or
     // two, so without this the fills of the words being recited are never seen.
-    LaunchedEffect(content, environment.recitedAyah, areFontsReady) {
+    // The recite bar changes height (words hidden, a grade prompt), and the ayah must stay above it.
+    LaunchedEffect(content, environment.recitedAyah, environment.contentPadding, areFontsReady) {
         if (!areFontsReady) return@LaunchedEffect
         val index = environment.recitedAyah?.let(content::indexOf) ?: -1
         if (index >= 0) listState.showItem(index)

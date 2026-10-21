@@ -1,7 +1,10 @@
 package app.awn.quran.feature.read.quran
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.Dp
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.ui.theme.AwnSpacing
 
 /** Where the Quran screen opens: a page, or an ayah that is also selected. */
 sealed interface QuranTarget {
@@ -108,3 +111,21 @@ internal fun topMarginFor(visibleHeight: Int): Int = (visibleHeight * TOP_MARGIN
 /** Whether an item at [offset] with [size] lies wholly between [visibleTop] and [visibleBottom]. */
 internal fun isFullyVisible(offset: Int, size: Int, visibleTop: Int, visibleBottom: Int): Boolean =
     offset >= visibleTop && offset + size <= visibleBottom
+
+/**
+ * The padding of a list page. Below, it clears the navigation bar and either the audio bar's fixed
+ * height or, while reciting, the recite bar as it was measured ([reciteBarHeight]): that bar is two
+ * or three rows tall, so a fixed height left the last ayahs under it.
+ */
+internal fun listContentPadding(reciteBarHeight: Dp?, navigationBarHeight: Dp): PaddingValues =
+    PaddingValues(
+        start = AwnSpacing.screenMargin,
+        end = AwnSpacing.screenMargin,
+        top = AwnSpacing.huge + AwnSpacing.small,
+        bottom =
+            if (reciteBarHeight != null) {
+                reciteBarHeight + AwnSpacing.small
+            } else {
+                AwnSpacing.dockHeight + AwnSpacing.small + navigationBarHeight
+            },
+    )

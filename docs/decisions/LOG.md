@@ -132,3 +132,4 @@
 2026-10-21 | Unmeasurable Mushaf page falls back to Hafs text (exception, NaN, 10 s) | page 92 stayed blank on the phone; no JVM repro (read.md)
 2026-10-21 | Quantum shows the translation only: square-bracket notes removed, [সেজদা] kept | maintainer's choice (ops.md)
 2026-10-21 | Back on an idle Quran screen goes to the index; index is stack bottom | the app opened on Quran, so Back left the app (architecture.md)
+2026-10-21 | Recite lists pad by the measured bar height and add a tail space | last ayahs stayed under the bar and never scrolled (read.md)

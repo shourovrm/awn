@@ -17,7 +17,6 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +34,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,11 +55,13 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -263,6 +265,8 @@ private fun QuranContent(
     var isSelecting by remember { mutableStateOf(false) }
     // Where the tapped word is, in window coordinates, for the word card.
     var wordAnchor by remember { mutableStateOf<Rect?>(null) }
+    // The height of everything stacked at the bottom while reciting; the lists end above it.
+    var bottomStackHeightPx by remember { mutableIntStateOf(0) }
     // Remembered, so the pages see the same objects after every state change and can skip.
     val selectionActions = remember {
         MushafSelectionActions(
@@ -343,6 +347,12 @@ private fun QuranContent(
         // The Mushaf page is never resized or clipped: the panel is drawn over it. The lists shrink
         // to the part above the panel so their scrolling keeps the ayah in view.
         val pagerHeight = if (isMushaf) fullHeight else windowHeight
+        val reciteBarHeight: Dp? =
+            if (state.isReciting && bottomStackHeightPx > 0) {
+                with(density) { bottomStackHeightPx.toDp() }
+            } else {
+                null
+            }
         Box(Modifier.fillMaxWidth().height(pagerHeight).clipToBounds()) {
             QuranPager(
                 state = state,
@@ -352,6 +362,7 @@ private fun QuranContent(
                 reciteMarks = reciteMarks,
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
+                reciteBarHeight = reciteBarHeight,
                 shiftPx = currentShiftPx,
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
@@ -574,6 +585,7 @@ private fun QuranPager(
     reciteMarks: ReciteMarks,
     playingWord: State<Int?>,
     fullHeightPx: Int,
+    reciteBarHeight: Dp?,
     shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
@@ -604,13 +616,7 @@ private fun QuranPager(
     // The list scrolls clear of the top bar above and of the audio bar and the navigation bar
     // below, so a search result or the playing ayah never sits under either.
     val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val barPadding =
-        PaddingValues(
-            start = AwnSpacing.screenMargin,
-            end = AwnSpacing.screenMargin,
-            top = AwnSpacing.huge + AwnSpacing.small,
-            bottom = AwnSpacing.dockHeight + AwnSpacing.small + navigationBarHeight,
-        )
+    val barPadding = listContentPadding(reciteBarHeight, navigationBarHeight)
     val view = state.settings.pageView
     val tapToggle =
         remember(viewModel) {

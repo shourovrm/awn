@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -146,8 +147,16 @@ internal fun PageListView(
                 is PageItem.Ayah -> AyahItem(item.block, environment, fills)
             }
         }
+        // A list stops scrolling when its last item meets the bottom, so the last ayahs of a
+        // surah would stay under the recite bar however far the reciter has got. This space lets
+        // the ayah being recited rise to the top.
+        if (environment.isReciting && areFontsReady) {
+            item(key = TAIL_SPACE_KEY) { Spacer(Modifier.fillParentMaxHeight()) }
+        }
     }
 }
+
+private const val TAIL_SPACE_KEY = "recite-tail-space"
 
 private fun itemKey(item: PageItem): String =
     when (item) {
