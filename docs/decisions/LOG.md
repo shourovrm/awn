@@ -126,3 +126,4 @@
 2026-10-21 | Start after Listen continues the recitation | user: listening must not throw away the marks (recite.md)
 2026-10-21 | Quantum Al-Fatihah moved to Hafs numbering; 1:1 uses their Basmalah from 27:30 | 1:1 showed 1:2's meaning (ops.md)
 2026-10-21 | Quantum 1:1 uses the site's surah-header Basmalah; Fatihah 6 and 7 are separate rows | user request; audit found no other shifts (ops.md)
+2026-10-21 | Unit tests run with a 2-thread Default pool and a 10-minute task timeout | CI hung on blocked Default threads (recite.md)

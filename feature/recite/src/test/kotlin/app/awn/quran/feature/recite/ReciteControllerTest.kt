@@ -18,6 +18,8 @@ class ReciteControllerTest {
 
     @get:Rule val folder = TemporaryFolder()
 
+    @get:Rule val fixtures = ControllerFixtures()
+
     @Test
     fun reciteFromLoadsTheAyahsFromThereToTheEndOfThePage() = runTest {
         val fixture = ControllerFixture(folder.root)
