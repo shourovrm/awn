@@ -20,9 +20,9 @@ suspend fun ReciteController.listenToAyah() {
 
 /**
  * Stops the microphone without forgetting what was heard, so the recognition never hears the
- * reciter. Does nothing when the microphone is not listening. It is never undone by itself: the
- * user taps Start again.
+ * reciter. It is never undone by itself: the user taps Start again, which goes on from the next
+ * expected word with every mark kept.
  */
 fun ReciteController.pauseMicrophone() {
-    if (session.phase.value == RecitationPhase.Listening) session.stop()
+    session.pauseForListening()
 }

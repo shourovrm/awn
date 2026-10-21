@@ -121,3 +121,6 @@
 2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
 2026-10-21 | Quran-Lab approved our use of Zipformer P-Arabic v3 from Hugging Face | maintainer asked the authors; tracker.md
+2026-10-21 | Speech model moved to a :speech process | in-process PSS stayed +54 MB after release; separate process returns to baseline (recite.md)
+2026-10-21 | Font lookups reload on key change | tajweed list words stayed black after switching to night (read.md)
+2026-10-21 | Start after Listen continues the recitation | user: listening must not throw away the marks (recite.md)

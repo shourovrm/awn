@@ -92,6 +92,16 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         reportedSubstitutions.clear()
     }
 
+    override fun continueFrom(index: Int) {
+        val earlierStates = states
+        startIndex = index.coerceIn(0, reference.size)
+        reset()
+        for (word in 0 until startIndex) {
+            states[word] = earlierStates[word]
+            settled[word] = true
+        }
+    }
+
     override fun setConfig(config: TrackerConfig) {
         thresholds = AlignmentThresholds.forSpeed(config.speed)
     }
