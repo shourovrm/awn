@@ -99,9 +99,6 @@ internal fun GoToPageDialog(
 
     val fields = currentFields()
     val target = resolver.targetPage(fields)
-    val problem = resolver.problemOf(fields)
-    val surahName =
-        chapters.firstOrNull { it.number == parseTypedNumber(fields.surah) }?.localName()
 
     FloatingCard(onDismiss = onDismiss) {
         Text(
@@ -118,43 +115,75 @@ internal fun GoToPageDialog(
             pageField = typed
             scope.launch { apply(resolver.afterPageEdited(currentFields())) }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-            GoField(
-                label = stringResource(R.string.go_surah),
-                value = surahField,
-                modifier = Modifier.weight(1f),
-                onSubmit = ::go,
-            ) { typed ->
+        SurahAndAyahFields(
+            surahField = surahField,
+            ayahField = ayahField,
+            onSubmit = ::go,
+            onSurahChange = { typed ->
                 surahField = typed
                 scope.launch { apply(resolver.afterSurahOrAyahEdited(currentFields())) }
-            }
-            GoField(
-                label = stringResource(R.string.go_ayah),
-                value = ayahField,
-                modifier = Modifier.weight(1f),
-                onSubmit = ::go,
-            ) { typed ->
+            },
+            onAyahChange = { typed ->
                 ayahField = typed
                 scope.launch { apply(resolver.afterSurahOrAyahEdited(currentFields())) }
-            }
-        }
-        GoHint(problem = problem, surahName = surahName, numberFormat = numberFormat)
-        Column(Modifier.padding(top = AwnSpacing.small)) {
-            AwnButton(
-                label = stringResource(R.string.go_action),
-                onClick = ::go,
-                enabled = target != null,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            CardTextButton(label = stringResource(R.string.go_cancel), onClick = onDismiss)
-        }
+            },
+        )
+        GoHint(fields, resolver, chapters, numberFormat)
+        GoActions(canGo = target != null, onGo = ::go, onDismiss = onDismiss)
+    }
+}
+
+@Composable
+private fun SurahAndAyahFields(
+    surahField: TextFieldValue,
+    ayahField: TextFieldValue,
+    onSubmit: () -> Unit,
+    onSurahChange: (TextFieldValue) -> Unit,
+    onAyahChange: (TextFieldValue) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+        GoField(
+            label = stringResource(R.string.go_surah),
+            value = surahField,
+            modifier = Modifier.weight(1f),
+            onSubmit = onSubmit,
+            onChange = onSurahChange,
+        )
+        GoField(
+            label = stringResource(R.string.go_ayah),
+            value = ayahField,
+            modifier = Modifier.weight(1f),
+            onSubmit = onSubmit,
+            onChange = onAyahChange,
+        )
+    }
+}
+
+@Composable
+private fun GoActions(canGo: Boolean, onGo: () -> Unit, onDismiss: () -> Unit) {
+    Column(Modifier.padding(top = AwnSpacing.small)) {
+        AwnButton(
+            label = stringResource(R.string.go_action),
+            onClick = onGo,
+            enabled = canGo,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        CardTextButton(label = stringResource(R.string.go_cancel), onClick = onDismiss)
     }
 }
 
 /** One line under the fields: why the numbers do not work, else the name of the surah typed. */
 @Composable
-private fun GoHint(problem: GoToProblem?, surahName: String?, numberFormat: NumberFormat) {
+private fun GoHint(
+    fields: GoToFields,
+    resolver: GoToPageResolver,
+    chapters: List<Chapter>,
+    numberFormat: NumberFormat,
+) {
     val field = Awn.field
+    val problem = resolver.problemOf(fields)
+    val surahName =
+        chapters.firstOrNull { it.number == parseTypedNumber(fields.surah) }?.localName()
     when (problem) {
         is GoToProblem.PageOutOfRange ->
             Text(

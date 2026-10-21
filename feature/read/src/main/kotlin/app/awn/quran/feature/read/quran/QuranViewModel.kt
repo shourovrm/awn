@@ -947,9 +947,9 @@ class QuranViewModel(
         offer: PrintOfferState,
         statuses: Map<ScriptId, FontPackStatus>,
     ): PrintOfferState {
-        val downloading = offer.downloading ?: return offer
-        val status = statuses[downloading] ?: return offer
+        val status = offer.downloading?.let { statuses[it] }
         return when {
+            status == null -> offer
             status.isInstalled -> offer.copy(isOpen = false, downloading = null)
             status.failure == null -> offer
             offer.isOpen -> offer.copy(downloading = null)

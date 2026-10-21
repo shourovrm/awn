@@ -101,14 +101,14 @@ abstract class CardsRenderChecks {
     }
 
     private fun checkGoCard(mode: ColourMode, fontScale: Float) {
-        show(mode, fontScale) { goCard(onGo = {}) }
+        show(mode, fontScale) { GoCard(onGo = {}) }
 
         composeRule.onNodeWithText(goLabel).assertTouchTarget()
         field(0).assertIsFocused()
     }
 
     @Composable
-    private fun goCard(onGo: (Int) -> Unit) {
+    private fun GoCard(onGo: (Int) -> Unit) {
         GoToPageDialog(
             currentPage = 2,
             quranText = fixture.text,
@@ -144,7 +144,7 @@ abstract class CardsRenderChecks {
 
     @Test
     fun goCardOpensFocusedWithTheCurrentPageAndItsFirstAyah() {
-        show(ColourMode.Awn, 1.0f) { goCard(onGo = {}) }
+        show(ColourMode.Awn, 1.0f) { GoCard(onGo = {}) }
 
         field(0).assertIsFocused()
         field(0).assertTextContains(localDigits(2))
@@ -153,7 +153,7 @@ abstract class CardsRenderChecks {
     @Test
     fun theKeyboardActionKeyDoesWhatGoDoes() {
         var openedPage: Int? = null
-        show(ColourMode.Awn, 1.0f) { goCard(onGo = { openedPage = it }) }
+        show(ColourMode.Awn, 1.0f) { GoCard(onGo = { openedPage = it }) }
 
         field(0).performTextReplacement("1")
         field(0).performImeAction()
@@ -164,7 +164,7 @@ abstract class CardsRenderChecks {
     @Test
     fun theGoButtonOpensTheTypedPage() {
         var openedPage: Int? = null
-        show(ColourMode.Awn, 1.0f) { goCard(onGo = { openedPage = it }) }
+        show(ColourMode.Awn, 1.0f) { GoCard(onGo = { openedPage = it }) }
 
         field(0).performTextReplacement("1")
         composeRule.onNodeWithText(goLabel).performClick()
@@ -175,7 +175,7 @@ abstract class CardsRenderChecks {
     @Test
     fun typingSurahAndAyahFillsThePageField() {
         fixture.text.pageByAyah[AyahRef(2, 1)] = 2
-        show(ColourMode.Awn, 1.0f) { goCard(onGo = {}) }
+        show(ColourMode.Awn, 1.0f) { GoCard(onGo = {}) }
 
         field(0).performTextReplacement("1")
         field(1).performTextReplacement("2")
@@ -188,7 +188,7 @@ abstract class CardsRenderChecks {
     @Test
     fun banglaDigitsTypedInTheFieldAreUnderstood() {
         var openedPage: Int? = null
-        show(ColourMode.Awn, 1.0f) { goCard(onGo = { openedPage = it }) }
+        show(ColourMode.Awn, 1.0f) { GoCard(onGo = { openedPage = it }) }
 
         field(0).performTextReplacement("১")
         field(0).performImeAction()
