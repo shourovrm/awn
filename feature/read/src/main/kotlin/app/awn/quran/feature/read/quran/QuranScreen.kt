@@ -482,7 +482,9 @@ private fun QuranContent(
                 anchor = wordAnchor?.translate(-rootOrigin.x, -rootOrigin.y),
                 topClearancePx = topClearancePx,
                 onDismiss = viewModel::dismissWordPopup,
+                isPlaying = state.isPopupWordPlaying,
                 onPlay = viewModel::playPopupWord,
+                onStop = viewModel::stopPopupWord,
                 modifier = Modifier.fillMaxSize(),
             )
         }

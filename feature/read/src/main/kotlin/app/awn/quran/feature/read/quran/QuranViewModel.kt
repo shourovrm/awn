@@ -100,6 +100,8 @@ data class QuranUiState(
     val isReciting: Boolean = false,
     val popup: Popup = Popup.None,
     val wordPopup: WordPopup? = null,
+    /** True from the card's Play until the word ends or is stopped; the card shows Stop. */
+    val isPopupWordPlaying: Boolean = false,
     val playingAyah: AyahRef? = null,
     /** True while the playing ayah is paused, so the ayah bar offers Resume instead of Pause. */
     val isPlaybackPaused: Boolean = false,
@@ -557,15 +559,16 @@ class QuranViewModel(
     }
 
     /**
-     * Shows the word's meaning and plays it when the chosen reciter has word timings. A word the
-     * user recited wrongly ([problem] set) is not played by itself, because the microphone may be
-     * listening; its card offers Play instead.
+     * Opens the card with the word's meaning. A tap never makes a sound: the card has its own play
+     * button, shown when the chosen reciter has word timings, so reading never starts audio (and,
+     * while the microphone listens, the reciter is never heard by accident).
      */
     fun onWordTapped(ayah: AyahRef, word: AyahWord, problem: WordProblem? = null) {
         // The word card and the ayah bar never show together.
         mutableState.update {
             it.copy(
                 wordPopup = WordPopup(ayah, word, problem),
+                isPopupWordPlaying = false,
                 selection = null,
                 selectionEnd = null,
                 selectionPage = null,
@@ -573,14 +576,7 @@ class QuranViewModel(
                 panelBlock = null,
             )
         }
-        viewModelScope.launch {
-            val hasTimings = wordAudio.hasTimings(ayah)
-            if (problem == null) {
-                if (hasTimings) wordAudio.play(ayah, word.key.wordPosition)
-            } else {
-                showPlayWhen(hasTimings, word.key)
-            }
-        }
+        viewModelScope.launch { showPlayWhen(wordAudio.hasTimings(ayah), word.key) }
     }
 
     /**
@@ -597,10 +593,17 @@ class QuranViewModel(
         }
     }
 
-    /** Plays the reciter's recording of the word on the open card. */
+    /** Plays the reciter's recording of the word on the open card; the card shows Stop meanwhile. */
     fun playPopupWord() {
         val popup = mutableState.value.wordPopup ?: return
+        mutableState.update { it.copy(isPopupWordPlaying = true) }
         viewModelScope.launch { wordAudio.play(popup.ayah, popup.word.key.wordPosition) }
+    }
+
+    /** Stops the word that the open card is playing. */
+    fun stopPopupWord() {
+        mutableState.update { it.copy(isPopupWordPlaying = false) }
+        dependencies.audioPlayer.stop()
     }
 
     // The card may have closed, or moved to another word, while the timings were read.
@@ -616,7 +619,7 @@ class QuranViewModel(
     }
 
     fun dismissWordPopup() {
-        mutableState.update { it.copy(wordPopup = null) }
+        mutableState.update { it.copy(wordPopup = null, isPopupWordPlaying = false) }
     }
 
     /** The copy and share text of [range] with the first enabled translation. */
@@ -881,6 +884,11 @@ class QuranViewModel(
                     isPlaybackPaused = playback is PlaybackState.Paused,
                     playingPage = playingPage,
                     isAudioIdle = playback is PlaybackState.Idle || playback is PlaybackState.Error,
+                    // The word on the card has ended once the player is idle again.
+                    isPopupWordPlaying =
+                        it.isPopupWordPlaying &&
+                            playback !is PlaybackState.Idle &&
+                            playback !is PlaybackState.Error,
                     // A new playback is followed from its first ayah, wherever the reader is.
                     isFollowing = if (hasStarted) true else it.isFollowing,
                 )

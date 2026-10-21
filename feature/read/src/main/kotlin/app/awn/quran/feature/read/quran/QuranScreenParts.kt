@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -34,6 +37,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.IntOffset
@@ -123,7 +128,9 @@ internal fun WordPopupCard(
     anchor: Rect?,
     topClearancePx: Float,
     onDismiss: () -> Unit,
+    isPlaying: Boolean,
     onPlay: () -> Unit,
+    onStop: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
@@ -165,7 +172,7 @@ internal fun WordPopupCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            Text(text = popup.word.arabic, style = AwnTypography.lead, color = field.onBar)
+            WordHeading(popup = popup, isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
             popup.word.meaning?.let {
                 Text(text = it, style = AwnTypography.body.ltr(), color = field.onBar)
             }
@@ -180,7 +187,6 @@ internal fun WordPopupCard(
                     modifier = Modifier.testTag(WORD_PROBLEM_TAG),
                 )
             }
-            if (popup.canPlay) PlayWordButton(onPlay)
         }
     }
 }
@@ -193,24 +199,40 @@ private fun WordProblem.messageRes(): Int =
         WordProblem.DifferentWord -> R.string.word_problem_different
     }
 
-/** Plays the reciter's recording of the word on the card. */
+/**
+ * The Arabic word with the play button at the end corner of the card. A spacer of the same size
+ * sits at the start, so the word stays centred over the meaning below it.
+ */
 @Composable
-private fun PlayWordButton(onPlay: () -> Unit) {
-    val onBar = Awn.field.onBar
-    Row(
-        Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget)
-            .clickable(role = Role.Button, onClick = onPlay)
-            .padding(horizontal = AwnSpacing.small)
+private fun WordHeading(popup: WordPopup, isPlaying: Boolean, onPlay: () -> Unit, onStop: () -> Unit) {
+    Row(verticalAlignment = Alignment.Top) {
+        if (popup.canPlay) Spacer(Modifier.size(AwnSpacing.touchTarget))
+        Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
+            Text(text = popup.word.arabic, style = AwnTypography.lead, color = Awn.field.onBar)
+        }
+        if (popup.canPlay) {
+            PlayWordButton(isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
+        }
+    }
+}
+
+/**
+ * Plays the reciter's recording of the word on the card, or stops it while it plays. The card
+ * shows it only for a reciter with word timings.
+ */
+@Composable
+private fun PlayWordButton(isPlaying: Boolean, onPlay: () -> Unit, onStop: () -> Unit) {
+    val icon = if (isPlaying) R.drawable.ic_read_stop else R.drawable.ic_read_play
+    val description =
+        stringResource(if (isPlaying) R.string.word_stop else R.string.word_play)
+    Box(
+        Modifier.requiredSize(AwnSpacing.touchTarget)
+            .semantics { contentDescription = description }
+            .clickable(role = Role.Button, onClick = if (isPlaying) onStop else onPlay)
             .testTag(WORD_PLAY_TAG),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(painterResource(R.drawable.ic_read_play), contentDescription = null, tint = onBar)
-        Text(
-            text = stringResource(R.string.word_play),
-            style = AwnTypography.body,
-            color = onBar,
-        )
+        Icon(painterResource(icon), contentDescription = null, tint = Awn.field.onBar)
     }
 }
 
