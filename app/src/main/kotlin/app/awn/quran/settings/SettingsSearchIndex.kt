@@ -204,6 +204,7 @@ private val SETTINGS: List<RegisteredSetting> =
                 SettingsSection.Appearance,
                 SettingRowKeys.APPEARANCE_LANGUAGE,
                 R.string.appearance_language,
+                listOf(R.string.language_own_english, R.string.language_own_bangla),
             ),
             RegisteredSetting(
                 SettingsSection.Appearance,

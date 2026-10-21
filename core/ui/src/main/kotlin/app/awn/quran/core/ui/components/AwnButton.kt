@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -26,19 +27,21 @@ fun AwnButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    // Only a screen with its own palette (the language screen) overrides the field's colours.
+    containerColor: Color = Awn.field.buttonFill,
+    contentColor: Color = Awn.field.onButton,
 ) {
-    val field = Awn.field
     Box(
         modifier =
             modifier
                 .defaultMinSize(minHeight = AwnSpacing.buttonHeight)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(AwnShapes.control)
-                .background(field.buttonFill)
+                .background(containerColor)
                 .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
                 .padding(horizontal = AwnSpacing.medium),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, style = AwnTypography.bodyStrong, color = field.onButton)
+        Text(text = label, style = AwnTypography.bodyStrong, color = contentColor)
     }
 }

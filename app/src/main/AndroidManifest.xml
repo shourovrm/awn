@@ -29,6 +29,19 @@
       </intent-filter>
     </activity>
 
+    <!--
+      Before Android 13 AppCompat stores the per-app language itself and applies it in
+      MainActivity; the entry stays disabled, only its metadata is read.
+    -->
+    <service
+      android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+      android:enabled="false"
+      android:exported="false">
+      <meta-data
+        android:name="autoStoreLocales"
+        android:value="true" />
+    </service>
+
     <!-- AwnApplication starts WorkManager itself, after the services it needs exist. -->
     <provider
       android:name="androidx.startup.InitializationProvider"

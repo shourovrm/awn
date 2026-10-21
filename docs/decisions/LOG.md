@@ -114,3 +114,5 @@
 2026-10-21 | Quantum translation gets a meaning-based note by pack id in app code | the pinned manifest cannot change; the text is a referred meaning
 2026-10-21 | Rotation defaults sit on the Reading page | they change how the Quran is read; Appearance holds colours and language
 2026-10-21 | recite: list views never got word states (fixed); grace period + preparing bar + word problem card added | user report; phone logs showed tracker fine
+2026-10-21 | Per-app language through AppCompat (setApplicationLocales + autoStoreLocales) | one route for Android 8 to 16; Compose needs an AppCompatActivity below 13
+2026-10-21 | Language screen shows once before the notice; accepted notice means skip | upgrading users keep their flow; see architecture.md

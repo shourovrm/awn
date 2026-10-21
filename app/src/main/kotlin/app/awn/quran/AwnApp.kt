@@ -2,6 +2,7 @@ package app.awn.quran
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,8 +12,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -44,7 +48,13 @@ import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.IndexActions
 import app.awn.quran.index.IndexScreen
 import app.awn.quran.index.IndexViewModel
+import app.awn.quran.language.AppCompatLanguageApplier
+import app.awn.quran.language.AppLanguage
+import app.awn.quran.language.AppLanguageApplier
+import app.awn.quran.language.FirstLaunchStep
+import app.awn.quran.language.firstLaunchStep
 import app.awn.quran.notice.NoticeScreen
+import app.awn.quran.onboarding.LanguageScreen
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
@@ -55,27 +65,64 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @Composable
-fun AwnApp(services: AwnServices) {
+fun AwnApp(
+    services: AwnServices,
+    languageApplier: AppLanguageApplier = AppCompatLanguageApplier,
+) {
     val preferences = services.preferences
     val colourSettings by
         preferences.colourSettings.collectAsStateWithLifecycle(initialValue = ColourSettings())
     val colourMode = colourSettings.resolve(deviceIsDark = isSystemInDarkTheme())
-    // null until DataStore has answered, so the notice never flashes before the stored answer.
+    // null until DataStore has answered, so no first-launch screen flashes before the stored
+    // answer.
     val noticeAccepted by
         preferences.noticeAccepted.collectAsStateWithLifecycle(initialValue = null)
+    val languageChosen by
+        preferences.languageChosen.collectAsStateWithLifecycle(initialValue = null)
     val coroutineScope = rememberCoroutineScope()
 
     CompositionLocalProvider(LocalColourMode provides colourMode) {
-        when (noticeAccepted) {
-            null -> AwnTheme {}
-            false ->
+        val accepted = noticeAccepted
+        val chosen = languageChosen
+        if (accepted == null || chosen == null) {
+            AwnTheme {}
+            return@CompositionLocalProvider
+        }
+        when (firstLaunchStep(noticeAccepted = accepted, languageChosen = chosen)) {
+            FirstLaunchStep.ChooseLanguage ->
+                LanguageRoute(
+                    onContinue = { language ->
+                        coroutineScope.launch {
+                            // The flag is written first: applying the language recreates the
+                            // activity, and the screen must not come back afterwards.
+                            preferences.markLanguageChosen()
+                            languageApplier.apply(language)
+                        }
+                    },
+                )
+            FirstLaunchStep.AcceptNotice ->
                 NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
-            true -> {
+            FirstLaunchStep.Done -> {
                 AskForNotificationsWhenAudioStarts(services)
                 AwnNavigation(services = services, colourSettings = colourSettings)
             }
         }
     }
+}
+
+/** Holds the highlighted language, which starts as the phone's language. */
+@Composable
+private fun LanguageRoute(onContinue: (AppLanguage) -> Unit) {
+    val phoneLocale = Resources.getSystem().configuration.locales[0]
+    var selectedTag by rememberSaveable {
+        mutableStateOf(AppLanguage.preselectedFor(phoneLocale).languageTag)
+    }
+    val selected = AppLanguage.entries.first { it.languageTag == selectedTag }
+    LanguageScreen(
+        selected = selected,
+        onSelect = { selectedTag = it.languageTag },
+        onContinue = { onContinue(selected) },
+    )
 }
 
 /**

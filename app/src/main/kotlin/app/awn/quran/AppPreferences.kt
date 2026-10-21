@@ -16,14 +16,20 @@ import kotlinx.coroutines.flow.map
 private val Context.awnDataStore: DataStore<Preferences> by preferencesDataStore("awn_preferences")
 
 /**
- * Small settings that live in DataStore: notice acceptance, the colour choices and whether surah
- * names show their meaning.
+ * Small settings that live in DataStore: notice acceptance, whether the language screen was
+ * answered, the colour choices and whether surah names show their meaning.
  */
 class AppPreferences(private val dataStore: DataStore<Preferences>) {
 
     constructor(context: Context) : this(context.applicationContext.awnDataStore)
 
     val noticeAccepted: Flow<Boolean> = dataStore.data.map { it[NOTICE_ACCEPTED_KEY] ?: false }
+
+    /**
+     * Whether the language screen has been answered. The language itself is stored by AppCompat;
+     * this flag only keeps the screen from showing again.
+     */
+    val languageChosen: Flow<Boolean> = dataStore.data.map { it[LANGUAGE_CHOSEN_KEY] ?: false }
 
     /**
      * The stored colour choices; settings written by the earlier Light/Dark/System choice are
@@ -36,6 +42,10 @@ class AppPreferences(private val dataStore: DataStore<Preferences>) {
 
     suspend fun acceptNotice() {
         dataStore.edit { it[NOTICE_ACCEPTED_KEY] = true }
+    }
+
+    suspend fun markLanguageChosen() {
+        dataStore.edit { it[LANGUAGE_CHOSEN_KEY] = true }
     }
 
     /** Applies [transform] to the stored colour choices and writes all four values. */
@@ -78,6 +88,7 @@ class AppPreferences(private val dataStore: DataStore<Preferences>) {
 
     private companion object {
         val NOTICE_ACCEPTED_KEY = booleanPreferencesKey("notice_accepted")
+        val LANGUAGE_CHOSEN_KEY = booleanPreferencesKey("language_chosen")
         val SURAH_NAME_MEANING_KEY = booleanPreferencesKey("surah_name_meaning")
         val DAY_COLOURS_KEY = stringPreferencesKey("colours_day")
         val NIGHT_COLOURS_KEY = stringPreferencesKey("colours_night")
