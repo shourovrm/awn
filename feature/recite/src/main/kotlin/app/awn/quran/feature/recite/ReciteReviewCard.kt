@@ -24,14 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
@@ -79,7 +79,8 @@ fun ReciteReviewCard(
     val review = reviews.getOrNull(position)
     val wordText = words.firstOrNull { it.key == review?.key }?.textUthmani.orEmpty()
     val field = Awn.field
-    val maxHeight = (LocalConfiguration.current.screenHeightDp * CARD_MAX_HEIGHT_SHARE).dp
+    val windowHeightPx = LocalWindowInfo.current.containerSize.height
+    val maxHeight = with(LocalDensity.current) { (windowHeightPx * CARD_MAX_HEIGHT_SHARE).toDp() }
 
     Column(
         modifier

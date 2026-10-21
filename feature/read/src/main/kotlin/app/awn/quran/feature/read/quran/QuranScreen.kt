@@ -607,7 +607,8 @@ private fun AnimateRecitationTurns(pagerState: PagerState, state: QuranUiState) 
     }
 }
 
-@Suppress("LongMethod") // The pager with the page of each of the three views.
+// The pager with the page of each of the three views, and what each does only on the current page.
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 private fun QuranPager(
     state: QuranUiState,
@@ -792,18 +793,30 @@ private fun QuranPager(
                             onListAnchor(bounds)
                             viewModel.selectAyah(ayah)
                         },
-                        onWordTap = { ayah, word, bounds ->
-                            if (word.key in reciteMarks.problems) {
-                                onFocusWord(word.key)
-                            } else {
-                                onWordAnchor(bounds)
-                                viewModel.onWordTapped(ayah, word)
-                            }
-                        },
+                        onWordTap =
+                            listWordTap(viewModel, reciteMarks.problems, onFocusWord, onWordAnchor),
                         onUserScrolled = viewModel::onPagerDragged,
                     ),
             )
         }
+    }
+}
+
+/**
+ * A tap on a word of a list page: a word recited badly asks for the review card on it, any other
+ * word opens its meaning card.
+ */
+private fun listWordTap(
+    viewModel: QuranViewModel,
+    problems: Map<WordKey, WordProblem>,
+    onFocusWord: (WordKey) -> Unit,
+    onWordAnchor: (Rect?) -> Unit,
+): (AyahRef, AyahWord, Rect?) -> Unit = { ayah, word, bounds ->
+    if (word.key in problems) {
+        onFocusWord(word.key)
+    } else {
+        onWordAnchor(bounds)
+        viewModel.onWordTapped(ayah, word)
     }
 }
 

@@ -331,10 +331,6 @@ internal fun DrawScope.drawFills(
     }
 }
 
-/** Where the ring of the word being reviewed goes, or null when it is not on this page. */
-internal fun focusedWordRect(geometry: PageGeometry, decorations: PageDecorations): Rect? =
-    decorations.focusedWord?.let(geometry::wordRect)
-
 /**
  * The ink of a word. Recitation states are shown by fills behind the word ([wordStateFills]), so
  * the ink stays readable on every print; only a Hidden word is blanked, under its block.

@@ -1,6 +1,7 @@
 package app.awn.quran.feature.read.page
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.geometry.Rect
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.tracker.WordState
@@ -25,3 +26,7 @@ data class PageDecorations(
     val focusedWord: WordKey? = null,
     val wordStates: (WordKey) -> WordState = { WordState.Neutral },
 )
+
+/** Where the ring of the word being reviewed goes, or null when it is not on this page. */
+internal fun focusedWordRect(geometry: PageGeometry, decorations: PageDecorations): Rect? =
+    decorations.focusedWord?.let(geometry::wordRect)
