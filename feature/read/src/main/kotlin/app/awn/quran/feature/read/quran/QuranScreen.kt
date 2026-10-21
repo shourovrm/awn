@@ -77,14 +77,12 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
-import app.awn.quran.feature.read.page.FontDownloadPrompt
 import app.awn.quran.feature.read.page.FontLookup
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.page.SelectionBounds
 import app.awn.quran.feature.read.page.SharedPageFontCache
 import app.awn.quran.feature.read.page.isGlyphScript
-import app.awn.quran.feature.read.page.pageTypeText
 import app.awn.quran.feature.read.page.rememberFontLookup
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.tracker.WordProblem
@@ -382,24 +380,6 @@ private fun QuranContent(
         }
         if (!state.isPanelOpen) {
             Column(Modifier.align(Alignment.BottomCenter)) {
-                // The chosen print's font is missing: offer it above the bar. Only while the bars
-                // show, so it never covers the last lines of a page the reader is reading.
-                if (
-                    state.showFontPrompt &&
-                        state.areBarsVisible &&
-                        state.settings.pageView == PageView.Mushaf
-                ) {
-                    val status = state.fontStatus
-                    FontDownloadPrompt(
-                        pageTypeName = stringResource(pageTypeText(state.settings.script).name),
-                        sizeBytes = status?.downloadBytes,
-                        progress = status?.progress,
-                        failure = status?.failure,
-                        onDownload = viewModel::downloadFont,
-                        onKeepFallback = viewModel::keepFallbackFont,
-                        onCancel = viewModel::cancelFont,
-                    )
-                }
                 // An enabled translation is missing: say so and offer it, instead of showing none.
                 if (!isMushaf) {
                     MissingTranslationPrompt(dependencies, state.settings.translations)
@@ -498,6 +478,22 @@ private fun QuranContent(
                 modifier = Modifier.fillMaxSize(),
             )
         }
+
+        if (state.printOffer.isOpen) {
+            PrintOfferCard(
+                offer = state.printOffer,
+                statuses = state.printStatuses,
+                actions =
+                    PrintOfferActions(
+                        onChoose = viewModel::choosePrint,
+                        onDownload = viewModel::downloadPrint,
+                        onNotNow = viewModel::dismissPrintOffer,
+                        onKeepReading = viewModel::keepReadingDuringPrintDownload,
+                        onCancel = viewModel::cancelPrintDownload,
+                    ),
+            )
+        }
+        PrintFailureNotice(state.printOffer.closedFailureCount)
 
         if (state.popup == Popup.GoToPage) {
             GoToPageDialog(

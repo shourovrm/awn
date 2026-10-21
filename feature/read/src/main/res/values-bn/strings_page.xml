@@ -6,12 +6,6 @@
   <string name="page_hizb_quarter">¼ হিযব %1$d</string>
   <string name="page_hizb_half">½ হিযব %1$d</string>
   <string name="page_hizb_three_quarters">¾ হিযব %1$d</string>
-  <string name="font_prompt_size">%1$s মেগাবাইট</string>
-  <string name="font_prompt_wifi">ওয়াই-ফাই ভালো</string>
-  <string name="font_prompt_download">ডাউনলোড</string>
-  <string name="font_prompt_keep">এখন নয়</string>
-  <string name="font_prompt_progress">ডাউনলোড হচ্ছে %1$d%%</string>
-  <string name="font_prompt_cancel">বাতিল</string>
   <string name="mushaf_type_v2">মাদানী ১৪২১</string>
   <string name="mushaf_type_v1">মাদানী ১৪০৫</string>
   <string name="mushaf_type_v4">তাজবীদের রং</string>
@@ -23,4 +17,19 @@
   <string name="ayah_spoken_with_text">%1$s। %2$s</string>
   <string name="mushaf_print">ছাপা</string>
   <string name="mushaf_print_value">%1$s, %2$s</string>
+  <string name="print_offer_title">ছাপা বেছে নিন</string>
+  <string name="print_offer_body">ওয়াই-ফাই ভালো। ডাউনলোডের সময়ও পড়তে পারবেন।</string>
+  <string name="print_offer_detail_v2">হুবহু ছাপা পাতা</string>
+  <string name="print_offer_detail_v1">পুরোনো ছাপা</string>
+  <string name="print_offer_detail_v4">নিয়ম রঙে</string>
+  <string name="print_offer_size">%1$d এমবি</string>
+  <string name="print_offer_download">ডাউনলোড</string>
+  <string name="print_offer_download_sized">ডাউনলোড %1$s</string>
+  <string name="print_offer_not_now">এখন নয়</string>
+  <string name="print_offer_downloading">%1$s ডাউনলোড হচ্ছে</string>
+  <string name="print_offer_progress">%2$sর %1$d%%</string>
+  <string name="print_offer_percent">%1$d%%</string>
+  <string name="print_offer_keep_reading">পড়তে থাকুন</string>
+  <string name="print_offer_cancel">বাতিল</string>
+  <string name="print_offer_failed">ছাপাটি ডাউনলোড হয়নি। সেটিংসে মুসহাফ, ছাপা থেকে আবার চেষ্টা করতে পারবেন।</string>
 </resources>

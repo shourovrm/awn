@@ -66,4 +66,33 @@ class FirstLaunchTest {
         assertEquals(FirstLaunchStep.Done, firstLaunchStep(true, false))
         assertEquals(FirstLaunchStep.Done, firstLaunchStep(true, true))
     }
+
+    @Test
+    fun theFirstQuranScreenOfAFreshInstallationHasThePrintOfferPending() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        assertEquals(false, preferences.printOfferPending.first())
+
+        preferences.markLanguageChosen()
+        preferences.acceptNotice()
+
+        assertEquals(true, preferences.printOfferPending.first())
+    }
+
+    @Test
+    fun anUpgradingUserNeverHasThePrintOfferPending() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        preferences.acceptNotice()
+
+        assertEquals(false, preferences.printOfferPending.first())
+    }
+
+    @Test
+    fun handlingThePrintOfferOnceEndsItForGood() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        preferences.markLanguageChosen()
+
+        preferences.markPrintOfferHandled()
+
+        assertEquals(false, preferences.printOfferPending.first())
+    }
 }
