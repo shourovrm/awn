@@ -62,6 +62,30 @@ def repair_known_typos(text):
     return text.replace("\u09be\u09c7", "\u09cb")
 
 
+# Square brackets hold the publisher's commentary ("[অর্থাৎ ...]", "[এখানে আল্লাহ ...]"), 17 notes of 48 to
+# 627 characters; the maintainer chose to show the translation only. The one short bracket, "[সেজদা]"
+# (7:206), marks a prostration and stays. Round brackets are part of the translation and stay.
+LONGEST_KEPT_BRACKET = 20
+SQUARE_BRACKET_NOTE = re.compile(r"\s*\[[^\]]*\]")
+SPACE_BEFORE_DANDA = re.compile(r"\s+(।)")
+
+
+def remove_publisher_notes(text):
+    """Drops square-bracketed commentary longer than a short marker such as [সেজদা]."""
+
+    def drop_long(match):
+        return "" if len(match.group(0).strip()) > LONGEST_KEPT_BRACKET else match.group(0)
+
+    return SQUARE_BRACKET_NOTE.sub(drop_long, text)
+
+
+def tidy_translation(text):
+    """The text a reader sees: typos repaired, notes removed, no space before the danda."""
+    text = remove_publisher_notes(repair_known_typos(text))
+    text = SPACE_BEFORE_DANDA.sub(r"\1", text)
+    return " ".join(text.split())
+
+
 def clean(html_text):
     text = html.unescape(re.sub(r"<[^>]+>", " ", html_text or ""))
     return repair_known_typos(re.sub(r"\s+", " ", text).strip())
@@ -180,7 +204,7 @@ def add_pack_info(existing_path, output_path):
     source.close()
     if is_publisher_fatiha(rows):
         rows = with_fatiha_in_hafs_numbering(rows)
-    rows = [(surah, ayah, start, end, repair_known_typos(text)) for surah, ayah, start, end, text in rows]
+    rows = [(surah, ayah, start, end, tidy_translation(text)) for surah, ayah, start, end, text in rows]
     connection = sqlite3.connect(output_path)
     create_pack_tables(connection)
     connection.executemany("INSERT INTO translation VALUES (?, ?, ?, ?, ?)", rows)
@@ -214,6 +238,7 @@ def main():
                 missing.append(f"{surah}:{ayah}")
                 continue
             start, end, text = rows[ayah]
+            text = tidy_translation(text)
             if end > start and ayah == start:
                 merged_ranges += 1
             connection.execute(

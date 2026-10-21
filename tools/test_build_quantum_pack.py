@@ -61,5 +61,22 @@ class FatihaNumberingTest(unittest.TestCase):
         self.assertFalse(build_quantum_pack.is_publisher_fatiha(moved))
 
 
+class TidyTranslationTest(unittest.TestCase):
+    def test_a_long_publisher_note_is_removed(self):
+        text = "তারা দেখে না। [এখানে আল্লাহ একটি চিরায়ত সত্য প্রকাশ করেছেন, যা বহু বছর ধরে মানুষ জানে না।] শেষ।"
+        self.assertEqual("তারা দেখে না। শেষ।", build_quantum_pack.tidy_translation(text))
+
+    def test_the_prostration_marker_stays(self):
+        text = "তাঁর কাছে সেজদা করে। [সেজদা]"
+        self.assertEqual(text, build_quantum_pack.tidy_translation(text))
+
+    def test_round_brackets_stay(self):
+        text = "(প্রভু হে!) সাফল্যের সরলপথে,"
+        self.assertEqual(text, build_quantum_pack.tidy_translation(text))
+
+    def test_no_space_is_left_before_the_danda(self):
+        self.assertEqual("(নবী) ।".replace(" ।", "।"), build_quantum_pack.tidy_translation("(নবী) ।"))
+
+
 if __name__ == "__main__":
     unittest.main()
