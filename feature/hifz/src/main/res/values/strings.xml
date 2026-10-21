@@ -55,7 +55,10 @@
   <string name="revision_detail_recent">%s · recent lessons</string>
   <string name="revision_detail_old">%s · older pages</string>
   <string name="revision_today">Revision today</string>
-  <string name="revision_load">%1$d of %2$d pages</string>
+  <plurals name="revision_load">
+    <item quantity="one">%1$d of %2$d pages</item>
+    <item quantity="other">%1$d of %2$d pages</item>
+  </plurals>
   <string name="start_sabaq">Start Sabaq</string>
   <string name="start_sabqi">Start Sabqi</string>
   <string name="start_manzil">Start Manzil</string>
@@ -63,12 +66,18 @@
   <string name="start_revision">Start revision</string>
 
   <string name="progress_map">Progress map</string>
-  <string name="progress_caption">of %d pages memorised</string>
+  <plurals name="progress_caption">
+    <item quantity="one">of %d pages memorised</item>
+    <item quantity="other">of %d pages memorised</item>
+  </plurals>
   <string name="status_not_started">Not started</string>
   <string name="status_learning">Learning</string>
   <string name="status_memorised">Memorised</string>
   <string name="status_solid">Solid</string>
-  <string name="juz_row_description">Juz %1$d, %2$d of %3$d pages memorised</string>
+  <plurals name="juz_row_description">
+    <item quantity="one">Juz %1$d, %2$d of %3$d pages memorised</item>
+    <item quantity="other">Juz %1$d, %2$d of %3$d pages memorised</item>
+  </plurals>
 
   <string name="mark_title">Mark what I know</string>
   <string name="mark_by">Mark</string>

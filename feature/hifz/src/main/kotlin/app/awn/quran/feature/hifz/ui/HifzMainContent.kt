@@ -73,7 +73,12 @@ internal fun HifzMainContent(
             color = Awn.field.content,
         )
         Text(
-            text = stringResource(R.string.progress_caption, state.progressMap.pageCount),
+            text =
+                pluralStringResource(
+                    R.plurals.progress_caption,
+                    state.progressMap.pageCount,
+                    state.progressMap.pageCount,
+                ),
             style = AwnTypography.body,
             color = Awn.field.content,
         )
@@ -161,8 +166,9 @@ private fun RevisionLoad(assignment: DayAssignment) {
             )
             Text(
                 text =
-                    stringResource(
-                        R.string.revision_load,
+                    pluralStringResource(
+                        R.plurals.revision_load,
+                        assignment.revisionPageLimit,
                         assignment.revisionPageCount,
                         assignment.revisionPageLimit,
                     ),

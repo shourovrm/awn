@@ -55,7 +55,10 @@
   <string name="revision_detail_recent">%s · সাম্প্রতিক পাঠ</string>
   <string name="revision_detail_old">%s · পুরোনো পৃষ্ঠা</string>
   <string name="revision_today">আজকের পুনরাবৃত্তি</string>
-  <string name="revision_load">%2$d পৃষ্ঠার মধ্যে %1$d</string>
+  <plurals name="revision_load">
+    <item quantity="one">%2$d পৃষ্ঠার মধ্যে %1$d</item>
+    <item quantity="other">%2$d পৃষ্ঠার মধ্যে %1$d</item>
+  </plurals>
   <string name="start_sabaq">সবক শুরু</string>
   <string name="start_sabqi">সাবকি শুরু</string>
   <string name="start_manzil">মানযিল শুরু</string>
@@ -63,12 +66,18 @@
   <string name="start_revision">পুনরাবৃত্তি শুরু</string>
 
   <string name="progress_map">অগ্রগতির মানচিত্র</string>
-  <string name="progress_caption">%d পৃষ্ঠার মধ্যে মুখস্থ</string>
+  <plurals name="progress_caption">
+    <item quantity="one">%d পৃষ্ঠার মধ্যে মুখস্থ</item>
+    <item quantity="other">%d পৃষ্ঠার মধ্যে মুখস্থ</item>
+  </plurals>
   <string name="status_not_started">শুরু হয়নি</string>
   <string name="status_learning">শিখছি</string>
   <string name="status_memorised">মুখস্থ</string>
   <string name="status_solid">পাকা</string>
-  <string name="juz_row_description">পারা %1$d, %3$d পৃষ্ঠার মধ্যে %2$d মুখস্থ</string>
+  <plurals name="juz_row_description">
+    <item quantity="one">পারা %1$d, %3$d পৃষ্ঠার মধ্যে %2$d মুখস্থ</item>
+    <item quantity="other">পারা %1$d, %3$d পৃষ্ঠার মধ্যে %2$d মুখস্থ</item>
+  </plurals>
 
   <string name="mark_title">যা জানি তা চিহ্নিত করুন</string>
   <string name="mark_by">চিহ্নিত করুন</string>

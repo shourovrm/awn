@@ -122,6 +122,7 @@ fun HifzBar(
     val phase by session.phase.collectAsState()
     val hideWords by session.hifzEnabled.collectAsState()
     val currentWord by session.currentWord.collectAsState()
+    val reviews by session.reviews.collectAsState()
     val speechState by recite.speechState.collectAsState()
     val colors = HifzBarColors.of(Awn.field)
     val permission = rememberMicrophonePermission()
@@ -147,7 +148,7 @@ fun HifzBar(
     LaunchedEffect(phase) {
         if (phase == RecitationPhase.Stopped) {
             controller.recordMistakes(
-                PracticeMistakes.recordsOf(session.reviews.value, System.currentTimeMillis()),
+                PracticeMistakes.recordsOf(reviews, System.currentTimeMillis()),
             )
         }
     }
@@ -185,7 +186,6 @@ fun HifzBar(
             },
         )
         if (isFinishing) {
-            val reviews = session.reviews.value
             val didRecite = phase == RecitationPhase.Stopped || phase == RecitationPhase.Listening
             val suggested =
                 if (didRecite) {

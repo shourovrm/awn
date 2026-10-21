@@ -25,7 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -94,7 +94,13 @@ internal fun ProgressMapView(map: ProgressMap, modifier: Modifier = Modifier) {
 private fun MapRow(row: JuzRow, colors: StatusColors, square: Dp, gap: Dp, labelWidth: Dp) {
     val memorised = row.statuses.count { it.isKnown }
     val description =
-        stringResource(R.string.juz_row_description, row.juz, memorised, row.statuses.size)
+        pluralStringResource(
+            R.plurals.juz_row_description,
+            row.statuses.size,
+            row.juz,
+            memorised,
+            row.statuses.size,
+        )
     Row(
         Modifier.semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
