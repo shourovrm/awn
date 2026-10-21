@@ -132,10 +132,13 @@ class WordCourseRepository(
         }
     }
 
-    /** Rates one answer about [rank] in a session and logs the step. */
-    suspend fun rateWord(rank: Int, rating: FsrsRating, step: FinishedStep) {
+    /**
+     * Rates one answer about [rank] in a session and logs the step. Returns the epoch milliseconds
+     * at which the word is due next.
+     */
+    suspend fun rateWord(rank: Int, rating: FsrsRating, step: FinishedStep): Long {
         val nowMillis = clock.now().toEpochMilli()
-        database.withTransaction {
+        return database.withTransaction {
             val existing = checkNotNull(dao.findWordCard(rank)) { "Word $rank was never met." }
             val after = scheduler.reviewCard(existing.toFsrsCard(), rating, nowMillis)
             val wasReview = existing.state == FsrsState.Review.value
@@ -153,13 +156,17 @@ class WordCourseRepository(
                 ),
             )
             dao.insertStep(step.toEntity(nowMillis))
+            after.dueMillis
         }
     }
 
-    /** Rates the check of a grammar lesson; the first rating creates the grammar card. */
-    suspend fun rateGrammar(lessonId: String, rating: FsrsRating, step: FinishedStep) {
+    /**
+     * Rates the check of a grammar lesson; the first rating creates the grammar card. Returns the
+     * epoch milliseconds at which the point is due next.
+     */
+    suspend fun rateGrammar(lessonId: String, rating: FsrsRating, step: FinishedStep): Long {
         val nowMillis = clock.now().toEpochMilli()
-        database.withTransaction {
+        return database.withTransaction {
             val existing = dao.findGrammarCard(lessonId)
             val before = existing?.toFsrsCard() ?: scheduler.newCard(nowMillis)
             val after = scheduler.reviewCard(before, rating, nowMillis)
@@ -178,6 +185,7 @@ class WordCourseRepository(
                 ),
             )
             dao.insertStep(step.toEntity(nowMillis))
+            after.dueMillis
         }
     }
 
