@@ -147,6 +147,16 @@ class ReciteFollowViewModelTest {
     }
 
     @Test
+    fun aMistakeAskedForInTheReviewCardIsShownEvenAfterSwipingAway() = runTest {
+        startReciting()
+        viewModel.onPagerDragged()
+
+        viewModel.followRecitation(firstWordOfNextSurah, ignoresPause = true)
+
+        assertEquals(2, viewModel.state.value.currentPage)
+    }
+
+    @Test
     fun noPageTurnsWhenNotReciting() = runTest {
         viewModel.open(QuranTarget.Page(1))
 

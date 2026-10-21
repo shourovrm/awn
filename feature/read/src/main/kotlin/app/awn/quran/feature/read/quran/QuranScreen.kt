@@ -133,6 +133,13 @@ data class QuranScreenSlots(
     /** Optional. The next word the reciter is expected to say; the pager turns to its page. */
     val reciteCurrentWord: @Composable () -> WordKey? = { null },
     /**
+     * Optional. The flagged word the reciter is reviewing in the review card; the page turns to it
+     * and rings it.
+     */
+    val reciteFocusedWord: @Composable () -> WordKey? = { null },
+    /** Optional. A tap on a flagged word while reciting asks the review card to open on it. */
+    val onReciteFocusWord: (WordKey) -> Unit = {},
+    /**
      * Optional. Called when Back is pressed and nothing on the screen is open; the host goes to its
      * home page. When null, Back is left to the host's default (leaving the app).
      */
@@ -346,17 +353,21 @@ private fun QuranContent(
         val currentShiftPx: () -> Int =
             remember(panelShiftPx, barShiftPx) { { panelShiftPx + barShiftPx.value } }
 
+        val focusedWord = if (state.isReciting) slots.reciteFocusedWord() else null
         val reciteMarks =
             if (state.isReciting) {
                 ReciteMarks(
                     states = slots.reciteWordStates(),
                     problems = slots.reciteWordProblems(),
-                    currentAyah = slots.reciteCurrentAyah(),
+                    // A mistake under review keeps its ayah in view in the lists.
+                    currentAyah =
+                        focusedWord?.let { AyahRef(it.surah, it.ayah) }
+                            ?: slots.reciteCurrentAyah(),
                 )
             } else {
                 ReciteMarks.None
             }
-        val trackedWord = if (state.isReciting) slots.reciteCurrentWord() else null
+        val trackedWord = focusedWord ?: if (state.isReciting) slots.reciteCurrentWord() else null
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
         // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
@@ -382,15 +393,14 @@ private fun QuranContent(
                 fullHeightPx = fullHeightPx,
                 reciteBarHeight = reciteBarHeight,
                 trackedWord = trackedWord,
+                focusedWord = focusedWord,
+                onFocusWord = slots.onReciteFocusWord,
                 onTrackedWordBounds = onTrackedWordBounds,
                 shiftPx = currentShiftPx,
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
                 onWordAnchor = { wordAnchor = it },
                 // The page reports the word in its own coordinates, which start one margin in.
-                onMushafWordAnchor = { rect ->
-                    wordAnchor = rect.translate(rootOrigin.x + marginPx, rootOrigin.y)
-                },
             )
         }
         val topClearancePx = topBarClearancePx(state.areBarsVisible)
@@ -609,12 +619,13 @@ private fun QuranPager(
     fullHeightPx: Int,
     reciteBarHeight: Dp?,
     trackedWord: WordKey?,
+    focusedWord: WordKey?,
+    onFocusWord: (WordKey) -> Unit,
     onTrackedWordBounds: (Rect?) -> Unit,
     shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
     onWordAnchor: (Rect?) -> Unit,
-    onMushafWordAnchor: (Rect) -> Unit,
 ) {
     val pagerState =
         rememberPagerState(initialPage = state.currentPage - 1, pageCount = { state.pageCount })
@@ -658,16 +669,17 @@ private fun QuranPager(
         }
     val onRangeDrag: (AyahRange) -> Unit = remember(viewModel) { viewModel::selectRange }
 
-    // Only a word that was recited badly has a card; the lambda is remembered so the pages do not
-    // see a new callback each time the problems change.
+    // Only a word that was recited badly reacts to a tap, and it opens the review card on that
+    // word. The lambda is remembered so the pages do not see a new callback each time the
+    // problems change.
     val currentProblems by rememberUpdatedState(reciteMarks.problems)
+    val currentFocusWord by rememberUpdatedState(onFocusWord)
     val onProblemWordTap: (WordKey, Rect) -> Unit =
-        remember(viewModel, onMushafWordAnchor) {
-            { key, bounds ->
-                val problem = currentProblems[key]
-                if (problem != null) {
-                    onMushafWordAnchor(bounds)
-                    viewModel.onProblemWordTapped(key, problem)
+        remember(viewModel) {
+            { key, _ ->
+                if (key in currentProblems) {
+                    viewModel.ignoreNextPageTap()
+                    currentFocusWord(key)
                 }
             }
         }
@@ -724,6 +736,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteMarks.states,
+                                    focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
                                     onTap = onPageTapped,
@@ -765,6 +778,7 @@ private fun QuranPager(
                         wordStates = reciteMarks.states,
                         isReciting = state.isReciting,
                         recitedAyah = reciteMarks.currentAyah,
+                        focusedWord = focusedWord,
                         selection = state.selectedRange,
                         playingAyah = state.playingAyah,
                         playingWordPosition = playingWord,
@@ -779,8 +793,12 @@ private fun QuranPager(
                             viewModel.selectAyah(ayah)
                         },
                         onWordTap = { ayah, word, bounds ->
-                            onWordAnchor(bounds)
-                            viewModel.onWordTapped(ayah, word, reciteMarks.problems[word.key])
+                            if (word.key in reciteMarks.problems) {
+                                onFocusWord(word.key)
+                            } else {
+                                onWordAnchor(bounds)
+                                viewModel.onWordTapped(ayah, word)
+                            }
                         },
                         onUserScrolled = viewModel::onPagerDragged,
                     ),

@@ -142,6 +142,9 @@ class AwnServices(private val application: Application) {
             gradeSink = { ayah, grade -> learn.progress.gradeAyah(ayah, grade.toFsrsRating()) },
             revisionQueue = RevisionQueue { learn.progress.dueAyahs() },
             onOpenAyah = { ayah -> openQuranAt(ayah) },
+            hasWordTimings = { reciterId, ayah ->
+                coreData.reciters.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
+            },
         )
 
     /**

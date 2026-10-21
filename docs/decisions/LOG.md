@@ -135,3 +135,4 @@
 2026-10-21 | Recite lists pad by the measured bar height and add a tail space | last ayahs stayed under the bar and never scrolled (read.md)
 2026-10-21 | Mushaf page slides up to keep the recited word above the recite bar | bar covered the last lines while reciting (read.md)
 2026-10-21 | Review is a non-modal card; ReciteController.focusedWord drives page, ring and Listen | modal sheet hid the page and ignored which mistake was open (recite.md)
+2026-10-21 | Tap on a flagged word focuses it in the review card instead of opening the plain word card | the plain card gave no way to review (read.md)

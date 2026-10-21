@@ -84,6 +84,8 @@ internal class ListPageEnvironment(
      * The ayah of the word the reciter is on; the list keeps it in view. Null when not reciting.
      */
     val recitedAyah: AyahRef? = null,
+    /** The flagged word under review, drawn with a ring. */
+    val focusedWord: WordKey? = null,
     val selection: AyahRange?,
     val playingAyah: AyahRef?,
     /** A State, so a word tick is read only by the block that holds the playing ayah. */
