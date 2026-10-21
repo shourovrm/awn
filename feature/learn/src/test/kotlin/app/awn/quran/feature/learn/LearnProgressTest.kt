@@ -5,9 +5,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsState
 import app.awn.quran.feature.learn.data.LearnDatabase
-import app.awn.quran.feature.learn.fsrs.FsrsRating
-import app.awn.quran.feature.learn.fsrs.FsrsState
 import app.awn.quran.feature.learn.progress.LearnClock
 import app.awn.quran.feature.learn.progress.LearnProgress
 import app.awn.quran.feature.learn.progress.LearnSettings

@@ -1,8 +1,5 @@
-package app.awn.quran.feature.learn
+package app.awn.quran.core.data.fsrs
 
-import app.awn.quran.feature.learn.fsrs.FsrsCard
-import app.awn.quran.feature.learn.fsrs.FsrsRating
-import app.awn.quran.feature.learn.fsrs.FsrsScheduler
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

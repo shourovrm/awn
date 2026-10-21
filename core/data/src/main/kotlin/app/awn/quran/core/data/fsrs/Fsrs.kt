@@ -2,7 +2,7 @@
 // constants of the reference formulas; naming each one would hide the match with py-fsrs.
 @file:Suppress("MagicNumber")
 
-package app.awn.quran.feature.learn.fsrs
+package app.awn.quran.core.data.fsrs
 
 import kotlin.math.E
 import kotlin.math.max

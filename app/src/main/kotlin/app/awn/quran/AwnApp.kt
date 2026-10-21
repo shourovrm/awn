@@ -367,6 +367,7 @@ private fun QuranRoute(
         }
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
+    val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()
     // The audio bar maps a page to its ayahs in the print the reader shows.
     LaunchedEffect(services) {
         services.readDependencies.settingsStore.settings
@@ -398,6 +399,7 @@ private fun QuranRoute(
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
+            hifzBar = hifzBarSlot(services, isPracticing = practice != null),
         )
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {

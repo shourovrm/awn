@@ -8,6 +8,7 @@
 - docs/decisions/player.md: audio player, downloads and the Listen screens.
 - docs/decisions/recite.md: Recite screen, session and review sheet.
 - docs/decisions/learn.md: progress, FSRS, lessons and snippets.
+- docs/decisions/hifz.md: Hifz tab, methods, daily assignment, page records, practice bar.
 - docs/decisions/tracker.md: alignment tracker, thresholds and measurements.
 - docs/decisions/ops.md: manual machine and release steps with dates and commands.
 - docs/decisions/LOG.md: one line per decision, newest last (`tail -20`).

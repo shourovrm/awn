@@ -18,14 +18,19 @@ import app.awn.quran.services.AwnServices
  * to load.
  */
 @Composable
-internal fun ReciteBarOrDownload(services: AwnServices, onExit: () -> Unit) {
+internal fun ReciteBarOrDownload(
+    services: AwnServices,
+    onExit: () -> Unit,
+    // The Hifz practice bar passes itself here: it needs the same speech files and the same card.
+    bar: @Composable () -> Unit = { ReciteBar(services.recite, onExit) },
+) {
     val modelState by services.speechModel.state.collectAsStateWithLifecycle()
     val isInstalled = modelState is SpeechModelState.Installed
     LaunchedEffect(isInstalled) {
         if (isInstalled) services.speechPreparation.prepare()
     }
     if (isInstalled) {
-        ReciteBar(services.recite, onExit)
+        bar()
     } else {
         ReciteDownloadOffer(services, modelState, onExit)
     }

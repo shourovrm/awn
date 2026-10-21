@@ -173,6 +173,7 @@ dependencies {
     implementation(project(":feature:listen"))
     implementation(project(":feature:recite"))
     implementation(project(":feature:learn"))
+    implementation(project(":feature:hifz"))
     implementation(project(":tracker"))
 
     implementation(libs.androidx.appcompat)

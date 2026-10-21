@@ -5,9 +5,11 @@ import app.awn.quran.AppPreferences
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
+import app.awn.quran.feature.hifz.HifzServices
+import app.awn.quran.feature.hifz.PracticeRequest
 import app.awn.quran.feature.learn.LearnServices
-import app.awn.quran.feature.learn.fsrs.FsrsRating
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
@@ -32,7 +34,9 @@ import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 
 /**
@@ -150,6 +154,25 @@ class AwnServices(private val application: Application) {
                 coreData.reciters.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
             },
         )
+
+    /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
+    val hifz =
+        HifzServices(
+            application,
+            coreData.quranText,
+            readDependencies.settingsStore.settings.map { it.script }.distinctUntilChanged(),
+            applicationScope,
+        )
+
+    /**
+     * Opens the Quran screen at the first ayah of [request] with the words hidden and recite mode
+     * on. The Hifz tab calls it after the practice is stored in `hifz.controller`.
+     */
+    fun startHifzPractice(request: PracticeRequest) {
+        recite.setHideWords(true)
+        openQuranAt(request.firstAyah)
+        recite.reciteFrom(request.firstAyah)
+    }
 
     /**
      * Opens the Quran screen at an ayah. The navigation host sets it once it exists; revision uses

@@ -150,3 +150,8 @@
 2026-10-21 | Surah meaning shows by default; Bangla from the pack, else English from surah_meanings_en | switch kept in Settings, default on
 2026-10-21 | Juz rail maps the finger height to 1..30 and prints 7 landmarks | 30 numbers do not fit small screens
 2026-10-21 | Learn tab reuses LearnScreen with a barActions slot for Settings | the Learn agent replaces it later
+2026-10-21 | FSRS port moved from :feature:learn to :core:data | Hifz needs it too, two real callers (learn.md)
+2026-10-21 | Hifz methods and daily assignment are pure Kotlin; no overdue carry-over, revision capped per day | piled-up revision makes users quit (hifz.md)
+2026-10-21 | Hifz pages follow the reader's print (Madani 1421 or 1405); records remap on a print change | a hafiz knows page images (hifz.md)
+2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
+2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
