@@ -118,3 +118,4 @@
 2026-10-21 | Language screen shows once before the notice; accepted notice means skip | upgrading users keep their flow; see architecture.md
 2026-10-21 | Line view scrolls to the recited ayah | live recitation moved below the screen, so its fills were never seen (read.md)
 2026-10-21 | Speech model moved to a :speech process | in-process PSS stayed +54 MB after release; separate process returns to baseline (recite.md)
+2026-10-21 | Font lookups reload on key change | tajweed list words stayed black after switching to night (read.md)
