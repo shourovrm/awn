@@ -131,3 +131,4 @@
 2026-10-21 | Quantum Fatihah 6 ends at the first comma; the rest opens 7 | their 5-6 held the start of Hafs 7 (ops.md)
 2026-10-21 | Unmeasurable Mushaf page falls back to Hafs text (exception, NaN, 10 s) | page 92 stayed blank on the phone; no JVM repro (read.md)
 2026-10-21 | Quantum shows the translation only: square-bracket notes removed, [সেজদা] kept | maintainer's choice (ops.md)
+2026-10-21 | Back on an idle Quran screen goes to the index; index is stack bottom | the app opened on Quran, so Back left the app (architecture.md)
