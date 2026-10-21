@@ -143,3 +143,4 @@
 2026-10-21 | Word transliteration is the pack en_transliteration_words, not a quran.sqlite column | the column was content (packs.md)
 2026-10-21 | Speech model downloads from models-v1 (SHA-256, atomic rename); recite shows a card first | sherpa loads by path (data.md)
 2026-10-21 | New installs tick no translation; first launch offers en_saheeh+wbw_en or bn_zakaria+wbw_bn | nothing ships (read.md)
+2026-10-21 | bn_zakaria stays the Bangla starter download despite unstated terms | maintainer judges it usable (packs.md)
