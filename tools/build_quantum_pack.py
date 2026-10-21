@@ -55,9 +55,15 @@ def fetch_surah(number):
         return json.load(response)["results"]
 
 
+def repair_known_typos(text):
+    """Fix the publisher's keyboard slip "া" + "ে" (visible in 106:1, "কােরাইশদের"), which is never valid
+    Bangla spelling; the intended letter is the single vowel sign "ো"."""
+    return text.replace("\u09be\u09c7", "\u09cb")
+
+
 def clean(html_text):
     text = html.unescape(re.sub(r"<[^>]+>", " ", html_text or ""))
-    return re.sub(r"\s+", " ", text).strip()
+    return repair_known_typos(re.sub(r"\s+", " ", text).strip())
 
 
 def split_block(text, first, last):
@@ -88,26 +94,28 @@ def split_block(text, first, last):
 
 
 # The publisher numbers Al-Fatihah without the Basmalah and splits the last Hafs ayah in two
-# (their 1 is "Alhamdulillah", their "5-6" and 7 together are Hafs 6 and 7). Awn keys every pack
-# by the Hafs numbering, so their surah 1 is moved: Hafs 2-5 take their 1-4, Hafs 6-7 share
-# their "5-6" followed by their 7. Their site has no Basmalah line for Al-Fatihah; Hafs 1:1 uses
-# their own rendering of the same words from 27:30 ("দয়াময় মেহেরবান আল্লাহর নামে।").
-FATIHA_BASMALAH = "দয়াময় মেহেরবান আল্লাহর নামে।"
+# (their 1 is "Alhamdulillah", their "5-6" and 7 are the sentences the app shows for Hafs 6 and 7).
+# Awn keys every pack by the Hafs numbering, so their surah 1 is moved: Hafs 2-5 take their 1-4,
+# Hafs 6 takes their "5-6" sentence and Hafs 7 takes their 7. Their site shows the Basmalah above every
+# surah except At-Tawbah from one shared template line, not from the API: this exact wording is the
+# <p class="banglaStart"> of https://alquran.org.bd/static/js/views/includes/surah-detail-tpl-bn.html
+# (hidden only when the surah is 9). The template has no closing danda; one is added to match every
+# other row. The template spells the letter yo with the single code point U+09DF, like the rest of the pack.
+FATIHA_BASMALAH = "দয়াময় মেহেরবান আল্লাহর নামে।"
 
 
 def fatiha_in_hafs_numbering(publisher_rows):
     """Maps {ayah: (from, to, text)} in the publisher's Al-Fatihah numbering to Hafs numbering."""
     if publisher_rows.get(5, (0, 0, ""))[:2] != (5, 6) or publisher_rows.get(7, (0, 0, ""))[:2] != (7, 7):
         raise ValueError("Al-Fatihah no longer has the publisher's 5-6 and 7 blocks; review the mapping")
-    closing = publisher_rows[5][2] + " " + publisher_rows[7][2]
     return {
         1: (1, 1, FATIHA_BASMALAH),
         2: (2, 2, publisher_rows[1][2]),
         3: (3, 3, publisher_rows[2][2]),
         4: (4, 4, publisher_rows[3][2]),
         5: (5, 5, publisher_rows[4][2]),
-        6: (6, 7, closing),
-        7: (6, 7, closing),
+        6: (6, 6, publisher_rows[5][2]),
+        7: (7, 7, publisher_rows[7][2]),
     }
 
 
@@ -155,6 +163,7 @@ def add_pack_info(existing_path, output_path):
     source.close()
     if is_publisher_fatiha(rows):
         rows = with_fatiha_in_hafs_numbering(rows)
+    rows = [(surah, ayah, start, end, repair_known_typos(text)) for surah, ayah, start, end, text in rows]
     connection = sqlite3.connect(output_path)
     create_pack_tables(connection)
     connection.executemany("INSERT INTO translation VALUES (?, ?, ?, ?, ?)", rows)

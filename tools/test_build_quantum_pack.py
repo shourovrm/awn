@@ -33,9 +33,20 @@ class FatihaNumberingTest(unittest.TestCase):
         self.assertEqual("praise", self.hafs()[(1, 2)][2])
         self.assertEqual("worship", self.hafs()[(1, 5)][2])
 
-    def test_the_last_two_ayahs_share_one_passage(self):
-        self.assertEqual((6, 7, "guide protect"), self.hafs()[(1, 6)])
-        self.assertEqual((6, 7, "guide protect"), self.hafs()[(1, 7)])
+    def test_the_last_two_ayahs_each_have_their_own_row(self):
+        self.assertEqual((6, 6, "guide"), self.hafs()[(1, 6)])
+        self.assertEqual((7, 7, "protect"), self.hafs()[(1, 7)])
+
+    def test_the_basmalah_is_the_site_template_wording(self):
+        self.assertEqual(
+            "দ\u09dfা" + "ম\u09df মেহেরবান আল্লাহর নামে।", build_quantum_pack.FATIHA_BASMALAH
+        )
+        self.assertIn("\u09df", build_quantum_pack.FATIHA_BASMALAH)
+        self.assertNotIn("\u09bc", build_quantum_pack.FATIHA_BASMALAH)
+
+    def test_the_vowel_slip_in_surah_106_is_repaired(self):
+        self.assertEqual("কোরাইশ", build_quantum_pack.repair_known_typos("কা\u09c7রাইশ"))
+        self.assertEqual("কোরআন", build_quantum_pack.repair_known_typos("কোরআন"))
 
     def test_other_surahs_are_unchanged(self):
         self.assertEqual((1, 1, "alif"), self.hafs()[(2, 1)])
