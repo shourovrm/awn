@@ -145,14 +145,14 @@ private fun WordCell(
     }
     val tapModifier =
         if (settings.showWordByWord) {
-            meaningCellTaps(
+            Modifier.meaningCellTaps(
                 stringResource(R.string.word_meaning_action),
                 word,
                 tapped,
                 onAyahLongPress,
             )
         } else {
-            plainCellTaps(state, word, tapped, onAyahLongPress)
+            Modifier.plainCellTaps(state, word, tapped, onAyahLongPress)
         }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -177,37 +177,41 @@ private fun WordCell(
 }
 
 /** A word-by-word cell is a touch target of its own: a tap opens the word card. */
-private fun meaningCellTaps(
+private fun Modifier.meaningCellTaps(
     meaningLabel: String,
     word: AyahWord,
     onTap: () -> Unit,
     onAyahLongPress: () -> Unit,
 ): Modifier =
-    Modifier.heightIn(min = AwnSpacing.touchTarget)
+    heightIn(min = AwnSpacing.touchTarget)
         .semantics(mergeDescendants = true) {
             onClick(label = meaningLabel) {
                 onTap()
                 true
             }
         }
-        .then(wordTaps(word, onTap, onAyahLongPress))
+        .wordTaps(word, onTap, onAyahLongPress)
 
 /**
  * Plain cells belong to the whole ayah, except a word recited badly: its tap opens the card that
  * says what went wrong.
  */
-private fun plainCellTaps(
+private fun Modifier.plainCellTaps(
     state: WordState,
     word: AyahWord,
     onTap: () -> Unit,
     onAyahLongPress: () -> Unit,
 ): Modifier {
     val isFlagged = state == WordState.Wrong || state == WordState.Tentative
-    return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else Modifier
+    return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else this
 }
 
-private fun wordTaps(word: AyahWord, onTap: () -> Unit, onAyahLongPress: () -> Unit): Modifier =
-    Modifier.pointerInput(word.key) {
+private fun Modifier.wordTaps(
+    word: AyahWord,
+    onTap: () -> Unit,
+    onAyahLongPress: () -> Unit,
+): Modifier =
+    pointerInput(word.key) {
         detectTapGestures(onTap = { onTap() }, onLongPress = { onAyahLongPress() })
     }
 
