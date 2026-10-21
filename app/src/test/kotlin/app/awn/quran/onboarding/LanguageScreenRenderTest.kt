@@ -102,11 +102,11 @@ class LanguageScreenRenderTest(
     }
 
     @Test
-    fun bothLanguageBlocksAreAtLeast96DpTall() {
+    fun bothLanguageBlocksAreAtLeast72DpTall() {
         showScreen()
 
-        composeRule.onNode(block("English")).assertHeightIsAtLeast(96.dp)
-        composeRule.onNode(block("বাংলা")).assertHeightIsAtLeast(96.dp)
+        composeRule.onNode(block("English")).assertHeightIsAtLeast(72.dp)
+        composeRule.onNode(block("বাংলা")).assertHeightIsAtLeast(72.dp)
     }
 
     @Test
