@@ -17,8 +17,6 @@ import app.awn.quran.feature.recite.MicrophoneTrackerInput
 import app.awn.quran.feature.recite.ReciteController
 import app.awn.quran.feature.recite.ReciteSettings
 import app.awn.quran.feature.recite.RevisionQueue
-import app.awn.quran.feature.recite.SpeechFiles
-import app.awn.quran.feature.recite.SpeechPreparation
 import app.awn.quran.player.AndroidNetworkStatus
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioPlayer
@@ -122,10 +120,7 @@ class AwnServices(private val application: Application) {
     private val modelFiles =
         ModelFiles(application.assets, File(application.filesDir, MODEL_DIRECTORY))
 
-    private val speechPreparation = SpeechPreparation.fromFiles {
-        val paths = modelFiles.ensureInstalled()
-        SpeechFiles(paths.model, paths.tokens, paths.referencePhonemes)
-    }
+    private val speechPreparation = RemoteSpeech.preparation(application, modelFiles)
 
     /** Reciting on the Quran screen; the speech model loads when recite starts. */
     val recite =
