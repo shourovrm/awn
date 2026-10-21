@@ -128,3 +128,4 @@
 2026-10-21 | Quantum 1:1 uses the site's surah-header Basmalah; Fatihah 6 and 7 are separate rows | user request; audit found no other shifts (ops.md)
 2026-10-21 | Unit tests run with a 2-thread Default pool and a 10-minute task timeout | CI hung on blocked Default threads (recite.md)
 2026-10-21 | Quantum Fatihah 6 ends at the first comma; the rest opens 7 | their 5-6 held the start of Hafs 7 (ops.md)
+2026-10-21 | Quantum shows the translation only: square-bracket notes removed, [সেজদা] kept | maintainer's choice (ops.md)
