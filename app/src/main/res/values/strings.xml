@@ -62,6 +62,14 @@
   <string name="appearance_night_colours">Night colours</string>
   <string name="appearance_follow_device">Follow phone theme</string>
   <string name="appearance_language">Language</string>
+  <!-- Each language is named in its own script wherever it is offered, so these are not per-language resources. -->
+  <string name="language_own_english" translatable="false">English</string>
+  <string name="language_own_bangla" translatable="false">বাংলা</string>
+  <string name="language_name_english">English</string>
+  <string name="language_name_bangla">Bangla</string>
+  <string name="language_title">Choose your language</string>
+  <string name="language_hint">You can change this later in Settings.</string>
+  <string name="language_continue">Continue</string>
   <string name="appearance_surah_name_meaning">Surah name meaning</string>
   <string name="colours_awn">Awn</string>
   <string name="colours_light">Light</string>

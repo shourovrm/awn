@@ -1,11 +1,5 @@
 package app.awn.quran.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
@@ -17,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +26,7 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.DayColours
 import app.awn.quran.core.ui.theme.NightColours
+import app.awn.quran.language.AppLanguage
 import kotlinx.coroutines.launch
 
 private const val BACKUP_FILE_NAME = "awn-bookmarks.json"
@@ -43,12 +37,13 @@ private const val BACKUP_MIME_TYPE = "application/json"
 fun AppearancePage(
     colours: ColourSettings,
     showSurahNameMeaning: Boolean,
+    language: AppLanguage,
     onColoursChange: ((ColourSettings) -> ColourSettings) -> Unit,
     onShowSurahNameMeaningChange: (Boolean) -> Unit,
+    onLanguageChange: (AppLanguage) -> Unit,
     onBack: () -> Unit,
     targetRow: String? = null,
 ) {
-    val context = LocalContext.current
     SettingsPage(
         title = stringResource(R.string.settings_appearance),
         onBack = onBack,
@@ -76,11 +71,14 @@ fun AppearancePage(
             onCheckedChange = { follows -> onColoursChange { it.copy(followDevice = follows) } },
             rowKey = SettingRowKeys.APPEARANCE_FOLLOW_DEVICE,
         )
-        // The language is chosen in the system's per-app picker, which this row opens.
-        SettingsLinkRow(
+        AwnChoiceRow(
             label = stringResource(R.string.appearance_language),
-            value = LocalConfiguration.current.locales[0].let { it.getDisplayLanguage(it) },
-            onClick = { openLanguageSettings(context) },
+            options = AppLanguage.entries,
+            selected = language,
+            // Each language is named in its own script, so a user who cannot read the current
+            // language can still find theirs.
+            optionLabel = { stringResource(it.ownNameRes) },
+            onSelect = onLanguageChange,
             rowKey = SettingRowKeys.APPEARANCE_LANGUAGE,
         )
         SettingsSwitchRow(
@@ -103,26 +101,6 @@ internal fun NightColours.label(): Int =
         NightColours.Dark -> R.string.colours_dark
         NightColours.Black -> R.string.colours_black
     }
-
-/** Opens the system's per-app language picker, or the device language list before Android 13. */
-private fun openLanguageSettings(context: Context) {
-    val deviceList = Intent(Settings.ACTION_LOCALE_SETTINGS)
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        context.startActivity(deviceList)
-        return
-    }
-    val perAppPicker =
-        Intent(
-            Settings.ACTION_APP_LOCALE_SETTINGS,
-            Uri.fromParts("package", context.packageName, null),
-        )
-    try {
-        context.startActivity(perAppPicker)
-    } catch (_: ActivityNotFoundException) {
-        // A device without the per-app picker still has the language list.
-        context.startActivity(deviceList)
-    }
-}
 
 /** Export and import of bookmarks, saved ayahs and recent pages as one file. */
 @Composable

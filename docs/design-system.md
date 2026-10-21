@@ -48,6 +48,10 @@ Red #B5341F marks wrong words on light modes; #7CE29A, #F2C94C and #FF7A66 are t
 
 The page pager fills the screen; swiping right goes to the next page. Mushaf view: the printed page in the chosen print, header (surah that starts on the page, else the continuing one, at the left; juz and hizb quarter at the right), page number at the outer bottom corner; pages 1 and 2 as a centred block. Translation and Word by word views: one block per ayah under a surah band and the Basmalah. Top bar, when shown: index, two-line title (surah; page and juz), view, day/night, text size, settings, more.
 
+## First-launch flow
+
+A new installation shows three screens once, in order: the language screen, the notice, the Quran. An installation that already accepted the notice goes straight to the Quran. The language screen fills the window with binding green in Awn and Light and with the night page colour in Dark and Black, with the app mark (96dp), the title (32sp), two language blocks of at least 96dp (each language in its own script at 32sp with its name in the screen's language beneath, a 32dp ring that becomes a tick on the chosen one), a hint that it can be changed in Settings, and an ochre Continue button. The block chosen first is Bangla on a Bangla phone, else English; choosing a block rewrites the screen's own text at once, and Continue applies the language to the whole app. Settings > Appearance > Language is the same choice in an `AwnChoiceRow`.
+
 ## Layout of the index
 
 Top bar: app name, search, last page, Learn, Settings. Tabs Surahs (grouped under juz headings that are plain text with the first page at the end, no filled band; the list opens at the surah read last), Juz (8 quarters per juz with their first words and page), Bookmarks (recent pages, then bookmarks). Rows at least 48dp.

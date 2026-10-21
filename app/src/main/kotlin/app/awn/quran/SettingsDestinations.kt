@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModelProvider
@@ -28,6 +29,8 @@ import app.awn.quran.feature.read.settings.PackListPage
 import app.awn.quran.feature.read.settings.ReadingSettingsPage
 import app.awn.quran.feature.read.settings.rememberCatalogueViewModel
 import app.awn.quran.feature.recite.ReciteSettingsPage
+import app.awn.quran.language.AppCompatLanguageApplier
+import app.awn.quran.language.AppLanguage
 import app.awn.quran.services.AwnServices
 import app.awn.quran.settings.AboutPage
 import app.awn.quran.settings.AppearancePage
@@ -171,12 +174,14 @@ private fun NavGraphBuilder.appearanceAndDownloadsDestinations(
         AppearancePage(
             colours = colourSettings,
             showSurahNameMeaning = showMeaning,
+            language = AppLanguage.preselectedFor(LocalConfiguration.current.locales[0]),
             onColoursChange = { change ->
                 scope.launch { services.preferences.updateColourSettings(change) }
             },
             onShowSurahNameMeaningChange = {
                 scope.launch { services.preferences.setShowSurahNameMeaning(it) }
             },
+            onLanguageChange = AppCompatLanguageApplier::apply,
             onBack = goBack,
             targetRow = entry.targetRow(),
         )

@@ -61,9 +61,10 @@ object Awn {
 fun AwnTheme(
     field: AwnField = AwnField.Paper,
     barBehindStatusBar: Boolean = false,
+    // A screen with its own palette (the language screen) passes the colours directly.
+    colors: AwnFieldColors = awnFieldColors(field, LocalColourMode.current),
     content: @Composable () -> Unit,
 ) {
-    val colors = awnFieldColors(field, LocalColourMode.current)
     val materialColors =
         if (colors.isLight) {
             lightColorScheme(

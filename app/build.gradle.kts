@@ -202,6 +202,7 @@ dependencies {
     implementation(project(":feature:learn"))
     implementation(project(":tracker"))
 
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.navigationCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)
