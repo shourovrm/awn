@@ -25,7 +25,7 @@
 ## Open items
 - Nothing from awn-data-v2 is released: the IndoPak font forbids distribution without written notice from quranwbw.com, 22 packs have no publication permission, and the app's DATA_RELEASE_URL points at data-v1 (tools/write_release_plan.py writes the plan).
 - English word-by-word source repeats a phrase on each of its words in surahs 9 to 58 (1,225 rows); `PhraseRepeats` empties the repeats at read time and keeps 4:24:16. The pack is unchanged; rebuilding it with a phrase flag would be cleaner.
-- en_asad (Muhammad Asad, tools/build_asad_pack.py, text from github.com/Kristories/quran at a pinned commit): the maintainer ships it with permission from The Book Foundation pending; the source lost some dashes (2:2 "about it is"); 7:1 is corrected.
+- en_asad (Muhammad Asad, tools/build_asad_pack.py, alquran.cloud edition en.asad, whose terms allow republishing translations with the translator named): 22 source errors fixed in CORRECTIONS; asking The Book Foundation (info@thebook.org) later is optional, like the other translations.
 - No instrumented test for the asset copy on a device.
 - Downloads use any network; there is no Wi-Fi-only switch for packs yet (audio has one).
 - The 3x space estimate for font zips is 29 MB short for v4-tajweed; the unpack step then fails with NoSpace.

@@ -78,7 +78,16 @@ English: This app is an artificial-intelligence model that may make mistakes. It
 - QuranicAudio and EveryAyah, reciter audio (used from milestone 3).
 - Google, Jetpack Compose, Room, DataStore, Navigation and Media3 (Apache-2.0).
 
-Each later data source is credited in the app's About screen and in the pack manifests.
+### Translations
+
+- Saheeh International, English, via Quran.com / Quran Foundation API: https://quran.com
+- M.A.S. Abdel Haleem, English, via Quran.com / Quran Foundation API: https://quran.com
+- Muhammad Asad, *The Message of the Qur'an*, English, translation only (no footnotes), via Al Quran Cloud (Islamic Network), edition en.asad: https://alquran.cloud
+- Dr. Abu Bakr Muhammad Zakaria, Bangla, via Quran.com / Quran Foundation API: https://quran.com
+- Quantum Foundation, Bangla (meaning-based): https://alquran.org.bd
+- English transliteration and word-by-word meanings in English and Bangla, via Quran.com / Quran Foundation API: https://quran.com
+
+Each data source is also credited in the app's About screen and in the pack manifests.
 
 ## Contributing
 

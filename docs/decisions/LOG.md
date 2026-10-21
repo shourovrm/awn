@@ -100,3 +100,4 @@
 2026-10-21 | Screens slide 200 ms; manifest opts out of predictive back | back-to-home animation shrank the window; Nav default was 700 ms
 2026-10-21 | Index juz headers are plain text, no filled band | the bands were heavy; the list opens at the last-read surah with the list state hoisted
 2026-10-21 | Ship Asad from the Kristories/quran GitHub file, permission pending | maintainer's choice; data.md open items
+2026-10-21 | Asad pack source is alquran.cloud en.asad, not the GitHub copy | its terms allow republishing translations with attribution; data.md

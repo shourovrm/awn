@@ -205,9 +205,9 @@ def build_translations_manifest(allowed_publishable):
             asad_path, id="en_asad", kind="ayah", language="en", language_name="English",
             content="translation", name="Muhammad Asad, The Message of the Qur'an",
             quran_com_resource_id=None,
-            credit="Muhammad Asad (text from github.com/Kristories/quran); rights holder The Book "
-                   "Foundation; redistribution permission is pending",
-            source_url="https://github.com/Kristories/quran", terms_file=None))
+            credit="Muhammad Asad, via Al Quran Cloud (Islamic Network), edition en.asad; "
+                   "rights holder The Book Foundation",
+            source_url="https://api.alquran.cloud/v1/quran/en.asad", terms_file=None))
     write_manifest("translations.json", "packs", entries)
 
 

@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """Build the Muhammad Asad English translation pack ("The Message of the Qur'an").
 
-Source: the public GitHub repository Kristories/quran, file fixtures/en/asad/source.json,
-pinned to one commit so every build reads the same bytes. The file is a list of 114 surahs,
-each with "verses": [{"number": n, "translation": text}]. It holds the translation only,
-without Asad's footnotes.
+Source: the alquran.cloud API, edition en.asad (GET /v1/quran/en.asad), part of the Islamic
+Network. Its terms (alquran.cloud/terms-and-conditions, section IV, read 2026-10-21) say
+translations "are contributed by their rights-holders or sourced from public-domain editions"
+and ask that a republished translation names its translator. The edition holds the
+translation only, without Asad's footnotes. The rights holder of the book is The Book
+Foundation; see docs/decisions/data.md.
 
-The text was compared with a second independent copy (alquran.cloud edition en.asad) on
-2026-10-21: all 6,236 ayahs match after normalising quotes and dashes, except 7:1, where the
-GitHub file drops the last of the opening letters. CORRECTIONS restores it; the build fails if
-the source no longer has the expected wrong text, so a fixed upstream file is noticed.
+The API text was reviewed on 2026-10-21 (spell check, length check against the Arabic, and a
+comparison with a second copy). CORRECTIONS fixes the errors found: typos from the source's
+digitisation, two places where a footnote was pasted into the ayah (18:12, 51:52), and words
+split by a stray hyphen. Every correction names the exact wrong text, and the build fails if
+the source no longer contains it, so a fixed upstream text is noticed. Soft hyphens (U+00AD,
+hyphenation hints left in 368 ayahs) are removed.
 
-Rights: the repository is MIT licensed, but that licence covers the repository, not Asad's
-text; the rights holder is The Book Foundation. The maintainer chose to ship it with
-permission pending (docs/decisions/data.md).
+SOURCE_TEXT_SHA256 pins the 6,236 source texts (joined by newlines, before any change), so a
+changed edition stops the build instead of silently changing the pack.
 
 Output: a SQLite file with table translation(surah, ayah, ayah_from, ayah_to, text) and table
 pack_info(key, value), the shape of tools/build_quantum_pack.py.
@@ -28,11 +31,8 @@ import sqlite3
 import sys
 import urllib.request
 
-SOURCE_COMMIT = "3a796d5d7f80c80b83adae5b39affcec2aeb426c"
-SOURCE_URL = (
-    f"https://raw.githubusercontent.com/Kristories/quran/{SOURCE_COMMIT}/fixtures/en/asad/source.json"
-)
-SOURCE_SHA256 = "067ab21d971840b7c50128746fcbb7013de62e411f458253ba79e9999539e9db"
+SOURCE_URL = "https://api.alquran.cloud/v1/quran/en.asad"
+SOURCE_TEXT_SHA256 = "a99dd372bd52b0db6ddc6ee51022d89b746d57599e672507d88bd303aaf0f51a"
 DEFAULT_OUTPUT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "awn-data", "translations", "en_asad.sqlite"
 )
@@ -43,19 +43,50 @@ VERSES_PER_SURAH = [
     12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26,
     30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6,
 ]
-# (surah, ayah): (text in the source, corrected text)
+SOFT_HYPHEN = "­"
+LEAKED_FOOTNOTE_18_12 = (
+    "Christianity was no longer persecuted and had even become the official religion of the "
+    "Roman Empire. The ancient coin (dating from the reign of Decius) with which the young man "
+    "wanted to pay for his purchases immediately aroused curiosity; people began to question the "
+    "stranger, and the story of the Men of the Cave and their miraculous sleep came to light. "
+)
+# (surah, ayah): [(wrong text in the source, right text), ...]
 CORRECTIONS = {
-    (7, 1): ("Alif. Lam. Mim.", "Alif. Lam. Mim. Sad."),
+    (2, 98): [("whosover", "whosoever")],
+    (2, 102): [("Hurut and Marut", "Harut and Marut")],
+    (2, 214): [("para-dise", "paradise")],
+    (3, 32): [("verely", "verily")],
+    (4, 100): [("God iss indeed", "God is indeed")],
+    (5, 13): [("[re-vealed]", "[revealed]")],
+    (8, 17): [("His Own or daining", "His Own ordaining")],
+    (8, 52): [("[To them shall happen.] the like", "[To them shall happen] the like"),
+              ("messagesand so", "messages - and so")],
+    (11, 44): [("Mount Judl And", "Mount Judi. And")],
+    (18, 12): [(LEAKED_FOOTNOTE_18_12, "")],
+    (18, 64): [("footsetps", "footsteps")],
+    (18, 105): [("deseined", "destined")],
+    (20, 98): [("[and whho]", "[and who]")],
+    (21, 72): [("[Isaacs son]", "[Isaac's son]")],
+    (21, 74): [("- forr,]", "- for,]")],
+    (22, 30): [("houours", "honours")],
+    (22, 71): [("bestoweed", "bestowed")],
+    (26, 141): [("message-hearers", "message-bearers")],
+    (37, 179): [("and n time", "and in time")],
+    (51, 52): [(' [Lit., "sorcerer".]', "")],
+    (65, 8): [("callled", "called")],
+    (78, 16): [("follage", "foliage")],
+    (111, 1): [("countence", "countenance")],
 }
 
 
 def fetch_source():
     with urllib.request.urlopen(SOURCE_URL, timeout=60) as response:
-        return response.read()
+        return json.load(response)
 
 
-def rows_from_source(surahs):
-    """Turns the source list into (surah, ayah, text) rows and applies CORRECTIONS."""
+def texts_from_source(document):
+    """The 6,236 source texts in reading order, after checking the surah and ayah layout."""
+    surahs = document["data"]["surahs"]
     if len(surahs) != len(VERSES_PER_SURAH):
         raise ValueError(f"expected 114 surahs, got {len(surahs)}")
     rows = []
@@ -63,31 +94,35 @@ def rows_from_source(surahs):
         surah_number = surah_index + 1
         if surah["number"] != surah_number:
             raise ValueError(f"surah {surah['number']} found at position {surah_number}")
-        verses = surah["verses"]
-        if len(verses) != VERSES_PER_SURAH[surah_index]:
-            raise ValueError(f"surah {surah_number} has {len(verses)} ayahs, expected {VERSES_PER_SURAH[surah_index]}")
-        for verse_index, verse in enumerate(verses):
-            ayah_number = verse_index + 1
-            if verse["number"] != ayah_number:
-                raise ValueError(f"{surah_number}:{verse['number']} found at position {ayah_number}")
-            text = " ".join(verse["translation"].split())
-            if not text:
-                raise ValueError(f"{surah_number}:{ayah_number} is empty")
-            rows.append((surah_number, ayah_number, text))
-    return apply_corrections(rows)
+        ayahs = surah["ayahs"]
+        if len(ayahs) != VERSES_PER_SURAH[surah_index]:
+            raise ValueError(f"surah {surah_number} has {len(ayahs)} ayahs, expected {VERSES_PER_SURAH[surah_index]}")
+        for ayah_index, ayah in enumerate(ayahs):
+            ayah_number = ayah_index + 1
+            if ayah["numberInSurah"] != ayah_number:
+                raise ValueError(f"{surah_number}:{ayah['numberInSurah']} found at position {ayah_number}")
+            rows.append((surah_number, ayah_number, ayah["text"]))
+    return rows
 
 
-def apply_corrections(rows):
-    corrected = []
+def source_text_sha256(rows):
+    joined = "\n".join(text for _, _, text in rows)
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()
+
+
+def clean_rows(rows):
+    """Applies CORRECTIONS, removes soft hyphens and collapses whitespace."""
+    cleaned = []
     for surah, ayah, text in rows:
-        correction = CORRECTIONS.get((surah, ayah))
-        if correction is not None:
-            expected_wrong, right = correction
-            if text != expected_wrong:
-                raise ValueError(f"{surah}:{ayah} changed upstream to {text!r}; review CORRECTIONS")
-            text = right
-        corrected.append((surah, ayah, text))
-    return corrected
+        for wrong, right in CORRECTIONS.get((surah, ayah), []):
+            if wrong not in text:
+                raise ValueError(f"{surah}:{ayah} no longer contains {wrong!r}; review CORRECTIONS")
+            text = text.replace(wrong, right)
+        text = " ".join(text.replace(SOFT_HYPHEN, "").split())
+        if not text:
+            raise ValueError(f"{surah}:{ayah} is empty")
+        cleaned.append((surah, ayah, text))
+    return cleaned
 
 
 def write_pack(rows, output_path):
@@ -109,7 +144,7 @@ def write_pack(rows, output_path):
             [
                 ("format_version", "1"),
                 ("source", SOURCE_URL),
-                ("source_sha256", SOURCE_SHA256),
+                ("source_text_sha256", SOURCE_TEXT_SHA256),
                 ("author", "Muhammad Asad"),
                 ("language", "English"),
             ],
@@ -118,13 +153,13 @@ def write_pack(rows, output_path):
 
 def main():
     output_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT
-    source_bytes = fetch_source()
-    source_sha256 = hashlib.sha256(source_bytes).hexdigest()
-    if source_sha256 != SOURCE_SHA256:
-        raise ValueError(f"source sha256 {source_sha256} differs from the pinned {SOURCE_SHA256}")
-    rows = rows_from_source(json.loads(source_bytes))
-    write_pack(rows, output_path)
-    print(f"{output_path}: {len(rows)} ayahs")
+    rows = texts_from_source(fetch_source())
+    actual_sha256 = source_text_sha256(rows)
+    if actual_sha256 != SOURCE_TEXT_SHA256:
+        raise ValueError(f"source texts sha256 {actual_sha256} differs from the pinned {SOURCE_TEXT_SHA256}")
+    cleaned = clean_rows(rows)
+    write_pack(cleaned, output_path)
+    print(f"{output_path}: {len(cleaned)} ayahs")
 
 
 if __name__ == "__main__":
