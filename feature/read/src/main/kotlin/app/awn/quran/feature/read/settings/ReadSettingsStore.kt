@@ -42,6 +42,12 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             preferences[TRANSLATIONS_KEY] = updated.translations.joinToString(SEPARATOR) { it.id }
             preferences[TRANSLITERATION_KEY] = updated.showTransliteration
             preferences[WORD_BY_WORD_KEY] = updated.showWordByWord
+            // Absent means "follow the app language", so a cleared choice removes the key.
+            if (updated.wordByWordLanguage == null) {
+                preferences.remove(WORD_BY_WORD_LANGUAGE_KEY)
+            } else {
+                preferences[WORD_BY_WORD_LANGUAGE_KEY] = updated.wordByWordLanguage
+            }
             preferences[ARABIC_STEP_KEY] = updated.arabicSizeStep
             preferences[TRANSLATION_STEP_KEY] = updated.translationSizeStep
             preferences[TRANSLITERATION_STEP_KEY] = updated.transliterationSizeStep
@@ -72,6 +78,9 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
                 wordByWordLayerOf(storedViewName)
                     ?: preferences[WORD_BY_WORD_KEY]
                     ?: defaults.showWordByWord,
+            // Before the language was chosen the one flag above was the only word-by-word setting,
+            // so an absent key (follow the app language) keeps those installations as they were.
+            wordByWordLanguage = preferences[WORD_BY_WORD_LANGUAGE_KEY]?.takeIf { it.isNotBlank() },
             arabicSizeStep = steps.arabic,
             translationSizeStep = steps.translation,
             transliterationSizeStep = steps.transliteration,
@@ -166,6 +175,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
         val TRANSLATIONS_KEY = stringPreferencesKey("translations")
         val TRANSLITERATION_KEY = booleanPreferencesKey("transliteration")
         val WORD_BY_WORD_KEY = booleanPreferencesKey("word_by_word")
+        val WORD_BY_WORD_LANGUAGE_KEY = stringPreferencesKey("word_by_word_language")
         val LEGACY_TEXT_SIZE_KEY = stringPreferencesKey("text_size")
         val ARABIC_STEP_KEY = intPreferencesKey("arabic_size_step")
         val TRANSLATION_STEP_KEY = intPreferencesKey("translation_size_step")

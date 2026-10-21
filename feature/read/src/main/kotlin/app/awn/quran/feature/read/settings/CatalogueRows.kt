@@ -63,7 +63,8 @@ fun CatalogueEntryRow(
     AwnPackRow(
         title = name,
         detail = statusText(row),
-        tick = if (row.item.isInstalled) tick else PackTick.None,
+        // Absent means the list has no tick boxes, so no space is kept for one either.
+        tick = if (row.item.isInstalled || tick == PackTick.Absent) tick else PackTick.None,
         onTickChange = onTickChange,
         modifier = modifier,
         isDetailError = row.transfer is PackTransfer.Failed,
@@ -156,14 +157,23 @@ internal fun statusColour(row: CatalogueRow) =
 
 /** Says why a download failed, with the sizes when the phone is too full. */
 @Composable
-internal fun failureMessage(failure: PackTransfer.Failed): String {
+internal fun failureMessage(failure: PackTransfer.Failed): String =
+    failureMessage(failure.reason, failure.neededBytes, failure.freeBytes)
+
+/** Says why a download failed; [neededBytes] and [freeBytes] are shown when the phone is full. */
+@Composable
+internal fun failureMessage(
+    reason: PackFailureReason,
+    neededBytes: Long?,
+    freeBytes: Long?,
+): String {
     val context = LocalContext.current
-    return when (failure.reason) {
+    return when (reason) {
         PackFailureReason.NoSpace ->
             stringResource(
                 R.string.catalogue_error_no_space,
-                sizeText(context, failure.neededBytes ?: 0L),
-                sizeText(context, failure.freeBytes ?: 0L),
+                sizeText(context, neededBytes ?: 0L),
+                sizeText(context, freeBytes ?: 0L),
             )
         PackFailureReason.NoInternet -> stringResource(R.string.catalogue_error_no_internet)
         PackFailureReason.ServerError -> stringResource(R.string.catalogue_error_server)

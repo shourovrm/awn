@@ -32,7 +32,6 @@ class GlyphWordPageTest {
             textUthmani = "w$position",
             codeV1 = null,
             codeV2 = "g$position",
-            transliteration = null,
         )
 
     private fun layoutOf(page: Int, words: List<Word>) =

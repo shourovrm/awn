@@ -120,4 +120,27 @@
 2026-10-21 | Page follows the next expected word, animated for one page, jump for more | audio-style jump hid the recitation (read.md)
 2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
+2026-10-21 | Quran-Lab approved our use of Zipformer P-Arabic v3 from Hugging Face | maintainer asked the authors; tracker.md
+2026-10-21 | Speech model moved to a :speech process | in-process PSS stayed +54 MB after release; separate process returns to baseline (recite.md)
+2026-10-21 | Font lookups reload on key change | tajweed list words stayed black after switching to night (read.md)
+2026-10-21 | Start after Listen continues the recitation | user: listening must not throw away the marks (recite.md)
+2026-10-21 | Quantum Al-Fatihah moved to Hafs numbering; 1:1 uses their Basmalah from 27:30 | 1:1 showed 1:2's meaning (ops.md)
+2026-10-21 | Quantum 1:1 uses the site's surah-header Basmalah; Fatihah 6 and 7 are separate rows | user request; audit found no other shifts (ops.md)
+2026-10-21 | Unit tests run with a 2-thread Default pool and a 10-minute task timeout | CI hung on blocked Default threads (recite.md)
+2026-10-21 | One-time print card replaces the page-load font prompt; Go to page is a floating card; language screen smaller; Language row on the hub | user decisions (read.md)
+2026-10-21 | Quantum Fatihah 6 ends at the first comma; the rest opens 7 | their 5-6 held the start of Hafs 7 (ops.md)
+2026-10-21 | Unmeasurable Mushaf page falls back to Hafs text (exception, NaN, 10 s) | page 92 stayed blank on the phone; no JVM repro (read.md)
+2026-10-21 | Quantum shows the translation only: square-bracket notes removed, [সেজদা] kept | maintainer's choice (ops.md)
+2026-10-21 | Back on an idle Quran screen goes to the index; index is stack bottom | the app opened on Quran, so Back left the app (architecture.md)
+2026-10-21 | Recite lists pad by the measured bar height and add a tail space | last ayahs stayed under the bar and never scrolled (read.md)
+2026-10-21 | Mushaf page slides up to keep the recited word above the recite bar | bar covered the last lines while reciting (read.md)
+2026-10-21 | Review is a non-modal card; ReciteController.focusedWord drives page, ring and Listen | modal sheet hid the page and ignored which mistake was open (recite.md)
+2026-10-21 | Tap on a flagged word focuses it in the review card instead of opening the plain word card | the plain card gave no way to review (read.md)
+2026-10-21 | Word-by-word language is its own setting (null = app language), radio list, English fallback | one flag ticked every row and read the device locale
+2026-10-21 | Word-timing packs are a Word audio download group; ayah-level timings (Basfar) are not offered | nothing installed timings, so word play hid
+2026-10-21 | Word audio downloads by itself for the chosen reciter on unmetered networks; the card offers it otherwise | same rule as audio, 3 MB each
+2026-10-21 | Only Quran text, font and manifests ship in the APK; all other content downloads | user decision (data.md)
+2026-10-21 | Word transliteration is the pack en_transliteration_words, not a quran.sqlite column | the column was content (packs.md)
+2026-10-21 | Speech model downloads from models-v1 (SHA-256, atomic rename); recite shows a card first | sherpa loads by path (data.md)
+2026-10-21 | New installs tick no translation; first launch offers en_saheeh+wbw_en or bn_zakaria+wbw_bn | nothing ships (read.md)
 2026-10-21 | FSRS port moved from :feature:learn to :core:data | Hifz needs it too, two real callers (learn.md)

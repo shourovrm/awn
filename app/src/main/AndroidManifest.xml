@@ -42,6 +42,15 @@
         android:value="true" />
     </service>
 
+    <!--
+      The speech model runs in a process of its own, which ends when recite has finished with it,
+      so the memory the model used goes back to the system (see SpeechService).
+    -->
+    <service
+      android:name=".services.SpeechService"
+      android:exported="false"
+      android:process=":speech" />
+
     <!-- AwnApplication starts WorkManager itself, after the services it needs exist. -->
     <provider
       android:name="androidx.startup.InitializationProvider"

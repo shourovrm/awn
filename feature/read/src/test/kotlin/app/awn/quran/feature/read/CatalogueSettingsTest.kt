@@ -12,7 +12,6 @@ import app.awn.quran.core.data.packs.PackKind
 import app.awn.quran.feature.read.settings.missingTranslations
 import app.awn.quran.feature.read.settings.orderedForDisplay
 import app.awn.quran.feature.read.settings.rowToOffer
-import app.awn.quran.feature.read.settings.wordLanguageOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -147,12 +146,5 @@ class CatalogueSettingsTest {
         val ordered = orderedForDisplay(rows, listOf(TranslationId("c"), TranslationId("a")))
 
         assertEquals(listOf("c", "a", "b"), ordered.map { it.item.id })
-    }
-
-    @Test
-    fun wordMeaningsFollowBanglaAndOtherwiseEnglish() {
-        assertEquals("bn", wordLanguageOf("bn"))
-        assertEquals("en", wordLanguageOf("ar"))
-        assertEquals("en", wordLanguageOf("en"))
     }
 }

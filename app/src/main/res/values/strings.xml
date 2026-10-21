@@ -52,6 +52,7 @@
   <string name="downloads_translations">Translations</string>
   <string name="downloads_word_by_word">Word by word</string>
   <string name="downloads_transliteration">Transliteration</string>
+  <string name="downloads_word_audio">Word audio</string>
   <string name="downloads_reciters">Reciters</string>
   <string name="settings_recite">Recite and memorise</string>
   <string name="settings_appearance">Appearance</string>

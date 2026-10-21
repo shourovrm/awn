@@ -145,4 +145,4 @@ class ReadOnlyDatabases {
  * its cache, so the plain free figure is the right one here.
  */
 @SuppressLint("UsableSpace")
-private fun usableBytesOnDisk(directory: File): Long = directory.usableSpace
+internal fun usableBytesOnDisk(directory: File): Long = directory.usableSpace

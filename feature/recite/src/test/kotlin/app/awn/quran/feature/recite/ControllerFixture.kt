@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
@@ -46,6 +47,8 @@ class ControllerFixture(
     microphone: (() -> TrackerInput)? = null,
     /** Replaces the test dispatcher, for an input that blocks its thread. */
     recognitionThread: CoroutineDispatcher? = null,
+    /** Whether the chosen reciter has word timings, so Listen can play a single word. */
+    hasWordTimings: Boolean = false,
 ) {
     val first = WordKey(1, 1, 1)
     val second = WordKey(1, 1, 2)
@@ -102,7 +105,14 @@ class ControllerFixture(
 
     val controller: ReciteController
 
+    // Everything the fixture started that outlives a test body: a blocked recogniser thread, a load
+    // that waits for preparation, and the controller's coroutines.
+    private val controllerJob = Job()
+    private val openedInputs = mutableListOf<TrackerInput>()
+    private val ownedRecognitionThread = recognitionThread
+
     init {
+        synchronized(created) { created += this }
         val dispatcher = UnconfinedTestDispatcher(TestCoroutineScheduler())
         val text =
             FakeQuranTextRepository(
@@ -128,14 +138,30 @@ class ControllerFixture(
                 settings = settings,
                 audioPlayer = audioPlayer,
                 speech = speech,
-                inputFactory = microphone ?: { ScriptedInput(inputBlocks) },
-                scope = CoroutineScope(dispatcher),
+                inputFactory = {
+                    val input = microphone?.invoke() ?: ScriptedInput(inputBlocks)
+                    synchronized(openedInputs) { openedInputs += input }
+                    input
+                },
+                scope = CoroutineScope(dispatcher + controllerJob),
                 trackerFactory = trackerFactory ?: fakeTrackers ?: DefaultTrackerFactory,
                 recognitionDispatcher = recognitionThread ?: dispatcher,
                 gradeSink = { ayah, grade -> graded += ayah to grade },
                 revisionQueue = { dueAyahs.toList() },
                 onOpenAyah = { opened += it },
+                hasWordTimings = { _, _ -> hasWordTimings },
             )
+    }
+
+    /**
+     * Ends what the test left running. A load that still waits for preparation blocks one
+     * Dispatchers.Default thread for good, and CI has only two of them, so later tests would hang.
+     */
+    fun close() {
+        synchronized(openedInputs) { openedInputs.forEach { (it as? AutoCloseable)?.close() } }
+        finishPreparing()
+        controllerJob.cancel()
+        (ownedRecognitionThread as? AutoCloseable)?.close()
     }
 
     /** Runs the preparation work that was held back. */
@@ -150,7 +176,7 @@ class ControllerFixture(
 
     fun confirmed(index: Int) = TrackerEvent.WordChanged(index, WordState.Confirmed)
 
-    private fun word(key: WordKey, text: String) = Word(key, text, null, null, null)
+    private fun word(key: WordKey, text: String) = Word(key, text, null, null)
 
     private fun referenceWords(): ReferencePhonemes =
         FakeReferencePhonemes(
@@ -164,4 +190,19 @@ class ControllerFixture(
 
     private fun reference(key: WordKey) =
         ReferenceWord(WordKeyLike(key.surah, key.ayah, key.wordPosition), listOf("a"))
+
+    companion object {
+        private val created = mutableListOf<ControllerFixture>()
+
+        /** Closes every fixture made since the last call. */
+        fun closeAll() {
+            val toClose = synchronized(created) { created.toList().also { created.clear() } }
+            toClose.forEach { it.close() }
+        }
+    }
+}
+
+/** Closes every [ControllerFixture] a test made, even when the test fails. */
+class ControllerFixtures : org.junit.rules.ExternalResource() {
+    override fun after() = ControllerFixture.closeAll()
 }

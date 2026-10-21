@@ -27,6 +27,7 @@ class ReciteBarPreparingTest {
 
     @get:Rule val composeRule = createComposeRule()
     @get:Rule val folder = TemporaryFolder()
+    @get:Rule val fixtures = ControllerFixtures()
 
     private lateinit var fixture: ControllerFixture
     private var exitCount = 0

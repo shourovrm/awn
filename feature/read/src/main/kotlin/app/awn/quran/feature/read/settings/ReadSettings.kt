@@ -38,8 +38,16 @@ data class ReadSettings(
     val showArabic: Boolean = true,
     /** Enabled translations, in the order they are shown; each one is a ticked layer. */
     val translations: List<TranslationId> = DEFAULT_TRANSLATIONS,
-    val showTransliteration: Boolean = true,
-    val showWordByWord: Boolean = true,
+    val showTransliteration: Boolean = false,
+    /**
+     * Layer tickbox: the meaning under each word. Which language it is in is [wordByWordLanguage].
+     */
+    val showWordByWord: Boolean = false,
+    /**
+     * The language of the word-by-word meanings, such as "en" or "bn". Null follows the app
+     * language; a language with no pack on the phone falls back to English where it is read.
+     */
+    val wordByWordLanguage: String? = null,
     /** Step 0 to 7 of [TextScale], one per layer; the text-size popup moves them one by one. */
     val arabicSizeStep: Int = TextScale.DEFAULT_STEP,
     val translationSizeStep: Int = TextScale.DEFAULT_STEP,
@@ -112,7 +120,11 @@ data class ReadSettings(
         copy(mushafSizeStep = TextScale.clampMushafStep(mushafSizeStep + delta))
 
     companion object {
-        /** Bangla first, then English, as in the design mockups; both ship inside the app. */
-        val DEFAULT_TRANSLATIONS = listOf(TranslationId("bn_zakaria"), TranslationId("en_saheeh"))
+        /**
+         * No translation, transliteration or word meanings on a new installation: none of them
+         * ships inside the app, so a layer ticked by default would show an empty cell. The first
+         * launch offers a download that ticks them (StarterOfferCard).
+         */
+        val DEFAULT_TRANSLATIONS = emptyList<TranslationId>()
     }
 }

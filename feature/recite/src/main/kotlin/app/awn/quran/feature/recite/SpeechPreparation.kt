@@ -1,11 +1,8 @@
 package app.awn.quran.feature.recite
 
-import app.awn.quran.tracker.JsonReferencePhonemes
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.ReferencePhonemes
 import app.awn.quran.tracker.ReferenceWord
-import app.awn.quran.tracker.SherpaRecognizer
-import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
@@ -15,9 +12,6 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
-/** Where the speech files are on disk once copied out of the APK. */
-data class SpeechFiles(val model: File, val tokens: File, val referencePhonemes: File)
 
 /** What the speech model and the reference text need before the first word can be followed. */
 interface PreparedSpeech : AutoCloseable {
@@ -45,10 +39,10 @@ enum class SpeechState {
 }
 
 /**
- * Copies the speech files, parses the 12.8 MB reference file and loads the speech model on a
- * low-priority thread of its own. The loaded model holds about 144 MB of native memory, so it is
- * prepared when recite mode starts and [release]d when it ends. On the phone these steps took about
- * 45 s the first time and about 5 s every later time.
+ * Gets the speech files, the 12.8 MB reference text and the speech model ready on a low-priority
+ * thread of its own (the app loads the model in its `:speech` process). The loaded model holds
+ * about 144 MB of native memory, so it is prepared when recite mode starts and [release]d after it
+ * ends. On the phone this took 2.9 s from the tap (measured 2026-10-21).
  *
  * [build] does the slow work; it runs on the background [executor] and its result is kept until
  * [release]. [prepare] may be called as often as needed.
@@ -217,30 +211,6 @@ class SpeechPreparation(
             Thread(runnable, "awn-speech-prepare").apply {
                 isDaemon = true
                 priority = Thread.MIN_PRIORITY
-            }
-        }
-
-        /**
-         * The real thing: [installFiles] copies the files out of the APK (blocking, throws
-         * [IllegalStateException] when it cannot), then the reference is parsed and the speech
-         * model loaded.
-         */
-        fun fromFiles(installFiles: () -> SpeechFiles): SpeechPreparation = SpeechPreparation {
-            val files = installFiles()
-            val reference = JsonReferencePhonemes.fromFile(files.referencePhonemes)
-            val recognizer =
-                try {
-                    SherpaRecognizer(files.model.path, files.tokens.path)
-                } catch (problem: UnsatisfiedLinkError) {
-                    // The session reports IllegalStateException as "can't use the microphone".
-                    throw IllegalStateException("The speech library could not be loaded.", problem)
-                }
-            object : PreparedSpeech {
-                override val referencePhonemes = reference
-
-                override fun newPhonemeSource() = recognizer.newSource()
-
-                override fun close() = recognizer.close()
             }
         }
     }

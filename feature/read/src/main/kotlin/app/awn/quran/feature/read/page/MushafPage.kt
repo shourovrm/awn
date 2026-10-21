@@ -65,7 +65,8 @@ private const val INK_CENTER_ABOVE_BASELINE_EM = 0.35f
  * nearest ayah; dragging on calls [onRangeDrag] with the range from that ayah to the one under the
  * finger, and lifting calls [onRangeEnd]. [onSelectionBounds] reports where the ayahs in
  * [decorations] are, in this page's own coordinates (origin at its top left), or null when none of
- * them is on this page.
+ * them is on this page. [onTrackedWordBounds] does the same for [trackedWord], the word the screen
+ * wants to keep above its bottom bar.
  */
 @Composable
 fun MushafPage(
@@ -84,6 +85,8 @@ fun MushafPage(
     onRangeDrag: (AyahRange) -> Unit = {},
     onRangeEnd: () -> Unit = {},
     onSelectionBounds: (SelectionBounds?) -> Unit = {},
+    trackedWord: WordKey? = null,
+    onTrackedWordBounds: (Rect?) -> Unit = {},
 ) {
     val hasGlyphFont = fontFamily != null && layout.script in glyphScripts
     val rows = remember(layout, hasGlyphFont) { buildPageRows(layout, hasGlyphFont) }
@@ -134,6 +137,8 @@ fun MushafPage(
                         bodyTop = bodyTop,
                         scrollOffsetPx = { scrollState.value },
                         onSelectionBounds = onSelectionBounds,
+                        trackedWord = trackedWord,
+                        onTrackedWordBounds = onTrackedWordBounds,
                         onWordTap = onWordTap,
                     )
                 }
@@ -185,6 +190,8 @@ private fun PageBody(
     bodyTop: Float,
     scrollOffsetPx: () -> Int,
     onSelectionBounds: (SelectionBounds?) -> Unit,
+    trackedWord: WordKey?,
+    onTrackedWordBounds: (Rect?) -> Unit,
     onWordTap: (WordKey, Rect) -> Unit,
 ) {
     val density = LocalDensity.current
@@ -210,6 +217,7 @@ private fun PageBody(
         scrollOffsetPx,
         onSelectionBounds,
     )
+    ReportTrackedWordBounds(geometry, trackedWord, bodyTop, scrollOffsetPx, onTrackedWordBounds)
     val playingFade = rememberPlayingFade(decorations.playingAyah)
     val gestures =
         rememberWordTapGestures(touchActions, geometry, bodyTop, scrollOffsetPx, onWordTap)
@@ -223,9 +231,9 @@ private fun PageBody(
         },
     ) {
         PageRowsLayer(
-            rows = rows,
+            rows = measured.rows,
             measured = measured,
-            families = PageFamilies(textFamily, plainFamily),
+            families = measured.families,
             chapters = chapters,
             decorations = decorations,
         )
@@ -281,6 +289,26 @@ private fun ReportSelectionBounds(
                     geometry
                         .selectionBounds(selectedAyahs)
                         ?.translate(Offset(0f, bodyTop - scrolled)),
+                )
+            }
+    }
+}
+
+/** Tells the screen where [trackedWord] is, in the same coordinates as the selection bounds. */
+@Composable
+private fun ReportTrackedWordBounds(
+    geometry: PageGeometry,
+    trackedWord: WordKey?,
+    bodyTop: Float,
+    scrollOffsetPx: () -> Int,
+    onTrackedWordBounds: (Rect?) -> Unit,
+) {
+    val currentOnBounds by rememberUpdatedState(onTrackedWordBounds)
+    LaunchedEffect(geometry, trackedWord, bodyTop) {
+        snapshotFlow { scrollOffsetPx() }
+            .collect { scrolled ->
+                currentOnBounds(
+                    trackedWord?.let(geometry::wordRect)?.translate(Offset(0f, bodyTop - scrolled)),
                 )
             }
     }

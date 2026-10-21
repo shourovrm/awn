@@ -29,7 +29,6 @@ data class Word(
     val textUthmani: String,
     val codeV1: String?,
     val codeV2: String?,
-    val transliteration: String?,
 )
 
 /** One thing printed on a mushaf line. */

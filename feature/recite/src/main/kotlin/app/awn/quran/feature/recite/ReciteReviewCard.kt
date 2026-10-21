@@ -10,25 +10,32 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.tracker.DurationCheck
@@ -38,82 +45,108 @@ import app.awn.quran.tracker.TrackerEvent
 private const val BAR_TRACK_ALPHA = 0.3f
 private val barShape = RoundedCornerShape(AwnSpacing.switchKnobCorner)
 
-/** The test tag of the review sheet's content. */
-const val REVIEW_SHEET_TAG = "review-sheet"
+/** The test tag of the review card's content. */
+const val REVIEW_CARD_TAG = "review-card"
 
-/** The test tag of the Listen action in the review sheet. */
+/** The test tag of the Listen action in the review card. */
 const val REVIEW_LISTEN_TAG = "review-listen"
 
+/** The test tag of the close button of the review card. */
+const val REVIEW_CLOSE_TAG = "review-close"
+
+/** The card is at most this share of the screen height, so the page stays visible above it. */
+private const val CARD_MAX_HEIGHT_SHARE = 0.4f
+
 /**
- * The review of flagged words on the paper field: the word large at the top right, Listen at the
- * top left, then one block per finding. [reviews] holds the flagged words of one ayah in order; the
- * sheet opens at [startKey] and offers Previous and Next when there is more than one.
+ * The review of flagged words as a card above the recite bar, on the field of the colour mode. The
+ * page stays visible and live above it: [focusedKey] is the word on the page that is ringed. The
+ * word is large at the top right, Listen at the top left, then one block per finding. [reviews]
+ * holds every flagged word in reading order; Previous and Next call [onFocus] with the neighbour,
+ * so the page can turn to it. The card is not modal: nothing behind it is dimmed or blocked.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReciteReviewSheet(
+fun ReciteReviewCard(
     reviews: List<WordReview>,
-    startKey: WordKey?,
+    focusedKey: WordKey?,
     words: List<Word>,
+    onFocus: (WordKey) -> Unit,
     onListen: (WordKey) -> Unit,
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    var position by remember {
-        mutableIntStateOf(reviews.indexOfFirst { it.key == startKey }.coerceAtLeast(0))
-    }
-    // An empty list still opens the sheet: a sheet that silently stays closed looked like a bug.
+    // An empty list still shows the card: a card that silently stays closed looked like a bug.
+    val position = reviews.indexOfFirst { it.key == focusedKey }.coerceAtLeast(0)
     val review = reviews.getOrNull(position)
     val wordText = words.firstOrNull { it.key == review?.key }?.textUthmani.orEmpty()
-
-    // The sheet follows the colour mode; fixed paper and ink made it glare in the night modes.
     val field = Awn.field
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        containerColor = field.background,
-        contentColor = field.content,
+    val windowHeightPx = LocalWindowInfo.current.containerSize.height
+    val maxHeight = with(LocalDensity.current) { (windowHeightPx * CARD_MAX_HEIGHT_SHARE).toDp() }
+
+    Column(
+        modifier
+            .fillMaxWidth()
+            .shadow(AwnSpacing.small, AwnShapes.control)
+            .background(field.background, AwnShapes.control)
+            .heightIn(max = maxHeight)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small)
+            .testTag(REVIEW_CARD_TAG),
     ) {
-        Column(
-            Modifier.fillMaxWidth()
-                .padding(horizontal = AwnSpacing.screenMargin)
-                .testTag(REVIEW_SHEET_TAG),
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (review == null) {
                 FindingTitle(stringResource(R.string.recite_review_empty))
             } else {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SheetAction(
-                        label = stringResource(R.string.recite_listen),
-                        modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
-                        onClick = { onListen(review.key) },
-                    )
-                    Text(text = wordText, style = AwnTypography.title)
-                }
-                review.findings.forEach { finding -> FindingBlock(finding) }
+                SheetAction(
+                    label = stringResource(R.string.recite_listen),
+                    modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
+                    onClick = { onListen(review.key) },
+                )
+                Text(text = wordText, style = AwnTypography.title)
             }
-            if (reviews.size > 1) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    SheetAction(
-                        label = stringResource(R.string.recite_previous),
-                        enabled = position > 0,
-                        onClick = { position-- },
-                    )
-                    SheetAction(
-                        label = stringResource(R.string.recite_next),
-                        enabled = position < reviews.lastIndex,
-                        onClick = { position++ },
-                    )
-                }
-            }
-            Text(
-                text = stringResource(R.string.recite_review_note),
-                style = AwnTypography.small,
-                modifier = Modifier.padding(vertical = AwnSpacing.medium),
-            )
+            CloseButton(onDismiss)
         }
+        review?.findings?.forEach { finding -> FindingBlock(finding) }
+        if (reviews.size > 1) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                SheetAction(
+                    label = stringResource(R.string.recite_previous),
+                    enabled = position > 0,
+                    onClick = { onFocus(reviews[position - 1].key) },
+                )
+                SheetAction(
+                    label = stringResource(R.string.recite_next),
+                    enabled = position < reviews.lastIndex,
+                    onClick = { onFocus(reviews[position + 1].key) },
+                )
+            }
+        }
+        Text(
+            text = stringResource(R.string.recite_review_note),
+            style = AwnTypography.small,
+            modifier = Modifier.padding(vertical = AwnSpacing.small),
+        )
+    }
+}
+
+@Composable
+private fun CloseButton(onClick: () -> Unit) {
+    val description = stringResource(R.string.recite_close)
+    Box(
+        Modifier.requiredSize(AwnSpacing.touchTarget)
+            .semantics { contentDescription = description }
+            .clickable(role = Role.Button, onClick = onClick)
+            .testTag(REVIEW_CLOSE_TAG),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painterResource(R.drawable.ic_recite_close),
+            contentDescription = null,
+            tint = Awn.field.content,
+        )
     }
 }
 
@@ -146,6 +179,10 @@ private fun FindingBlock(finding: ReviewFinding) {
             }
             ReviewFinding.WrongWord -> {
                 FindingTitle(stringResource(R.string.recite_finding_wrong_word))
+                FindingHint(stringResource(R.string.recite_hint_say_again))
+            }
+            ReviewFinding.NotClear -> {
+                FindingTitle(stringResource(R.string.recite_finding_not_clear))
                 FindingHint(stringResource(R.string.recite_hint_say_again))
             }
             is ReviewFinding.Pronunciation -> PronunciationBlock(finding.substitution)

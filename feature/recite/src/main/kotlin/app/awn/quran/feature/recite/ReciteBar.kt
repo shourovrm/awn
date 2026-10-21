@@ -48,7 +48,6 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.player.PlaybackState
 import kotlin.math.abs
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 const val RECITE_BAR_MIC_TAG = "recite-bar-mic"
@@ -101,6 +100,9 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val words by session.words.collectAsState()
     val reviews by session.reviews.collectAsState()
     val gradePrompt by session.gradePrompt.collectAsState()
+    val problems by session.wordProblems.collectAsState()
+    val focusedWord by controller.focusedWord.collectAsState()
+    val flaggedWords = remember(reviews, problems) { flaggedReviews(reviews, problems) }
     val colors = ReciteBarColors.of(Awn.field)
     val speechState by controller.speechState.collectAsState()
     val hintEnabled by controller.settings.hintEnabled.collectAsState(initial = true)
@@ -123,159 +125,183 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     // Whatever starts the audio (Listen, the ayah bar, a word), the microphone must not hear it.
     LaunchedEffect(isAudioActive) { if (isAudioActive) controller.pauseMicrophone() }
 
+    // Starting to recite again clears the results, so the card on the old ones goes away.
+    LaunchedEffect(listening) {
+        if (listening) {
+            reviewOpen = false
+            controller.clearFocus()
+        }
+    }
+
+    // The card sits above the bar in the same column, so the screen measures both and keeps the
+    // page clear of them.
     Column(
         modifier
             .padding(horizontal = AwnSpacing.screenMargin)
             .padding(bottom = AwnSpacing.dockFloatGap)
-            .fillMaxWidth()
-            .clip(AwnShapes.control)
-            .background(colors.background)
-            .padding(AwnSpacing.small),
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
-        if (barMode == ReciteBarMode.Preparing) {
-            PreparingRow(
-                onClose = {
-                    controller.exit()
-                    onExit()
+        if (reviewOpen || focusedWord != null) {
+            ReciteReviewCard(
+                reviews = flaggedWords,
+                focusedKey = focusedWord,
+                words = words,
+                onFocus = controller::focusWord,
+                onListen = {
+                    scope.launch { controller.listenToAyah() }
                 },
-                colors = colors,
+                onDismiss = {
+                    reviewOpen = false
+                    controller.clearFocus()
+                },
             )
-        } else {
-            Text(
-                text = barStatusText(controller, phase, access, audio, playback),
-                style = AwnTypography.small,
-                color = colors.content,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier =
-                    Modifier.padding(horizontal = AwnSpacing.small).testTag(RECITE_BAR_STATUS_TAG),
-            )
-            if (isAudioActive) AudioProgressLine(playback, colors)
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BarIconButton(
-                    icon = R.drawable.ic_recite_close,
-                    description = stringResource(R.string.recite_close),
-                    onClick = {
+        }
+        Column(
+            Modifier.fillMaxWidth()
+                .clip(AwnShapes.control)
+                .background(colors.background)
+                .padding(AwnSpacing.small),
+        ) {
+            if (barMode == ReciteBarMode.Preparing) {
+                PreparingRow(
+                    onClose = {
                         controller.exit()
                         onExit()
                     },
-                    tag = RECITE_BAR_CLOSE_TAG,
                     colors = colors,
                 )
-                SpeedButton(speed = speed, onSpeedChange = controller::setSpeed, colors = colors)
-                BarToggleButton(
-                    icon = R.drawable.ic_recite_hide_words,
-                    description = stringResource(R.string.recite_hide_words),
-                    checked = hideWords,
-                    onCheckedChange = controller::setHideWords,
-                    tag = RECITE_BAR_HIDE_TAG,
-                    colors = colors,
+            } else {
+                Text(
+                    text = barStatusText(controller, phase, access, audio, playback),
+                    style = AwnTypography.small,
+                    color = colors.content,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier =
+                        Modifier.padding(horizontal = AwnSpacing.small)
+                            .testTag(RECITE_BAR_STATUS_TAG),
                 )
-                if (hintEnabled && !isAudioActive) {
+                if (isAudioActive) AudioProgressLine(playback, colors)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     BarIconButton(
-                        icon = R.drawable.ic_recite_hint,
-                        description = stringResource(R.string.recite_hint),
-                        onClick = session::requestHint,
-                        enabled = hideWords,
-                        tag = RECITE_BAR_HINT_TAG,
+                        icon = R.drawable.ic_recite_close,
+                        description = stringResource(R.string.recite_close),
+                        onClick = {
+                            controller.exit()
+                            onExit()
+                        },
+                        tag = RECITE_BAR_CLOSE_TAG,
                         colors = colors,
                     )
-                }
-                ListenButton(
-                    audio = audio,
-                    enabled = canListen || isAudioActive,
-                    colors = colors,
-                    onClick = {
-                        when (listenActionFor(audio)) {
-                            ListenAction.PlayAyah -> scope.launch { controller.listenToAyah() }
-                            ListenAction.Pause -> controller.audioPlayer.pause()
-                            ListenAction.Resume -> controller.audioPlayer.resume()
-                            null -> Unit
-                        }
-                    },
-                )
-                if (isAudioActive) {
-                    BarIconButton(
-                        icon = R.drawable.ic_recite_stop,
-                        description = stringResource(R.string.recite_listen_stop),
-                        onClick = controller.audioPlayer::stop,
-                        tag = RECITE_BAR_AUDIO_STOP_TAG,
+                    SpeedButton(
+                        speed = speed,
+                        onSpeedChange = controller::setSpeed,
                         colors = colors,
                     )
-                }
-                MicrophoneButton(
-                    listening = listening,
-                    access = access,
-                    // The microphone stays off while audio plays: the user taps it afterwards.
-                    enabled = (canListen && !isAudioActive) || listening,
-                    colors = colors,
-                    onClick = {
-                        when {
-                            listening -> session.stop()
-                            access == MicrophoneAccess.Granted -> session.start()
-                            access == MicrophoneAccess.CanAsk -> permission.requestAccess()
-                            else -> permission.openAppSettings()
-                        }
-                    },
-                )
-            }
-            // Review sits here, not in the first row, which has no room for a seventh button.
-            val showsReview = phase == RecitationPhase.Stopped && !isAudioActive
-            if (hideWords || showsReview) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    if (hideWords) {
+                    BarToggleButton(
+                        icon = R.drawable.ic_recite_hide_words,
+                        description = stringResource(R.string.recite_hide_words),
+                        checked = hideWords,
+                        onCheckedChange = controller::setHideWords,
+                        tag = RECITE_BAR_HIDE_TAG,
+                        colors = colors,
+                    )
+                    if (hintEnabled && !isAudioActive) {
                         BarIconButton(
-                            icon = R.drawable.ic_recite_reveal_word,
-                            description = stringResource(R.string.recite_reveal_word),
-                            onClick = session::revealNextWord,
-                            tag = RECITE_BAR_REVEAL_WORD_TAG,
-                            colors = colors,
-                        )
-                        BarIconButton(
-                            icon = R.drawable.ic_recite_reveal_ayah,
-                            description = stringResource(R.string.recite_reveal_ayah),
-                            onClick = session::revealAyah,
-                            tag = RECITE_BAR_REVEAL_AYAH_TAG,
+                            icon = R.drawable.ic_recite_hint,
+                            description = stringResource(R.string.recite_hint),
+                            onClick = session::requestHint,
+                            enabled = hideWords,
+                            tag = RECITE_BAR_HINT_TAG,
                             colors = colors,
                         )
                     }
-                    if (showsReview) {
+                    ListenButton(
+                        audio = audio,
+                        enabled = canListen || isAudioActive,
+                        colors = colors,
+                        onClick = {
+                            when (listenActionFor(audio)) {
+                                ListenAction.PlayAyah -> scope.launch { controller.listenToAyah() }
+                                ListenAction.Pause -> controller.audioPlayer.pause()
+                                ListenAction.Resume -> controller.audioPlayer.resume()
+                                null -> Unit
+                            }
+                        },
+                    )
+                    if (isAudioActive) {
                         BarIconButton(
-                            icon = R.drawable.ic_recite_review,
-                            description = stringResource(R.string.recite_review),
-                            onClick = { reviewOpen = true },
-                            tag = RECITE_BAR_REVIEW_TAG,
+                            icon = R.drawable.ic_recite_stop,
+                            description = stringResource(R.string.recite_listen_stop),
+                            onClick = controller.audioPlayer::stop,
+                            tag = RECITE_BAR_AUDIO_STOP_TAG,
                             colors = colors,
                         )
                     }
+                    MicrophoneButton(
+                        listening = listening,
+                        access = access,
+                        // The microphone stays off while audio plays: the user taps it afterwards.
+                        enabled = (canListen && !isAudioActive) || listening,
+                        colors = colors,
+                        onClick = {
+                            when {
+                                listening -> session.stop()
+                                access == MicrophoneAccess.Granted -> session.start()
+                                access == MicrophoneAccess.CanAsk -> permission.requestAccess()
+                                else -> permission.openAppSettings()
+                            }
+                        },
+                    )
                 }
-            }
-            gradePrompt?.let { prompt ->
-                GradeButtons(
-                    suggested = prompt.suggested,
-                    onGrade = controller::grade,
-                    colors = colors,
-                )
+                // Review sits here, not in the first row, which has no room for a seventh button.
+                val showsReview = phase == RecitationPhase.Stopped && !isAudioActive
+                if (hideWords || showsReview) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        if (hideWords) {
+                            BarIconButton(
+                                icon = R.drawable.ic_recite_reveal_word,
+                                description = stringResource(R.string.recite_reveal_word),
+                                onClick = session::revealNextWord,
+                                tag = RECITE_BAR_REVEAL_WORD_TAG,
+                                colors = colors,
+                            )
+                            BarIconButton(
+                                icon = R.drawable.ic_recite_reveal_ayah,
+                                description = stringResource(R.string.recite_reveal_ayah),
+                                onClick = session::revealAyah,
+                                tag = RECITE_BAR_REVEAL_AYAH_TAG,
+                                colors = colors,
+                            )
+                        }
+                        if (showsReview) {
+                            BarIconButton(
+                                icon = R.drawable.ic_recite_review,
+                                description = stringResource(R.string.recite_review),
+                                onClick = {
+                                    reviewOpen = true
+                                    flaggedWords.firstOrNull()?.let { controller.focusWord(it.key) }
+                                },
+                                tag = RECITE_BAR_REVIEW_TAG,
+                                colors = colors,
+                            )
+                        }
+                    }
+                }
+                gradePrompt?.let { prompt ->
+                    GradeButtons(
+                        suggested = prompt.suggested,
+                        onGrade = controller::grade,
+                        colors = colors,
+                    )
+                }
             }
         }
-    }
-
-    if (reviewOpen) {
-        ReciteReviewSheet(
-            reviews = reviews.values.flatten(),
-            startKey = null,
-            words = words,
-            onListen = { key ->
-                scope.launch {
-                    playWord(controller.audioPlayer, controller.settings.reciterId.first(), key)
-                }
-            },
-            onDismiss = { reviewOpen = false },
-        )
     }
 }
 

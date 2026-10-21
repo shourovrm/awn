@@ -15,3 +15,13 @@ fun rememberReciteCurrentWord(controller: ReciteController): WordKey? {
     val word by controller.session.currentWord.collectAsState()
     return word
 }
+
+/**
+ * The flagged word the user is reviewing in the review card, null when none. The Quran screen turns
+ * to its page and rings it.
+ */
+@Composable
+fun rememberReciteFocusedWord(controller: ReciteController): WordKey? {
+    val word by controller.focusedWord.collectAsState()
+    return word
+}

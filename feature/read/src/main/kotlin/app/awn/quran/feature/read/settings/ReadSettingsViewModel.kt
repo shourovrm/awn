@@ -59,6 +59,19 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
 
     fun setShowWordByWord(show: Boolean) = change { it.copy(showWordByWord = show) }
 
+    /** The Settings row: picks the language of the meanings, or null to follow the app language. */
+    fun setWordByWordLanguage(language: String?) = change { it.copy(wordByWordLanguage = language) }
+
+    /** Ticking a language in the Word by word list also shows the meanings the user asked for. */
+    fun useWordByWordLanguage(language: String) = change {
+        it.copy(wordByWordLanguage = language, showWordByWord = true)
+    }
+
+    /** A removed pack must not stay chosen; the meanings go back to following the app language. */
+    fun forgetWordByWordLanguage(language: String) = change {
+        if (it.wordByWordLanguage == language) it.copy(wordByWordLanguage = null) else it
+    }
+
     fun setTranslationEnabled(id: TranslationId, enabled: Boolean) = change {
         it.copy(translations = it.translations.withTranslation(id, enabled))
     }

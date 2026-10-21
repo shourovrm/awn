@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
@@ -28,7 +30,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -73,6 +74,8 @@ data class WordPopup(
     val problem: WordProblem? = null,
     /** True when the chosen reciter has a recording of this word, so the card offers Play. */
     val canPlay: Boolean = false,
+    /** Shown instead of Play while the reciter's word audio is not on the phone yet. */
+    val audioOffer: WordAudioOffer? = null,
 )
 
 data class QuranUiState(
@@ -124,9 +127,10 @@ data class QuranUiState(
     val isFollowing: Boolean = true,
     /** No audio is playing, paused or downloading; only then do the volume keys turn pages. */
     val isAudioIdle: Boolean = true,
-    /** Install state of the chosen page type's font; null while unknown. */
-    val fontStatus: FontPackStatus? = null,
-    val isFontPromptDismissed: Boolean = false,
+    /** Install state and progress of each printed page type, for the print offer card. */
+    val printStatuses: Map<ScriptId, FontPackStatus> = emptyMap(),
+    /** The one-time card that offers a printed Mushaf. */
+    val printOffer: PrintOfferState = PrintOfferState(),
     /** Changes whenever a pack is installed or removed, so cached fonts are looked up again. */
     val packRevision: Int = 0,
 ) {
@@ -150,10 +154,6 @@ data class QuranUiState(
     val showBackToPlaying: Boolean
         get() = playingAyah != null && !isFollowing
 
-    /** The chosen print's font is missing and the user has not chosen to keep the fallback. */
-    val showFontPrompt: Boolean
-        get() = fontStatus != null && !fontStatus.isInstalled && !isFontPromptDismissed
-
     /**
      * The surah the title names for the page shown: the first surah that starts on it, or else the
      * one that continues there. Null until the page is loaded.
@@ -176,7 +176,8 @@ data class QuranUiState(
     /** True while Back has something to close before the screen may be left. */
     val hasBackWork: Boolean
         get() =
-            popup != Popup.None ||
+            printOffer.isOpen ||
+                popup != Popup.None ||
                 wordPopup != null ||
                 isPanelOpen ||
                 selection != null ||
@@ -197,7 +198,7 @@ data class QuranUiState(
 @Suppress("TooManyFunctions", "LargeClass")
 class QuranViewModel(
     private val dependencies: ReadDependencies,
-    /** "en" or "bn": picks the word-by-word pack. */
+    /** The app language when the screen opened, such as "en" or "bn". */
     wordLanguage: String,
     private val pageReadDelayMs: Long = PAGE_READ_DELAY_MS,
 ) : ViewModel() {
@@ -214,9 +215,15 @@ class QuranViewModel(
     private val mutablePlayingWord = MutableStateFlow<Int?>(null)
     val playingWordPosition: StateFlow<Int?> = mutablePlayingWord
 
+    // Word-by-word meanings follow the language chosen in Settings, else the app language.
+    private var appLanguage = wordLanguage
     private val contentLoader =
-        PageContentLoader(dependencies.quranText, dependencies.translations, wordLanguage)
-    private val wordAudio = WordAudio(dependencies)
+        PageContentLoader(
+            dependencies.quranText,
+            dependencies.translations,
+            wordLanguage = { mutableState.value.settings.wordByWordLanguage ?: appLanguage },
+        )
+    private val wordAudio = WordAudio(dependencies, viewModelScope)
     private val shareTexts = AyahShareTexts(contentLoader)
 
     private var bookmarkedPages: Set<Int> = emptySet()
@@ -249,6 +256,7 @@ class QuranViewModel(
         viewModelScope.launch { followPlayback() }
         viewModelScope.launch { followFontStatus() }
         viewModelScope.launch { followInstalledPacks() }
+        viewModelScope.launch { followWordAudioPack() }
     }
 
     /**
@@ -264,8 +272,9 @@ class QuranViewModel(
             // The saved settings come first, so every entry opens in the saved view and print.
             val saved = dependencies.settingsStore.settings.first()
             mutableState.update {
-                it.copy(settings = saved, fontStatus = fontPacks.statuses.value[saved.script])
+                it.copy(settings = saved, printStatuses = fontPacks.statuses.value)
             }
+            openPrintOfferIfPending()
             when (target) {
                 is QuranTarget.Page -> showPage(target.page, barsVisible = true)
                 is QuranTarget.Ayah -> {
@@ -285,16 +294,21 @@ class QuranViewModel(
     /**
      * Turns to the page of [word], the next word the reciter is expected to say, so the words being
      * recited stay on screen. A turn to the neighbouring page is animated like a swipe; a longer
-     * way jumps. A reader who moved the page by hand is left alone (see [decideReciteFollow]).
+     * way jumps. A reader who moved the page by hand is left alone (see [decideReciteFollow]),
+     * unless [ignoresPause]: a mistake the reader asked for in the review card is always shown.
      */
-    fun followRecitation(word: WordKey) {
+    fun followRecitation(word: WordKey, ignoresPause: Boolean = false) {
         reciteFollowJob?.cancel()
         reciteFollowJob = viewModelScope.launch {
             val wordPage = pageOfWord(word)
             val state = mutableState.value
             if (!state.isReciting || !state.hasStarted) return@launch
             val decision =
-                decideReciteFollow(wordPage, state.currentPage, state.isReciteFollowPaused)
+                decideReciteFollow(
+                    wordPage,
+                    state.currentPage,
+                    state.isReciteFollowPaused && !ignoresPause,
+                )
             mutableState.update { it.copy(isReciteFollowPaused = decision.isPaused) }
             val target = decision.turnToPage ?: return@launch
             if (isSinglePageTurn(state.currentPage, target)) {
@@ -360,6 +374,17 @@ class QuranViewModel(
         } else {
             loadContent(page)
         }
+    }
+
+    /**
+     * Reads the word-by-word meanings again when the app language changes, because they follow it
+     * unless the user chose another language.
+     */
+    fun onAppLanguageChanged(language: String) {
+        if (language == appLanguage) return
+        appLanguage = language
+        if (mutableState.value.settings.wordByWordLanguage != null) return
+        reloadContents()
     }
 
     /** The view button: Mushaf or line by line. The choice is saved. */
@@ -626,22 +651,16 @@ class QuranViewModel(
                 panelBlock = null,
             )
         }
-        viewModelScope.launch { showPlayWhen(wordAudio.hasTimings(ayah), word.key) }
+        viewModelScope.launch { showWordAudio(ayah, word.key, wordAudio.currentPack()) }
     }
 
     /**
-     * A tap on a word of the Mushaf page that was recited wrongly or unclearly: the page knows only
-     * the key, so the word's text, meaning and transliteration are read before the card opens.
+     * A tap on a flagged word of the Mushaf page opens the review card, which is not part of this
+     * screen. The page reports the same tap as a page tap right after the word tap; this makes that
+     * one tap do nothing instead of showing or hiding the bars.
      */
-    fun onProblemWordTapped(key: WordKey, problem: WordProblem) {
+    fun ignoreNextPageTap() {
         problemWordTapPending = true
-        viewModelScope.launch {
-            val ayah = AyahRef(key.surah, key.ayah)
-            val block =
-                contentLoader.loadBlock(ayah, enabledTranslations = emptyList(), names = emptyMap())
-            val word = block.words.firstOrNull { it.key == key } ?: return@launch
-            onWordTapped(ayah, word, problem)
-        }
     }
 
     /**
@@ -659,15 +678,46 @@ class QuranViewModel(
         dependencies.audioPlayer.stop()
     }
 
+    /** The card's download button: fetches the timings of the chosen reciter's word audio. */
+    fun downloadWordAudio() {
+        viewModelScope.launch { wordAudio.currentPack()?.let { wordAudio.download(it.item.id) } }
+    }
+
     // The card may have closed, or moved to another word, while the timings were read.
-    private fun showPlayWhen(hasTimings: Boolean, key: WordKey) {
+    private suspend fun showWordAudio(ayah: AyahRef, key: WordKey, packRow: CatalogueRow?) {
+        val audio = wordAudio.stateOf(ayah, packRow)
         mutableState.update { state ->
             val popup = state.wordPopup
             if (popup != null && popup.word.key == key) {
-                state.copy(wordPopup = popup.copy(canPlay = hasTimings))
+                state.copy(
+                    wordPopup =
+                        popup.copy(
+                            canPlay = audio is WordAudioState.Ready,
+                            audioOffer = (audio as? WordAudioState.Missing)?.offer,
+                        ),
+                )
             } else {
                 state
             }
+        }
+    }
+
+    /**
+     * Starts the chosen reciter's word audio download once per reciter when the network is not
+     * metered, and keeps an open word card in step with the download.
+     */
+    private suspend fun followWordAudioPack() {
+        val requestedPackIds = mutableSetOf<String>()
+        wordAudio.selectedPack.collect { row ->
+            if (
+                row != null &&
+                    shouldDownloadWordAudio(row, dependencies.isNetworkMetered(), requestedPackIds)
+            ) {
+                requestedPackIds += row.item.id
+                wordAudio.download(row.item.id)
+            }
+            val popup = mutableState.value.wordPopup
+            if (popup != null) showWordAudio(popup.ayah, popup.word.key, row)
         }
     }
 
@@ -689,6 +739,7 @@ class QuranViewModel(
     fun onBack(): Boolean {
         val state = mutableState.value
         when {
+            state.printOffer.isOpen -> dismissOrKeepReading(state.printOffer)
             state.popup != Popup.None -> closePopup()
             state.wordPopup != null -> dismissWordPopup()
             state.isPanelOpen -> closePanel()
@@ -701,6 +752,10 @@ class QuranViewModel(
             else -> return false
         }
         return true
+    }
+
+    private fun dismissOrKeepReading(offer: PrintOfferState) {
+        if (offer.downloading != null) keepReadingDuringPrintDownload() else dismissPrintOffer()
     }
 
     /** Tells the pages-read timer whether the screen is in front; it counts only then. */
@@ -813,6 +868,11 @@ class QuranViewModel(
         }
     }
 
+    private fun reloadContents() {
+        mutableState.update { it.copy(contents = emptyMap()) }
+        if (mutableState.value.hasStarted) loadAroundPage(mutableState.value.currentPage)
+    }
+
     private fun loadPanelBlock(ayah: AyahRef) {
         viewModelScope.launch {
             val block = contentLoader.loadBlock(ayah, mutableState.value.settings.translations)
@@ -844,43 +904,119 @@ class QuranViewModel(
             val scriptChanged = settings.script != previous.script
             val translationsChanged = settings.translations != previous.translations
             val viewChanged = settings.pageView != previous.pageView
+            val wordLanguageChanged = settings.wordByWordLanguage != previous.wordByWordLanguage
             mutableState.update {
                 it.copy(
                     settings = settings,
-                    isFontPromptDismissed = if (scriptChanged) false else it.isFontPromptDismissed,
-                    fontStatus =
-                        if (scriptChanged) fontPacks.statuses.value[settings.script]
-                        else it.fontStatus,
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
-                        if (scriptChanged || translationsChanged) emptyMap() else it.contents,
+                        if (scriptChanged || translationsChanged || wordLanguageChanged) {
+                            emptyMap()
+                        } else {
+                            it.contents
+                        },
                 )
             }
-            val needsReload = scriptChanged || translationsChanged || viewChanged
+            val needsReload =
+                scriptChanged || translationsChanged || wordLanguageChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
                 loadAroundPage(mutableState.value.currentPage)
             }
         }
     }
 
-    /** Downloads the font of the chosen page type; progress and failure show in the state. */
-    fun downloadFont() {
-        fontPacks.install(mutableState.value.settings.script)
+    /** Opens the print offer card once, on a new installation that has no print yet. */
+    private suspend fun openPrintOfferIfPending() {
+        val isPending = dependencies.printOffer.isPending.first()
+        val installedIds = dependencies.packs.installed().first().map { it.id }.toSet()
+        if (!shouldOpenPrintOffer(isPending, installedIds)) return
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = true)) }
     }
 
-    /** Stops the running font download; the prompt offers Download again. */
-    fun cancelFont() {
-        fontPacks.cancel(mutableState.value.settings.script)
+    /** Ticks [script] in the print offer card; the Download label shows its size. */
+    fun choosePrint(script: ScriptId) {
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(choice = script)) }
     }
 
-    /** Keeps the fallback font for the chosen page type and hides the prompt. */
-    fun keepFallbackFont() {
-        mutableState.update { it.copy(isFontPromptDismissed = true) }
+    /**
+     * Sets the chosen print as the page type and starts its download. The pages keep the bundled
+     * font until the pack is installed, then switch.
+     */
+    fun downloadPrint() {
+        val offer = mutableState.value.printOffer
+        val choice = offer.choice
+        markPrintOfferHandled()
+        mutableState.update {
+            it.copy(
+                printOffer = offer.copy(downloading = choice, previousScript = it.settings.script),
+            )
+        }
+        viewModelScope.launch { dependencies.settingsStore.update { it.copy(script = choice) } }
+        fontPacks.install(choice)
+    }
+
+    /** Not now, or Back on the question: closes the card for good. */
+    fun dismissPrintOffer() {
+        markPrintOfferHandled()
+        closePrintOfferCard()
+    }
+
+    /** Keep reading: closes the card; a running download goes on in the background. */
+    fun keepReadingDuringPrintDownload() {
+        closePrintOfferCard()
+    }
+
+    /** Cancel: stops the download and shows the question again with the page type as before. */
+    fun cancelPrintDownload() {
+        val offer = mutableState.value.printOffer
+        val downloading = offer.downloading ?: return
+        fontPacks.cancel(downloading)
+        val previous = offer.previousScript
+        viewModelScope.launch {
+            dependencies.settingsStore.update {
+                if (previous != null && it.script == downloading) it.copy(script = previous) else it
+            }
+        }
+        mutableState.update {
+            it.copy(printOffer = it.printOffer.copy(downloading = null, previousScript = null))
+        }
+    }
+
+    private fun markPrintOfferHandled() {
+        viewModelScope.launch { dependencies.printOffer.markHandled() }
+    }
+
+    private fun closePrintOfferCard() {
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = false)) }
     }
 
     private suspend fun followFontStatus() {
         fontPacks.statuses.collect { statuses ->
-            mutableState.update { it.copy(fontStatus = statuses[it.settings.script]) }
+            mutableState.update {
+                it.copy(
+                    printStatuses = statuses,
+                    printOffer = settledOffer(it.printOffer, statuses),
+                )
+            }
+        }
+    }
+
+    /**
+     * Follows the download started from the card: a finished one closes the card, a failed one
+     * shows its message in the open card or, when the card is closed, counts for the screen's note.
+     */
+    private fun settledOffer(
+        offer: PrintOfferState,
+        statuses: Map<ScriptId, FontPackStatus>,
+    ): PrintOfferState {
+        val status = offer.downloading?.let { statuses[it] }
+        return when {
+            status == null -> offer
+            status.isInstalled -> offer.copy(isOpen = false, downloading = null)
+            status.failure == null -> offer
+            offer.isOpen -> offer.copy(downloading = null)
+            else ->
+                offer.copy(downloading = null, closedFailureCount = offer.closedFailureCount + 1)
         }
     }
 
@@ -889,7 +1025,13 @@ class QuranViewModel(
      * the fallback are dropped and the visible pages load again with the new font.
      */
     private suspend fun followInstalledPacks() {
-        dependencies.packs.installed().drop(1).collect {
+        var previous: List<InstalledPack>? = null
+        dependencies.packs.installed().collect { installed ->
+            val before = previous
+            previous = installed
+            // The first list is the state at start, not a change. Word timings change no page, so
+            // installing them must not redraw the pages.
+            if (before == null || changedTimingsOnly(before, installed)) return@collect
             RecentLayouts.clear()
             loadInstalledTranslations()
             mutableState.update {

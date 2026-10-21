@@ -12,7 +12,7 @@ import org.junit.Test
 class IndexLoaderTest {
 
     private fun word(ayah: AyahRef, position: Int, text: String) =
-        Word(WordKey(ayah.surah, ayah.ayah, position), text, null, null, null)
+        Word(WordKey(ayah.surah, ayah.ayah, position), text, null, null)
 
     private val quarterAyah = AyahRef(2, 142)
     private val fakeText =

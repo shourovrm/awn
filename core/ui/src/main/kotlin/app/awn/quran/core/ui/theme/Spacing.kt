@@ -24,6 +24,9 @@ object AwnSpacing {
     val iconSize: Dp = 24.dp
     val tabIndicatorHeight: Dp = 4.dp
     val dialogMaxWidth: Dp = 320.dp
+    val cardElevation: Dp = 12.dp
+    val cardMaxWidth: Dp = 400.dp
+    val cardInnerPadding: Dp = 20.dp
 
     // Thin-rail switch: a 4 dp rail and a 16 dp knob in a 32 dp wide frame; the 48 dp touch
     // target around it is touchTarget.
@@ -47,10 +50,10 @@ object AwnSpacing {
     val previewHeight: Dp = 240.dp
 
     // First-launch language screen: the app mark, the two large language blocks and their mark.
-    val welcomeTopPadding: Dp = 40.dp
-    val welcomeLogoSize: Dp = 96.dp
-    val languageBlockHeight: Dp = 96.dp
-    val languageBlockMarkSize: Dp = 32.dp
+    val welcomeTopPadding: Dp = 32.dp
+    val welcomeLogoSize: Dp = 64.dp
+    val languageBlockHeight: Dp = 72.dp
+    val languageBlockMarkSize: Dp = 24.dp
 
     val dockHeight: Dp = 72.dp
     val dockFloatGap: Dp = 12.dp

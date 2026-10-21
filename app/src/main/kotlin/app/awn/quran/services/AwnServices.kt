@@ -5,20 +5,20 @@ import app.awn.quran.AppPreferences
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
+import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.recite.AyahGrade
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
 import app.awn.quran.feature.recite.ReciteController
 import app.awn.quran.feature.recite.ReciteSettings
 import app.awn.quran.feature.recite.RevisionQueue
-import app.awn.quran.feature.recite.SpeechFiles
-import app.awn.quran.feature.recite.SpeechPreparation
 import app.awn.quran.player.AndroidNetworkStatus
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioPlayer
@@ -117,15 +117,21 @@ class AwnServices(private val application: Application) {
             downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
+            printOffer =
+                object : PrintOfferStore {
+                    override val isPending = preferences.printOfferPending
+
+                    override suspend fun markHandled() = preferences.markPrintOfferHandled()
+                },
+            isNetworkMetered = networkStatus::isMetered,
         )
 
-    private val modelFiles =
-        ModelFiles(application.assets, File(application.filesDir, MODEL_DIRECTORY))
+    /** The speech model is downloaded after install; recite offers the download first. */
+    val speechModel =
+        SpeechModelStore(File(application.filesDir, MODEL_DIRECTORY), applicationScope)
 
-    private val speechPreparation = SpeechPreparation.fromFiles {
-        val paths = modelFiles.ensureInstalled()
-        SpeechFiles(paths.model, paths.tokens, paths.referencePhonemes)
-    }
+    /** Loads the model for reciting; the recite entry prepares it again after a download. */
+    val speechPreparation = RemoteSpeech.preparation(application, speechModel)
 
     /** Reciting on the Quran screen; the speech model loads when recite starts. */
     val recite =
@@ -140,6 +146,9 @@ class AwnServices(private val application: Application) {
             gradeSink = { ayah, grade -> learn.progress.gradeAyah(ayah, grade.toFsrsRating()) },
             revisionQueue = RevisionQueue { learn.progress.dueAyahs() },
             onOpenAyah = { ayah -> openQuranAt(ayah) },
+            hasWordTimings = { reciterId, ayah ->
+                coreData.reciters.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
+            },
         )
 
     /**

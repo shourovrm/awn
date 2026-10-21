@@ -145,6 +145,8 @@ private fun NavGraphBuilder.settingsHubDestination(
                     versionName = versionName,
                 ),
             onBack = goBack,
+            language = AppLanguage.preselectedFor(LocalConfiguration.current.locales[0]),
+            onLanguageChange = AppCompatLanguageApplier::apply,
             onOpenSection = { navController.navigate(it.route) },
             onOpenRow = { route, rowKey ->
                 navController.navigate(
@@ -198,6 +200,8 @@ private fun NavGraphBuilder.appearanceAndDownloadsDestinations(
             audioBytes = state.downloadedBytes,
             onOpenList = openList,
             onOpenReciters = { navController.navigate(SettingsSection.Audio.route) },
+            speechModel = services.speechModel,
+            onSpeechModelRemoved = services.speechPreparation::release,
             onBack = goBack,
             targetRow = entry.targetRow(),
         )

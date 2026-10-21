@@ -156,6 +156,9 @@ class RecitationSession(
     private var greenAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var hifzAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var nothingToAppend = false
+
+    // Set by [pauseForListening]: the next [start] continues the recitation instead of clearing it.
+    @Volatile private var continuesOnNextStart = false
     private var revealedIndexes: MutableSet<Int> = mutableSetOf()
 
     /** Why the last run ended in [RecitationPhase.Error], for diagnostics and tests. */
@@ -164,7 +167,7 @@ class RecitationSession(
         private set
 
     private var recognitionJob: Job? = null
-    private var activeInput: TrackerInput? = null
+    @Volatile private var activeInput: TrackerInput? = null
 
     suspend fun chapters(): List<Chapter> = quranText.chapters()
 
@@ -206,6 +209,7 @@ class RecitationSession(
             greenAyahsReported = mutableSetOf()
             hifzAyahsReported = mutableSetOf()
             nothingToAppend = false
+            continuesOnNextStart = false
             revealedIndexes = mutableSetOf()
             mutableGradePrompt.value = null
             mutableWords.value = displayWords
@@ -243,19 +247,43 @@ class RecitationSession(
             scope.launch(recognitionDispatcher) {
                 previousRun?.join()
                 if (mutablePhase.value != RecitationPhase.Listening) return@launch
-                synchronized(lock) { if (hasResults()) clearResults() }
+                synchronized(lock) {
+                    if (continuesOnNextStart) {
+                        tracker?.continueFrom(firstOpenIndex() ?: wordKeys.size)
+                    } else if (hasResults()) {
+                        clearResults()
+                    }
+                    continuesOnNextStart = false
+                }
                 val input = inputFactory()
                 activeInput = input
+                // A stop that came after the phase check above but before the line above found no
+                // input to close, so the microphone would stay open and block here for good.
+                if (mutablePhase.value != RecitationPhase.Listening) {
+                    (input as? AutoCloseable)?.close()
+                    return@launch
+                }
                 recognise(input)
             }
     }
 
+    /**
+     * Stops the microphone so it does not hear the reciter being played, and makes the next [start]
+     * go on from the next expected word with every mark kept. A new [load] or [reset] starts fresh.
+     */
+    fun pauseForListening() {
+        continuesOnNextStart = true
+        stop()
+    }
+
     /** Closes the audio input; what was heard so far stays on screen. */
     fun stop() {
-        (activeInput as? AutoCloseable)?.close()
+        // The phase changes first: the recognition job checks it after publishing its input, so one
+        // of the two sees the other and the microphone is always closed.
         if (mutablePhase.value == RecitationPhase.Listening) {
             mutablePhase.value = RecitationPhase.Stopped
         }
+        (activeInput as? AutoCloseable)?.close()
     }
 
     /** Stops and forgets the loaded words as well as everything heard; the page draws normally. */
@@ -271,6 +299,7 @@ class RecitationSession(
     suspend fun reset() {
         stopAndWait()
         synchronized(lock) { clearResults() }
+        continuesOnNextStart = false
         mutablePhase.value = RecitationPhase.Idle
     }
 
