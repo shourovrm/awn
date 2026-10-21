@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -204,7 +204,12 @@ private fun WordProblem.messageRes(): Int =
  * sits at the start, so the word stays centred over the meaning below it.
  */
 @Composable
-private fun WordHeading(popup: WordPopup, isPlaying: Boolean, onPlay: () -> Unit, onStop: () -> Unit) {
+private fun WordHeading(
+    popup: WordPopup,
+    isPlaying: Boolean,
+    onPlay: () -> Unit,
+    onStop: () -> Unit,
+) {
     Row(verticalAlignment = Alignment.Top) {
         if (popup.canPlay) Spacer(Modifier.size(AwnSpacing.touchTarget))
         Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
@@ -217,14 +222,13 @@ private fun WordHeading(popup: WordPopup, isPlaying: Boolean, onPlay: () -> Unit
 }
 
 /**
- * Plays the reciter's recording of the word on the card, or stops it while it plays. The card
- * shows it only for a reciter with word timings.
+ * Plays the reciter's recording of the word on the card, or stops it while it plays. The card shows
+ * it only for a reciter with word timings.
  */
 @Composable
 private fun PlayWordButton(isPlaying: Boolean, onPlay: () -> Unit, onStop: () -> Unit) {
     val icon = if (isPlaying) R.drawable.ic_read_stop else R.drawable.ic_read_play
-    val description =
-        stringResource(if (isPlaying) R.string.word_stop else R.string.word_play)
+    val description = stringResource(if (isPlaying) R.string.word_stop else R.string.word_play)
     Box(
         Modifier.requiredSize(AwnSpacing.touchTarget)
             .semantics { contentDescription = description }

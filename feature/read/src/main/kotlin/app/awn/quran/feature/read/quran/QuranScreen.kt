@@ -130,6 +130,8 @@ data class QuranScreenSlots(
     val isReciteActive: Boolean = false,
     /** Optional. The ayah the reciter is on; the page turns to it as the recitation moves on. */
     val reciteCurrentAyah: @Composable () -> AyahRef? = { null },
+    /** Optional. The next word the reciter is expected to say; the pager turns to its page. */
+    val reciteCurrentWord: @Composable () -> WordKey? = { null },
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -576,6 +578,13 @@ private fun QuranPager(
         }
     }
     LaunchedEffect(state.currentPage) { fontCache.retainAround(state.currentPage) }
+    // The recitation turned the page: slide like a swipe instead of jumping.
+    LaunchedEffect(state.animatedTurnToken) {
+        val targetIndex = state.currentPage - 1
+        if (state.animatedTurnToken > 0 && pagerState.currentPage != targetIndex) {
+            pagerState.animateScrollToPage(targetIndex)
+        }
+    }
     // Dragging the pager by hand stops it turning pages for the audio.
     LaunchedEffect(pagerState) {
         pagerState.interactionSource.interactions.collect { interaction ->

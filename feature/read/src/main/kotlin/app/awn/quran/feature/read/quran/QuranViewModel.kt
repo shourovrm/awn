@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
@@ -98,6 +99,12 @@ data class QuranUiState(
     val isPanelOpen: Boolean = false,
     val panelBlock: AyahBlock? = null,
     val isReciting: Boolean = false,
+    /**
+     * The reader moved the page by hand while reciting; the page does not turn for the recitation.
+     */
+    val isReciteFollowPaused: Boolean = false,
+    /** Changes when the pager must animate to [currentPage], as the recitation turns the page. */
+    val animatedTurnToken: Int = 0,
     val popup: Popup = Popup.None,
     val wordPopup: WordPopup? = null,
     /** True from the card's Play until the word ends or is stopped; the card shows Stop. */
@@ -216,6 +223,7 @@ class QuranViewModel(
     private var hasOpened = false
     private var readTimerJob: Job? = null
     private var barsRevealJob: Job? = null
+    private var reciteFollowJob: Job? = null
     private var lastReadPage: Int? = null
     private var isScreenActive = true
     private val resumeTracker =
@@ -269,23 +277,46 @@ class QuranViewModel(
     }
 
     /**
-     * Moves the pager to [page] at once, in every view. Used by Go to page and the index. This is a
-     * lookup: it becomes the resume point only if the reader stays.
+     * Turns to the page of [word], the next word the reciter is expected to say, so the words being
+     * recited stay on screen. A turn to the neighbouring page is animated like a swipe; a longer
+     * way jumps. A reader who moved the page by hand is left alone (see [decideReciteFollow]).
      */
-    /** Turns to the page of the ayah being recited, so the reader keeps seeing the words. */
-    fun followRecitation(ayah: AyahRef) {
-        viewModelScope.launch {
-            val page = pageOfAyah(ayah)
-            if (page != mutableState.value.currentPage) jumpToPage(page)
+    fun followRecitation(word: WordKey) {
+        reciteFollowJob?.cancel()
+        reciteFollowJob = viewModelScope.launch {
+            val wordPage = pageOfWord(word)
+            val state = mutableState.value
+            if (!state.isReciting || !state.hasStarted) return@launch
+            val decision =
+                decideReciteFollow(wordPage, state.currentPage, state.isReciteFollowPaused)
+            mutableState.update { it.copy(isReciteFollowPaused = decision.isPaused) }
+            val target = decision.turnToPage ?: return@launch
+            if (isSinglePageTurn(state.currentPage, target)) {
+                showPage(
+                    target,
+                    barsVisible = state.areBarsVisible,
+                    movesPager = false,
+                    arrival = Arrival.Reading,
+                )
+                mutableState.update { it.copy(animatedTurnToken = it.animatedTurnToken + 1) }
+            } else {
+                showPage(target, barsVisible = state.areBarsVisible, movesPager = true)
+            }
         }
     }
 
+    /**
+     * Moves the pager to [page] at once, in every view. Used by Go to page and the index. This is a
+     * lookup: it becomes the resume point only if the reader stays.
+     */
     fun jumpToPage(page: Int) {
+        pauseReciteFollow()
         showPage(page, barsVisible = mutableState.value.areBarsVisible, movesPager = true)
     }
 
     /** Turns the page by [step] pages, as the volume keys do. Turning pages is reading. */
     fun turnPage(step: Int) {
+        pauseReciteFollow()
         val state = mutableState.value
         showPage(
             state.currentPage + step,
@@ -383,7 +414,15 @@ class QuranViewModel(
 
     /** The reader dragged the pager: stop turning pages for the audio until they come back. */
     fun onPagerDragged() {
+        pauseReciteFollow()
         mutableState.update { it.copy(isFollowing = false) }
+    }
+
+    /**
+     * The reader moved the page by hand while reciting: the page stops turning until they return.
+     */
+    private fun pauseReciteFollow() {
+        mutableState.update { if (it.isReciting) it.copy(isReciteFollowPaused = true) else it }
     }
 
     /** The back-to-playing control: follow the audio again and show the playing ayah. */
@@ -534,6 +573,7 @@ class QuranViewModel(
         mutableState.update {
             it.copy(
                 isReciting = true,
+                isReciteFollowPaused = false,
                 selection = null,
                 selectionEnd = null,
                 selectionPage = null,
@@ -593,7 +633,9 @@ class QuranViewModel(
         }
     }
 
-    /** Plays the reciter's recording of the word on the open card; the card shows Stop meanwhile. */
+    /**
+     * Plays the reciter's recording of the word on the open card; the card shows Stop meanwhile.
+     */
     fun playPopupWord() {
         val popup = mutableState.value.wordPopup ?: return
         mutableState.update { it.copy(isPopupWordPlaying = true) }
@@ -909,6 +951,23 @@ class QuranViewModel(
         }
     }
 
+    /**
+     * The page that holds [word]. An ayah that runs over a page break starts on one page and ends
+     * on the next, so the layouts from the ayah's first page on are searched; a print that is not
+     * installed or has no such word gives the ayah's first page.
+     */
+    private suspend fun pageOfWord(word: WordKey): Int {
+        val firstPage = pageOfAyah(AyahRef(word.surah, word.ayah))
+        val script = scriptNow()
+        for (page in
+            firstPage until
+                minOf(firstPage + MAX_PAGES_OF_AYAH, mutableState.value.pageCount + 1)) {
+            val layout = layoutOrNull(page, script) ?: layoutOrNull(page, ScriptId.QpcHafs)
+            if (layout != null && layout.holds(word)) return page
+        }
+        return firstPage
+    }
+
     private suspend fun pageOfAyah(ayah: AyahRef): Int =
         pageOfAyahCache.getOrPut(ayah) { dependencies.quranText.pageOf(ayah, scriptNow()) }
 
@@ -942,7 +1001,14 @@ class QuranViewModel(
 
     private companion object {
         const val FIRST_PAGE = 1
+
+        /** The longest ayah (2:282) fills a page and a half; three pages cover any ayah. */
+        const val MAX_PAGES_OF_AYAH = 3
     }
+}
+
+private fun PageLayout.holds(word: WordKey): Boolean = lines.any { line ->
+    line.items.any { item -> item is LineItem.WordItem && item.word.key == word }
 }
 
 /** The ayah the reader hears or has paused on; nothing is heard while the audio downloads. */
