@@ -85,7 +85,7 @@ class CatalogueRulesTest {
 
         val groups =
             catalog.allPacks.associate { record ->
-                // The bundled files are the Hafs font and the text, translations and word packs.
+                // Only the Hafs font and the text ship in the app; every other pack is downloaded.
                 record.entry.id to CatalogueGrouping.groupOf(record, isBundled = false)
             }
 
@@ -93,6 +93,7 @@ class CatalogueRulesTest {
         assertEquals(CatalogueGroup.Translation, groups.getValue("en_abdul_haleem"))
         assertEquals(CatalogueGroup.WordByWord, groups.getValue("wbw_bn"))
         assertEquals(CatalogueGroup.Transliteration, groups.getValue("en_transliteration"))
+        assertEquals(CatalogueGroup.Transliteration, groups.getValue("en_transliteration_words"))
         assertEquals(null, groups.getValue("quran-text"))
     }
 }

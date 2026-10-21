@@ -3,7 +3,7 @@
 package app.awn.quran.core.data.translations
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.DirectoryBundledAssets
+import app.awn.quran.core.data.realPackAssets
 import app.awn.quran.core.data.MapBundledAssets
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.createPackDatabase
@@ -11,7 +11,6 @@ import app.awn.quran.core.data.manifestEntry
 import app.awn.quran.core.data.packs.ManifestCatalog
 import app.awn.quran.core.data.packs.PackStorage
 import app.awn.quran.core.data.packs.ReadOnlyDatabases
-import app.awn.quran.core.data.realBundledPacksDirectory
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -31,7 +30,7 @@ class SqliteTranslationRepositoryTest {
     @get:Rule val temporaryFolder = TemporaryFolder()
 
     private fun realRepository(): SqliteTranslationRepository {
-        val assets = DirectoryBundledAssets(realBundledPacksDirectory)
+        val assets = realPackAssets()
         val catalog = ManifestCatalog(assets)
         val storage = PackStorage(temporaryFolder.newFolder(), assets, catalog)
         return SqliteTranslationRepository(catalog, storage, ReadOnlyDatabases())
@@ -154,5 +153,58 @@ class SqliteTranslationRepositoryTest {
         assertEquals(3, third.ayahFrom)
         assertEquals(3, third.ayahTo)
         assertTrue(File(storage.root, "merged.sqlite").isFile)
+    }
+
+    private fun transliterationWordsRepository(isInstalled: Boolean): SqliteTranslationRepository {
+        val packFile = temporaryFolder.newFile("words.sqlite").also { it.delete() }
+        createPackDatabase(
+            packFile,
+            1,
+            "CREATE TABLE word_translation (surah INTEGER, ayah INTEGER, position INTEGER, text TEXT, PRIMARY KEY (surah, ayah, position))",
+            "INSERT INTO word_translation VALUES (1, 1, 2, 'l-lahi')",
+            "INSERT INTO word_translation VALUES (1, 1, 1, 'bis''mi')",
+            "INSERT INTO word_translation VALUES (1, 2, 1, 'al-ḥamdu')",
+        )
+        val entry =
+            manifestEntry(
+                "en_transliteration_words",
+                "word_transliteration",
+                packFile,
+                "translations/en_transliteration_words.sqlite",
+                extraFields = ""","language":"en"""",
+            )
+        val files =
+            mutableMapOf(
+                "translations.json" to """{"format_version":1,"packs":[$entry]}""".toByteArray(),
+                "scripts.json" to """{"format_version":1,"packs":[]}""".toByteArray(),
+                "reciters.json" to """{"format_version":1,"reciters":[]}""".toByteArray(),
+            )
+        if (isInstalled) files["en_transliteration_words.sqlite"] = packFile.readBytes()
+        val assets = MapBundledAssets(files)
+        val catalog = ManifestCatalog(assets)
+        val storage = PackStorage(temporaryFolder.newFolder(), assets, catalog)
+        return SqliteTranslationRepository(catalog, storage, ReadOnlyDatabases())
+    }
+
+    @Test
+    fun wordTransliterationIsReadInWordOrder() = runBlocking {
+        val repository = transliterationWordsRepository(isInstalled = true)
+
+        assertEquals(listOf("bis'mi", "l-lahi"), repository.wordTransliteration(AyahRef(1, 1)))
+        assertEquals(emptyList<String>(), repository.wordTransliteration(AyahRef(1, 3)))
+    }
+
+    @Test
+    fun wordTransliterationIsEmptyUntilThePackIsDownloaded() = runBlocking {
+        val repository = transliterationWordsRepository(isInstalled = false)
+
+        assertEquals(emptyList<String>(), repository.wordTransliteration(AyahRef(1, 1)))
+    }
+
+    @Test
+    fun theWordTransliterationPackIsNotListedAsAnAyahTranslation() = runBlocking {
+        val ids = transliterationWordsRepository(isInstalled = true).available().map { it.id.id }
+
+        assertFalse("en_transliteration_words" in ids)
     }
 }

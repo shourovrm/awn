@@ -36,8 +36,8 @@ class SqliteQuranTextRepository(
         withContext(ioDispatcher) {
             val cursor =
                 database.rawQuery(
-                    "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, " +
-                        "transliteration FROM word WHERE surah = ? AND ayah = ? ORDER BY position",
+                    "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2 " +
+                        "FROM word WHERE surah = ? AND ayah = ? ORDER BY position",
                     arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
                 )
             cursor.use {
@@ -131,7 +131,7 @@ class SqliteQuranTextRepository(
     private fun readWordRows(page: Int, print: LayoutPrint): List<PlacedWord> {
         val cursor =
             database.rawQuery(
-                "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, transliteration, " +
+                "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, " +
                     "${print.lineColumn} FROM word WHERE ${print.pageColumn} = ? " +
                     "ORDER BY surah, ayah, position",
                 arrayOf(page.toString()),
@@ -152,7 +152,7 @@ class SqliteQuranTextRepository(
     private fun readNextPageStarts(page: Int, print: LayoutPrint): List<PlacedWord> {
         val cursor =
             database.rawQuery(
-                "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, transliteration, " +
+                "SELECT surah, ayah, position, text_uthmani, code_v1, code_v2, " +
                     "${print.lineColumn} FROM word WHERE ${print.pageColumn} = ? " +
                     "AND ayah = 1 AND position = 1 AND ${print.lineColumn} <= 2",
                 arrayOf(page.toString()),
@@ -202,7 +202,6 @@ class SqliteQuranTextRepository(
             textUthmani = cursor.getString(3),
             codeV1 = cursor.getString(4),
             codeV2 = cursor.getString(5),
-            transliteration = if (cursor.isNull(6)) null else cursor.getString(6),
         )
 
     private fun requirePageInRange(page: Int) {
@@ -211,7 +210,7 @@ class SqliteQuranTextRepository(
 
     private companion object {
         const val PAGE_COUNT = 604
-        const val WORD_LINE_COLUMN = 7
+        const val WORD_LINE_COLUMN = 6
         const val MARKER_LINE_COLUMN = 2
         const val MARKER_LAST_CODE_COLUMN = 3
     }

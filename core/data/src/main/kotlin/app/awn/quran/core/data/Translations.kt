@@ -32,4 +32,10 @@ interface TranslationRepository {
      * position. Returns an empty list when the word pack is not installed.
      */
     suspend fun wordByWord(language: String, ayah: AyahRef): List<String>
+
+    /**
+     * Returns the transliteration of each word of [ayah], one entry per word position. Returns an
+     * empty list when the word transliteration pack is not installed.
+     */
+    suspend fun wordTransliteration(ayah: AyahRef): List<String>
 }

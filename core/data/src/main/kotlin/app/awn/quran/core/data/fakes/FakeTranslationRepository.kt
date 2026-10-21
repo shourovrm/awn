@@ -11,6 +11,7 @@ class FakeTranslationRepository(
     val infos: MutableList<TranslationInfo> = mutableListOf(),
     val texts: MutableMap<TranslationId, MutableMap<AyahRef, TranslationText>> = mutableMapOf(),
     val wordMeanings: MutableMap<Pair<String, AyahRef>, List<String>> = mutableMapOf(),
+    val wordTransliterations: MutableMap<AyahRef, List<String>> = mutableMapOf(),
 ) : TranslationRepository {
 
     override suspend fun available(): List<TranslationInfo> = infos.toList()
@@ -20,4 +21,7 @@ class FakeTranslationRepository(
 
     override suspend fun wordByWord(language: String, ayah: AyahRef): List<String> =
         wordMeanings[language to ayah].orEmpty()
+
+    override suspend fun wordTransliteration(ayah: AyahRef): List<String> =
+        wordTransliterations[ayah].orEmpty()
 }

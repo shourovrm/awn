@@ -80,6 +80,29 @@ class SqliteTranslationRepository(
             if (language == ENGLISH) PhraseRepeats.collapse(ayah, meanings) else meanings
         }
 
+    override suspend fun wordTransliteration(ayah: AyahRef): List<String> =
+        withContext(ioDispatcher) {
+            val record =
+                packOf(TRANSLITERATION_WORDS_ID, setOf(TRANSLITERATION_WORDS_KIND))
+                    ?: return@withContext emptyList()
+            val file = storage.locate(record) ?: return@withContext emptyList()
+            val cursor =
+                databases
+                    .open(file)
+                    .rawQuery(
+                        "SELECT text FROM word_translation WHERE surah = ? AND ayah = ? " +
+                            "ORDER BY position",
+                        arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
+                    )
+            cursor.use {
+                buildList {
+                    while (it.moveToNext()) {
+                        add(it.getString(0))
+                    }
+                }
+            }
+        }
+
     private fun packOf(id: String, translationKinds: Set<String>): PackRecord? =
         catalog.translationPacks.firstOrNull {
             it.entry.id == id && it.translationKind in translationKinds
@@ -92,6 +115,10 @@ class SqliteTranslationRepository(
          */
         val AYAH_TEXT_KINDS = setOf("ayah", "transliteration")
         const val WORD_PACK_KIND = "word"
+
+        /** The transliteration of each word, which used to be a column of `quran.sqlite`. */
+        const val TRANSLITERATION_WORDS_ID = "en_transliteration_words"
+        const val TRANSLITERATION_WORDS_KIND = "word_transliteration"
         const val ENGLISH = "en"
     }
 }
