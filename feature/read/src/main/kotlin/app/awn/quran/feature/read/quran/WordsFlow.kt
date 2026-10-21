@@ -1,6 +1,7 @@
 package app.awn.quran.feature.read.quran
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -86,6 +87,7 @@ internal fun WordsFlow(
                     environment = environment,
                     styles = cellStyles,
                     fill = wordFill(environment.wordStates[word.key], playingWord, word, fills),
+                    isFocused = word.key == environment.focusedWord,
                     onAyahLongPress = onAyahLongPress,
                 )
             }
@@ -135,6 +137,7 @@ private fun WordCell(
     environment: ListPageEnvironment,
     styles: WordCellStyles,
     fill: Color,
+    isFocused: Boolean,
     onAyahLongPress: () -> Unit,
 ) {
     val settings = environment.settings
@@ -154,12 +157,22 @@ private fun WordCell(
         } else {
             Modifier.plainCellTaps(state, word, tapped, onAyahLongPress)
         }
+    // The word under review gets a fill and a ring; the ink keeps its colour.
+    val focusModifier =
+        if (isFocused) {
+            Modifier.background(Awn.field.selectedAyahFill, AwnShapes.wordBlock)
+                .border(2.dp, Awn.field.buttonFill, AwnShapes.wordBlock)
+        } else {
+            Modifier
+        }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
-            tapModifier.clip(AwnShapes.wordBlock).background(fill).onGloballyPositioned {
-                coordinatesHolder.coordinates = it
-            },
+            tapModifier
+                .clip(AwnShapes.wordBlock)
+                .background(fill)
+                .then(focusModifier)
+                .onGloballyPositioned { coordinatesHolder.coordinates = it },
     ) {
         if (settings.showArabic) {
             ArabicWord(word, styles.arabic, state, environment)

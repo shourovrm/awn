@@ -24,6 +24,7 @@
   <string name="recite_next">পরের</string>
   <string name="recite_finding_madd">মাদ্দ</string>
   <string name="recite_finding_wrong_word">ভুল শব্দ</string>
+  <string name="recite_finding_not_clear">স্পষ্ট নয়</string>
   <string name="recite_duration">%2$.2f সেকেন্ডের মধ্যে %1$.2f সেকেন্ড</string>
   <string name="recite_hint_say_again">শব্দটি আবার বলুন</string>
   <string name="recite_hint_hold_longer">আরেকটু টানুন</string>

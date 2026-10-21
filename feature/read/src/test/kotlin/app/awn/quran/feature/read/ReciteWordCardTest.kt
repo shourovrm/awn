@@ -89,18 +89,6 @@ class ReciteWordCardTest {
     }
 
     @Test
-    fun aTapOnAProblemWordInThePageLoadsItsTextForTheCard() = runTest {
-        viewModel.open(QuranTarget.Page(1))
-
-        viewModel.onProblemWordTapped(firstKey, WordProblem.Skipped)
-
-        val popup = checkNotNull(viewModel.state.value.wordPopup)
-        assertEquals(ReadFixture.FIRST_WORD_DRAWN, popup.word.arabic)
-        assertEquals("In (the) name", popup.word.meaning)
-        assertEquals(WordProblem.Skipped, popup.problem)
-    }
-
-    @Test
     fun aTapOutsideClosesTheCard() = runTest {
         viewModel.open(QuranTarget.Page(1))
         viewModel.onWordTapped(firstAyah, aWord(), WordProblem.Skipped)
@@ -112,15 +100,14 @@ class ReciteWordCardTest {
     }
 
     @Test
-    fun theTapThatOpensAProblemWordCardOnThePageNeitherClosesItNorTogglesTheBars() = runTest {
+    fun theTapThatFlagsAWordOnThePageDoesNotToggleTheBars() = runTest {
         viewModel.open(QuranTarget.Page(1))
         val barsBefore = viewModel.state.value.areBarsVisible
 
         // The page reports a word tap and then the same tap as a page tap.
-        viewModel.onProblemWordTapped(firstKey, WordProblem.Skipped)
+        viewModel.ignoreNextPageTap()
         viewModel.onPageTapped()
 
-        assertNotNull(viewModel.state.value.wordPopup)
         assertEquals(barsBefore, viewModel.state.value.areBarsVisible)
     }
 }

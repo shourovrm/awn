@@ -17,7 +17,6 @@ import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +34,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -131,6 +132,13 @@ data class QuranScreenSlots(
     val reciteCurrentAyah: @Composable () -> AyahRef? = { null },
     /** Optional. The next word the reciter is expected to say; the pager turns to its page. */
     val reciteCurrentWord: @Composable () -> WordKey? = { null },
+    /**
+     * Optional. The flagged word the reciter is reviewing in the review card; the page turns to it
+     * and rings it.
+     */
+    val reciteFocusedWord: @Composable () -> WordKey? = { null },
+    /** Optional. A tap on a flagged word while reciting asks the review card to open on it. */
+    val onReciteFocusWord: (WordKey) -> Unit = {},
     /**
      * Optional. Called when Back is pressed and nothing on the screen is open; the host goes to its
      * home page. When null, Back is left to the host's default (leaving the app).
@@ -263,6 +271,10 @@ private fun QuranContent(
     var isSelecting by remember { mutableStateOf(false) }
     // Where the tapped word is, in window coordinates, for the word card.
     var wordAnchor by remember { mutableStateOf<Rect?>(null) }
+    // Where the word the reciter is on lies on the Mushaf page, in the page's own coordinates.
+    var trackedWordBounds by remember { mutableStateOf<Rect?>(null) }
+    // The height of everything stacked at the bottom while reciting; the lists end above it.
+    var bottomStackHeightPx by remember { mutableIntStateOf(0) }
     // Remembered, so the pages see the same objects after every state change and can skip.
     val selectionActions = remember {
         MushafSelectionActions(
@@ -272,6 +284,7 @@ private fun QuranContent(
         )
     }
     val onListAnchor: (Rect?) -> Unit = remember { { anchor -> listAnchor = anchor } }
+    val onTrackedWordBounds: (Rect?) -> Unit = remember { { bounds -> trackedWordBounds = bounds } }
 
     BoxWithConstraints(
         Modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() },
@@ -306,18 +319,33 @@ private fun QuranContent(
         val audioBarClearancePx =
             with(density) { (AwnSpacing.dockHeight + AwnSpacing.small).toPx() }
         val isAudioBarOverPage = state.areBarsVisible && !state.isPanelOpen
+        // While reciting, the recite bar is two or three rows tall and the reciter moves down the
+        // page, so the page slides up to keep the word being recited above the bar.
+        val reciteWordBounds = trackedWordBounds
         val barShiftTarget =
-            if (isAudioBarOverPage && isMushaf && pageBounds != null) {
-                shiftToClearAudioBar(
-                        spanTop = pageBounds.all.top,
-                        spanBottom = pageBounds.all.bottom,
-                        pageHeight = fullHeightPx.toFloat(),
-                        clearance = audioBarClearancePx,
-                        margin = marginPx,
-                    )
-                    .toInt()
-            } else {
-                0
+            when {
+                state.isReciting &&
+                    isMushaf &&
+                    reciteWordBounds != null &&
+                    bottomStackHeightPx > 0 ->
+                    shiftToClearAudioBar(
+                            spanTop = reciteWordBounds.top,
+                            spanBottom = reciteWordBounds.bottom,
+                            pageHeight = fullHeightPx.toFloat(),
+                            clearance = bottomStackHeightPx.toFloat(),
+                            margin = marginPx,
+                        )
+                        .toInt()
+                isAudioBarOverPage && isMushaf && pageBounds != null ->
+                    shiftToClearAudioBar(
+                            spanTop = pageBounds.all.top,
+                            spanBottom = pageBounds.all.bottom,
+                            pageHeight = fullHeightPx.toFloat(),
+                            clearance = audioBarClearancePx,
+                            margin = marginPx,
+                        )
+                        .toInt()
+                else -> 0
             }
         // The animated part is read only when the page is placed, so the 120 ms slide does not
         // recompose the pager on every frame.
@@ -325,16 +353,21 @@ private fun QuranContent(
         val currentShiftPx: () -> Int =
             remember(panelShiftPx, barShiftPx) { { panelShiftPx + barShiftPx.value } }
 
+        val focusedWord = if (state.isReciting) slots.reciteFocusedWord() else null
         val reciteMarks =
             if (state.isReciting) {
                 ReciteMarks(
                     states = slots.reciteWordStates(),
                     problems = slots.reciteWordProblems(),
-                    currentAyah = slots.reciteCurrentAyah(),
+                    // A mistake under review keeps its ayah in view in the lists.
+                    currentAyah =
+                        focusedWord?.let { AyahRef(it.surah, it.ayah) }
+                            ?: slots.reciteCurrentAyah(),
                 )
             } else {
                 ReciteMarks.None
             }
+        val trackedWord = focusedWord ?: if (state.isReciting) slots.reciteCurrentWord() else null
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
         // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
@@ -343,6 +376,12 @@ private fun QuranContent(
         // The Mushaf page is never resized or clipped: the panel is drawn over it. The lists shrink
         // to the part above the panel so their scrolling keeps the ayah in view.
         val pagerHeight = if (isMushaf) fullHeight else windowHeight
+        val reciteBarHeight: Dp? =
+            if (state.isReciting && bottomStackHeightPx > 0) {
+                with(density) { bottomStackHeightPx.toDp() }
+            } else {
+                null
+            }
         Box(Modifier.fillMaxWidth().height(pagerHeight).clipToBounds()) {
             QuranPager(
                 state = state,
@@ -352,14 +391,16 @@ private fun QuranContent(
                 reciteMarks = reciteMarks,
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
+                reciteBarHeight = reciteBarHeight,
+                trackedWord = trackedWord,
+                focusedWord = focusedWord,
+                onFocusWord = slots.onReciteFocusWord,
+                onTrackedWordBounds = onTrackedWordBounds,
                 shiftPx = currentShiftPx,
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
                 onWordAnchor = { wordAnchor = it },
                 // The page reports the word in its own coordinates, which start one margin in.
-                onMushafWordAnchor = { rect ->
-                    wordAnchor = rect.translate(rootOrigin.x + marginPx, rootOrigin.y)
-                },
             )
         }
         val topClearancePx = topBarClearancePx(state.areBarsVisible)
@@ -520,6 +561,8 @@ private class MushafSelectionActions(
 
 private val IgnoreBounds: (SelectionBounds?) -> Unit = {}
 
+private val IgnoreRect: (Rect?) -> Unit = {}
+
 private val NoShift: () -> Int = { 0 }
 
 /** The block of an ayah in a list view: its top slice stands for the first line. */
@@ -564,7 +607,8 @@ private fun AnimateRecitationTurns(pagerState: PagerState, state: QuranUiState) 
     }
 }
 
-@Suppress("LongMethod") // The pager with the page of each of the three views.
+// The pager with the page of each of the three views, and what each does only on the current page.
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 private fun QuranPager(
     state: QuranUiState,
@@ -574,11 +618,15 @@ private fun QuranPager(
     reciteMarks: ReciteMarks,
     playingWord: State<Int?>,
     fullHeightPx: Int,
+    reciteBarHeight: Dp?,
+    trackedWord: WordKey?,
+    focusedWord: WordKey?,
+    onFocusWord: (WordKey) -> Unit,
+    onTrackedWordBounds: (Rect?) -> Unit,
     shiftPx: () -> Int,
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
     onWordAnchor: (Rect?) -> Unit,
-    onMushafWordAnchor: (Rect) -> Unit,
 ) {
     val pagerState =
         rememberPagerState(initialPage = state.currentPage - 1, pageCount = { state.pageCount })
@@ -604,13 +652,7 @@ private fun QuranPager(
     // The list scrolls clear of the top bar above and of the audio bar and the navigation bar
     // below, so a search result or the playing ayah never sits under either.
     val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val barPadding =
-        PaddingValues(
-            start = AwnSpacing.screenMargin,
-            end = AwnSpacing.screenMargin,
-            top = AwnSpacing.huge + AwnSpacing.small,
-            bottom = AwnSpacing.dockHeight + AwnSpacing.small + navigationBarHeight,
-        )
+    val barPadding = listContentPadding(reciteBarHeight, navigationBarHeight)
     val view = state.settings.pageView
     val tapToggle =
         remember(viewModel) {
@@ -628,16 +670,17 @@ private fun QuranPager(
         }
     val onRangeDrag: (AyahRange) -> Unit = remember(viewModel) { viewModel::selectRange }
 
-    // Only a word that was recited badly has a card; the lambda is remembered so the pages do not
-    // see a new callback each time the problems change.
+    // Only a word that was recited badly reacts to a tap, and it opens the review card on that
+    // word. The lambda is remembered so the pages do not see a new callback each time the
+    // problems change.
     val currentProblems by rememberUpdatedState(reciteMarks.problems)
+    val currentFocusWord by rememberUpdatedState(onFocusWord)
     val onProblemWordTap: (WordKey, Rect) -> Unit =
-        remember(viewModel, onMushafWordAnchor) {
-            { key, bounds ->
-                val problem = currentProblems[key]
-                if (problem != null) {
-                    onMushafWordAnchor(bounds)
-                    viewModel.onProblemWordTapped(key, problem)
+        remember(viewModel) {
+            { key, _ ->
+                if (key in currentProblems) {
+                    viewModel.ignoreNextPageTap()
+                    currentFocusWord(key)
                 }
             }
         }
@@ -694,6 +737,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteMarks.states,
+                                    focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
                                     onTap = onPageTapped,
@@ -703,6 +747,9 @@ private fun QuranPager(
                                     onRangeEnd = selectionActions.onRangeEnd,
                                     onSelectionBounds =
                                         if (isCurrent) selectionActions.onBounds else IgnoreBounds,
+                                    trackedWord = if (isCurrent) trackedWord else null,
+                                    onTrackedWordBounds =
+                                        if (isCurrent) onTrackedWordBounds else IgnoreRect,
                                 ),
                             modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
                         )
@@ -732,6 +779,7 @@ private fun QuranPager(
                         wordStates = reciteMarks.states,
                         isReciting = state.isReciting,
                         recitedAyah = reciteMarks.currentAyah,
+                        focusedWord = focusedWord,
                         selection = state.selectedRange,
                         playingAyah = state.playingAyah,
                         playingWordPosition = playingWord,
@@ -745,14 +793,30 @@ private fun QuranPager(
                             onListAnchor(bounds)
                             viewModel.selectAyah(ayah)
                         },
-                        onWordTap = { ayah, word, bounds ->
-                            onWordAnchor(bounds)
-                            viewModel.onWordTapped(ayah, word, reciteMarks.problems[word.key])
-                        },
+                        onWordTap =
+                            listWordTap(viewModel, reciteMarks.problems, onFocusWord, onWordAnchor),
                         onUserScrolled = viewModel::onPagerDragged,
                     ),
             )
         }
+    }
+}
+
+/**
+ * A tap on a word of a list page: a word recited badly asks for the review card on it, any other
+ * word opens its meaning card.
+ */
+private fun listWordTap(
+    viewModel: QuranViewModel,
+    problems: Map<WordKey, WordProblem>,
+    onFocusWord: (WordKey) -> Unit,
+    onWordAnchor: (Rect?) -> Unit,
+): (AyahRef, AyahWord, Rect?) -> Unit = { ayah, word, bounds ->
+    if (word.key in problems) {
+        onFocusWord(word.key)
+    } else {
+        onWordAnchor(bounds)
+        viewModel.onWordTapped(ayah, word)
     }
 }
 

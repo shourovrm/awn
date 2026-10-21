@@ -44,6 +44,7 @@ import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.recite.ReciteBar
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteCurrentWord
+import app.awn.quran.feature.recite.rememberReciteFocusedWord
 import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.IndexActions
@@ -298,6 +299,8 @@ private fun QuranRoute(
             isReciteActive = isReciting,
             reciteCurrentAyah = { rememberReciteCurrentAyah(services.recite) },
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
+            reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
+            onReciteFocusWord = services.recite::focusWord,
         )
     AwnTheme(field = ReadField) {
         QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)

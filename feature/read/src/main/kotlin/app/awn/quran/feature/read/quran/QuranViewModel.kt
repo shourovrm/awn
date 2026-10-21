@@ -284,16 +284,21 @@ class QuranViewModel(
     /**
      * Turns to the page of [word], the next word the reciter is expected to say, so the words being
      * recited stay on screen. A turn to the neighbouring page is animated like a swipe; a longer
-     * way jumps. A reader who moved the page by hand is left alone (see [decideReciteFollow]).
+     * way jumps. A reader who moved the page by hand is left alone (see [decideReciteFollow]),
+     * unless [ignoresPause]: a mistake the reader asked for in the review card is always shown.
      */
-    fun followRecitation(word: WordKey) {
+    fun followRecitation(word: WordKey, ignoresPause: Boolean = false) {
         reciteFollowJob?.cancel()
         reciteFollowJob = viewModelScope.launch {
             val wordPage = pageOfWord(word)
             val state = mutableState.value
             if (!state.isReciting || !state.hasStarted) return@launch
             val decision =
-                decideReciteFollow(wordPage, state.currentPage, state.isReciteFollowPaused)
+                decideReciteFollow(
+                    wordPage,
+                    state.currentPage,
+                    state.isReciteFollowPaused && !ignoresPause,
+                )
             mutableState.update { it.copy(isReciteFollowPaused = decision.isPaused) }
             val target = decision.turnToPage ?: return@launch
             if (isSinglePageTurn(state.currentPage, target)) {
@@ -629,18 +634,12 @@ class QuranViewModel(
     }
 
     /**
-     * A tap on a word of the Mushaf page that was recited wrongly or unclearly: the page knows only
-     * the key, so the word's text, meaning and transliteration are read before the card opens.
+     * A tap on a flagged word of the Mushaf page opens the review card, which is not part of this
+     * screen. The page reports the same tap as a page tap right after the word tap; this makes that
+     * one tap do nothing instead of showing or hiding the bars.
      */
-    fun onProblemWordTapped(key: WordKey, problem: WordProblem) {
+    fun ignoreNextPageTap() {
         problemWordTapPending = true
-        viewModelScope.launch {
-            val ayah = AyahRef(key.surah, key.ayah)
-            val block =
-                contentLoader.loadBlock(ayah, enabledTranslations = emptyList(), names = emptyMap())
-            val word = block.words.firstOrNull { it.key == key } ?: return@launch
-            onWordTapped(ayah, word, problem)
-        }
     }
 
     /**

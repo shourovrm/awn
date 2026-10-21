@@ -317,6 +317,18 @@ internal fun DrawScope.drawFills(
             cornerRadius = corner,
         )
     }
+    focusedWordRect(geometry, decorations)?.let { rect ->
+        val ringTopLeft = Offset(rect.left, rect.top + inset)
+        val ringSize = Size(rect.width, rect.height - inset * 2f)
+        drawRoundRect(field.selectedAyahFill, ringTopLeft, ringSize, corner)
+        drawRoundRect(
+            field.buttonFill,
+            ringTopLeft,
+            ringSize,
+            corner,
+            style = Stroke(width = 2.dp.toPx()),
+        )
+    }
 }
 
 /**
