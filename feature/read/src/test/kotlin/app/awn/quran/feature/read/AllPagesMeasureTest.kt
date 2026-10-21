@@ -51,29 +51,45 @@ class AllPagesMeasureTest {
             mapOf(ScriptId.V1 to "v1", ScriptId.V2 to "v2", ScriptId.V4Tajweed to "v4-tajweed")
         for ((script, folder) in folders) {
             for (page in 1..PAGE_COUNT) {
-                try {
-                    val layout = runBlocking { repository.pageLayout(page, script) }
-                    val family = FontFamily(Font(File(fontsDirectory, "$folder/p$page.ttf")))
-                    val measurer = TextMeasurer(resolver, density, LayoutDirection.Ltr, 4)
-                    val measured =
-                        measurePage(
-                            buildPageRows(layout, hasGlyphFont = true),
-                            PageFamilies(family, null),
-                            density,
-                            measurer,
-                            PagePlacement(widthPx, widthPx * 2f, 1f, isCentredBlock = page <= 2),
-                        )
-                    val isOutside =
-                        measured.geometry.textLines.any { line ->
-                            line.tokens.any { it.left < -1f || it.right > widthPx + 1f }
-                        }
-                    if (isOutside) failures += "$script $page: a token leaves the page"
-                } catch (error: IllegalStateException) {
-                    failures += "$script $page: $error"
-                }
+                val problem =
+                    problemOfPage(repository, script, page, folder, resolver, density, widthPx)
+                if (problem != null) failures += "$script $page: $problem"
             }
         }
         assertEquals(emptyList<String>(), failures)
+    }
+
+    /** Why the page cannot be placed inside [widthPx], or null when it can. */
+    @Suppress("LongParameterList") // Plain inputs of one measurement, used in one place.
+    private fun problemOfPage(
+        repository: SqliteQuranTextRepository,
+        script: ScriptId,
+        page: Int,
+        folder: String,
+        resolver: FontFamily.Resolver,
+        density: Density,
+        widthPx: Float,
+    ): String? {
+        val layout = runBlocking { repository.pageLayout(page, script) }
+        val family = FontFamily(Font(File(fontsDirectory, "$folder/p$page.ttf")))
+        val measurer = TextMeasurer(resolver, density, LayoutDirection.Ltr, 4)
+        val measured =
+            try {
+                measurePage(
+                    buildPageRows(layout, hasGlyphFont = true),
+                    PageFamilies(family, null),
+                    density,
+                    measurer,
+                    PagePlacement(widthPx, widthPx * 2f, 1f, isCentredBlock = page <= 2),
+                )
+            } catch (error: IllegalStateException) {
+                return error.toString()
+            }
+        val isOutside =
+            measured.geometry.textLines.any { line ->
+                line.tokens.any { it.left < -1f || it.right > widthPx + 1f }
+            }
+        return if (isOutside) "a token leaves the page" else null
     }
 
     private companion object {

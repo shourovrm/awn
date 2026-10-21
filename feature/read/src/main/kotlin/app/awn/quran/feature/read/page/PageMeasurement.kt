@@ -173,6 +173,8 @@ internal const val MEASURE_TIMEOUT_MS = 10_000L
  * plain QPC Hafs font instead, so the reader always sees text. [measureOwnPrint] and
  * [measureFallback] are the two measurements, apart so a test can make the first one fail.
  */
+// Any failure of the text engine must leave text on the page, so the catch is meant to be wide.
+@Suppress("TooGenericExceptionCaught")
 internal suspend fun measureWithFallback(
     layout: PageLayout,
     measureOwnPrint: () -> MeasuredPage,
@@ -185,10 +187,11 @@ internal suspend fun measureWithFallback(
                 val own = async(PageWork.dispatcher) { measureOwnPrint() }
                 withTimeout(timeoutMs) { own.await() }
             }
-        } catch (error: CancellationException) {
-            // A timeout is a failure of the page; a real cancellation (the page left) goes on.
-            if (error !is TimeoutCancellationException) throw error
+        } catch (error: TimeoutCancellationException) {
             error
+        } catch (error: CancellationException) {
+            // The page left the screen; this is not a failure of the page.
+            throw error
         } catch (error: Exception) {
             error
         }
