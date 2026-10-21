@@ -77,7 +77,7 @@ object CoursePath {
 
     fun build(input: PathInput): List<PathRow> {
         val steps = orderedSteps(input)
-        val firstNotDone = steps.indexOfFirst { it.state != PathState.Done }
+        val firstNotDone = steps.indexOfFirst { it.stateOrNull() != PathState.Done }
         val nextIndex = if (firstNotDone == -1) steps.size else firstNotDone
         val marked = steps.mapIndexed { index, step -> if (index == nextIndex) step.asNext() else step }
         val foldedCount = (nextIndex - VISIBLE_DONE_STEPS).coerceAtLeast(0)
@@ -144,6 +144,13 @@ object CoursePath {
 
     private fun triggerSetOf(lesson: CourseLesson, input: PathInput): Int? =
         triggerRankOf(lesson, input)?.let(LearnSets::numberOf)
+
+    private fun PathRow.stateOrNull(): PathState? =
+        when (this) {
+            is PathRow.SetStep -> state
+            is PathRow.LessonStep -> state
+            else -> null
+        }
 
     private fun PathRow.asNext(): PathRow =
         when (this) {

@@ -11,9 +11,9 @@ import app.awn.quran.feature.learn.data.SessionLogEntity
 import app.awn.quran.feature.learn.data.StepItemKind
 import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.data.WordCardEntity
-import app.awn.quran.feature.learn.fsrs.FsrsRating
-import app.awn.quran.feature.learn.fsrs.FsrsScheduler
-import app.awn.quran.feature.learn.fsrs.FsrsState
+import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsScheduler
+import app.awn.quran.core.data.fsrs.FsrsState
 import app.awn.quran.feature.learn.progress.LearnClock
 import app.awn.quran.feature.learn.session.Pace
 import app.awn.quran.feature.learn.session.PaceMeasurement

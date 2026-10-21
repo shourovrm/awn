@@ -1,8 +1,8 @@
 package app.awn.quran.feature.learn.session
 
-import app.awn.quran.feature.learn.fsrs.FsrsCard
-import app.awn.quran.feature.learn.fsrs.FsrsRating
-import app.awn.quran.feature.learn.fsrs.FsrsScheduler
+import app.awn.quran.core.data.fsrs.FsrsCard
+import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsScheduler
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

@@ -2,8 +2,8 @@ package app.awn.quran.feature.learn.words
 
 import app.awn.quran.feature.learn.data.GrammarCardEntity
 import app.awn.quran.feature.learn.data.WordCardEntity
-import app.awn.quran.feature.learn.fsrs.FsrsCard
-import app.awn.quran.feature.learn.fsrs.FsrsState
+import app.awn.quran.core.data.fsrs.FsrsCard
+import app.awn.quran.core.data.fsrs.FsrsState
 
 /** What the word list says about a word. */
 enum class WordStatus {
