@@ -65,6 +65,7 @@
 - Drawing the ۞ sign as a vector: it is a symbol with a real glyph in the font.
 
 ## Page (wave 3, page agent)
+- A page that cannot be measured is never blank: `measureWithFallback` catches an exception, a non-finite placement or 10 s without a result, logs page and print (tag `PageMeasurement`) and places the Unicode text in the QPC Hafs font; `MeasuredPage` carries the rows and fonts it was placed with. Page 92 (blank on the phone) measured fine for V1, V2 and V4 on all 604 pages with real fonts (`AllPagesMeasureTest`, needs `AWN_DATA_DIR`), so its cause is not in layout or measuring.
 - Pages are measured off the main thread: `rememberMeasuredPage` (PageMeasurement.kt) runs `measurePage` on `PageWork.dispatcher` (Default) and keeps the last 8 results in `sharedPageMeasurements`; until ready the page draws nothing. Compose tests must add `InlinePageWorkRule`.
 - `PageFontCache.familyFor(script, page, isNight)` is keyed by (script, page, night); `retainAround` also prepares pages +-2 on IO for the script and mode last asked for. Fonts are `FontFamily(Font(file))`; the typeface itself loads inside the worker's measure.
 - Tajweed at night: Android draws CPAL palette 0 only, so `NightFontFiles` writes `night/pN.ttf` beside the font with palette 0 index set to palette 1's (`CpalNightPatch`, checksums kept valid); fonts without a second palette use the original. Night = `!Awn.field.isLight`.

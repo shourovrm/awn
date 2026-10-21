@@ -70,6 +70,8 @@ class PageMeasurementTest {
                 ),
             measurements = TokenMeasurements(emptyMap(), firstBaselineEm = 0.8f),
             basmalaWidthEm = null,
+            rows = emptyList(),
+            families = PageFamilies(null, null),
         )
 
     private fun keyFor(width: Float) =

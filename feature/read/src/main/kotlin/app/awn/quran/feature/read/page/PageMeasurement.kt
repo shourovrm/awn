@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -14,9 +15,14 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 internal const val MEASURE_FONT_PX = 200f
 /** Used when the text engine reports no baseline, as the test fonts of Robolectric do. */
@@ -92,6 +98,9 @@ internal class MeasuredPage(
     val measurements: TokenMeasurements,
     /** Width of the Basmalah line in ems of the plain font, or null when the page has none. */
     val basmalaWidthEm: Float?,
+    /** The rows and fonts this page was placed with; the Hafs fallback has its own. */
+    val rows: List<PageRow>,
+    val families: PageFamilies,
 )
 
 /**
@@ -140,8 +149,54 @@ internal fun measurePage(
         } else {
             null
         }
-    return MeasuredPage(geometry, measurements, basmalaWidthEm)
+    check(isUsable(geometry)) { "The placement of the page is not finite: ${geometry.fontSizePx}" }
+    return MeasuredPage(geometry, measurements, basmalaWidthEm, rows, families)
 }
+
+/** True when the font size is positive and every token sits at a finite place. */
+private fun isUsable(geometry: PageGeometry): Boolean =
+    geometry.fontSizePx.isFinite() &&
+        geometry.fontSizePx > 0f &&
+        geometry.textLines.all { line ->
+            line.top.isFinite() &&
+                line.tokens.all { placement ->
+                    placement.left.isFinite() && placement.right.isFinite()
+                }
+        }
+
+/** How long the measuring of one page may take before the page is drawn in the fallback font. */
+internal const val MEASURE_TIMEOUT_MS = 10_000L
+
+/**
+ * Measures [layout] with its own print; if that throws, produces a non-finite placement or takes
+ * longer than [MEASURE_TIMEOUT_MS], logs the page and print and measures the Unicode text in the
+ * plain QPC Hafs font instead, so the reader always sees text. [measureOwnPrint] and
+ * [measureFallback] are the two measurements, apart so a test can make the first one fail.
+ */
+internal suspend fun measureWithFallback(
+    layout: PageLayout,
+    measureOwnPrint: () -> MeasuredPage,
+    measureFallback: () -> MeasuredPage,
+    timeoutMs: Long = MEASURE_TIMEOUT_MS,
+): MeasuredPage {
+    val failure: Throwable? =
+        try {
+            return coroutineScope {
+                val own = async(PageWork.dispatcher) { measureOwnPrint() }
+                withTimeout(timeoutMs) { own.await() }
+            }
+        } catch (error: CancellationException) {
+            // A timeout is a failure of the page; a real cancellation (the page left) goes on.
+            if (error !is TimeoutCancellationException) throw error
+            error
+        } catch (error: Exception) {
+            error
+        }
+    Log.e(TAG, "Page ${layout.page} in ${layout.script} cannot be measured; using Hafs", failure)
+    return withContext(PageWork.dispatcher) { measureFallback() }
+}
+
+private const val TAG = "PageMeasurement"
 
 /** The fonts a page is drawn with: [text] for words, [plain] for the banner and Basmalah. */
 internal data class PageFamilies(val text: FontFamily?, val plain: FontFamily?)
@@ -253,25 +308,32 @@ internal fun rememberMeasuredPage(
     val measured by
         produceState<MeasuredPage?>(initialValue = cached, key) {
             if (cached == null) {
+                // Each measurement has its own measurer: its cache is not shared safely, and a
+                // timed-out measurement may still be running when the fallback starts.
+                fun newMeasurer() =
+                    TextMeasurer(
+                        fontFamilyResolver,
+                        density,
+                        LayoutDirection.Ltr,
+                        MEASURER_CACHE_SIZE,
+                    )
                 value =
-                    withContext(PageWork.dispatcher) {
-                        // Its own measurer: a TextMeasurer keeps a cache that is not shared safely.
-                        val measurer =
-                            TextMeasurer(
-                                fontFamilyResolver,
-                                density,
-                                LayoutDirection.Ltr,
-                                MEASURER_CACHE_SIZE,
-                            )
-                        measurePage(
-                                rows,
-                                families,
-                                density,
-                                measurer,
-                                size,
-                            )
-                            .also { sharedPageMeasurements[key] = it }
-                    }
+                    measureWithFallback(
+                            layout,
+                            measureOwnPrint = {
+                                measurePage(rows, families, density, newMeasurer(), size)
+                            },
+                            measureFallback = {
+                                measurePage(
+                                    buildPageRows(layout, hasGlyphFont = false),
+                                    PageFamilies(families.plain, families.plain),
+                                    density,
+                                    newMeasurer(),
+                                    size,
+                                )
+                            },
+                        )
+                        .also { sharedPageMeasurements[key] = it }
             }
         }
     return cached ?: measured
