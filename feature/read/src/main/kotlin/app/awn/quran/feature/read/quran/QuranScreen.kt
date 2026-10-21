@@ -133,6 +133,11 @@ data class QuranScreenSlots(
     val reciteCurrentAyah: @Composable () -> AyahRef? = { null },
     /** Optional. The next word the reciter is expected to say; the pager turns to its page. */
     val reciteCurrentWord: @Composable () -> WordKey? = { null },
+    /**
+     * Optional. Called when Back is pressed and nothing on the screen is open; the host goes to its
+     * home page. When null, Back is left to the host's default (leaving the app).
+     */
+    val onBackWhenIdle: (() -> Unit)? = null,
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -168,7 +173,7 @@ private const val FIRST_PAGE = 1
  * that is selected; null opens the page read last. Search results and the index pass a target.
  *
  * Back closes popups, the ayah panel, the selection, recite mode and the bars, in that order, and
- * is left to the host only when none is open.
+ * is left to the host (`onBackWhenIdle`) only when none is open.
  */
 @Composable
 fun QuranScreen(
@@ -189,7 +194,9 @@ fun QuranScreen(
     FollowRecitation(slots, viewModel, isReciting = state.isReciting)
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.setScreenActive(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.setScreenActive(false) }
-    BackHandler(enabled = state.hasBackWork) { viewModel.onBack() }
+    BackHandler(enabled = state.hasBackWork || slots.onBackWhenIdle != null) {
+        if (!viewModel.onBack()) slots.onBackWhenIdle?.invoke()
+    }
     QuranOrientation(
         quranOrientation = state.settings.quranOrientation,
         appOrientation = state.settings.appOrientation,

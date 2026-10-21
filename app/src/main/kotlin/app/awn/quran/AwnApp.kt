@@ -290,6 +290,7 @@ private fun QuranRoute(
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navController.navigate(Routes.INDEX) },
+            onBackWhenIdle = navController::goToHomeFromQuran,
             onOpenSearch = { navController.navigate(Routes.SEARCH) },
             onOpenLearn = { navController.navigate(Routes.LEARN) },
             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
