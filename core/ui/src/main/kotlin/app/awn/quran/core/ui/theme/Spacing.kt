@@ -50,10 +50,10 @@ object AwnSpacing {
     val previewHeight: Dp = 240.dp
 
     // First-launch language screen: the app mark, the two large language blocks and their mark.
-    val welcomeTopPadding: Dp = 40.dp
-    val welcomeLogoSize: Dp = 96.dp
-    val languageBlockHeight: Dp = 96.dp
-    val languageBlockMarkSize: Dp = 32.dp
+    val welcomeTopPadding: Dp = 32.dp
+    val welcomeLogoSize: Dp = 64.dp
+    val languageBlockHeight: Dp = 72.dp
+    val languageBlockMarkSize: Dp = 24.dp
 
     val dockHeight: Dp = 72.dp
     val dockFloatGap: Dp = 12.dp
