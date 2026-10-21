@@ -2,6 +2,7 @@ package app.awn.quran.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 
 /** Everything a screen on one field may draw with. */
 data class AwnFieldColors(
@@ -153,3 +154,20 @@ val AwnFieldColors.raisedSurface: Color
     get() =
         if (isLight) lerp(background, Color.White, RAISED_LIGHT_MIX)
         else lerp(background, content, RAISED_DARK_MIX)
+
+private const val LIGHT_BAR_LUMINANCE = 0.5f
+
+/**
+ * The accent for an icon or mark that sits on the bar: ochre on a dark bar (the green of Awn mode,
+ * Dark, Black), the button green on a light bar. Ochre on the green bar is 3.6:1, enough for a 24
+ * dp icon and a 4 dp mark but not for text, so labels on the bar keep the full ink.
+ */
+val AwnFieldColors.accentOnBar: Color
+    get() = if (barBackground.luminance() < LIGHT_BAR_LUMINANCE) AwnColors.ochre else buttonFill
+
+private const val SCRIM_LIGHT_ALPHA = 0.5f
+private const val SCRIM_DARK_ALPHA = 0.62f
+
+/** The dimming drawn over the page behind a floating card; heavier on dark pages. */
+val AwnFieldColors.scrim: Color
+    get() = Color.Black.copy(alpha = if (isLight) SCRIM_LIGHT_ALPHA else SCRIM_DARK_ALPHA)

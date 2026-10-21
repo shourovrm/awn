@@ -3,11 +3,13 @@ package app.awn.quran.feature.recite
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.TrackerInput
+import app.awn.quran.tracker.WordState
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -26,6 +28,7 @@ class OpenMicrophone : TrackerInput, AutoCloseable {
 
 class ReciteListeningTest {
     @get:Rule val folder = TemporaryFolder()
+    @get:Rule val fixtures = ControllerFixtures()
 
     @Test
     fun beforeRecitingListenPlaysTheFirstLoadedAyah() = runTest {
@@ -108,6 +111,7 @@ class ReciteListeningTest {
             PlaybackState.Playing("husary", AyahRef(1, 1), null, 0L, null)
 
         fixture.controller.reciteFrom(AyahRef(1, 2))
+        fixture.controller.joinPendingWork()
 
         assertEquals(1, fixture.audioPlayer.stopCalls)
         assertEquals(PlaybackState.Idle, fixture.audioPlayer.currentState.value)
@@ -120,7 +124,58 @@ class ReciteListeningTest {
             PlaybackState.Playing("husary", AyahRef(1, 1), null, 0L, null)
 
         fixture.controller.reviseAt(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
 
         assertEquals(1, fixture.audioPlayer.stopCalls)
+    }
+
+    @Test
+    fun startAfterListeningGoesOnFromTheNextExpectedWordWithTheMarksKept() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(fixture.confirmed(0))
+        fixture.controller.session.start()
+        fixture.controller.pauseMicrophone()
+
+        fixture.script(fixture.confirmed(1))
+        fixture.controller.session.start()
+
+        val states = fixture.controller.session.wordStates.value
+        assertEquals(WordState.Confirmed, states[fixture.first])
+        assertEquals(WordState.Confirmed, states[fixture.second])
+        assertEquals(listOf(1), fixture.tracker.continuedFrom)
+        assertEquals(fixture.third, fixture.controller.session.currentWord.value)
+    }
+
+    @Test
+    fun startAfterAnOrdinaryStopStillStartsAgainFromTheBeginning() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(fixture.confirmed(0))
+        fixture.controller.session.start()
+
+        fixture.controller.session.start()
+
+        assertEquals(WordState.Neutral, fixture.controller.session.wordStates.value[fixture.first])
+        assertTrue(fixture.tracker.continuedFrom.isEmpty())
+    }
+
+    @Test
+    fun reciteFromHereAfterListeningStartsFresh() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(fixture.confirmed(0))
+        fixture.controller.session.start()
+        fixture.controller.pauseMicrophone()
+
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.controller.session.start()
+
+        assertEquals(WordState.Neutral, fixture.controller.session.wordStates.value[fixture.first])
+        assertTrue(fixture.tracker.continuedFrom.isEmpty())
     }
 }

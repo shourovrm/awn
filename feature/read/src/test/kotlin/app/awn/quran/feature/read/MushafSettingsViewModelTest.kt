@@ -4,7 +4,6 @@ import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.feature.read.page.MushafSettingsViewModel
-import app.awn.quran.feature.read.page.megabytesOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -82,12 +81,5 @@ class MushafSettingsViewModelTest {
         viewModel.setShowPageInfo(false)
 
         assertFalse(viewModel.settings.value.showPageInfo)
-    }
-
-    @Test
-    fun sizesAreWrittenInDecimalMegabytesWithOneDecimal() {
-        assertEquals("137.1", megabytesOf(137_055_055))
-        assertEquals("54.5", megabytesOf(54_470_805))
-        assertEquals("0.2", megabytesOf(242_368))
     }
 }

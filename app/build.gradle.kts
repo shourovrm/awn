@@ -7,7 +7,6 @@ plugins {
 }
 
 val fetchNativeLibs = rootProject.tasks.named("fetchNativeLibs")
-val fetchModels = rootProject.tasks.named("fetchModels")
 
 // ---------------------------------------------------------------------------------------------
 // Version, derived from git so it is never edited by hand.
@@ -129,32 +128,6 @@ android {
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Speech files. The Zipformer model, its token list and the reference phonemes ship inside the
-// APK. fetchModels checks awn-models/ against gradle/models.sha256 (and downloads what is missing),
-// then the three files the app reads are copied into the gitignored assets/models folder.
-// ---------------------------------------------------------------------------------------------
-
-val speechFileNames =
-    listOf("zipformer_p_arabic_v3.int8.onnx", "tokens.txt", "ordered_quran_phonemes.json")
-
-val copySpeechFiles =
-    tasks.register<Copy>("copySpeechFiles") {
-        description = "Copies the verified speech files from awn-models/ into assets/models."
-        group = "awn"
-        dependsOn(fetchModels)
-        from(rootProject.layout.projectDirectory.dir("awn-models")) { include(speechFileNames) }
-        into(layout.projectDirectory.dir("src/main/assets/models"))
-    }
-
-// Every task that reads the assets folder must run after the files are in place.
-tasks
-    .matching {
-        (it.name.contains("Assets") || it.name.contains("lint", ignoreCase = true)) &&
-            it.name != copySpeechFiles.name
-    }
-    .configureEach { dependsOn(copySpeechFiles) }
-
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
@@ -200,6 +173,7 @@ dependencies {
     implementation(project(":feature:listen"))
     implementation(project(":feature:recite"))
     implementation(project(":feature:learn"))
+    implementation(project(":feature:hifz"))
     implementation(project(":tracker"))
 
     implementation(libs.androidx.appcompat)

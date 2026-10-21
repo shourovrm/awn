@@ -1,5 +1,6 @@
 import app.awn.build.FetchNativeLibsTask
 import app.awn.build.FetchVerifiedFilesTask
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.spotless)
@@ -88,5 +89,20 @@ subprojects {
     }
     plugins.withId("org.jetbrains.kotlin.jvm") {
         testGithubReleaseUnitTest.configure { dependsOn("$modulePath:test") }
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Unit test tasks in every module.
+// ---------------------------------------------------------------------------------------------
+
+subprojects {
+    tasks.withType<Test>().configureEach {
+        // A hung test once held the CI job for 45 minutes with no name in the log. A task that runs
+        // this long fails instead, and Gradle names the task.
+        timeout.set(Duration.ofMinutes(10))
+        // GitHub's runner has 2 cores, so Dispatchers.Default there has 2 threads. Running with the
+        // same size makes a test that leaves a Default thread blocked fail on any machine.
+        jvmArgs("-Dkotlinx.coroutines.scheduler.core.pool.size=2")
     }
 }

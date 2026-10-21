@@ -8,13 +8,14 @@ internal object Routes {
     const val AYAH_ARGUMENT = "ayah"
     const val NOT_GIVEN = -1
 
-    /** The Quran screen. The app starts here; without a page it opens the page read last. */
+    /** The Quran screen, opened above the tabs; without a page it opens the page read last. */
     const val QURAN =
         "quran?$PAGE_ARGUMENT={$PAGE_ARGUMENT}&$SURAH_ARGUMENT={$SURAH_ARGUMENT}" +
             "&$AYAH_ARGUMENT={$AYAH_ARGUMENT}"
-    const val INDEX = "index"
+    /** The three tabs (Quran, Learn, Hifz) over the bottom bar. The app starts here. */
+    const val TABS = "tabs"
+    const val BOOKMARKS = "bookmarks"
     const val SEARCH = "search"
-    const val LEARN = "learn"
     const val SETTINGS = "settings"
     const val NOTICE = "notice"
     const val CREDITS = "credits"

@@ -59,7 +59,7 @@ class LineByLineWordsTest {
 
     private fun glyphWord(position: Int, page: Int, hasGlyphs: Boolean = true): AyahWord {
         val key = WordKey(ayah.surah, ayah.ayah, position)
-        val source = Word(key, "text$position", null, "glyph$position", null)
+        val source = Word(key, "text$position", null, "glyph$position")
         return AyahWord(
             key = key,
             arabic = "text$position",

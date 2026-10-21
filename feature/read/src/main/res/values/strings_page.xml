@@ -6,12 +6,6 @@
   <string name="page_hizb_quarter">¼ Hizb %1$d</string>
   <string name="page_hizb_half">½ Hizb %1$d</string>
   <string name="page_hizb_three_quarters">¾ Hizb %1$d</string>
-  <string name="font_prompt_size">%1$s MB</string>
-  <string name="font_prompt_wifi">Wi-Fi recommended</string>
-  <string name="font_prompt_download">Download</string>
-  <string name="font_prompt_keep">Not now</string>
-  <string name="font_prompt_progress">Downloading %1$d%%</string>
-  <string name="font_prompt_cancel">Cancel</string>
   <string name="mushaf_type_v2">Madani 1421</string>
   <string name="mushaf_type_v1">Madani 1405</string>
   <string name="mushaf_type_v4">Tajweed colours</string>
@@ -23,4 +17,19 @@
   <string name="ayah_spoken_with_text">%1$s. %2$s</string>
   <string name="mushaf_print">Print</string>
   <string name="mushaf_print_value">%1$s, %2$s</string>
+  <string name="print_offer_title">Choose a print</string>
+  <string name="print_offer_body">Wi‑Fi recommended. You can keep reading while it downloads.</string>
+  <string name="print_offer_detail_v2">Exact printed pages</string>
+  <string name="print_offer_detail_v1">Older print</string>
+  <string name="print_offer_detail_v4">Rules in colour</string>
+  <string name="print_offer_size">%1$d MB</string>
+  <string name="print_offer_download">Download</string>
+  <string name="print_offer_download_sized">Download %1$s</string>
+  <string name="print_offer_not_now">Not now</string>
+  <string name="print_offer_downloading">Downloading %1$s</string>
+  <string name="print_offer_progress">%1$d%% of %2$s</string>
+  <string name="print_offer_percent">%1$d%%</string>
+  <string name="print_offer_keep_reading">Keep reading</string>
+  <string name="print_offer_cancel">Cancel</string>
+  <string name="print_offer_failed">The print did not download. You can try again in Settings, Mushaf, Print.</string>
 </resources>

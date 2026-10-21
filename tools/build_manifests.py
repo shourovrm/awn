@@ -12,7 +12,7 @@ the first catalogue ignores:
   layouts            (scripts) page counts and lines per page of a text pack with several layouts
   installed_bytes    (font zips) unpacked size, for the free-space check; a single file or SQLite pack installs at `bytes`
   language_name      (translations) the language in English, for grouping in the install list
-  content            (translations) "translation", "transliteration" or "word_translation"
+  content            (translations) "translation", "transliteration", "word_translation" or "word_transliteration"
   rights_holder, terms_known, publishable
                      (translations) what is known about the copyright; docs/packs.md has the table
   style, riwaya      (reciters) "murattal", "mujawwad" or "muallim"; always "hafs"
@@ -178,9 +178,21 @@ def translation_entry(catalogue, pack):
         rights_holder=pack["rights_holder"], terms_known=pack["terms_known"], publishable=pack["publishable"])
 
 
+def transliteration_words_entry():
+    """The per-word transliteration that used to be a column of quran.sqlite (build_transliteration_pack.py)."""
+    path = os.path.join(DATA_ROOT, "translations", "en_transliteration_words.sqlite")
+    return pack_entry(
+        path, id="en_transliteration_words", kind="word_transliteration", language="en",
+        language_name="English (Latin letters)", content="word_transliteration",
+        name="Transliteration, word by word", quran_com_resource_id=None,
+        credit=f"{QURAN_COM_ATTRIBUTION}, word transliteration", source_url=QURAN_COM_URL,
+        terms_file=relative_path(path[: -len(".sqlite")] + ".TERMS.md"))
+
+
 def build_translations_manifest(allowed_publishable):
     catalogue = {entry["id"]: entry for entry in quran_com.fetch("/resources/translations")["translations"]}
-    entries = []
+    # First, so that the list of transliterations offers the pack the Transliteration layer reads.
+    entries = [transliteration_words_entry()]
     for pack in pack_catalogue.TRANSLATIONS_AND_TRANSLITERATIONS:
         if allowed_publishable is None or pack["publishable"] in allowed_publishable:
             entries.append(translation_entry(catalogue, pack))

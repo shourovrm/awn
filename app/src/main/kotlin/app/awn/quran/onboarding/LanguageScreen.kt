@@ -78,7 +78,7 @@ fun LanguageScreen(
                     text = stringResource(R.string.language_title),
                     style = headingStyle(selected),
                     color = colours.field.content,
-                    modifier = Modifier.padding(top = AwnSpacing.extraLarge),
+                    modifier = Modifier.padding(top = AwnSpacing.medium),
                 )
                 LanguageBlocks(selected, onSelect, colours)
                 Spacer(Modifier.weight(1f))
@@ -124,9 +124,9 @@ private fun InLanguage(language: AppLanguage, content: @Composable () -> Unit) {
     )
 }
 
-/** The title without the tight tracking of Latin headings, which breaks Bangla conjuncts. */
+/** The lead size without the tight tracking of Latin headings, which breaks Bangla conjuncts. */
 private fun headingStyle(language: AppLanguage) =
-    AwnTypography.title.copy(
+    AwnTypography.lead.copy(
         letterSpacing = TextUnit.Unspecified,
         lineHeight = if (language == AppLanguage.Bangla) BANGLA_LINE_HEIGHT else LATIN_LINE_HEIGHT,
     )
@@ -151,8 +151,8 @@ private fun LanguageBlocks(
     colours: WelcomeColours,
 ) {
     Column(
-        modifier = Modifier.padding(top = AwnSpacing.extraLarge).fillMaxWidth().selectableGroup(),
-        verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+        modifier = Modifier.padding(top = AwnSpacing.large).fillMaxWidth().selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         AppLanguage.entries.forEach { language ->
             LanguageBlock(
@@ -182,7 +182,7 @@ private fun LanguageBlock(
                 .clip(AwnShapes.control)
                 .background(fill)
                 .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
-                .padding(horizontal = AwnSpacing.large, vertical = AwnSpacing.medium),
+                .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {

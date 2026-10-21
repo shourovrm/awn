@@ -8,6 +8,7 @@
 - docs/decisions/player.md: audio player, downloads and the Listen screens.
 - docs/decisions/recite.md: Recite screen, session and review sheet.
 - docs/decisions/learn.md: progress, FSRS, lessons and snippets.
+- docs/decisions/hifz.md: Hifz tab, methods, daily assignment, page records, practice bar.
 - docs/decisions/tracker.md: alignment tracker, thresholds and measurements.
 - docs/decisions/ops.md: manual machine and release steps with dates and commands.
 - docs/decisions/LOG.md: one line per decision, newest last (`tail -20`).
@@ -16,6 +17,7 @@
 
 ## Next
 - Phone check of waves 1 and 2, then: IndoPak renderer (15/16-line, data in awn-data-v2), data-v2 release after the maintainer's licence decisions (awn-data-v2/RELEASE-PLAN.md).
+- Unbundled app: upload the stripped quran.sqlite, manifests and en_transliteration_words to data-v1 (ops.md) before any push; phone-check the recite download card and the starter card.
 - Bundle the Roundo and Noto Serif Bengali fonts; the theme uses the platform sans-serif until then.
 
 ## Gotchas (cross-cutting)

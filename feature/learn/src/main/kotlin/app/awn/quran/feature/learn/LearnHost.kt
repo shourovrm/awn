@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -18,11 +19,11 @@ import androidx.compose.ui.platform.LocalResources
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Lesson
 import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.feature.learn.content.SnippetRepository
-import app.awn.quran.feature.learn.fsrs.FsrsRating
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import java.time.LocalDate
 import java.time.ZoneId
@@ -61,13 +62,15 @@ private val EMPTY_SNAPSHOT =
  *
  * When [onReviseAt] is set, "Revise" calls it with the first due ayah in reading order, and :app
  * opens the Quran screen there in recite mode with words hidden; the Revision screen of this tab is
- * then not used. Without it, revision runs inside this tab.
+ * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
+ * end of the bar on the Learn home (:app puts Settings there).
  */
 @Composable
 fun LearnScreen(
     modifier: Modifier = Modifier,
     quranText: QuranTextRepository? = null,
     onReviseAt: ((AyahRef) -> Unit)? = null,
+    barActions: @Composable RowScope.() -> Unit = {},
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -113,6 +116,7 @@ fun LearnScreen(
             ),
         rate = { ayah, rating -> scope.launch { services.progress.gradeAyah(ayah, rating) } },
         onReviseAt = onReviseAt,
+        barActions = barActions,
         modifier = modifier,
     )
 }
@@ -137,6 +141,7 @@ private fun LearnRoutes(
     content: LearnRouteContent,
     rate: (AyahRef, FsrsRating) -> Unit,
     onReviseAt: ((AyahRef) -> Unit)?,
+    barActions: @Composable RowScope.() -> Unit,
     modifier: Modifier,
 ) {
     val summaries = LearnUiMapper.lessonSummaries(content.lessons, content.language)
@@ -157,6 +162,7 @@ private fun LearnRoutes(
                     }
                 },
                 modifier = modifier,
+                barActions = barActions,
             )
         }
         LearnRoute.Progress ->

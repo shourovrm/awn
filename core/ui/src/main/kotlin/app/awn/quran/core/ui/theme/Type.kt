@@ -77,6 +77,18 @@ object AwnTypography {
             lineHeight = 2.0.em,
         )
 
+    /**
+     * A line of Quran text on the Quran tab (the continue card and the day's snippet): the lead
+     * size, with the tall line height that Arabic marks above and below the letters need.
+     */
+    val quranLead =
+        TextStyle(
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Normal,
+            fontSize = 22.sp,
+            lineHeight = 1.8.em,
+        )
+
     fun toMaterialTypography(): Typography =
         Typography(
             displayLarge = poster,

@@ -1,11 +1,11 @@
 package app.awn.quran.core.data.search
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.DirectoryBundledAssets
 import app.awn.quran.core.data.packs.ManifestCatalog
 import app.awn.quran.core.data.packs.PackStorage
 import app.awn.quran.core.data.packs.ReadOnlyDatabases
 import app.awn.quran.core.data.realBundledPacksDirectory
+import app.awn.quran.core.data.realPackAssets
 import java.io.File
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.runBlocking
@@ -27,7 +27,7 @@ class TextSearchRealPacksTest {
     @get:Rule val temporaryFolder = TemporaryFolder()
 
     private fun realTexts(): SqliteSearchTexts {
-        val assets = DirectoryBundledAssets(realBundledPacksDirectory)
+        val assets = realPackAssets()
         val catalog = ManifestCatalog(assets)
         val storage = PackStorage(temporaryFolder.newFolder(), assets, catalog)
         return SqliteSearchTexts(

@@ -3,12 +3,15 @@
 
 Tables:
   word(surah, ayah, position, text_uthmani, code_v1, code_v2, page_v1, line_v1,
-       page_v2, line_v2, transliteration)  one row per spoken word
+       page_v2, line_v2)  one row per spoken word
   ayah_marker(surah, ayah, page_v1, line_v1, page_v2, line_v2)  the ayah-end sign
   ayah(surah, ayah, text_uthmani, juz, hizb, page_v1, page_v2)
   chapter(number, name_arabic, name_simple, name_bangla, verses_count,
           revelation_place, bismillah_pre)
   pack_info(key, value)
+
+The per-word transliteration is not stored here: it is the downloadable pack built by
+build_transliteration_pack.py, so the only content that ships in the app is the text and layout.
 
 Word key rule: `position` counts words only, from 1. The API lists the ayah-end
 sign as one more word with char_type_name "end" and position = word count + 1;
@@ -41,7 +44,6 @@ CREATE TABLE word (
     text_uthmani TEXT NOT NULL, code_v1 TEXT NOT NULL, code_v2 TEXT NOT NULL,
     page_v1 INTEGER NOT NULL, line_v1 INTEGER NOT NULL,
     page_v2 INTEGER NOT NULL, line_v2 INTEGER NOT NULL,
-    transliteration TEXT,
     PRIMARY KEY (surah, ayah, position)
 );
 CREATE TABLE ayah_marker (
@@ -115,14 +117,12 @@ def build_rows(verses, version_one_layout):
         if positions != list(range(1, len(spoken_words) + 1)):
             raise ValueError(f"{surah}:{ayah} word positions are not 1..n: {positions}")
         for word in spoken_words:
-            transliteration = (word.get("transliteration") or {}).get("text")
             page_v1, line_v1 = version_one_layout[(surah, ayah, word["position"])]
             if page_v1 != word["v1_page"]:
                 raise ValueError(f"{surah}:{ayah}:{word['position']} V1 page differs between endpoints")
             word_rows.append((
                 surah, ayah, word["position"], word["text_uthmani"], word["code_v1"], word["code_v2"],
                 page_v1, line_v1, word["v2_page"], word["line_number"],
-                transliteration,
             ))
         first_word = spoken_words[0]
         ayah_rows.append((
@@ -158,7 +158,7 @@ def main():
         os.remove(output_path)
     connection = sqlite3.connect(output_path)
     connection.executescript(SCHEMA)
-    connection.executemany("INSERT INTO word VALUES (?,?,?,?,?,?,?,?,?,?,?)", word_rows)
+    connection.executemany("INSERT INTO word VALUES (?,?,?,?,?,?,?,?,?,?)", word_rows)
     connection.executemany("INSERT INTO ayah_marker VALUES (?,?,?,?,?,?)", marker_rows)
     connection.executemany("INSERT INTO ayah VALUES (?,?,?,?,?,?,?)", ayah_rows)
     connection.executemany("INSERT INTO chapter VALUES (?,?,?,?,?,?,?)", build_chapter_rows())

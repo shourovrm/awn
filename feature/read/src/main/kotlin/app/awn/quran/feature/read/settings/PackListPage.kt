@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.downloads.CatalogueRow
@@ -40,6 +41,14 @@ fun PackListPage(
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val catalogue by catalogueViewModel.state.collectAsStateWithLifecycle()
     val rows = catalogue.rowsIn(kind.group)
+    val appLanguage = LocalConfiguration.current.locales[0].language
+    val wordLanguageShown =
+        wordLanguageShown(
+            chosen = settings.wordByWordLanguage,
+            appLanguage = appLanguage,
+            installedLanguages =
+                installedWordLanguages(catalogue.rowsIn(CatalogueGroup.WordByWord)).toSet(),
+        )
 
     Column(modifier.fillMaxWidth()) {
         groupByLanguage(rows).forEachIndexed { index, group ->
@@ -62,14 +71,19 @@ fun PackListPage(
                                 },
                         )
                     PackListKind.WordByWord ->
+                        WordByWordEntry(
+                            row = row,
+                            languageShown = wordLanguageShown,
+                            settingsViewModel = settingsViewModel,
+                            baseActions = baseActions,
+                        )
+                    PackListKind.WordAudio ->
+                        // Word audio is used by whichever reciter is chosen, so it has no tick.
                         CatalogueEntryRow(
                             row = row,
-                            tick = tickOf(settings.showWordByWord),
-                            onTickChange = settingsViewModel::setShowWordByWord,
-                            actions =
-                                baseActions.afterInstall {
-                                    settingsViewModel.setShowWordByWord(true)
-                                },
+                            tick = PackTick.Absent,
+                            onTickChange = {},
+                            actions = baseActions,
                         )
                     PackListKind.PageTypes ->
                         PageTypeEntry(row, settings.script, mushafViewModel, baseActions)
@@ -106,6 +120,41 @@ private fun PageTypeEntry(
             ),
         // The print in use is never removed.
         canRemove = !isInUse,
+    )
+}
+
+/**
+ * One word-by-word pack. The meanings come from one language at a time, so the ticks work like the
+ * page types: ticking a pack that is on the phone selects its language, and the selected one stays
+ * ticked.
+ */
+@Composable
+private fun WordByWordEntry(
+    row: CatalogueRow,
+    languageShown: String,
+    settingsViewModel: ReadSettingsViewModel,
+    baseActions: CatalogueRowActions,
+) {
+    val language = row.item.language
+    CatalogueEntryRow(
+        row = row,
+        tick = tickOf(language != null && language == languageShown),
+        onTickChange = { wantsToUse ->
+            if (wantsToUse && language != null) settingsViewModel.useWordByWordLanguage(language)
+        },
+        actions =
+            CatalogueRowActions(
+                // Downloading a language also selects it: the user asked to read in it.
+                onInstall = {
+                    if (language != null) settingsViewModel.useWordByWordLanguage(language)
+                    baseActions.onInstall()
+                },
+                onCancel = baseActions.onCancel,
+                onRemove = {
+                    if (language != null) settingsViewModel.forgetWordByWordLanguage(language)
+                    baseActions.onRemove()
+                },
+            ),
     )
 }
 

@@ -54,6 +54,7 @@ private const val DURATION_MS = 4_000L
 class ReciteBarAudioTest {
     @get:Rule val composeRule = createComposeRule()
     @get:Rule val folder = TemporaryFolder()
+    @get:Rule val fixtures = ControllerFixtures()
 
     private lateinit var fixture: ControllerFixture
     private val ayah = AyahRef(1, 1)

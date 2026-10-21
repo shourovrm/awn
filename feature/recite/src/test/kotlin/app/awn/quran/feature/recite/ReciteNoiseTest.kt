@@ -39,6 +39,8 @@ class ReciteNoiseTest {
 
     @get:Rule val folder = TemporaryFolder()
 
+    @get:Rule val fixtures = ControllerFixtures()
+
     private val wordTexts = listOf("abcdef", "ghijkl", "mnopqr", "stuvwx")
 
     private fun reference() =

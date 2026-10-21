@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="speech_offer_title">Download for recite</string>
+  <string name="speech_offer_body">Recite needs a one-time download of %1$s. Wi‑Fi recommended.</string>
+  <string name="speech_offer_download_sized">Download %1$s</string>
+  <string name="speech_offer_not_now">Not now</string>
+  <string name="speech_offer_downloading">Downloading for recite</string>
+  <string name="speech_offer_progress">%1$d%% of %2$s</string>
+  <string name="speech_offer_cancel">Cancel</string>
+  <string name="speech_row_title">Recite</string>
+  <string name="starter_offer_title">Translation and meanings</string>
+  <string name="starter_offer_body">%1$s, with the meaning of each word. Wi‑Fi recommended.</string>
+  <string name="starter_offer_download_sized">Download %1$s</string>
+  <string name="starter_offer_not_now">Not now</string>
+  <string name="starter_offer_downloading">Downloading translation</string>
+  <string name="starter_offer_progress">%1$d%% of %2$s</string>
+  <string name="starter_offer_keep_reading">Keep reading</string>
+  <string name="starter_offer_cancel">Cancel</string>
+</resources>

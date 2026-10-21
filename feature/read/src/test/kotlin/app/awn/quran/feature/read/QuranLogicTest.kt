@@ -8,12 +8,14 @@ import app.awn.quran.core.data.PageLine
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.read.quran.GoToFields
 import app.awn.quran.feature.read.quran.GoToPageResolver
+import app.awn.quran.feature.read.quran.GoToProblem
 import app.awn.quran.feature.read.quran.PageContentLoader
 import app.awn.quran.feature.read.quran.PageItem
 import app.awn.quran.feature.read.quran.VolumeKeyAction
 import app.awn.quran.feature.read.quran.adjacentAyah
 import app.awn.quran.feature.read.quran.ayahShareText
 import app.awn.quran.feature.read.quran.isFollowingOn
+import app.awn.quran.feature.read.quran.parseTypedNumber
 import app.awn.quran.feature.read.quran.scrollToKeepVisible
 import app.awn.quran.feature.read.quran.shiftToClearAudioBar
 import app.awn.quran.feature.read.quran.shouldTurnToPlayingPage
@@ -130,6 +132,38 @@ class QuranLogicTest {
         assertEquals(badPage, resolver.afterPageEdited(badPage))
         assertEquals(badAyah, resolver.afterSurahOrAyahEdited(badAyah))
         assertNull(resolver.targetPage(badPage))
+    }
+
+    @Test
+    fun banglaDigitsAreReadAsNumbers() = runTest {
+        val fixture = ReadFixture()
+        fixture.text.pageByAyah[AyahRef(19, 96)] = 312
+        val resolver = GoToPageResolver(fixture.text, ScriptId.QpcHafs, chapters)
+
+        assertEquals(312, parseTypedNumber("৩১২"))
+        assertEquals(312, resolver.targetPage(GoToFields(page = "৩১২")))
+        assertNull(parseTypedNumber("3a"))
+    }
+
+    @Test
+    fun theFirstWrongNumberIsNamedWithItsLimit() = runTest {
+        val fixture = ReadFixture()
+        val resolver = GoToPageResolver(fixture.text, ScriptId.QpcHafs, chapters)
+
+        assertEquals(
+            GoToProblem.PageOutOfRange(fixture.text.pageCount(ScriptId.QpcHafs)),
+            resolver.problemOf(GoToFields(page = "9999")),
+        )
+        assertEquals(
+            GoToProblem.SurahOutOfRange(chapters.size),
+            resolver.problemOf(GoToFields(surah = "500")),
+        )
+        assertEquals(
+            GoToProblem.AyahOutOfRange(2, chapters.first { it.number == 2 }.versesCount),
+            resolver.problemOf(GoToFields(surah = "2", ayah = "999")),
+        )
+        assertNull(resolver.problemOf(GoToFields(page = "1", surah = "1", ayah = "1")))
+        assertNull(resolver.problemOf(GoToFields()))
     }
 
     private fun layoutOf(page: Int, vararg lines: List<LineItem>) =

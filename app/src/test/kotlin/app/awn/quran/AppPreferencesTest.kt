@@ -139,12 +139,12 @@ class AppPreferencesTest {
     }
 
     @Test
-    fun surahNameMeaningIsOffUntilTurnedOn() = runBlocking {
+    fun surahNameMeaningIsOnUntilTurnedOff() = runBlocking {
         val preferences = AppPreferences(newDataStore("j"))
-        assertFalse(preferences.showSurahNameMeaning.first())
-
-        preferences.setShowSurahNameMeaning(true)
-
         assertTrue(preferences.showSurahNameMeaning.first())
+
+        preferences.setShowSurahNameMeaning(false)
+
+        assertFalse(preferences.showSurahNameMeaning.first())
     }
 }

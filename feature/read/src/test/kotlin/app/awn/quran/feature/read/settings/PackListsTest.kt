@@ -77,8 +77,37 @@ class PackListsTest {
                 CatalogueGroup.Translation,
                 CatalogueGroup.Transliteration,
                 CatalogueGroup.WordByWord,
+                CatalogueGroup.WordAudio,
             ),
             PackListKind.entries.map { it.group }.toSet(),
         )
+    }
+
+    @Test
+    fun theChosenWordLanguageIsShownWhenItsPackIsOnThePhone() {
+        assertEquals("ur", wordLanguageShown("ur", appLanguage = "bn", setOf("en", "bn", "ur")))
+    }
+
+    @Test
+    fun withNoChoiceTheWordLanguageIsTheAppLanguage() {
+        assertEquals("bn", wordLanguageShown(null, appLanguage = "bn", setOf("en", "bn")))
+    }
+
+    @Test
+    fun aWordLanguageWithoutAPackFallsBackToEnglish() {
+        assertEquals("en", wordLanguageShown("ur", appLanguage = "bn", setOf("en", "bn")))
+        assertEquals("en", wordLanguageShown(null, appLanguage = "ar", setOf("en", "bn")))
+    }
+
+    @Test
+    fun installedWordLanguagesSkipsPacksThatAreNotOnThePhone() {
+        val rows =
+            listOf(
+                row("wbw_en", "en", installed = true),
+                row("wbw_bn", "bn"),
+                row("wbw_ur", "ur", installed = true),
+            )
+
+        assertEquals(listOf("en", "ur"), installedWordLanguages(rows))
     }
 }

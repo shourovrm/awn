@@ -29,7 +29,7 @@ A long press (500 ms) on any word of an ayah selects the ayah: its line fragment
 The ayah panel rises over about 60 % of the screen; the page above is clipped, not scaled, and scrolls so the ayah stays visible. Tabs (icons): Translation, Play. Translation shows the reference, each enabled translation, and previous and next ayah buttons; the selection on the page follows them. Play holds the range controls (see Audio).
 
 ### Back
-Back closes the innermost open thing, in this order: text-size popup or overflow, ayah panel, ayah selection, recite mode (stops reciting), shown bars. Only when nothing is open does Back leave the Quran screen (to the index if it was opened from there, otherwise the app closes). Back never changes the saved view.
+Back closes the innermost open thing, in this order: text-size popup or overflow, ayah panel, ayah selection, recite mode (stops reciting), shown bars. Only when nothing is open does Back leave the Quran screen, to the index (home); Back on the index closes the app. Back never changes the saved view.
 
 ### Highlights
 Fills are drawn behind the text; the text keeps its colour except word states. Colours come from `Awn.field`: `selectedAyahFill` (long-press selection), `playingAyahFill` (ayah being played), `playingWordFill` (word being played, on top of the ayah fill), `bookmarkedAyahFill` (only when "Highlight bookmarks" is on). Fills cover each line fragment of the ayah, so a multi-line ayah has a stepped shape. During playback the Mushaf view turns the page when the playing ayah moves to the next page, and the Translation and Word by word views scroll the playing ayah to the top.

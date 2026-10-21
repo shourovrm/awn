@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
@@ -21,9 +22,11 @@ import app.awn.quran.feature.read.quran.ListPageEnvironment
 import app.awn.quran.feature.read.quran.PageContent
 import app.awn.quran.feature.read.quran.PageItem
 import app.awn.quran.feature.read.quran.PageListView
+import app.awn.quran.feature.read.quran.listContentPadding
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.tracker.WordState
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -75,7 +78,10 @@ class ListRecitationFollowTest {
     private val content =
         PageContent(page = 3, items = (1..AYAH_COUNT).map { PageItem.Ayah(block(it)) })
 
-    private fun environment(recitedAyah: AyahRef?) =
+    private fun environment(
+        recitedAyah: AyahRef?,
+        contentPadding: PaddingValues = PaddingValues(),
+    ) =
         ListPageEnvironment(
             settings = settings,
             arabicFamily = null,
@@ -90,7 +96,7 @@ class ListRecitationFollowTest {
             followRequest = 0,
             isPanelOpen = false,
             savedAyahs = emptySet(),
-            contentPadding = PaddingValues(),
+            contentPadding = contentPadding,
             onTap = {},
             onAyahLongPress = { _, _ -> },
             onWordTap = { _, _, _ -> },
@@ -117,7 +123,61 @@ class ListRecitationFollowTest {
         composeRule.onNodeWithText("word9").assertIsDisplayed()
     }
 
+    @Test
+    fun theLastAyahCanReachTheTopOfTheListWhileReciting() {
+        val recited = mutableStateOf(AyahRef(2, 1))
+        composeRule.setContent {
+            AwnTheme {
+                Box(Modifier.height(SCREEN_HEIGHT.dp)) {
+                    PageListView(content, isCurrent = true, environment(recited.value))
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        recited.value = AyahRef(2, AYAH_COUNT)
+        composeRule.waitForIdle()
+
+        // Without tail space the list stops at its end and the last ayah stays at the bottom, under
+        // the recite bar.
+        val top = composeRule.onNodeWithText("word$AYAH_COUNT").getUnclippedBoundsInRoot().top
+        assertTrue("last ayah top was $top", top < (SCREEN_HEIGHT * UPPER_SHARE).dp)
+    }
+
+    @Test
+    fun everyRecitedAyahEndsAboveTheReciteBar() {
+        val recited = mutableStateOf(AyahRef(2, 1))
+        composeRule.setContent {
+            AwnTheme {
+                Box(Modifier.height(SCREEN_HEIGHT.dp)) {
+                    PageListView(
+                        content,
+                        isCurrent = true,
+                        environment(
+                            recited.value,
+                            contentPadding =
+                                listContentPadding(BAR_HEIGHT.dp, navigationBarHeight = 0.dp),
+                        ),
+                    )
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        for (ayahNumber in 1..AYAH_COUNT) {
+            recited.value = AyahRef(2, ayahNumber)
+            composeRule.waitForIdle()
+            val word = composeRule.onNodeWithText("word$ayahNumber").getUnclippedBoundsInRoot()
+            assertTrue(
+                "ayah $ayahNumber ends at ${word.bottom}, under the bar",
+                word.bottom <= (SCREEN_HEIGHT - BAR_HEIGHT).dp,
+            )
+        }
+    }
+
     private companion object {
+        const val BAR_HEIGHT = 200
+        const val UPPER_SHARE = 0.4f
         const val AYAH_COUNT = 12
         const val LINES = 20
         const val SCREEN_HEIGHT = 600

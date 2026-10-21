@@ -23,6 +23,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -60,6 +61,10 @@ class ReciteController(
     gradeSink: suspend (AyahRef, AyahGrade) -> Unit = { _, _ -> },
     private val revisionQueue: RevisionQueue = RevisionQueue { emptyList() },
     private val onOpenAyah: (AyahRef) -> Unit = {},
+    /** Whether [reciterId] has word timings for the ayah, so a single word can be played. */
+    internal val hasWordTimings: suspend (reciterId: String, AyahRef) -> Boolean = { _, _ ->
+        false
+    },
 ) {
     val session: RecitationSession =
         RecitationSession(
@@ -78,6 +83,7 @@ class ReciteController(
     private val mutableActive = MutableStateFlow(false)
     private val mutableRevising = MutableStateFlow(false)
     private val mutableRevisionRemaining = MutableStateFlow(0)
+    private val mutableFocusedWord = MutableStateFlow<WordKey?>(null)
 
     // The ayahs still to revise in this run, in reading order; only touched on the controller's
     // scope.
@@ -93,6 +99,13 @@ class ReciteController(
     /** How many due ayahs of this revision run are still ungraded. */
     val revisionRemaining: StateFlow<Int> = mutableRevisionRemaining.asStateFlow()
 
+    /**
+     * The flagged word the user is looking at in the review card, null when none. The Quran screen
+     * turns to it and rings it, and Listen plays it. It is cleared when the card closes, when
+     * recite mode ends, and when the word stops being flagged (a new run clears the results).
+     */
+    val focusedWord: StateFlow<WordKey?> = mutableFocusedWord.asStateFlow()
+
     /** Whether the speech files are ready; the bar waits on this. */
     val speechState: StateFlow<SpeechState> = speech.state
 
@@ -101,6 +114,12 @@ class ReciteController(
         scope.launch { settings.speed.distinctUntilChanged().collect { session.setSpeed(it) } }
         scope.launch {
             settings.hifzEnabled.distinctUntilChanged().collect { session.setHifzEnabled(it) }
+        }
+        scope.launch {
+            combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
+                val focused = mutableFocusedWord.value
+                if (focused != null && flagged.none { it.key == focused }) clearFocus()
+            }
         }
     }
 
@@ -115,7 +134,18 @@ class ReciteController(
         load(ayah)
     }
 
+    /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
+    fun focusWord(key: WordKey) {
+        mutableFocusedWord.value = key
+    }
+
+    /** Ends the review focus; Listen goes back to the next word to recite. */
+    fun clearFocus() {
+        mutableFocusedWord.value = null
+    }
+
     private fun load(ayah: AyahRef) {
+        clearFocus()
         mutableActive.value = true
         val previous = loadJob
         loadJob = scope.launch {
@@ -200,6 +230,7 @@ class ReciteController(
 
     /** Stops the microphone, forgets the loaded words and leaves recite mode. */
     fun exit() {
+        clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
         val previous = loadJob

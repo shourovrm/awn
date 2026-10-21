@@ -4,9 +4,33 @@
 
   <string name="navigate_back">Back</string>
 
+  <string name="tab_quran">Quran</string>
+  <string name="tab_learn">Learn</string>
+  <string name="tab_hifz">Hifz</string>
+  <string name="hifz_placeholder">Hifz is not available yet</string>
+  <string name="continue_reading">Continue reading</string>
+  <string name="continue_start">Start reading</string>
+  <string name="continue_detail">%1$s · page %2$s · Juz %3$s</string>
+  <string name="today_title">Today</string>
+  <plurals name="today_learn_revise">
+    <item quantity="one">Revise %d ayah</item>
+    <item quantity="other">Revise %d ayahs</item>
+  </plurals>
+  <string name="index_show">Show</string>
+  <string name="index_tab_pages">Pages</string>
+  <string name="index_bookmarks">Bookmarks</string>
+  <string name="index_read_last">read last</string>
+  <string name="index_juz_start" translatable="false">%1$s %2$d:%3$d</string>
+  <string name="index_surah_starts">Surah starts</string>
+  <string name="index_page_short">p. %1$s</string>
+  <string name="index_page_lower">page %1$d</string>
+  <string name="index_juz_continues">Juz %1$d · %2$s continues</string>
+  <string name="index_rail_description">Jump to juz</string>
+  <string name="go_to_page">Go to page</string>
+  <string name="go_to_page_hint">Page 1 to %1$d</string>
+  <string name="go_to_page_go">Go</string>
+  <string name="dialog_cancel">Cancel</string>
   <string name="index_search">Search</string>
-  <string name="index_last_page">Last page</string>
-  <string name="index_learn">Learn</string>
   <string name="index_settings">Settings</string>
   <string name="index_tab_surahs">Surahs</string>
   <string name="index_tab_juz">Juz</string>
@@ -19,15 +43,6 @@
     <item quantity="one">%d ayah</item>
     <item quantity="other">%d ayahs</item>
   </plurals>
-  <string name="index_surah_detail" translatable="false">%1$s · %2$s</string>
-  <string name="index_surah_title" translatable="false">%1$s · %2$s</string>
-  <string name="index_hizb_fraction">%1$s Hizb %2$d</string>
-  <string-array name="hizb_fractions" translatable="false">
-    <item></item>
-    <item>¼</item>
-    <item>½</item>
-    <item>¾</item>
-  </string-array>
   <string name="index_recent_pages">Recent pages</string>
   <string name="index_bookmarks_empty">No bookmarks yet</string>
   <string name="index_sort">Sort</string>
@@ -52,6 +67,7 @@
   <string name="downloads_translations">Translations</string>
   <string name="downloads_word_by_word">Word by word</string>
   <string name="downloads_transliteration">Transliteration</string>
+  <string name="downloads_word_audio">Word audio</string>
   <string name="downloads_reciters">Reciters</string>
   <string name="settings_recite">Recite and memorise</string>
   <string name="settings_appearance">Appearance</string>

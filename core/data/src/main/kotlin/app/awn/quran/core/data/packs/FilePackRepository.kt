@@ -110,7 +110,7 @@ class FilePackRepository(
         }
     }
 
-    /** Maps a manifest record to its catalogue row; reciter timings are not catalogue items. */
+    /** Maps a manifest record to its catalogue row; records outside every group are skipped. */
     private fun catalogueItemOf(record: PackRecord): CatalogueItem? {
         val group = CatalogueGrouping.groupOf(record, storage.isBundled(record)) ?: return null
         val location = storage.locate(record)

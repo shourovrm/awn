@@ -132,6 +132,7 @@ internal fun WordPopupCard(
     onPlay: () -> Unit,
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
+    onDownloadAudio: () -> Unit = {},
 ) {
     val field = Awn.field
     Box(
@@ -179,6 +180,7 @@ internal fun WordPopupCard(
             popup.word.transliteration?.let {
                 Text(text = it, style = AwnTypography.small.ltr(), color = field.onBar)
             }
+            popup.audioOffer?.let { offer -> WordAudioOfferLine(offer, onDownloadAudio) }
             popup.problem?.let { problem ->
                 Text(
                     text = stringResource(problem.messageRes()),

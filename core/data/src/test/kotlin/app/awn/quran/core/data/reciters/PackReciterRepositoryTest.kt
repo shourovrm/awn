@@ -45,6 +45,19 @@ class PackReciterRepositoryTest {
     }
 
     @Test
+    fun onlyReciterWithWordTimingsOffersWordAudio() = runBlocking {
+        val reciters = repository().first.reciters().associateBy { it.id }
+
+        // The word card needs both the word flag and a timing pack to play a word.
+        assertTrue(reciters.getValue("minshawi").wordByWord)
+        assertEquals("minshawi", reciters.getValue("minshawi").timingPack)
+        // Basfar has a timing pack that marks ayahs only; it cannot play a single word.
+        assertEquals(false, reciters.getValue("basfar").wordByWord)
+        assertEquals("basfar", reciters.getValue("basfar").timingPack)
+        assertEquals(false, reciters.getValue("raad_al_kurdi").wordByWord)
+    }
+
+    @Test
     fun buildsTheEveryAyahUrlFromTheManifestPattern() = runBlocking {
         val audio = repository().first.ayahAudio("alafasy", AyahRef(2, 255))
 

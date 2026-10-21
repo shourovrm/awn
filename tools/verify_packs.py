@@ -34,6 +34,8 @@ WORDS = 77429
 SHORT_PAGES = (1, 2)  # Al-Fatihah and the start of Al-Baqarah are printed with 8 lines
 TRANSLATION_FILES = [pack["id"] for pack in pack_catalogue.TRANSLATIONS_AND_TRANSLITERATIONS]
 WORD_FILES = [pack["id"] for pack in pack_catalogue.WORD_PACKS]
+# The transliteration of each word, split out of quran.sqlite; same table as the word packs.
+WORD_TRANSLITERATION_FILES = ["en_transliteration_words"]
 TIMING_FILES = {reciter["id"]: "word" for reciter in reciter_catalogue.RECITERS if reciter["quran_com_recitation_id"]}
 TIMING_FILES["basfar"] = "ayah"
 FONT_SCRIPTS = ["qpc-hafs", "indopak", "v1", "v2", "v4-tajweed"]
@@ -198,7 +200,7 @@ def verify_translations(word_counts):
         check(scalar(connection, "SELECT COUNT(*) FROM translation WHERE ayah NOT BETWEEN ayah_from AND ayah_to") == 0,
               "bn_quantum ranges contain their ayah")
         connection.close()
-    for stem in WORD_FILES:
+    for stem in WORD_FILES + WORD_TRANSLITERATION_FILES:
         connection = open_pack("translations", stem + ".sqlite")
         if connection is None:
             continue
@@ -210,7 +212,7 @@ def verify_translations(word_counts):
         check(scalar(connection, "SELECT COUNT(*) FROM word_translation WHERE TRIM(text) = ''") == declared_empty,
               f"{stem} has exactly the {declared_empty} empty words that pack_info.empty_words declares")
         connection.close()
-    for stem in TRANSLATION_FILES + WORD_FILES:
+    for stem in TRANSLATION_FILES + WORD_FILES + WORD_TRANSLITERATION_FILES:
         terms = os.path.join(DATA_ROOT, "translations", stem + ".TERMS.md")
         has_terms = os.path.exists(terms)
         if has_terms:
@@ -370,7 +372,7 @@ def verify_manifests():
                        for layout in by_id["indopak-layouts"]["layouts"]}
             check(layouts == INDOPAK_LAYOUTS, "indopak-layouts lists the 15-line and 16-line layouts")
         if name == "translations.json":
-            expected_ids = set(TRANSLATION_FILES) | set(WORD_FILES)
+            expected_ids = set(TRANSLATION_FILES) | set(WORD_FILES) | set(WORD_TRANSLITERATION_FILES)
             ids = {entry["id"] for entry in entries}
             check(expected_ids <= ids, "translations.json lists every catalogue pack")
             check({e["id"] for e in entries if e["kind"] == "transliteration"} == {"en_transliteration"},

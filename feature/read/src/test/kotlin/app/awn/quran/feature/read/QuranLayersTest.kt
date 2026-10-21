@@ -23,6 +23,16 @@ class QuranLayersTest {
 
     private suspend fun stored() = fixture.store.settings.first()
 
+    // A new installation ticks only the Arabic, because nothing else ships in the app.
+    private suspend fun tickEveryLayer() =
+        fixture.store.update {
+            it.copy(
+                translations = listOf(TranslationId("en_saheeh")),
+                showTransliteration = true,
+                showWordByWord = true,
+            )
+        }
+
     @Test
     fun theLayersMenuListsTheTranslationsOnThePhone() = runTest {
         viewModel.open(QuranTarget.Page(1))
@@ -34,6 +44,7 @@ class QuranLayersTest {
 
     @Test
     fun ticksAreSavedPerLayer() = runTest {
+        tickEveryLayer()
         viewModel.open(QuranTarget.Page(1))
 
         viewModel.toggleLayer(TextLayer.Arabic)
@@ -47,6 +58,7 @@ class QuranLayersTest {
 
     @Test
     fun aTranslationIsTickedAndUntickedByName() = runTest {
+        tickEveryLayer()
         viewModel.open(QuranTarget.Page(1))
         val saheeh = TranslationId("en_saheeh")
 
@@ -76,6 +88,7 @@ class QuranLayersTest {
 
     @Test
     fun hidingTheArabicIsAllowedWhileAnotherLayerShows() = runTest {
+        tickEveryLayer()
         viewModel.open(QuranTarget.Page(1))
 
         viewModel.toggleLayer(TextLayer.Arabic)

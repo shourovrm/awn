@@ -15,6 +15,9 @@ sealed interface ReviewFinding {
 
     data object WrongWord : ReviewFinding
 
+    /** Heard, but not clearly enough to call it right; the tracker marked it tentative. */
+    data object NotClear : ReviewFinding
+
     data class Pronunciation(val substitution: TrackerEvent.Substitution) : ReviewFinding
 
     data class Duration(val check: DurationCheck) : ReviewFinding
@@ -22,6 +25,31 @@ sealed interface ReviewFinding {
 
 /** Everything found about one word, in the order shown in the sheet. */
 data class WordReview(val key: WordKey, val findings: List<ReviewFinding>)
+
+/**
+ * The words the review card steps through, in reading order: every word of [reviews], plus every
+ * word in [problems] that has no review entry (an unclear word has no sound finding), given the
+ * finding that matches its problem. Each flagged word the page marks can then open the card.
+ */
+fun flaggedReviews(
+    reviews: Map<AyahRef, List<WordReview>>,
+    problems: Map<WordKey, WordProblem>,
+): List<WordReview> {
+    val reviewedWords = reviews.values.flatten()
+    val reviewedKeys = reviewedWords.map { it.key }.toSet()
+    val unreviewedWords =
+        problems
+            .filterKeys { it !in reviewedKeys }
+            .map { (key, problem) -> WordReview(key, listOf(findingOf(problem))) }
+    return (reviewedWords + unreviewedWords).sortedBy { it.key }
+}
+
+private fun findingOf(problem: WordProblem): ReviewFinding =
+    when (problem) {
+        WordProblem.Skipped -> ReviewFinding.Skipped
+        WordProblem.DifferentWord -> ReviewFinding.WrongWord
+        WordProblem.NotClear -> ReviewFinding.NotClear
+    }
 
 internal object ReviewRules {
 

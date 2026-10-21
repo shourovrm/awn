@@ -58,6 +58,21 @@ class AlignmentTrackerTest {
     }
 
     @Test
+    fun continuingKeepsTheEarlierWordsAndFollowsOnInANewRun() {
+        val tracker = newTracker()
+        tracker.hear(wordTexts.take(3).joinToString(""))
+
+        // A new microphone run: its phoneme times start at zero again.
+        tracker.continueFrom(tracker.currentIndex())
+        tracker.hear(wordTexts.slice(3 until 6).joinToString(""))
+
+        for (index in 0 until 6) {
+            assertEquals("word $index", WordState.Confirmed, tracker.stateOfWord(index))
+        }
+        assertEquals(6, tracker.currentIndex())
+    }
+
+    @Test
     fun halfAWordIsYellowUntilEnoughIsHeard() {
         val tracker = newTracker()
 

@@ -8,20 +8,39 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-/** The packs that `:core:data:fetchBundledPacks` leaves in the module's assets folder. */
+/** The files that ship in the APK; `:core:data:fetchBundledPacks` leaves them here. */
 val realBundledPacksDirectory = File("src/main/assets/packs")
 
-/** Serves bundled files from a folder, the way the APK assets folder does. */
-class DirectoryBundledAssets(private val directory: File) : BundledAssets {
+/** The translations and word packs the APK no longer holds; `:core:data:fetchTestPacks`. */
+val realDownloadedPacksDirectory = File("build/test-packs")
 
-    override fun exists(fileName: String): Boolean = File(directory, fileName).isFile
+/**
+ * Serves bundled files from folders, the way the APK assets folder does; the first folder that
+ * holds a file wins.
+ */
+class DirectoryBundledAssets(private vararg val directories: File) : BundledAssets {
+
+    private fun find(fileName: String): File? =
+        directories.map { File(it, fileName) }.firstOrNull { it.isFile }
+
+    override fun exists(fileName: String): Boolean = find(fileName) != null
 
     override fun open(fileName: String): InputStream {
-        val file = File(directory, fileName)
-        if (!file.isFile) throw FileNotFoundException("No bundled test file ${file.path}.")
+        val file =
+            find(fileName)
+                ?: throw FileNotFoundException(
+                    "No bundled test file $fileName in ${directories.joinToString { it.path }}.",
+                )
         return file.inputStream()
     }
 }
+
+/**
+ * The real manifests, text, font and every real pack, served as if all of them shipped in the app.
+ * That keeps the tests that read real packs independent of what the APK really holds.
+ */
+fun realPackAssets(): BundledAssets =
+    DirectoryBundledAssets(realBundledPacksDirectory, realDownloadedPacksDirectory)
 
 /** Serves bundled files from memory. */
 class MapBundledAssets(private val files: Map<String, ByteArray>) : BundledAssets {
@@ -33,8 +52,7 @@ class MapBundledAssets(private val files: Map<String, ByteArray>) : BundledAsset
             ?: throw FileNotFoundException("No bundled test file $fileName.")
 }
 
-fun realManifestCatalog(): ManifestCatalog =
-    ManifestCatalog(DirectoryBundledAssets(realBundledPacksDirectory))
+fun realManifestCatalog(): ManifestCatalog = ManifestCatalog(realPackAssets())
 
 /** Creates a pack database with a `pack_info` table and runs [statements] on it. */
 fun createPackDatabase(file: File, formatVersion: Int, vararg statements: String) {

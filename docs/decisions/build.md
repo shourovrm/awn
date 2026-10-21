@@ -13,7 +13,8 @@
 - fetchNativeLibs verifies gradle/native-libs.sha256, then unpacks classes.jar from the AAR to libs/sherpa-onnx-classes.jar and the Linux .so files to libs/linux-x64/. fetchModels ensures awn-models/ matches gradle/models.sha256, downloading from https://github.com/shourovrm/awn/releases/download/models-v1 (owner assumed from the gh login).
 - :tracker tests set java.library.path and LD_LIBRARY_PATH to libs/linux-x64 and depend on both fetch tasks.
 - Third-party coordinates (okhttp, media3-datasource-okhttp, coroutines-android and -test, espresso, ui-test-manifest) are in the catalog; lint rule UseTomlInstead is on in every module.
-- App assets: `copySpeechFiles` (depends on `fetchModels`) copies the model, tokens.txt and ordered_quran_phonemes.json into gitignored app/src/main/assets/models; lint and asset tasks depend on it.
+- App assets: only the Learn lessons and snippets JSON. The model is no asset any more; `fetchModels` serves the `:tracker` tests only.
+- `:core:data` asset and lint tasks depend on `fetchBundledPacks` (quran.sqlite, Hafs font, three manifests); its unit-test tasks also depend on `fetchTestPacks` (five translation and word packs into build/test-packs). A worktree's own `awn-data/` wins over `$AWN_DATA_DIR`.
 - Gates: Spotless with ktfmt 0.65 kotlinlang style, detekt 1.23.8 (config/detekt/detekt.yml), Android Lint with warningsAsErrors. Disabled lint checks: GradleDependency, NewerVersionAvailable, AndroidGradlePluginVersion (network-dependent, Dependabot covers them); in :app also OldTargetApi (target 36 on purpose) and ObsoleteSdkInt (aapt2 does not resolve mipmap-anydpi without -v26).
 - Robolectric tests need --add-exports java.base/jdk.internal.access=ALL-UNNAMED, set in the library convention.
 

@@ -65,8 +65,7 @@ __pycache__/
 .design-mockups/
 .taste-skill/
 
-# model files (mirrored in the models data release, not in git)
-/app/src/main/assets/models/
+# model files and data packs (mirrored in the models and data releases, not in git)
 awn-models/
 awn-data/
 awn-data-v2/
@@ -85,3 +84,5 @@ captures/
 
 # Browser automation scratch
 .playwright-mcp/
+awn-data-next/
+awn-data-unbundle/

@@ -22,6 +22,12 @@ Use these words for these things, and no other word for the same thing.
 | review | the list of words to look at after reciting |
 | day colours, night colours | the two colour choices; never "theme" except "phone theme" |
 | space used | storage taken by downloads |
+| Continue reading | the card that opens the page read last ("Start reading" before anything was read) |
+| Today | the Quran tab section of today's load from Learn and Hifz; never a backlog |
+| Show | the choice of list on the Quran tab: Surahs, Juz, Pages |
+| Go to page | opens a page by number, on the Quran tab and in the Quran screen menu |
+| Hifz | the memorising tab; a word of its own, not translated into "memorise" |
+| surah row | meaning, Makki or Madani, ayah count joined by " · ": "Abraham · Makki · 52 ayahs"; "read last" is added on the surah read last |
 
 ## Rules
 1. A label is a noun phrase of at most three words, never a question. "Volume keys turn pages" is the one four-word exception, because no shorter form says what the switch does.

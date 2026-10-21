@@ -31,6 +31,7 @@ import re
 import sqlite3
 import sys
 import time
+import unicodedata
 import urllib.request
 
 SITE = "https://alquran.org.bd"
@@ -55,9 +56,39 @@ def fetch_surah(number):
         return json.load(response)["results"]
 
 
+def repair_known_typos(text):
+    """Fix the publisher's keyboard slip "া" + "ে" (visible in 106:1, "কােরাইশদের"), which is never valid
+    Bangla spelling; the intended letter is the single vowel sign "ো"."""
+    return text.replace("\u09be\u09c7", "\u09cb")
+
+
+# Square brackets hold the publisher's commentary ("[অর্থাৎ ...]", "[এখানে আল্লাহ ...]"), 17 notes of 48 to
+# 627 characters; the maintainer chose to show the translation only. The one short bracket, "[সেজদা]"
+# (7:206), marks a prostration and stays. Round brackets are part of the translation and stay.
+LONGEST_KEPT_BRACKET = 20
+SQUARE_BRACKET_NOTE = re.compile(r"\s*\[[^\]]*\]")
+SPACE_BEFORE_DANDA = re.compile(r"\s+(।)")
+
+
+def remove_publisher_notes(text):
+    """Drops square-bracketed commentary longer than a short marker such as [সেজদা]."""
+
+    def drop_long(match):
+        return "" if len(match.group(0).strip()) > LONGEST_KEPT_BRACKET else match.group(0)
+
+    return SQUARE_BRACKET_NOTE.sub(drop_long, text)
+
+
+def tidy_translation(text):
+    """The text a reader sees: typos repaired, notes removed, no space before the danda."""
+    text = remove_publisher_notes(repair_known_typos(text))
+    text = SPACE_BEFORE_DANDA.sub(r"\1", text)
+    return " ".join(text.split())
+
+
 def clean(html_text):
     text = html.unescape(re.sub(r"<[^>]+>", " ", html_text or ""))
-    return re.sub(r"\s+", " ", text).strip()
+    return repair_known_typos(re.sub(r"\s+", " ", text).strip())
 
 
 def split_block(text, first, last):
@@ -87,6 +118,62 @@ def split_block(text, first, last):
     return rows
 
 
+# The publisher numbers Al-Fatihah without the Basmalah and splits the last Hafs ayah in two
+# (their 1 is "Alhamdulillah", their "5-6" and 7 are the sentences the app shows for Hafs 6 and 7).
+# Awn keys every pack by the Hafs numbering, so their surah 1 is moved: Hafs 2-5 take their 1-4,
+# Hafs 6 takes their "5-6" sentence and Hafs 7 takes their 7. Their site shows the Basmalah above every
+# surah except At-Tawbah from one shared template line, not from the API: this exact wording is the
+# <p class="banglaStart"> of https://alquran.org.bd/static/js/views/includes/surah-detail-tpl-bn.html
+# (hidden only when the surah is 9). The template has no closing danda; one is added to match every
+# other row. The template spells the letter yo with the single code point U+09DF, like the rest of the pack.
+FATIHA_BASMALAH = "দয়াময় মেহেরবান আল্লাহর নামে।"
+
+
+# Their "5-6" sentence also holds the opening of Hafs 7 ("the path of Your beloved ones",
+# صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ). The maintainer's split: Hafs 6 ends at the first comma;
+# the rest opens Hafs 7, its full stop turned into a comma so their sentence 7 continues it.
+FATIHA_FIVE_SIX = "(প্রভু হে!) সাফল্যের সরলপথে, তোমার প্রিয়জনদের পথে আমাদের পরিচালিত করো।"
+
+
+def split_fatiha_five_six(text):
+    """Splits the publisher's 5-6 sentence into Hafs 6 and the opening of Hafs 7."""
+    # The site spells "য়" as two code points (U+09AF U+09BC); compare in one normal form.
+    if unicodedata.normalize("NFC", text) != unicodedata.normalize("NFC", FATIHA_FIVE_SIX):
+        raise ValueError(f"Al-Fatihah 5-6 changed upstream to {text!r}; review the split")
+    head, tail = text.split(", ", 1)
+    return head + ",", tail.removesuffix("।") + ","
+
+
+def fatiha_in_hafs_numbering(publisher_rows):
+    """Maps {ayah: (from, to, text)} in the publisher's Al-Fatihah numbering to Hafs numbering."""
+    if publisher_rows.get(5, (0, 0, ""))[:2] != (5, 6) or publisher_rows.get(7, (0, 0, ""))[:2] != (7, 7):
+        raise ValueError("Al-Fatihah no longer has the publisher's 5-6 and 7 blocks; review the mapping")
+    hafs_six, opening_of_seven = split_fatiha_five_six(publisher_rows[5][2])
+    return {
+        1: (1, 1, FATIHA_BASMALAH),
+        2: (2, 2, publisher_rows[1][2]),
+        3: (3, 3, publisher_rows[2][2]),
+        4: (4, 4, publisher_rows[3][2]),
+        5: (5, 5, publisher_rows[4][2]),
+        6: (6, 6, hafs_six),
+        7: (7, 7, opening_of_seven + " " + publisher_rows[7][2]),
+    }
+
+
+def with_fatiha_in_hafs_numbering(rows):
+    """Replaces the surah 1 rows of (surah, ayah, from, to, text) rows by their Hafs numbering."""
+    publisher = {ayah: (start, end, text) for surah, ayah, start, end, text in rows if surah == 1}
+    hafs = fatiha_in_hafs_numbering(publisher)
+    fatiha = [(1, ayah, start, end, text) for ayah, (start, end, text) in sorted(hafs.items())]
+    return fatiha + [row for row in rows if row[0] != 1]
+
+
+def is_publisher_fatiha(rows):
+    """True while surah 1 is still in the publisher's numbering (1:5 and 1:6 share one block)."""
+    fatiha = {ayah: (start, end) for surah, ayah, start, end, _ in rows if surah == 1}
+    return fatiha.get(5) == (5, 6)
+
+
 def create_pack_tables(connection):
     """Create the same schema as tools/build_translations.py, so every pack is read the same way."""
     connection.execute(
@@ -107,7 +194,7 @@ def create_pack_tables(connection):
 
 
 def add_pack_info(existing_path, output_path):
-    """Copy an earlier pack that has only a translation table into the current schema."""
+    """Copy an earlier pack into the current schema, moving Al-Fatihah to Hafs numbering."""
     if os.path.exists(output_path):
         os.remove(output_path)
     source = sqlite3.connect(existing_path)
@@ -115,6 +202,9 @@ def add_pack_info(existing_path, output_path):
         "SELECT surah, ayah, ayah_from, ayah_to, text FROM translation ORDER BY surah, ayah"
     ).fetchall()
     source.close()
+    if is_publisher_fatiha(rows):
+        rows = with_fatiha_in_hafs_numbering(rows)
+    rows = [(surah, ayah, start, end, tidy_translation(text)) for surah, ayah, start, end, text in rows]
     connection = sqlite3.connect(output_path)
     create_pack_tables(connection)
     connection.executemany("INSERT INTO translation VALUES (?, ?, ?, ?, ?)", rows)
@@ -141,11 +231,14 @@ def main():
             first = block["ayat_number_start"] or block["ayat_number"]
             last = block["ayat_number_end"] or first
             rows.update(split_block(clean(block["ayat_bangla_description"]), first, last))
+        if surah == 1:
+            rows = fatiha_in_hafs_numbering(rows)
         for ayah in range(1, VERSES_PER_SURAH[surah - 1] + 1):
             if ayah not in rows or not rows[ayah][2]:
                 missing.append(f"{surah}:{ayah}")
                 continue
             start, end, text = rows[ayah]
+            text = tidy_translation(text)
             if end > start and ayah == start:
                 merged_ranges += 1
             connection.execute(
