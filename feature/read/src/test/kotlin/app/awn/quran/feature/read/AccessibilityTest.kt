@@ -253,7 +253,7 @@ class AccessibilityTest {
     }
 
     private fun glyphWord(ayah: Int, position: Int, glyph: String) =
-        Word(WordKey(2, ayah, position), "كلمة$ayah", null, glyph, null)
+        Word(WordKey(2, ayah, position), "كلمة$ayah", null, glyph)
 
     private fun glyphLayout() =
         PageLayout(

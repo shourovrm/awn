@@ -3,7 +3,6 @@
 package app.awn.quran.core.data.translations
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.realPackAssets
 import app.awn.quran.core.data.MapBundledAssets
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.createPackDatabase
@@ -11,6 +10,7 @@ import app.awn.quran.core.data.manifestEntry
 import app.awn.quran.core.data.packs.ManifestCatalog
 import app.awn.quran.core.data.packs.PackStorage
 import app.awn.quran.core.data.packs.ReadOnlyDatabases
+import app.awn.quran.core.data.realPackAssets
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

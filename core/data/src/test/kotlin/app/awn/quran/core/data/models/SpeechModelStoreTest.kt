@@ -125,7 +125,10 @@ class SpeechModelStoreTest {
         assertTrue(store.isInstalled())
         assertEquals(tokensBytes.toList(), File(directory, "tokens.txt").readBytes().toList())
         assertEquals(modelBytes.toList(), File(directory, "model.onnx").readBytes().toList())
-        assertEquals(emptyList<String>(), directory.walkTopDown().filter { it.name.endsWith(".part") }.map { it.name }.toList())
+        assertEquals(
+            emptyList<String>(),
+            directory.walkTopDown().filter { it.name.endsWith(".part") }.map { it.name }.toList(),
+        )
         assertNotNull(store.installedFiles())
     }
 

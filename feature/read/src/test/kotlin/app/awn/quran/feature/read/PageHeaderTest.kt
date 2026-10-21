@@ -16,7 +16,7 @@ import org.junit.Test
 class PageHeaderTest {
 
     private fun word(surah: Int, ayah: Int, position: Int) =
-        LineItem.WordItem(Word(WordKey(surah, ayah, position), "w", null, null, null))
+        LineItem.WordItem(Word(WordKey(surah, ayah, position), "w", null, null))
 
     private fun layout(page: Int, vararg items: LineItem) =
         PageLayout(page, ScriptId.V2, listOf(PageLine(1, items.toList())))

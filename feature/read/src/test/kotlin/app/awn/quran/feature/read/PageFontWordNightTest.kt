@@ -44,7 +44,7 @@ class PageFontWordNightTest {
     @Test
     fun switchingToNightLoadsTheNightFontOfAWordAlreadyShown() {
         val isNight = mutableStateOf(false)
-        val word = Word(WordKey(2, 6, 1), "text", null, "glyph", null)
+        val word = Word(WordKey(2, 6, 1), "text", null, "glyph")
         composeRule.setContent {
             AwnTheme {
                 PageFontWord(

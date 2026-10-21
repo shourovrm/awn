@@ -99,7 +99,7 @@ class ReadFixture(settings: ReadSettings = ReadSettings()) {
         val baqarah = Chapter(2, "البقرة", "Al-Baqarah", null, 286, "madinah", true)
 
         fun word(surah: Int, ayah: Int, position: Int, text: String) =
-            Word(WordKey(surah, ayah, position), text, null, null, "t$position")
+            Word(WordKey(surah, ayah, position), text, null, null)
 
         fun pageOne() =
             PageLayout(

@@ -173,7 +173,7 @@ class ControllerFixture(
 
     fun confirmed(index: Int) = TrackerEvent.WordChanged(index, WordState.Confirmed)
 
-    private fun word(key: WordKey, text: String) = Word(key, text, null, null, null)
+    private fun word(key: WordKey, text: String) = Word(key, text, null, null)
 
     private fun referenceWords(): ReferencePhonemes =
         FakeReferencePhonemes(

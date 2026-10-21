@@ -1,7 +1,6 @@
 package app.awn.quran.core.data.search
 
 import app.awn.quran.core.data.AyahRef
-
 import app.awn.quran.core.data.packs.ManifestCatalog
 import app.awn.quran.core.data.packs.PackStorage
 import app.awn.quran.core.data.packs.ReadOnlyDatabases

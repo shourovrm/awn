@@ -47,7 +47,7 @@ class PageTypeSwitchTest {
     private val v2Code = 0xFC41.toChar().toString()
 
     private fun layout(script: ScriptId): PageLayout {
-        val word = Word(WordKey(1, 1, 1), unicode, v1Code, v2Code, null)
+        val word = Word(WordKey(1, 1, 1), unicode, v1Code, v2Code)
         return PageLayout(3, script, listOf(PageLine(1, listOf(LineItem.WordItem(word)))))
     }
 
