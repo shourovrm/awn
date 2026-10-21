@@ -95,4 +95,20 @@ class CatalogueRulesTest {
         assertEquals(CatalogueGroup.Transliteration, groups.getValue("en_transliteration"))
         assertEquals(null, groups.getValue("quran-text"))
     }
+
+    @Test
+    fun wordTimingPacksAreWordAudioAndAyahTimingsAreNotOffered() {
+        val catalog = realManifestCatalog()
+
+        val groups =
+            catalog.timingPacks.associate { record ->
+                record.entry.id to CatalogueGrouping.groupOf(record, isBundled = false)
+            }
+
+        listOf("alafasy", "husary", "husary_muallim", "minshawi").forEach { reciterId ->
+            assertEquals(CatalogueGroup.WordAudio, groups.getValue(reciterId))
+        }
+        // Basfar's timings mark where each ayah starts; they cannot play a single word.
+        assertEquals(null, groups.getValue("basfar"))
+    }
 }

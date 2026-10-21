@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
@@ -28,7 +30,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -73,6 +74,8 @@ data class WordPopup(
     val problem: WordProblem? = null,
     /** True when the chosen reciter has a recording of this word, so the card offers Play. */
     val canPlay: Boolean = false,
+    /** Shown instead of Play while the reciter's word audio is not on the phone yet. */
+    val audioOffer: WordAudioOffer? = null,
 )
 
 data class QuranUiState(
@@ -195,7 +198,7 @@ data class QuranUiState(
 @Suppress("TooManyFunctions", "LargeClass")
 class QuranViewModel(
     private val dependencies: ReadDependencies,
-    /** "en" or "bn": picks the word-by-word pack. */
+    /** The app language when the screen opened, such as "en" or "bn". */
     wordLanguage: String,
     private val pageReadDelayMs: Long = PAGE_READ_DELAY_MS,
 ) : ViewModel() {
@@ -212,9 +215,15 @@ class QuranViewModel(
     private val mutablePlayingWord = MutableStateFlow<Int?>(null)
     val playingWordPosition: StateFlow<Int?> = mutablePlayingWord
 
+    // Word-by-word meanings follow the language chosen in Settings, else the app language.
+    private var appLanguage = wordLanguage
     private val contentLoader =
-        PageContentLoader(dependencies.quranText, dependencies.translations, wordLanguage)
-    private val wordAudio = WordAudio(dependencies)
+        PageContentLoader(
+            dependencies.quranText,
+            dependencies.translations,
+            wordLanguage = { mutableState.value.settings.wordByWordLanguage ?: appLanguage },
+        )
+    private val wordAudio = WordAudio(dependencies, viewModelScope)
     private val shareTexts = AyahShareTexts(contentLoader)
 
     private var bookmarkedPages: Set<Int> = emptySet()
@@ -247,6 +256,7 @@ class QuranViewModel(
         viewModelScope.launch { followPlayback() }
         viewModelScope.launch { followFontStatus() }
         viewModelScope.launch { followInstalledPacks() }
+        viewModelScope.launch { followWordAudioPack() }
     }
 
     /**
@@ -364,6 +374,17 @@ class QuranViewModel(
         } else {
             loadContent(page)
         }
+    }
+
+    /**
+     * Reads the word-by-word meanings again when the app language changes, because they follow it
+     * unless the user chose another language.
+     */
+    fun onAppLanguageChanged(language: String) {
+        if (language == appLanguage) return
+        appLanguage = language
+        if (mutableState.value.settings.wordByWordLanguage != null) return
+        reloadContents()
     }
 
     /** The view button: Mushaf or line by line. The choice is saved. */
@@ -630,7 +651,7 @@ class QuranViewModel(
                 panelBlock = null,
             )
         }
-        viewModelScope.launch { showPlayWhen(wordAudio.hasTimings(ayah), word.key) }
+        viewModelScope.launch { showWordAudio(ayah, word.key, wordAudio.currentPack()) }
     }
 
     /**
@@ -657,15 +678,46 @@ class QuranViewModel(
         dependencies.audioPlayer.stop()
     }
 
+    /** The card's download button: fetches the timings of the chosen reciter's word audio. */
+    fun downloadWordAudio() {
+        viewModelScope.launch { wordAudio.currentPack()?.let { wordAudio.download(it.item.id) } }
+    }
+
     // The card may have closed, or moved to another word, while the timings were read.
-    private fun showPlayWhen(hasTimings: Boolean, key: WordKey) {
+    private suspend fun showWordAudio(ayah: AyahRef, key: WordKey, packRow: CatalogueRow?) {
+        val audio = wordAudio.stateOf(ayah, packRow)
         mutableState.update { state ->
             val popup = state.wordPopup
             if (popup != null && popup.word.key == key) {
-                state.copy(wordPopup = popup.copy(canPlay = hasTimings))
+                state.copy(
+                    wordPopup =
+                        popup.copy(
+                            canPlay = audio is WordAudioState.Ready,
+                            audioOffer = (audio as? WordAudioState.Missing)?.offer,
+                        ),
+                )
             } else {
                 state
             }
+        }
+    }
+
+    /**
+     * Starts the chosen reciter's word audio download once per reciter when the network is not
+     * metered, and keeps an open word card in step with the download.
+     */
+    private suspend fun followWordAudioPack() {
+        val requestedPackIds = mutableSetOf<String>()
+        wordAudio.selectedPack.collect { row ->
+            if (
+                row != null &&
+                    shouldDownloadWordAudio(row, dependencies.isNetworkMetered(), requestedPackIds)
+            ) {
+                requestedPackIds += row.item.id
+                wordAudio.download(row.item.id)
+            }
+            val popup = mutableState.value.wordPopup
+            if (popup != null) showWordAudio(popup.ayah, popup.word.key, row)
         }
     }
 
@@ -816,6 +868,11 @@ class QuranViewModel(
         }
     }
 
+    private fun reloadContents() {
+        mutableState.update { it.copy(contents = emptyMap()) }
+        if (mutableState.value.hasStarted) loadAroundPage(mutableState.value.currentPage)
+    }
+
     private fun loadPanelBlock(ayah: AyahRef) {
         viewModelScope.launch {
             val block = contentLoader.loadBlock(ayah, mutableState.value.settings.translations)
@@ -847,15 +904,21 @@ class QuranViewModel(
             val scriptChanged = settings.script != previous.script
             val translationsChanged = settings.translations != previous.translations
             val viewChanged = settings.pageView != previous.pageView
+            val wordLanguageChanged = settings.wordByWordLanguage != previous.wordByWordLanguage
             mutableState.update {
                 it.copy(
                     settings = settings,
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
-                        if (scriptChanged || translationsChanged) emptyMap() else it.contents,
+                        if (scriptChanged || translationsChanged || wordLanguageChanged) {
+                            emptyMap()
+                        } else {
+                            it.contents
+                        },
                 )
             }
-            val needsReload = scriptChanged || translationsChanged || viewChanged
+            val needsReload =
+                scriptChanged || translationsChanged || wordLanguageChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
                 loadAroundPage(mutableState.value.currentPage)
             }
@@ -962,7 +1025,13 @@ class QuranViewModel(
      * the fallback are dropped and the visible pages load again with the new font.
      */
     private suspend fun followInstalledPacks() {
-        dependencies.packs.installed().drop(1).collect {
+        var previous: List<InstalledPack>? = null
+        dependencies.packs.installed().collect { installed ->
+            val before = previous
+            previous = installed
+            // The first list is the state at start, not a change. Word timings change no page, so
+            // installing them must not redraw the pages.
+            if (before == null || changedTimingsOnly(before, installed)) return@collect
             RecentLayouts.clear()
             loadInstalledTranslations()
             mutableState.update {

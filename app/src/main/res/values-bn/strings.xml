@@ -41,6 +41,7 @@
   <string name="downloads_translations">অনুবাদ</string>
   <string name="downloads_word_by_word">শব্দে শব্দে</string>
   <string name="downloads_transliteration">উচ্চারণ</string>
+  <string name="downloads_word_audio">শব্দের অডিও</string>
   <string name="downloads_reciters">ক্বারী</string>
   <string name="settings_recite">তিলাওয়াত ও মুখস্থ</string>
   <string name="settings_appearance">চেহারা</string>

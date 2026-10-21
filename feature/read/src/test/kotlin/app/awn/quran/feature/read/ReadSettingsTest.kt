@@ -222,4 +222,57 @@ class ReadSettingsTest {
         viewModel.setTranslationEnabled(bangla, false)
         assertEquals(listOf(third, english), viewModel.settings.value.translations)
     }
+
+    @Test
+    fun theWordByWordLanguageIsSavedAndClearedBackToTheAppLanguage() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        val store = openStore(File(folder.root, "word_language.preferences_pb"), scope)
+        val fresh = store.settings.first()
+
+        store.update { it.copy(wordByWordLanguage = "ur") }
+        val chosen = store.settings.first()
+        store.update { it.copy(wordByWordLanguage = null) }
+        val cleared = store.settings.first()
+        scope.coroutineContext.job.cancelAndJoin()
+
+        assertEquals(null, fresh.wordByWordLanguage)
+        assertEquals("ur", chosen.wordByWordLanguage)
+        assertEquals(null, cleared.wordByWordLanguage)
+    }
+
+    @Test
+    fun anInstallationFromBeforeTheLanguageChoiceKeepsItsLayerTickAndFollowsTheAppLanguage() =
+        runTest {
+            val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+            val dataStore =
+                PreferenceDataStoreFactory.create(scope = scope) {
+                    File(folder.root, "before_language.preferences_pb")
+                }
+            dataStore.edit { it[booleanPreferencesKey("word_by_word")] = false }
+
+            val loaded = DataStoreReadSettingsStore(dataStore).settings.first()
+            scope.coroutineContext.job.cancelAndJoin()
+
+            assertEquals(false, loaded.showWordByWord)
+            assertEquals(null, loaded.wordByWordLanguage)
+        }
+
+    @Test
+    fun tickingALanguageShowsTheMeaningsButTheRowAndRemovalLeaveTheLayerAlone() = runTest {
+        val fixture = ReadFixture(ReadSettings(showWordByWord = false))
+        val viewModel = ReadSettingsViewModel(fixture.store)
+
+        viewModel.setWordByWordLanguage("ur")
+        assertEquals("ur", viewModel.settings.value.wordByWordLanguage)
+        assertEquals(false, viewModel.settings.value.showWordByWord)
+
+        viewModel.useWordByWordLanguage("bn")
+        assertEquals("bn", viewModel.settings.value.wordByWordLanguage)
+        assertEquals(true, viewModel.settings.value.showWordByWord)
+
+        viewModel.forgetWordByWordLanguage("ur")
+        assertEquals("bn", viewModel.settings.value.wordByWordLanguage)
+        viewModel.forgetWordByWordLanguage("bn")
+        assertEquals(null, viewModel.settings.value.wordByWordLanguage)
+    }
 }

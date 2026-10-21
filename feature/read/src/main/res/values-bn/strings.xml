@@ -47,6 +47,7 @@
   <string name="word_problem_different">অন্য শব্দ</string>
   <string name="word_play">এই শব্দটি শুনুন</string>
   <string name="word_stop">শব্দটি থামান</string>
+  <string name="word_audio_download">শব্দের অডিও ডাউনলোড করুন</string>
 
   <string name="panel_translation">অনুবাদ</string>
   <string name="panel_play">চালান</string>
@@ -67,6 +68,9 @@
   <string name="setting_translations">অনুবাদ</string>
   <string name="setting_transliteration">উচ্চারণ</string>
   <string name="setting_word_by_word">শব্দে শব্দে</string>
+  <string name="setting_word_language">অর্থের ভাষা</string>
+  <string name="setting_word_language_hint">প্রতিটি শব্দের অর্থ যে ভাষায় দেখাবে</string>
+  <string name="word_language_app">অ্যাপের ভাষা</string>
   <string name="setting_highlight_bookmarks">বুকমার্ক চিহ্নিত করুন</string>
   <string name="setting_volume_keys">ভলিউম কী পৃষ্ঠা উল্টায়</string>
   <string name="reading_group_layers">আরবির নিচে দেখানো হবে</string>
@@ -85,5 +89,6 @@
   <string name="pack_list_translations">অনুবাদ</string>
   <string name="pack_list_transliteration">উচ্চারণ</string>
   <string name="pack_list_word_by_word">শব্দে শব্দে</string>
+  <string name="pack_list_word_audio">শব্দের অডিও</string>
   <string name="catalogue_remove_frees">%1$s জায়গা খালি হবে। আবার ডাউনলোড করা যাবে।</string>
 </resources>

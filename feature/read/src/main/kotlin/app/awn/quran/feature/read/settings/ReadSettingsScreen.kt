@@ -63,6 +63,7 @@ fun ReadingSettingsPage(
             onClick = { onOpenPackList(PackListKind.WordByWord) },
             rowKey = SettingRowKeys.READING_WORD_BY_WORD,
         )
+        WordLanguageRow(catalogue, settings, viewModel)
 
         SettingsGroupHeading(stringResource(R.string.reading_group_size))
         TextLayer.entries.forEach { layer ->

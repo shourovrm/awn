@@ -169,8 +169,6 @@ private const val PANEL_SHARE = 0.6f
 
 /** Bars fade in and out in this long: the first change on screen comes well inside 150 ms. */
 internal const val BAR_FADE_MS = 120
-private const val BANGLA_LANGUAGE = "bn"
-private const val ENGLISH_LANGUAGE = "en"
 private const val FIRST_PAGE = 1
 
 /**
@@ -188,14 +186,16 @@ fun QuranScreen(
     modifier: Modifier = Modifier,
     target: QuranTarget? = null,
 ) {
-    val language = LocalConfiguration.current.locales[0].language
-    val wordLanguage = if (language == BANGLA_LANGUAGE) BANGLA_LANGUAGE else ENGLISH_LANGUAGE
+    // The activity's locale is the app language set in Settings; the view model outlives the
+    // recreation that follows a language change, so it is told again instead of reading it once.
+    val appLanguage = LocalConfiguration.current.locales[0].language
     val viewModel: QuranViewModel =
         viewModel(
             factory =
-                viewModelFactory { initializer { QuranViewModel(dependencies, wordLanguage) } },
+                viewModelFactory { initializer { QuranViewModel(dependencies, appLanguage) } },
         )
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(appLanguage) { viewModel.onAppLanguageChanged(appLanguage) }
     LaunchedEffect(target) { viewModel.open(target) }
     FollowRecitation(slots, viewModel, isReciting = state.isReciting)
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.setScreenActive(true) }
@@ -516,6 +516,7 @@ private fun QuranContent(
                 isPlaying = state.isPopupWordPlaying,
                 onPlay = viewModel::playPopupWord,
                 onStop = viewModel::stopPopupWord,
+                onDownloadAudio = viewModel::downloadWordAudio,
                 modifier = Modifier.fillMaxSize(),
             )
         }

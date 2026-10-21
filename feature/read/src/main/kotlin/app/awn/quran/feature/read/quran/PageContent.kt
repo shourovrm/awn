@@ -10,6 +10,7 @@ import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.isGlyphScript
 import app.awn.quran.feature.read.page.normalizeFallbackText
+import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 
 /**
  * What draws a word in its page font: the glyph [word] and the Mushaf [page] whose font its glyph
@@ -86,9 +87,18 @@ data class PageContent(val page: Int, val items: List<PageItem>) {
 internal class PageContentLoader(
     private val quranText: QuranTextRepository,
     private val translations: TranslationRepository,
-    /** "en" or "bn": picks the word-by-word pack. */
-    private val wordLanguage: String,
+    /**
+     * The language of the word-by-word meanings to read now, such as "en" or "bn". It is asked at
+     * every load because the user can change it, or the app language it follows, while the screen
+     * is open.
+     */
+    private val wordLanguage: () -> String,
 ) {
+    constructor(
+        quranText: QuranTextRepository,
+        translations: TranslationRepository,
+        wordLanguage: String,
+    ) : this(quranText, translations, { wordLanguage })
 
     suspend fun load(
         page: Int,
@@ -129,7 +139,7 @@ internal class PageContentLoader(
         val translationNames = names ?: translations.available().associate { it.id to it.name }
         val words = quranText.wordsOfAyah(ayah)
         val pageOfWord = if (script != null) fontPages?.pagesOf(ayah, words).orEmpty() else null
-        val meanings = translations.wordByWord(wordLanguage, ayah)
+        val meanings = meaningsOf(ayah)
         val ayahTranslations = enabledTranslations.mapNotNull { id ->
             val passage = translations.text(id, ayah) ?: return@mapNotNull null
             val isRange = passage.ayahFrom != passage.ayahTo
@@ -150,19 +160,53 @@ internal class PageContentLoader(
                         key = word.key,
                         arabic = normalizeFallbackText(word.textUthmani),
                         meaning = meaningAtPosition(meanings, word.key.wordPosition),
-                        transliteration = word.transliteration,
+                        transliteration = transliterationOf(word),
                         glyphs = pageOfWord?.let { glyphsOf(word, script, it) },
                     )
                 },
             transliteration =
                 words
-                    .mapNotNull { it.transliteration }
+                    .mapNotNull { transliterationOf(it) }
                     .joinToString(separator = " ")
                     .ifBlank { null },
             translations = ayahTranslations,
         )
     }
+
+    /**
+     * The meanings of [ayah] in the wanted language. A language with no pack on the phone, and a
+     * word the pack leaves blank (packs store '' where the source had English only), show the
+     * English meaning instead.
+     */
+    private suspend fun meaningsOf(ayah: AyahRef): List<String> {
+        val language = wordLanguage()
+        val wanted = translations.wordByWord(language, ayah)
+        if (language == ENGLISH_WORD_LANGUAGE) return wanted
+        return meaningsWithEnglishFallback(
+            wanted,
+            translations.wordByWord(ENGLISH_WORD_LANGUAGE, ayah),
+        )
+    }
+
+    /**
+     * The transliteration of one word. Every transliteration lookup of the cards and lists goes
+     * through here, so moving the data out of quran.sqlite into a downloadable pack, or choosing a
+     * language for it, changes this one function. Only English exists today.
+     */
+    private fun transliterationOf(word: Word): String? = word.transliteration
 }
+
+/**
+ * Joins the [wanted] meanings with the [english] ones by position: a blank or missing wanted
+ * meaning is replaced by the English one, and a missing English one stays blank.
+ */
+internal fun meaningsWithEnglishFallback(
+    wanted: List<String>,
+    english: List<String>,
+): List<String> =
+    List(maxOf(wanted.size, english.size)) { index ->
+        wanted.getOrNull(index)?.takeIf { it.isNotBlank() } ?: english.getOrNull(index).orEmpty()
+    }
 
 /**
  * The meaning of the word at [position] (counted from 1). The pack lists one meaning per word

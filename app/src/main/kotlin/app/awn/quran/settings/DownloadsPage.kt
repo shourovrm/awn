@@ -69,6 +69,13 @@ fun DownloadsPage(
             catalogue,
             onOpenList,
         )
+        PackListLinkRow(
+            R.string.downloads_word_audio,
+            PackListKind.WordAudio,
+            SettingRowKeys.DOWNLOADS_WORD_AUDIO,
+            catalogue,
+            onOpenList,
+        )
         SettingsLinkRow(
             label = stringResource(R.string.downloads_reciters),
             value = Formatter.formatShortFileSize(context, audioBytes),

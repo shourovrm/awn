@@ -122,6 +122,7 @@ class AwnServices(private val application: Application) {
 
                     override suspend fun markHandled() = preferences.markPrintOfferHandled()
                 },
+            isNetworkMetered = networkStatus::isMetered,
         )
 
     private val modelFiles =

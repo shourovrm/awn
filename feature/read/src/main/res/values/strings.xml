@@ -48,6 +48,7 @@
   <string name="word_problem_different">Different word</string>
   <string name="word_play">Play this word</string>
   <string name="word_stop">Stop this word</string>
+  <string name="word_audio_download">Download word audio</string>
 
   <string name="panel_translation">Translation</string>
   <string name="panel_play">Play</string>
@@ -68,6 +69,9 @@
   <string name="setting_translations">Translations</string>
   <string name="setting_transliteration">Transliteration</string>
   <string name="setting_word_by_word">Word by word</string>
+  <string name="setting_word_language">Meaning language</string>
+  <string name="setting_word_language_hint">Language of each word\'s meaning</string>
+  <string name="word_language_app">App language</string>
   <string name="setting_highlight_bookmarks">Highlight bookmarks</string>
   <string name="setting_volume_keys">Volume keys turn pages</string>
   <string name="reading_group_layers">Shown under the Arabic</string>
@@ -86,5 +90,6 @@
   <string name="pack_list_translations">Translations</string>
   <string name="pack_list_transliteration">Transliteration</string>
   <string name="pack_list_word_by_word">Word by word</string>
+  <string name="pack_list_word_audio">Word audio</string>
   <string name="catalogue_remove_frees">Frees %1$s. You can download it again.</string>
 </resources>

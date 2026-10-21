@@ -15,6 +15,9 @@ enum class CatalogueGroup {
 
     /** The Arabic read in Latin letters. */
     Transliteration,
+
+    /** One reciter's word timings, which let the word card play a single word. */
+    WordAudio,
 }
 
 /**

@@ -33,6 +33,11 @@ data class ReadDependencies(
     val selectedReciterId: Flow<String> = flowOf(DEFAULT_RECITER_ID),
     /** The one-time offer of a printed Mushaf on the first Quran screen. */
     val printOffer: PrintOfferStore = PrintOfferStore.Never,
+    /**
+     * True on mobile data or a hotspot. A reciter's word audio (about 3 MB) downloads by itself
+     * only when this is false, the same rule as the audio downloads; otherwise the word card asks.
+     */
+    val isNetworkMetered: () -> Boolean = { false },
 ) {
     companion object {
         /** The reciter :feature:listen starts with. */

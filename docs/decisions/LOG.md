@@ -136,3 +136,6 @@
 2026-10-21 | Mushaf page slides up to keep the recited word above the recite bar | bar covered the last lines while reciting (read.md)
 2026-10-21 | Review is a non-modal card; ReciteController.focusedWord drives page, ring and Listen | modal sheet hid the page and ignored which mistake was open (recite.md)
 2026-10-21 | Tap on a flagged word focuses it in the review card instead of opening the plain word card | the plain card gave no way to review (read.md)
+2026-10-21 | Word-by-word language is its own setting (null = app language), radio list, English fallback | one flag ticked every row and read the device locale
+2026-10-21 | Word-timing packs are a Word audio download group; ayah-level timings (Basfar) are not offered | nothing installed timings, so word play hid
+2026-10-21 | Word audio downloads by itself for the chosen reciter on unmetered networks; the card offers it otherwise | same rule as audio, 3 MB each
