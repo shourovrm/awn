@@ -74,11 +74,14 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
     /** The state of [ayah]'s words for the card; [packRow] is the latest of [selectedPack]. */
     suspend fun stateOf(ayah: AyahRef, packRow: CatalogueRow?): WordAudioState {
         val reciterId = dependencies.selectedReciterId.first()
-        if (dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()) {
-            return WordAudioState.Ready
+        val hasTimings =
+            dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
+        return when {
+            hasTimings -> WordAudioState.Ready
+            // No word reciter, or the timings are on the phone but hold nothing for this ayah.
+            packRow == null || packRow.item.isInstalled -> WordAudioState.Unavailable
+            else -> WordAudioState.Missing(offerOf(packRow))
         }
-        if (packRow == null || packRow.item.isInstalled) return WordAudioState.Unavailable
-        return WordAudioState.Missing(offerOf(packRow))
     }
 
     private fun offerOf(row: CatalogueRow): WordAudioOffer =
