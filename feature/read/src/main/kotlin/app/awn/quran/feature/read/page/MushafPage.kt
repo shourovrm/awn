@@ -211,17 +211,8 @@ private fun PageBody(
         onSelectionBounds,
     )
     val playingFade = rememberPlayingFade(decorations.playingAyah)
-    // A tapped word is reported with its place in the screen body, like the selection bounds.
-    val currentBodyTop by rememberUpdatedState(bodyTop)
-    val currentWordTap by rememberUpdatedState(onWordTap)
     val gestures =
-        remember(touchActions, geometry) {
-            touchActions.withWordTapReport { key ->
-                val rect = geometry.wordRect(key) ?: return@withWordTapReport
-                val shift = Offset(0f, currentBodyTop - scrollOffsetPx())
-                currentWordTap(key, rect.translate(shift))
-            }
-        }
+        rememberWordTapGestures(touchActions, geometry, bodyTop, scrollOffsetPx, onWordTap)
 
     val pageHeight = with(density) { size.pageHeightPx.toDp() }
     val heightModifier =
@@ -248,6 +239,27 @@ private fun PageBody(
                 touchActions.onRangeEnd()
             },
         )
+    }
+}
+
+/** The page's touch actions, with each word tap reported with its place in the screen body. */
+@Composable
+private fun rememberWordTapGestures(
+    touchActions: PageTouchActions,
+    geometry: PageGeometry,
+    bodyTop: Float,
+    scrollOffsetPx: () -> Int,
+    onWordTap: (WordKey, Rect) -> Unit,
+): PageTouchActions {
+    // Like the selection bounds, the rectangle is shifted into screen-body coordinates.
+    val currentBodyTop by rememberUpdatedState(bodyTop)
+    val currentWordTap by rememberUpdatedState(onWordTap)
+    return remember(touchActions, geometry) {
+        touchActions.withWordTapReport { key ->
+            val rect = geometry.wordRect(key) ?: return@withWordTapReport
+            val shift = Offset(0f, currentBodyTop - scrollOffsetPx())
+            currentWordTap(key, rect.translate(shift))
+        }
     }
 }
 
