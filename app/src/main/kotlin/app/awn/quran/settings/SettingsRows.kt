@@ -30,12 +30,17 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 
-/** A settings screen: a top bar with a back arrow above a scrolling list of rows. */
+/**
+ * A settings screen: a top bar with a back arrow above a scrolling list of rows. A page whose
+ * content fills the screen itself, such as the Mushaf page's swiped preview, passes [scrolls]
+ * false: inside a scroll it would get no height and draw nothing.
+ */
 @Composable
 fun SettingsPage(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    scrolls: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
@@ -48,7 +53,10 @@ fun SettingsPage(
             Column(
                 modifier =
                     Modifier.fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .then(
+                            if (scrolls) Modifier.verticalScroll(rememberScrollState())
+                            else Modifier,
+                        )
                         .padding(horizontal = AwnSpacing.screenMargin),
                 content = content,
             )

@@ -105,7 +105,11 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
     val goBack: () -> Unit = { navController.popBackStack() }
     composable(SettingsSection.Mushaf.route) {
         val slots = modulePageSlots(services)
-        SettingsPage(title = stringResource(R.string.settings_mushaf), onBack = goBack) {
+        SettingsPage(
+            title = stringResource(R.string.settings_mushaf),
+            onBack = goBack,
+            scrolls = false,
+        ) {
             slots.mushaf()
         }
     }
