@@ -9,7 +9,7 @@
   <string name="method_ayah_chain">Ayah chain, 20 times</string>
   <string name="method_fixed_ayahs">Fixed ayahs a day</string>
   <string name="method_track_only">No method, just track</string>
-  <string name="method_sabaq_sabqi_manzil_detail">A new lesson, recent pages and an old portion each day. Usual for Bangla and Urdu readers.</string>
+  <string name="method_sabaq_sabqi_manzil_detail">A new lesson, recent pages and an old portion each day.</string>
   <string name="method_three_by_three_detail">Read each ayah 3 times, then recite it 3 times from memory.</string>
   <string name="method_ayah_chain_detail">Repeat one ayah 20 times, then join it to the one before.</string>
   <string name="method_fixed_ayahs_detail">The same number of new ayahs every day.</string>

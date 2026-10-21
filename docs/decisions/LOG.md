@@ -155,3 +155,4 @@
 2026-10-21 | Hifz pages follow the reader's print (Madani 1421 or 1405); records remap on a print change | a hafiz knows page images (hifz.md)
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
+2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
