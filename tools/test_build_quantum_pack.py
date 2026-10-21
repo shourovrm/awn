@@ -15,8 +15,8 @@ PUBLISHER_FATIHA = [
     (1, 2, 2, 2, "merciful"),
     (1, 3, 3, 3, "master"),
     (1, 4, 4, 4, "worship"),
-    (1, 5, 5, 6, "guide"),
-    (1, 6, 5, 6, "guide"),
+    (1, 5, 5, 6, build_quantum_pack.FATIHA_FIVE_SIX),
+    (1, 6, 5, 6, build_quantum_pack.FATIHA_FIVE_SIX),
     (1, 7, 7, 7, "protect"),
 ]
 
@@ -34,8 +34,12 @@ class FatihaNumberingTest(unittest.TestCase):
         self.assertEqual("worship", self.hafs()[(1, 5)][2])
 
     def test_the_last_two_ayahs_each_have_their_own_row(self):
-        self.assertEqual((6, 6, "guide"), self.hafs()[(1, 6)])
-        self.assertEqual((7, 7, "protect"), self.hafs()[(1, 7)])
+        self.assertEqual((6, 6, "(প্রভু হে!) সাফল্যের সরলপথে,"), self.hafs()[(1, 6)])
+        self.assertEqual((7, 7, "তোমার প্রিয়জনদের পথে আমাদের পরিচালিত করো, protect"), self.hafs()[(1, 7)])
+
+    def test_a_changed_five_six_sentence_stops_the_build(self):
+        with self.assertRaises(ValueError):
+            build_quantum_pack.split_fatiha_five_six("something else")
 
     def test_the_basmalah_is_the_site_template_wording(self):
         self.assertEqual(

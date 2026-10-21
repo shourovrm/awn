@@ -31,6 +31,7 @@ import re
 import sqlite3
 import sys
 import time
+import unicodedata
 import urllib.request
 
 SITE = "https://alquran.org.bd"
@@ -104,18 +105,34 @@ def split_block(text, first, last):
 FATIHA_BASMALAH = "দয়াময় মেহেরবান আল্লাহর নামে।"
 
 
+# Their "5-6" sentence also holds the opening of Hafs 7 ("the path of Your beloved ones",
+# صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ). The maintainer's split: Hafs 6 ends at the first comma;
+# the rest opens Hafs 7, its full stop turned into a comma so their sentence 7 continues it.
+FATIHA_FIVE_SIX = "(প্রভু হে!) সাফল্যের সরলপথে, তোমার প্রিয়জনদের পথে আমাদের পরিচালিত করো।"
+
+
+def split_fatiha_five_six(text):
+    """Splits the publisher's 5-6 sentence into Hafs 6 and the opening of Hafs 7."""
+    # The site spells "য়" as two code points (U+09AF U+09BC); compare in one normal form.
+    if unicodedata.normalize("NFC", text) != unicodedata.normalize("NFC", FATIHA_FIVE_SIX):
+        raise ValueError(f"Al-Fatihah 5-6 changed upstream to {text!r}; review the split")
+    head, tail = text.split(", ", 1)
+    return head + ",", tail.removesuffix("।") + ","
+
+
 def fatiha_in_hafs_numbering(publisher_rows):
     """Maps {ayah: (from, to, text)} in the publisher's Al-Fatihah numbering to Hafs numbering."""
     if publisher_rows.get(5, (0, 0, ""))[:2] != (5, 6) or publisher_rows.get(7, (0, 0, ""))[:2] != (7, 7):
         raise ValueError("Al-Fatihah no longer has the publisher's 5-6 and 7 blocks; review the mapping")
+    hafs_six, opening_of_seven = split_fatiha_five_six(publisher_rows[5][2])
     return {
         1: (1, 1, FATIHA_BASMALAH),
         2: (2, 2, publisher_rows[1][2]),
         3: (3, 3, publisher_rows[2][2]),
         4: (4, 4, publisher_rows[3][2]),
         5: (5, 5, publisher_rows[4][2]),
-        6: (6, 6, publisher_rows[5][2]),
-        7: (7, 7, publisher_rows[7][2]),
+        6: (6, 6, hafs_six),
+        7: (7, 7, opening_of_seven + " " + publisher_rows[7][2]),
     }
 
 
