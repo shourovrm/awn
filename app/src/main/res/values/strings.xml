@@ -7,7 +7,6 @@
   <string name="tab_quran">Quran</string>
   <string name="tab_learn">Learn</string>
   <string name="tab_hifz">Hifz</string>
-  <string name="hifz_placeholder">Hifz is not available yet</string>
   <string name="continue_reading">Continue reading</string>
   <string name="continue_start">Start reading</string>
   <string name="continue_detail">%1$s · page %2$s · Juz %3$s</string>
