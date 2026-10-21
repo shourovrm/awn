@@ -223,9 +223,9 @@ private fun PageBody(
         },
     ) {
         PageRowsLayer(
-            rows = rows,
+            rows = measured.rows,
             measured = measured,
-            families = PageFamilies(textFamily, plainFamily),
+            families = measured.families,
             chapters = chapters,
             decorations = decorations,
         )
