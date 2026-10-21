@@ -7,6 +7,7 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.downloads.PackDownloads
+import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.settings.ReadSettingsStore
 import app.awn.quran.player.AudioPlayer
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,8 @@ data class ReadDependencies(
     val reciters: ReciterRepository? = null,
     /** The id of the reciter chosen in the audio settings, emitted again after each change. */
     val selectedReciterId: Flow<String> = flowOf(DEFAULT_RECITER_ID),
+    /** The one-time offer of a printed Mushaf on the first Quran screen. */
+    val printOffer: PrintOfferStore = PrintOfferStore.Never,
 ) {
     companion object {
         /** The reciter :feature:listen starts with. */

@@ -11,6 +11,7 @@ import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
+import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.recite.AyahGrade
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
@@ -115,6 +116,12 @@ class AwnServices(private val application: Application) {
             downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
+            printOffer =
+                object : PrintOfferStore {
+                    override val isPending = preferences.printOfferPending
+
+                    override suspend fun markHandled() = preferences.markPrintOfferHandled()
+                },
         )
 
     private val modelFiles =

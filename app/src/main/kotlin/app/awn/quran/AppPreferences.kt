@@ -44,8 +44,24 @@ class AppPreferences(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[NOTICE_ACCEPTED_KEY] = true }
     }
 
+    /**
+     * Whether the one-time printed Mushaf offer is still to be shown. It becomes true only when the
+     * language screen is answered, which an installation from before the offer never does again, so
+     * an upgrade is never asked.
+     */
+    val printOfferPending: Flow<Boolean> =
+        dataStore.data.map { it[PRINT_OFFER_PENDING_KEY] ?: false }
+
     suspend fun markLanguageChosen() {
-        dataStore.edit { it[LANGUAGE_CHOSEN_KEY] = true }
+        dataStore.edit {
+            it[LANGUAGE_CHOSEN_KEY] = true
+            it[PRINT_OFFER_PENDING_KEY] = true
+        }
+    }
+
+    /** The user downloaded, said Not now or closed the card; the offer never returns. */
+    suspend fun markPrintOfferHandled() {
+        dataStore.edit { it[PRINT_OFFER_PENDING_KEY] = false }
     }
 
     /** Applies [transform] to the stored colour choices and writes all four values. */
@@ -89,6 +105,7 @@ class AppPreferences(private val dataStore: DataStore<Preferences>) {
     private companion object {
         val NOTICE_ACCEPTED_KEY = booleanPreferencesKey("notice_accepted")
         val LANGUAGE_CHOSEN_KEY = booleanPreferencesKey("language_chosen")
+        val PRINT_OFFER_PENDING_KEY = booleanPreferencesKey("print_offer_pending")
         val SURAH_NAME_MEANING_KEY = booleanPreferencesKey("surah_name_meaning")
         val DAY_COLOURS_KEY = stringPreferencesKey("colours_day")
         val NIGHT_COLOURS_KEY = stringPreferencesKey("colours_night")

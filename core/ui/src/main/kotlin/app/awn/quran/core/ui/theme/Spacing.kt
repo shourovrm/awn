@@ -24,6 +24,9 @@ object AwnSpacing {
     val iconSize: Dp = 24.dp
     val tabIndicatorHeight: Dp = 4.dp
     val dialogMaxWidth: Dp = 320.dp
+    val cardElevation: Dp = 12.dp
+    val cardMaxWidth: Dp = 400.dp
+    val cardInnerPadding: Dp = 20.dp
 
     // Thin-rail switch: a 4 dp rail and a 16 dp knob in a 32 dp wide frame; the 48 dp touch
     // target around it is touchTarget.
