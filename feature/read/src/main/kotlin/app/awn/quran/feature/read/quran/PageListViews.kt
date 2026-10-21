@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -261,7 +262,7 @@ private fun TranslationTexts(block: AyahBlock, scale: Float) {
         Column(Modifier.padding(top = AwnSpacing.small)) {
             if (namesShow) {
                 Text(
-                    text = translation.name,
+                    text = translationNameWithNote(translation.name, translation.packId),
                     style = AwnTypography.caption,
                     color = Awn.field.buttonFill,
                 )

@@ -2,23 +2,12 @@ package app.awn.quran.feature.read.settings
 
 import android.content.Context
 import android.text.format.Formatter
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -30,11 +19,13 @@ import app.awn.quran.core.data.downloads.ItemAction
 import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.core.data.downloads.actionsOf
 import app.awn.quran.core.data.packs.PackFailureReason
+import app.awn.quran.core.ui.components.AwnConfirmDialog
+import app.awn.quran.core.ui.components.AwnPackRow
+import app.awn.quran.core.ui.components.PackRowButton
+import app.awn.quran.core.ui.components.PackTick
+import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
-import app.awn.quran.feature.read.ReadIconButton
 import app.awn.quran.feature.read.page.pageTypeText
 
 private const val PERCENT = 100
@@ -50,129 +41,69 @@ class CatalogueRowActions(
 )
 
 /**
- * One row of the download catalogue: the name, a line that says what state the item is in (size,
- * progress or the reason a download failed) and the buttons that fit that state. [leadingControls]
- * and [trailingControls] let a page add its own buttons, such as the switch of a translation, on
- * either side of the download buttons.
+ * One entry of a download list: a tick box when the entry is on the phone, its name and a line that
+ * says what state it is in (size, progress or why a download failed), and one button that fits that
+ * state: download, cancel or remove. Removing asks first, naming the entry and the space it frees.
+ * [tick] is the state of the tick box and [onTickChange] reports a tap on it.
  */
 @Composable
-fun CatalogueItemRow(
+fun CatalogueEntryRow(
     row: CatalogueRow,
     actions: CatalogueRowActions,
+    tick: PackTick,
+    onTickChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    leadingControls: @Composable RowScope.() -> Unit = {},
-    trailingControls: @Composable RowScope.() -> Unit = {},
+    canRemove: Boolean = true,
 ) {
-    var isRemoveConfirmationOpen by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var pendingRemoval by remember { mutableStateOf<PackRemoval?>(null) }
     val itemActions = actionsOf(row)
     val name = catalogueItemName(row.item)
-    Column(modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = AwnSpacing.settingsRowHeight),
-            horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f).padding(vertical = AwnSpacing.small)) {
-                Text(text = name, style = AwnTypography.body, color = Awn.field.content)
-                Text(
-                    text = statusText(row),
-                    style = AwnTypography.small,
-                    color = statusColour(row),
-                )
-            }
-            leadingControls()
-            ItemButtons(itemActions, actions) { isRemoveConfirmationOpen = true }
-            trailingControls()
-        }
-        val transfer = row.transfer
-        if (transfer is PackTransfer.Running) {
-            LinearProgressIndicator(
-                progress = { transfer.progress },
-                modifier = Modifier.fillMaxWidth(),
-                color = Awn.field.buttonFill,
-            )
-        }
-    }
-    if (isRemoveConfirmationOpen) {
-        RemoveConfirmation(
-            name = name,
-            group = row.item.group,
+    val progress = (row.transfer as? PackTransfer.Running)?.progress
+    AwnPackRow(
+        title = name,
+        detail = statusText(row),
+        tick = if (row.item.isInstalled) tick else PackTick.None,
+        onTickChange = onTickChange,
+        modifier = modifier,
+        isDetailError = row.transfer is PackTransfer.Failed,
+        progress = progress,
+        download =
+            buttonIf(
+                ItemAction.Install in itemActions || ItemAction.Update in itemActions,
+                if (ItemAction.Update in itemActions) R.string.catalogue_update
+                else R.string.catalogue_download,
+                actions.onInstall,
+            ),
+        cancel =
+            buttonIf(ItemAction.Cancel in itemActions, R.string.catalogue_cancel, actions.onCancel),
+        remove =
+            buttonIf(ItemAction.Remove in itemActions && canRemove, R.string.catalogue_remove) {
+                pendingRemoval = removalOf(row, name)
+            },
+    )
+    pendingRemoval?.let { removal ->
+        AwnConfirmDialog(
+            title = stringResource(R.string.catalogue_remove_title, removal.name),
+            message =
+                stringResource(
+                    R.string.catalogue_remove_frees,
+                    sizeText(context, removal.freedBytes),
+                ),
+            confirmLabel = stringResource(R.string.catalogue_remove),
+            dismissLabel = stringResource(R.string.catalogue_dialog_cancel),
             onConfirm = {
-                isRemoveConfirmationOpen = false
+                pendingRemoval = null
                 actions.onRemove()
             },
-            onDismiss = { isRemoveConfirmationOpen = false },
+            onDismiss = { pendingRemoval = null },
         )
     }
 }
 
-/** The download, update, cancel and remove buttons that fit [itemActions]. */
 @Composable
-private fun ItemButtons(
-    itemActions: List<ItemAction>,
-    actions: CatalogueRowActions,
-    onRemoveRequested: () -> Unit,
-) {
-    if (ItemAction.Install in itemActions) {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_download,
-            description = stringResource(R.string.catalogue_download),
-            onClick = actions.onInstall,
-        )
-    }
-    if (ItemAction.Update in itemActions) {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_download,
-            description = stringResource(R.string.catalogue_update),
-            onClick = actions.onInstall,
-        )
-    }
-    if (ItemAction.Cancel in itemActions) {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_close,
-            description = stringResource(R.string.catalogue_cancel),
-            onClick = actions.onCancel,
-        )
-    }
-    if (ItemAction.Remove in itemActions) {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_delete,
-            description = stringResource(R.string.catalogue_remove),
-            onClick = onRemoveRequested,
-        )
-    }
-}
-
-/** Asks before a download is deleted; the text names the item and says it can come back. */
-@Composable
-private fun RemoveConfirmation(
-    name: String,
-    group: CatalogueGroup,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.catalogue_remove_title, name)) },
-        text = { Text(stringResource(removeMessageOf(group))) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.catalogue_remove)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.catalogue_dialog_cancel))
-            }
-        },
-    )
-}
-
-private fun removeMessageOf(group: CatalogueGroup): Int =
-    when (group) {
-        CatalogueGroup.Translation -> R.string.catalogue_remove_translation
-        CatalogueGroup.PageType -> R.string.catalogue_remove_page_type
-        CatalogueGroup.WordByWord -> R.string.catalogue_remove_word_by_word
-        CatalogueGroup.Transliteration -> R.string.catalogue_remove_transliteration
-    }
+private fun buttonIf(isOffered: Boolean, @StringRes description: Int, onClick: () -> Unit) =
+    if (isOffered) PackRowButton(stringResource(description), onClick) else null
 
 /**
  * Returns the name to show for [item]. The three page types have names of their own in the app;
@@ -181,11 +112,13 @@ private fun removeMessageOf(group: CatalogueGroup): Int =
 @Composable
 fun catalogueItemName(item: CatalogueItem): String {
     val script = ScriptId.entries.firstOrNull { it.packId == item.id }
-    return if (item.group == CatalogueGroup.PageType && script != null) {
-        stringResource(pageTypeText(script).name)
-    } else {
-        item.name
-    }
+    val baseName =
+        if (item.group == CatalogueGroup.PageType && script != null) {
+            stringResource(pageTypeText(script).name)
+        } else {
+            item.name
+        }
+    return translationNameWithNote(baseName, item.id)
 }
 
 /** The line under an item name: its size, its progress or why the download failed. */

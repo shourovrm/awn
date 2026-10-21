@@ -30,7 +30,12 @@ data class AyahWord(
 )
 
 /** One translation of an ayah. [rangeLabel] is set when a publisher merged several ayahs. */
-data class AyahTranslation(val name: String, val rangeLabel: String?, val text: String)
+data class AyahTranslation(
+    val name: String,
+    val rangeLabel: String?,
+    val text: String,
+    val packId: String = "",
+)
 
 /** Everything the Translation and Word by word views show for one ayah. */
 data class AyahBlock(
@@ -134,6 +139,7 @@ internal class PageContentLoader(
                 name = translationNames[id] ?: id.id,
                 rangeLabel = if (isRange) "${passage.ayahFrom}-${passage.ayahTo}" else null,
                 text = passage.text,
+                packId = id.id,
             )
         }
         return AyahBlock(

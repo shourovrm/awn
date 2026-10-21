@@ -6,11 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,8 +22,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.R
-import app.awn.quran.core.ui.components.AwnChoiceDialog
+import app.awn.quran.core.ui.components.AwnChoiceRow
+import app.awn.quran.core.ui.components.SettingRowKeys
+import app.awn.quran.core.ui.components.SettingsInfoRow
+import app.awn.quran.core.ui.components.SettingsLinkRow
+import app.awn.quran.core.ui.components.SettingsSwitchRow
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.DayColours
@@ -35,12 +38,7 @@ import kotlinx.coroutines.launch
 private const val BACKUP_FILE_NAME = "awn-bookmarks.json"
 private const val BACKUP_MIME_TYPE = "application/json"
 
-private enum class ColourPicker {
-    Day,
-    Night,
-}
-
-/** Day colours, night colours, follow the device, language and surah name meaning. */
+/** Day colours, night colours, follow the phone theme, language and surah name meaning. */
 @Composable
 fun AppearancePage(
     colours: ColourSettings,
@@ -48,72 +46,59 @@ fun AppearancePage(
     onColoursChange: ((ColourSettings) -> ColourSettings) -> Unit,
     onShowSurahNameMeaningChange: (Boolean) -> Unit,
     onBack: () -> Unit,
+    targetRow: String? = null,
 ) {
     val context = LocalContext.current
-    var picker by remember { mutableStateOf<ColourPicker?>(null) }
-    SettingsPage(title = stringResource(R.string.settings_appearance), onBack = onBack) {
-        ValueRow(
+    SettingsPage(
+        title = stringResource(R.string.settings_appearance),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
+        AwnChoiceRow(
             label = stringResource(R.string.appearance_day_colours),
-            value = stringResource(colours.day.label()),
-            onClick = { picker = ColourPicker.Day },
+            options = DayColours.entries,
+            selected = colours.day,
+            optionLabel = { stringResource(it.label()) },
+            onSelect = { chosen -> onColoursChange { it.copy(day = chosen) } },
+            rowKey = SettingRowKeys.APPEARANCE_DAY,
         )
-        ValueRow(
+        AwnChoiceRow(
             label = stringResource(R.string.appearance_night_colours),
-            value = stringResource(colours.night.label()),
-            onClick = { picker = ColourPicker.Night },
+            options = NightColours.entries,
+            selected = colours.night,
+            optionLabel = { stringResource(it.label()) },
+            onSelect = { chosen -> onColoursChange { it.copy(night = chosen) } },
+            rowKey = SettingRowKeys.APPEARANCE_NIGHT,
         )
-        SwitchRow(
+        SettingsSwitchRow(
             label = stringResource(R.string.appearance_follow_device),
             checked = colours.followDevice,
             onCheckedChange = { follows -> onColoursChange { it.copy(followDevice = follows) } },
+            rowKey = SettingRowKeys.APPEARANCE_FOLLOW_DEVICE,
         )
-        ValueRow(
+        // The language is chosen in the system's per-app picker, which this row opens.
+        SettingsLinkRow(
             label = stringResource(R.string.appearance_language),
             value = LocalConfiguration.current.locales[0].let { it.getDisplayLanguage(it) },
             onClick = { openLanguageSettings(context) },
+            rowKey = SettingRowKeys.APPEARANCE_LANGUAGE,
         )
-        SwitchRow(
+        SettingsSwitchRow(
             label = stringResource(R.string.appearance_surah_name_meaning),
             checked = showSurahNameMeaning,
             onCheckedChange = onShowSurahNameMeaningChange,
+            rowKey = SettingRowKeys.APPEARANCE_SURAH_MEANING,
         )
-    }
-    when (picker) {
-        ColourPicker.Day ->
-            AwnChoiceDialog(
-                title = stringResource(R.string.appearance_day_colours),
-                options = DayColours.entries,
-                selected = colours.day,
-                optionLabel = { stringResource(it.label()) },
-                onSelect = { chosen ->
-                    onColoursChange { it.copy(day = chosen) }
-                    picker = null
-                },
-                onDismiss = { picker = null },
-            )
-        ColourPicker.Night ->
-            AwnChoiceDialog(
-                title = stringResource(R.string.appearance_night_colours),
-                options = NightColours.entries,
-                selected = colours.night,
-                optionLabel = { stringResource(it.label()) },
-                onSelect = { chosen ->
-                    onColoursChange { it.copy(night = chosen) }
-                    picker = null
-                },
-                onDismiss = { picker = null },
-            )
-        null -> Unit
     }
 }
 
-private fun DayColours.label(): Int =
+internal fun DayColours.label(): Int =
     when (this) {
         DayColours.Awn -> R.string.colours_awn
         DayColours.Light -> R.string.colours_light
     }
 
-private fun NightColours.label(): Int =
+internal fun NightColours.label(): Int =
     when (this) {
         NightColours.Dark -> R.string.colours_dark
         NightColours.Black -> R.string.colours_black
@@ -141,7 +126,7 @@ private fun openLanguageSettings(context: Context) {
 
 /** Export and import of bookmarks, saved ayahs and recent pages as one file. */
 @Composable
-fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit) {
+fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit, targetRow: String? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var result by remember { mutableStateOf<BackupResult?>(null) }
@@ -157,22 +142,29 @@ fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit) {
             if (uri != null)
                 scope.launch { result = viewModel.importFrom(context.contentResolver, uri) }
         }
-    SettingsPage(title = stringResource(R.string.settings_backup), onBack = onBack) {
-        IconRow(
+    SettingsPage(
+        title = stringResource(R.string.settings_backup),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
+        SettingsLinkRow(
             icon = R.drawable.ic_app_file_upload,
             label = stringResource(R.string.backup_export),
             onClick = { exportLauncher.launch(BACKUP_FILE_NAME) },
+            rowKey = SettingRowKeys.BACKUP_EXPORT,
         )
-        IconRow(
+        SettingsLinkRow(
             icon = R.drawable.ic_app_file_download,
             label = stringResource(R.string.backup_import),
             onClick = { importLauncher.launch(arrayOf(BACKUP_MIME_TYPE)) },
+            rowKey = SettingRowKeys.BACKUP_IMPORT,
         )
         result?.let { shown ->
             Text(
                 text = stringResource(shown.messageResource()),
                 style = AwnTypography.small,
                 color = Awn.field.content,
+                modifier = Modifier.padding(top = AwnSpacing.small),
             )
         }
     }
@@ -187,15 +179,36 @@ private fun BackupResult.messageResource(): Int =
 
 /** The notice, the credits and the version. */
 @Composable
-fun AboutPage(onOpenNotice: () -> Unit, onOpenCredits: () -> Unit, onBack: () -> Unit) {
+fun AboutPage(
+    onOpenNotice: () -> Unit,
+    onOpenCredits: () -> Unit,
+    onBack: () -> Unit,
+    targetRow: String? = null,
+) {
     val context = LocalContext.current
     val versionName = remember {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
     }
-    SettingsPage(title = stringResource(R.string.settings_about), onBack = onBack) {
-        ValueRow(stringResource(R.string.about_notice), "", onOpenNotice)
-        ValueRow(stringResource(R.string.about_credits), "", onOpenCredits)
-        ValueRow(stringResource(R.string.about_version), versionName, onClick = null)
+    SettingsPage(
+        title = stringResource(R.string.settings_about),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
+        SettingsLinkRow(
+            label = stringResource(R.string.about_notice),
+            onClick = onOpenNotice,
+            rowKey = SettingRowKeys.ABOUT_NOTICE,
+        )
+        SettingsLinkRow(
+            label = stringResource(R.string.about_credits),
+            onClick = onOpenCredits,
+            rowKey = SettingRowKeys.ABOUT_CREDITS,
+        )
+        SettingsInfoRow(
+            label = stringResource(R.string.about_version),
+            value = versionName,
+            rowKey = SettingRowKeys.ABOUT_VERSION,
+        )
     }
 }
 
@@ -208,67 +221,22 @@ fun RecitePage(
     memorisedAfterDays: Int,
     onMemorisedAfterChange: (Int) -> Unit,
     onBack: () -> Unit,
+    targetRow: String? = null,
     moduleSettings: @Composable () -> Unit,
 ) {
-    var isPickerOpen by remember { mutableStateOf(false) }
-    SettingsPage(title = stringResource(R.string.settings_recite), onBack = onBack) {
+    SettingsPage(
+        title = stringResource(R.string.settings_recite),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
         moduleSettings()
-        ValueRow(
+        AwnChoiceRow(
             label = stringResource(R.string.recite_memorised_after),
-            value =
-                pluralStringResource(R.plurals.recite_days, memorisedAfterDays, memorisedAfterDays),
-            onClick = { isPickerOpen = true },
-        )
-    }
-    if (isPickerOpen) {
-        AwnChoiceDialog(
-            title = stringResource(R.string.recite_memorised_after),
             options = MEMORISED_AFTER_DAYS.toList(),
             selected = memorisedAfterDays,
             optionLabel = { pluralStringResource(R.plurals.recite_days, it, it) },
-            onSelect = {
-                onMemorisedAfterChange(it)
-                isPickerOpen = false
-            },
-            onDismiss = { isPickerOpen = false },
+            onSelect = onMemorisedAfterChange,
+            rowKey = SettingRowKeys.RECITE_MEMORISED_AFTER,
         )
     }
-}
-
-/**
- * Stands in for the audio module's `AudioSettingsPage` until it is connected: the reciter,
- * downloads, Wi-Fi only and the space used, as the old Listening group had them. The rows sit
- * inside the page that Settings provides, so they must not scroll on their own.
- */
-@Composable
-fun AudioPlaceholderRows(
-    state: SettingsState,
-    onWifiOnlyChange: (Boolean) -> Unit,
-    onReciterClick: () -> Unit,
-    onDownloadsClick: () -> Unit,
-) {
-    Column(Modifier.fillMaxWidth()) {
-        ValueRow(stringResource(R.string.audio_reciter), state.reciterName, onReciterClick)
-        ValueRow(stringResource(R.string.audio_downloads), "", onDownloadsClick)
-        ValueRow(
-            label = stringResource(R.string.audio_space_used),
-            value = Formatter.formatShortFileSize(LocalContext.current, state.downloadedBytes),
-            onClick = null,
-        )
-        SwitchRow(
-            label = stringResource(R.string.audio_wifi_only),
-            checked = state.wifiOnly,
-            onCheckedChange = onWifiOnlyChange,
-        )
-    }
-}
-
-/** Stands in for the page module's `MushafSettingsPage` until it is connected. */
-@Composable
-fun MushafPlaceholderRows() {
-    Text(
-        text = stringResource(R.string.settings_placeholder),
-        style = AwnTypography.body,
-        color = Awn.field.content,
-    )
 }

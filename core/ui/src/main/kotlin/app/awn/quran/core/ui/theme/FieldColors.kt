@@ -1,6 +1,7 @@
 package app.awn.quran.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 
 /** Everything a screen on one field may draw with. */
 data class AwnFieldColors(
@@ -133,3 +134,22 @@ fun awnFieldColors(field: AwnField, mode: ColourMode = ColourMode.Awn): AwnField
         page
     }
 }
+
+private const val MUTED_ALPHA = 0.72f
+private const val SOFT_FILL_ALPHA = 0.08f
+private const val RAISED_LIGHT_MIX = 0.55f
+private const val RAISED_DARK_MIX = 0.09f
+
+/** Second lines and hints: the ink of the mode, a little lighter, still above 4.5:1 contrast. */
+val AwnFieldColors.mutedContent: Color
+    get() = content.copy(alpha = MUTED_ALPHA)
+
+/** A quiet fill for fields that sit on the page, such as the search field. */
+val AwnFieldColors.softFill: Color
+    get() = content.copy(alpha = SOFT_FILL_ALPHA)
+
+/** The surface of a menu: the page colour lifted toward white (light modes) or the ink (dark). */
+val AwnFieldColors.raisedSurface: Color
+    get() =
+        if (isLight) lerp(background, Color.White, RAISED_LIGHT_MIX)
+        else lerp(background, content, RAISED_DARK_MIX)

@@ -25,10 +25,26 @@ object AwnSpacing {
     val tabIndicatorHeight: Dp = 4.dp
     val dialogMaxWidth: Dp = 320.dp
 
-    val switchWidth: Dp = 48.dp
-    val switchHeight: Dp = 28.dp
-    val switchKnobSize: Dp = 24.dp
-    val switchPadding: Dp = 2.dp
+    // Thin-rail switch: a 4 dp rail and a 16 dp knob in a 32 dp wide frame; the 48 dp touch
+    // target around it is touchTarget.
+    val switchWidth: Dp = 32.dp
+    val switchRailHeight: Dp = 4.dp
+    val switchKnobSize: Dp = 16.dp
+    val switchKnobRing: Dp = 2.dp
+
+    // Settings rows: two-line rows are 64 dp, one-line rows 52 dp, as in the quiet-list mockup.
+    val settingsRowTall: Dp = 64.dp
+    val settingsRowShort: Dp = 52.dp
+    val searchFieldHeight: Dp = 44.dp
+    val menuItemHeight: Dp = 44.dp
+    val menuMinWidth: Dp = 168.dp
+    val stepperValueWidth: Dp = 56.dp
+    val tickBoxSize: Dp = 22.dp
+    val tickBoxCorner: Dp = 6.dp
+    val packProgressHeight: Dp = 3.dp
+    val groupHeadingTop: Dp = 24.dp
+    val smallIconSize: Dp = 20.dp
+    val previewHeight: Dp = 240.dp
 
     val dockHeight: Dp = 72.dp
     val dockFloatGap: Dp = 12.dp
@@ -40,11 +56,14 @@ object AwnSpacing {
     val wordBlockCorner: Dp = 8.dp
     val sliderThumbCorner: Dp = 7.dp
     val switchKnobCorner: Dp = 4.dp
+    val menuCorner: Dp = 12.dp
+    val searchFieldCorner: Dp = 12.dp
 }
 
 object AwnShapes {
     val control = RoundedCornerShape(AwnSpacing.controlCorner)
     val wordBlock = RoundedCornerShape(AwnSpacing.wordBlockCorner)
-    val switchTrack = RoundedCornerShape(AwnSpacing.wordBlockCorner)
-    val switchKnob = RoundedCornerShape(AwnSpacing.switchKnobCorner)
+    val menu = RoundedCornerShape(AwnSpacing.menuCorner)
+    val searchField = RoundedCornerShape(AwnSpacing.searchFieldCorner)
+    val tickBox = RoundedCornerShape(AwnSpacing.tickBoxCorner)
 }

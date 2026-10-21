@@ -2,10 +2,27 @@ package app.awn.quran.settings
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.R
+import app.awn.quran.core.ui.components.AwnSearchField
+import app.awn.quran.core.ui.components.SettingsGroupHeading
+import app.awn.quran.core.ui.components.SettingsLinkRow
+import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.mutedContent
 
 /** The sections of the Settings list, in the order they are listed. */
 enum class SettingsSection(
@@ -27,23 +44,92 @@ enum class SettingsSection(
     About("settings/about", R.drawable.ic_app_info, R.string.settings_about),
 }
 
-/** Settings as a short list: one icon and one label per section, each opening its own page. */
+/** The headings of the hub and the sections under each, as in the quiet-list design. */
+private val HUB_GROUPS: List<Pair<Int, List<SettingsSection>>> =
+    listOf(
+        R.string.settings_group_reading to listOf(SettingsSection.Mushaf, SettingsSection.Reading),
+        R.string.settings_group_listening to
+            listOf(SettingsSection.Audio, SettingsSection.Downloads, SettingsSection.Recite),
+        R.string.settings_group_app to
+            listOf(SettingsSection.Appearance, SettingsSection.Backup, SettingsSection.About),
+    )
+
+/**
+ * Settings as grouped two-line rows: each section shows its current value under its name. A search
+ * field at the top filters every setting of every page; a result opens its page at that row.
+ * [summaries] gives the second line of each section; [onOpenRow] opens a page at a row.
+ */
 @Composable
 fun SettingsHubScreen(
+    summaries: Map<SettingsSection, String>,
     onBack: () -> Unit,
     onOpenSection: (SettingsSection) -> Unit,
+    onOpenRow: (route: String, rowKey: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val language = LocalConfiguration.current.locales[0]
+    val entries = remember(language) { buildSettingsSearchEntries(context) }
+    var query by rememberSaveable { mutableStateOf("") }
+
     SettingsPage(
         title = stringResource(R.string.settings_title),
         onBack = onBack,
         modifier = modifier,
     ) {
-        SettingsSection.entries.forEach { section ->
-            IconRow(
-                icon = section.icon,
+        AwnSearchField(
+            query = query,
+            onQueryChange = { query = it },
+            placeholder = stringResource(R.string.settings_search_placeholder),
+            clearDescription = stringResource(R.string.settings_search_clear),
+            modifier = Modifier.padding(top = AwnSpacing.medium),
+        )
+        if (query.isBlank()) {
+            HubGroups(summaries, onOpenSection)
+        } else {
+            SearchResults(searchSettings(entries, query), onOpenRow)
+        }
+    }
+}
+
+@Composable
+private fun HubGroups(
+    summaries: Map<SettingsSection, String>,
+    onOpenSection: (SettingsSection) -> Unit,
+) {
+    HUB_GROUPS.forEach { (heading, sections) ->
+        SettingsGroupHeading(stringResource(heading))
+        sections.forEach { section ->
+            SettingsLinkRow(
                 label = stringResource(section.label),
+                value = summaries[section],
+                icon = section.icon,
                 onClick = { onOpenSection(section) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchResults(
+    results: List<SettingsSearchEntry>,
+    onOpenRow: (route: String, rowKey: String?) -> Unit,
+) {
+    if (results.isEmpty()) {
+        Text(
+            text = stringResource(R.string.settings_search_empty),
+            style = AwnTypography.body,
+            color = Awn.field.mutedContent,
+            modifier = Modifier.padding(top = AwnSpacing.large),
+        )
+        return
+    }
+    Column(Modifier.padding(top = AwnSpacing.small)) {
+        results.forEach { entry ->
+            SettingsLinkRow(
+                label = entry.label,
+                value = entry.pageLabel,
+                onClick = { onOpenRow(entry.route, entry.rowKey) },
             )
         }
     }

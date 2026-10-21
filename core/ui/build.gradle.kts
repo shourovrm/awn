@@ -14,6 +14,12 @@ dependencies {
 
     // WindowCompat sets the status-bar and navigation-bar icon colours.
     implementation(libs.androidx.coreKtx)
+
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.testExtJunit)
+    testImplementation(libs.compose.uiTestJunit4)
+    // Supplies the activity that Robolectric Compose tests launch.
+    testImplementation(libs.compose.uiTestManifest)
 }
 
 // The design and copy gates scan every module's sources, which Gradle does not see as inputs of

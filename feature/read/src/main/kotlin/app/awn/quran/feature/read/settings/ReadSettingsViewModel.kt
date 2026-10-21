@@ -33,6 +33,11 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
         it.copy(translationSizeStep = TextScale.clampStep(step))
     }
 
+    /** Sets the size step of one [layer]; the step is kept inside the range. */
+    fun setLayerSizeStep(layer: TextLayer, step: Int) = change {
+        it.withStepMoved(layer, step - it.stepOf(layer))
+    }
+
     /** Moves the Arabic and the translation size together by [delta] steps. */
     fun changeTextSize(delta: Int) = change {
         it.withStepMoved(TextLayer.Arabic, delta).withStepMoved(TextLayer.Translation, delta)

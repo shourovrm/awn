@@ -48,8 +48,6 @@
   <string name="manager_range_item">%1$s থেকে %2$s</string>
   <string name="manager_download">ডাউনলোড</string>
   <string name="manager_delete">মুছুন</string>
-  <string name="manager_delete_title">ডাউনলোড করা অডিও মুছবেন?</string>
-  <string name="manager_delete_message">%1$s, %2$s</string>
   <string name="manager_size_estimate">প্রায় %1$s</string>
   <string name="manager_size_downloaded">%1$s ডাউনলোড হয়েছে</string>
   <string name="manager_part_downloaded">%2$s আয়াতের %1$s টি</string>
@@ -79,4 +77,12 @@
   <string name="audio_download_question">%1$s ডাউনলোড করবেন?</string>
   <string name="audio_download_action">ডাউনলোড</string>
   <string name="audio_stream_action">অনলাইনে শুনুন</string>
+  <string name="audio_group_playback">চালানো</string>
+  <string name="audio_group_downloads">ডাউনলোড</string>
+  <string name="audio_setting_download_amount_hint">প্লে চাপলে কতটুকু অডিও নামবে</string>
+  <string name="audio_downloads_hint">ফোনে থাকা অডিও, ক্বারী অনুযায়ী</string>
+  <string name="manager_view">দেখান</string>
+  <string name="manager_remove_reciter">%1$s-এর অডিও মুছুন</string>
+  <string name="manager_remove_title">%1$s-এর অডিও মুছবেন?</string>
+  <string name="manager_remove_frees">%1$s জায়গা খালি হবে। আবার ডাউনলোড করা যাবে।</string>
 </resources>

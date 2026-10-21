@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -52,7 +53,7 @@ internal fun LayerTicks(state: QuranUiState, actions: TopBarActions) {
     )
     state.installedTranslations.forEach { translation ->
         LayerTick(
-            label = translation.name,
+            label = translationNameWithNote(translation.name, translation.id.id),
             isTicked = translation.id in settings.translations,
             onToggle = { actions.onToggleTranslation(translation.id) },
         )

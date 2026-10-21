@@ -108,3 +108,8 @@
 2026-10-21 | Landscape Mushaf is width-fitted at 1.5 x width tall and scrolls | fitting the height printed a narrow block with overlapping lines
 2026-10-21 | Word card uses bar colours and sits at the tapped word; glosses are LTR | the mint fill clashed at night and the card covered other text
 2026-10-21 | Settings moves into the overflow menu when the top bar is short of width | the juz number was cut off
+2026-10-21 | Switches are thin-rail with a round knob; single choices are value-with-menu rows | the user chose them from mockups; the old ones were too big
+2026-10-21 | Settings hub is grouped, shows values under names and has search | the user chose the quiet list plus search; a result opens the row
+2026-10-21 | One list page per download group with ticks, remove-with-confirm and language headings | the user wants to free space and see all ticked layers
+2026-10-21 | Quantum translation gets a meaning-based note by pack id in app code | the pinned manifest cannot change; the text is a referred meaning
+2026-10-21 | Rotation defaults sit on the Reading page | they change how the Quran is read; Appearance holds colours and language

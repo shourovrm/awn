@@ -1,106 +1,102 @@
 package app.awn.quran.settings
 
 import android.text.format.Formatter
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.R
-import app.awn.quran.core.data.CatalogueGroup
-import app.awn.quran.core.data.downloads.CatalogueRow
-import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.feature.read.settings.CatalogueItemRow
+import app.awn.quran.core.data.downloads.CatalogueState
+import app.awn.quran.core.ui.components.SettingRowKeys
+import app.awn.quran.core.ui.components.SettingsGroupHeading
+import app.awn.quran.core.ui.components.SettingsInfoRow
+import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.feature.read.settings.CatalogueViewModel
-import java.util.Locale
+import app.awn.quran.feature.read.settings.PackListKind
 
 /**
- * Everything the app can download, in sections: page types, translations by language, word by word
- * and transliteration, then a link to the reciters. Each item shows its size and offers download,
- * update or remove; the top row gives the space all downloads use. [onOpenReciters] opens the audio
- * downloads manager.
+ * What the phone holds: the space all downloads use, then one row per kind of download that opens
+ * its list, and the reciter audio. [audioBytes] is the space the audio of all reciters uses.
  */
 @Composable
 fun DownloadsPage(
     viewModel: CatalogueViewModel,
+    audioBytes: Long,
+    onOpenList: (PackListKind) -> Unit,
     onOpenReciters: () -> Unit,
     onBack: () -> Unit,
+    targetRow: String? = null,
 ) {
     val catalogue by viewModel.state.collectAsStateWithLifecycle()
-    SettingsPage(title = stringResource(R.string.settings_downloads), onBack = onBack) {
-        ValueRow(
+    val context = LocalContext.current
+    SettingsPage(
+        title = stringResource(R.string.settings_downloads),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
+        SettingsInfoRow(
             label = stringResource(R.string.downloads_space_used),
-            value = Formatter.formatShortFileSize(LocalContext.current, catalogue.spaceUsedBytes),
-            onClick = null,
+            value = Formatter.formatShortFileSize(context, catalogue.spaceUsedBytes + audioBytes),
+            rowKey = SettingRowKeys.DOWNLOADS_SPACE_USED,
         )
-        Section(R.string.downloads_page_types, catalogue.rowsIn(CatalogueGroup.PageType), viewModel)
-        TranslationSection(catalogue.rowsIn(CatalogueGroup.Translation), viewModel)
-        Section(
-            R.string.downloads_word_by_word,
-            catalogue.rowsIn(CatalogueGroup.WordByWord),
-            viewModel,
+        SettingsGroupHeading(stringResource(R.string.downloads_group_on_phone))
+        PackListLinkRow(
+            R.string.downloads_page_types,
+            PackListKind.PageTypes,
+            SettingRowKeys.DOWNLOADS_PAGE_TYPES,
+            catalogue,
+            onOpenList,
         )
-        Section(
+        PackListLinkRow(
+            R.string.downloads_translations,
+            PackListKind.Translations,
+            SettingRowKeys.DOWNLOADS_TRANSLATIONS,
+            catalogue,
+            onOpenList,
+        )
+        PackListLinkRow(
             R.string.downloads_transliteration,
-            catalogue.rowsIn(CatalogueGroup.Transliteration),
-            viewModel,
+            PackListKind.Transliteration,
+            SettingRowKeys.DOWNLOADS_TRANSLITERATION,
+            catalogue,
+            onOpenList,
         )
-        SectionTitle(R.string.downloads_reciters)
-        ValueRow(
-            label = stringResource(R.string.downloads_reciters_open),
-            value = "",
+        PackListLinkRow(
+            R.string.downloads_word_by_word,
+            PackListKind.WordByWord,
+            SettingRowKeys.DOWNLOADS_WORD_BY_WORD,
+            catalogue,
+            onOpenList,
+        )
+        SettingsLinkRow(
+            label = stringResource(R.string.downloads_reciters),
+            value = Formatter.formatShortFileSize(context, audioBytes),
             onClick = onOpenReciters,
+            rowKey = SettingRowKeys.DOWNLOADS_RECITERS,
         )
     }
 }
 
+/** A row that opens the list of [kind], saying how many of its entries are on the phone. */
 @Composable
-private fun SectionTitle(label: Int) {
-    Text(
-        text = stringResource(label),
-        style = AwnTypography.lead,
-        color = Awn.field.content,
-        modifier = Modifier.padding(top = AwnSpacing.sectionGap, bottom = AwnSpacing.small),
+private fun PackListLinkRow(
+    label: Int,
+    kind: PackListKind,
+    rowKey: String,
+    catalogue: CatalogueState,
+    onOpenList: (PackListKind) -> Unit,
+) {
+    val rows = catalogue.rowsIn(kind.group)
+    SettingsLinkRow(
+        label = stringResource(label),
+        value =
+            stringResource(
+                R.string.downloads_on_phone_count,
+                rows.count { it.item.isInstalled },
+                rows.size,
+            ),
+        onClick = { onOpenList(kind) },
+        rowKey = rowKey,
     )
-}
-
-@Composable
-private fun Section(title: Int, rows: List<CatalogueRow>, viewModel: CatalogueViewModel) {
-    if (rows.isEmpty()) return
-    SectionTitle(title)
-    rows.forEach { row ->
-        CatalogueItemRow(row = row, actions = viewModel.actionsFor(row.item.id))
-    }
-}
-
-@Composable
-private fun TranslationSection(rows: List<CatalogueRow>, viewModel: CatalogueViewModel) {
-    if (rows.isEmpty()) return
-    SectionTitle(R.string.downloads_translations)
-    groupByLanguage(rows).forEach { group ->
-        Text(
-            text = languageName(group.language),
-            style = AwnTypography.bodyStrong,
-            color = Awn.field.buttonFill,
-            modifier = Modifier.padding(top = AwnSpacing.small),
-        )
-        group.rows.forEach { row ->
-            CatalogueItemRow(row = row, actions = viewModel.actionsFor(row.item.id))
-        }
-    }
-}
-
-@Composable
-private fun languageName(code: String?): String {
-    if (code == null) return stringResource(R.string.downloads_language_other)
-    val appLocale = LocalConfiguration.current.locales[0]
-    return Locale.forLanguageTag(code).getDisplayLanguage(appLocale).replaceFirstChar {
-        it.titlecase(appLocale)
-    }
 }

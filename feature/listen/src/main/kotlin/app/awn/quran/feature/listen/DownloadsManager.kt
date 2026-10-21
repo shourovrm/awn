@@ -1,128 +1,153 @@
-// The manager is one screen made of small composables: tabs, rows and a delete dialog.
+// The manager is one screen made of small composables: the view choice, rows and dialogs.
 @file:Suppress("TooManyFunctions")
 
 package app.awn.quran.feature.listen
 
 import android.text.format.Formatter
-import androidx.compose.foundation.layout.Arrangement
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.ui.components.AwnChoiceRow
+import app.awn.quran.core.ui.components.AwnConfirmDialog
+import app.awn.quran.core.ui.components.AwnIconButton
+import app.awn.quran.core.ui.components.AwnPackRow
+import app.awn.quran.core.ui.components.PackRowButton
+import app.awn.quran.core.ui.components.PackTick
+import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.player.DownloadProblem
 import app.awn.quran.player.JuzTable
 
-private const val TAB_SURAH = 0
-private const val TAB_JUZ = 1
-private const val TAB_RANGE = 2
-private const val TAB_ALL = 3
+/** The ways the manager groups the audio of one reciter. */
+private enum class ManagerView(@StringRes val label: Int) {
+    Surahs(R.string.manager_surahs),
+    Juz(R.string.manager_juz),
+    Range(R.string.manager_range),
+    Everything(R.string.manager_all),
+}
 
 @Composable
-internal fun ManagerReciterList(feature: AudioFeature, onOpenReciter: (String) -> Unit) {
+internal fun ColumnScope.ManagerReciterList(
+    feature: AudioFeature,
+    onOpenReciter: (String) -> Unit,
+) {
     val viewModel: DownloadsManagerViewModel = viewModel(factory = feature.viewModelFactory)
     val reciters by viewModel.reciterRows.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    Column(Modifier.padding(horizontal = AwnSpacing.screenMargin)) {
-        for (reciter in reciters) {
-            SettingRow(
-                label = reciter.name,
-                value = Formatter.formatShortFileSize(context, reciter.usedBytes),
-                onClick = { onOpenReciter(reciter.id) },
-            )
-        }
-    }
-}
-
-@Composable
-internal fun ManagerReciterDetail(feature: AudioFeature, reciterId: String) {
-    val viewModel: DownloadsManagerViewModel = viewModel(factory = feature.viewModelFactory)
-    var tab by rememberSaveable { mutableIntStateOf(TAB_SURAH) }
-    Column(Modifier.padding(horizontal = AwnSpacing.screenMargin)) {
-        ManagerTabs(selected = tab, onSelect = { tab = it })
-        ManagerTabContent(viewModel, reciterId, tab)
-    }
-}
-
-@Composable
-private fun ManagerTabs(selected: Int, onSelect: (Int) -> Unit) {
-    val tabs =
-        listOf(
-            TAB_SURAH to R.string.manager_surahs,
-            TAB_JUZ to R.string.manager_juz,
-            TAB_RANGE to R.string.manager_range,
-            TAB_ALL to R.string.manager_all,
+    var pendingRemoval by remember { mutableStateOf<ManagerReciter?>(null) }
+    for (reciter in reciters) {
+        SettingsLinkRow(
+            label = reciter.name,
+            value = Formatter.formatShortFileSize(context, reciter.usedBytes),
+            onClick = { onOpenReciter(reciter.id) },
+            trailing =
+                if (reciter.usedBytes > 0L) {
+                    {
+                        AwnIconButton(
+                            icon = R.drawable.ic_listen_delete,
+                            contentDescription =
+                                stringResource(R.string.manager_remove_reciter, reciter.name),
+                            onClick = { pendingRemoval = reciter },
+                            tint = Awn.field.buttonFill,
+                        )
+                    }
+                } else {
+                    null
+                },
         )
-    Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        for ((tabId, labelRes) in tabs) {
-            Chip(
-                label = stringResource(labelRes),
-                isSelected = selected == tabId,
-                onClick = { onSelect(tabId) },
-                modifier = Modifier.weight(1f),
-            )
-        }
+    }
+    pendingRemoval?.let { reciter ->
+        AwnConfirmDialog(
+            title = stringResource(R.string.manager_remove_title, reciter.name),
+            message =
+                stringResource(
+                    R.string.manager_remove_frees,
+                    Formatter.formatShortFileSize(context, reciter.usedBytes),
+                ),
+            confirmLabel = stringResource(R.string.manager_delete),
+            dismissLabel = stringResource(R.string.audio_cancel),
+            onConfirm = {
+                pendingRemoval = null
+                viewModel.delete(reciter.id, ItemScope.Everything)
+            },
+            onDismiss = { pendingRemoval = null },
+        )
     }
 }
 
 @Composable
-private fun ManagerTabContent(viewModel: DownloadsManagerViewModel, reciterId: String, tab: Int) {
+internal fun ColumnScope.ManagerReciterDetail(feature: AudioFeature, reciterId: String) {
+    val viewModel: DownloadsManagerViewModel = viewModel(factory = feature.viewModelFactory)
+    var view by rememberSaveable { mutableStateOf(ManagerView.Surahs) }
+    AwnChoiceRow(
+        label = stringResource(R.string.manager_view),
+        options = ManagerView.entries,
+        selected = view,
+        optionLabel = { stringResource(it.label) },
+        onSelect = { view = it },
+    )
+    ManagerViewContent(viewModel, reciterId, view)
+}
+
+@Composable
+private fun ColumnScope.ManagerViewContent(
+    viewModel: DownloadsManagerViewModel,
+    reciterId: String,
+    view: ManagerView,
+) {
     val chapters by viewModel.chapters.collectAsStateWithLifecycle()
     val range by viewModel.range.collectAsStateWithLifecycle()
-    Column {
-        when (tab) {
-            TAB_SURAH ->
-                LazyColumn {
-                    items(chapters, key = { it.number }) { chapter ->
-                        ItemRow(
-                            viewModel,
-                            reciterId,
-                            ItemScope.Surah(chapter.number),
-                            "${chapter.number}  ${chapter.nameSimple}",
-                        )
-                    }
+    when (view) {
+        ManagerView.Surahs ->
+            LazyColumn(Modifier.weight(1f)) {
+                items(chapters, key = { it.number }) { chapter ->
+                    ItemRow(
+                        viewModel,
+                        reciterId,
+                        ItemScope.Surah(chapter.number),
+                        "${chapter.number}  ${chapter.nameSimple}",
+                    )
                 }
-            TAB_JUZ ->
-                LazyColumn {
-                    items((1..JuzTable.COUNT).toList(), key = { it }) { juz ->
-                        ItemRow(
-                            viewModel,
-                            reciterId,
-                            ItemScope.Juz(juz),
-                            stringResource(R.string.manager_juz_item, juz),
-                        )
-                    }
+            }
+        ManagerView.Juz ->
+            LazyColumn(Modifier.weight(1f)) {
+                items((1..JuzTable.COUNT).toList(), key = { it }) { juz ->
+                    ItemRow(
+                        viewModel,
+                        reciterId,
+                        ItemScope.Juz(juz),
+                        stringResource(R.string.manager_juz_item, juz),
+                    )
                 }
-            TAB_RANGE -> RangeTab(viewModel, reciterId, chapters, range)
-            else ->
-                ItemRow(
-                    viewModel,
-                    reciterId,
-                    ItemScope.Everything,
-                    stringResource(R.string.manager_everything),
-                )
-        }
+            }
+        ManagerView.Range ->
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                RangeTab(viewModel, reciterId, chapters, range)
+            }
+        ManagerView.Everything ->
+            ItemRow(
+                viewModel,
+                reciterId,
+                ItemScope.Everything,
+                stringResource(R.string.manager_everything),
+            )
     }
 }
 
@@ -138,25 +163,49 @@ private fun ItemRow(
     val items by viewModel.items.collectAsStateWithLifecycle()
     val item = items[DownloadsManagerViewModel.itemKey(reciterId, scope)] ?: ItemState()
     var confirmingDelete by rememberSaveable(scope.toString()) { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ItemTexts(title, item, Modifier.weight(1f))
-            ItemButtons(
-                item = item,
-                onDownload = { viewModel.download(reciterId, scope) },
-                onCancel = { viewModel.cancel(reciterId, scope) },
-                onDelete = { confirmingDelete = true },
-            )
-        }
-        ItemProgress(item)
-        failureText(item.failure, item.problem)?.let {
-            Text(text = it, style = AwnTypography.small)
-        }
-    }
+    val status = item.status
+    val progress = item.progress
+    val failure = failureText(item.failure, item.problem)
+    AwnPackRow(
+        title = title,
+        detail = failure ?: itemDetail(item),
+        tick = PackTick.Absent,
+        onTickChange = {},
+        isDetailError = failure != null,
+        progress = progress?.let { progressFraction(it.doneBytes, it.totalBytes) },
+        download =
+            if (progress == null && (status == null || !status.complete)) {
+                PackRowButton(stringResource(R.string.manager_download)) {
+                    viewModel.download(reciterId, scope)
+                }
+            } else {
+                null
+            },
+        cancel =
+            if (progress != null) {
+                PackRowButton(stringResource(R.string.audio_cancel)) {
+                    viewModel.cancel(reciterId, scope)
+                }
+            } else {
+                null
+            },
+        remove =
+            if (progress == null && status != null && status.presentAyahs > 0) {
+                PackRowButton(stringResource(R.string.manager_delete)) { confirmingDelete = true }
+            } else {
+                null
+            },
+    )
     if (confirmingDelete) {
-        DeleteConfirmation(
-            title = title,
-            bytes = item.status?.presentBytes ?: 0L,
+        AwnConfirmDialog(
+            title = stringResource(R.string.manager_remove_title, title),
+            message =
+                stringResource(
+                    R.string.manager_remove_frees,
+                    Formatter.formatShortFileSize(LocalContext.current, status?.presentBytes ?: 0L),
+                ),
+            confirmLabel = stringResource(R.string.manager_delete),
+            dismissLabel = stringResource(R.string.audio_cancel),
             onConfirm = {
                 confirmingDelete = false
                 viewModel.delete(reciterId, scope)
@@ -166,95 +215,37 @@ private fun ItemRow(
     }
 }
 
+/** Download progress as 0 to 1; 0 while the total size is not known yet. */
+private fun progressFraction(doneBytes: Long, totalBytes: Long?): Float =
+    if (totalBytes != null && totalBytes > 0L) doneBytes.toFloat() / totalBytes else 0f
+
+/** The line under an item: running progress, what is on the phone, or the size to download. */
 @Composable
-private fun ItemTexts(title: String, item: ItemState, modifier: Modifier) {
+private fun itemDetail(item: ItemState): String {
     val context = LocalContext.current
     val status = item.status
+    val progress = item.progress
+    val total = progress?.totalBytes
     val estimate = item.estimateBytes
-    Column(modifier) {
-        Text(text = title, style = AwnTypography.body)
-        if (status != null && status.complete) {
-            val size = Formatter.formatShortFileSize(context, status.presentBytes)
-            Text(
-                stringResource(R.string.manager_size_downloaded, size),
-                style = AwnTypography.small,
+    return when {
+        progress != null && total != null -> {
+            val (done, all) = progressSizes(context, progress.doneBytes, total)
+            stringResource(R.string.downloads_size_progress, done, all)
+        }
+        status != null && status.complete ->
+            stringResource(
+                R.string.manager_size_downloaded,
+                Formatter.formatShortFileSize(context, status.presentBytes),
             )
-        } else if (estimate != null) {
-            val size = Formatter.formatShortFileSize(context, estimate)
-            Text(stringResource(R.string.manager_size_estimate, size), style = AwnTypography.small)
-        }
-        if (status != null && status.presentAyahs > 0 && !status.complete) {
-            val part =
-                stringResource(
-                    R.string.manager_part_downloaded,
-                    status.presentAyahs,
-                    status.totalAyahs,
-                )
-            Text(text = part, style = AwnTypography.small)
-        }
+        status != null && status.presentAyahs > 0 ->
+            stringResource(R.string.manager_part_downloaded, status.presentAyahs, status.totalAyahs)
+        estimate != null ->
+            stringResource(
+                R.string.manager_size_estimate,
+                Formatter.formatShortFileSize(context, estimate),
+            )
+        else -> ""
     }
-}
-
-@Composable
-private fun ItemButtons(
-    item: ItemState,
-    onDownload: () -> Unit,
-    onCancel: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val status = item.status
-    if (item.progress != null) {
-        IconAction(R.drawable.ic_listen_close, stringResource(R.string.audio_cancel), onCancel)
-        return
-    }
-    if (status == null || !status.complete) {
-        IconAction(
-            R.drawable.ic_listen_download,
-            stringResource(R.string.manager_download),
-            onDownload,
-        )
-    }
-    if (status != null && status.presentAyahs > 0) {
-        IconAction(R.drawable.ic_listen_delete, stringResource(R.string.manager_delete), onDelete)
-    }
-}
-
-@Composable
-private fun ItemProgress(item: ItemState) {
-    val progress = item.progress ?: return
-    val total = progress.totalBytes
-    ProgressTrack(
-        fraction = total?.takeIf { it > 0L }?.let { progress.doneBytes.toFloat() / it },
-        color = Awn.field.content,
-    )
-    if (total != null) {
-        val (done, all) = progressSizes(LocalContext.current, progress.doneBytes, total)
-        Text(
-            text = stringResource(R.string.downloads_size_progress, done, all),
-            style = AwnTypography.small,
-        )
-    }
-}
-
-@Composable
-private fun DeleteConfirmation(
-    title: String,
-    bytes: Long,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val size = Formatter.formatShortFileSize(LocalContext.current, bytes)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.manager_delete_title)) },
-        text = { Text(stringResource(R.string.manager_delete_message, title, size)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.manager_delete)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.audio_cancel)) }
-        },
-    )
 }
 
 @Composable

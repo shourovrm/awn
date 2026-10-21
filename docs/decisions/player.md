@@ -15,6 +15,7 @@
 - Still present for :app until it is rewired: `ListenPanel`, `ListenViewModel`, `ListenField`, `RecitersScreen`/`RecitersViewModel`, `DownloadsScreen`/`DownloadsViewModel`.
 
 ## Open items
+- Audio settings page: Reciter link, stop-on-close switch, Download by choice, Wi-Fi switch, Downloads manager link. The manager shows a reciter list with a remove button (confirm dialog, space freed) and, per reciter, a Show by choice (Surah, Juz, Range, All) over pack-style rows (download, cancel, remove with confirm). The play panel uses choice rows for repeat counts, pause after ayah and sleep timer.
 - :app wiring: see the audio-ux report (AudioDownloadWork.install, WorkManagerDownloadRunner, AndroidNetworkStatus, DirectoryFreeSpace, useScript, notification permission).
 - Phone checks: the gap between ayahs, the Basmalah files of each reciter (a first-ayah file that already holds it would play it twice), play to sound time, lock screen, unplug, task removal, Doze with a download.
 - A surah-file reciter replays the Basmalah when the range repeats (no timing to skip it).

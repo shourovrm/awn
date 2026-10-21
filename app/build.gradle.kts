@@ -104,6 +104,10 @@ android {
 
     testOptions { unitTests.isIncludeAndroidResources = true }
 
+    // Settings search reads every label in English and Bangla, so a Play bundle must keep both
+    // languages in the base split whatever the phone's language is.
+    bundle { language { enableSplit = false } }
+
     // Lists the languages of the app's resources (English, Bangla) for the system language picker.
     androidResources { generateLocaleConfig = true }
 
@@ -219,4 +223,9 @@ dependencies {
     )
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.testExtJunit)
+    testImplementation(libs.compose.uiTestJunit4)
+    // Supplies the activity that Robolectric Compose tests launch.
+    testImplementation(libs.compose.uiTestManifest)
 }

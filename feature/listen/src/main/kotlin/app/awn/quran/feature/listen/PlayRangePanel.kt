@@ -36,7 +36,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.ui.components.AwnButton
-import app.awn.quran.core.ui.components.AwnSwitch
+import app.awn.quran.core.ui.components.AwnChoiceRow
+import app.awn.quran.core.ui.components.SettingsSwitchRow
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -68,7 +69,7 @@ fun PlayRangePanel(
     val selection = state.selection ?: return
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(AwnSpacing.screenMargin),
-        verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+        verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         RangeEnd(
             label = stringResource(R.string.panel_from),
@@ -96,14 +97,11 @@ fun PlayRangePanel(
         )
         SpeedRow(state.options.speed, viewModel::setSpeed)
         MemorisationControls(state, viewModel)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.panel_only_range),
-                style = AwnTypography.body,
-                modifier = Modifier.weight(1f),
-            )
-            AwnSwitch(checked = selection.onlyRange, onCheckedChange = viewModel::setOnlyRange)
-        }
+        SettingsSwitchRow(
+            label = stringResource(R.string.panel_only_range),
+            checked = selection.onlyRange,
+            onCheckedChange = viewModel::setOnlyRange,
+        )
         AwnButton(
             label = stringResource(R.string.audio_play),
             onClick = viewModel::play,
@@ -185,62 +183,38 @@ private fun Picker(
 
 @Composable
 private fun RepeatRow(label: String, selected: Int, onSelect: (Int) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        Text(text = label, style = AwnTypography.small)
-        Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-            for (plays in REPEAT_CHOICES) {
-                Chip(
-                    label = repeatLabel(plays),
-                    isSelected = plays == selected,
-                    onClick = { onSelect(plays) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
+    AwnChoiceRow(
+        label = label,
+        options = REPEAT_CHOICES,
+        selected = selected,
+        optionLabel = { repeatLabel(it) },
+        onSelect = onSelect,
+    )
 }
 
 /** Pause after each ayah, cumulative repeat and the sleep timer. */
 @Composable
 private fun MemorisationControls(state: PlayRangeState, viewModel: PlayRangeViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
-        PauseAfterRow(state.options.pauseAfterAyah, viewModel::setPauseAfterAyah)
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.panel_cumulative),
-                    style = AwnTypography.body,
-                    modifier = Modifier.weight(1f),
-                )
-                AwnSwitch(
-                    checked = state.options.cumulative,
-                    onCheckedChange = viewModel::setCumulative,
-                )
-            }
-            Text(
-                text = stringResource(R.string.panel_cumulative_hint),
-                style = AwnTypography.small,
-            )
-        }
-        SleepTimerRow(state.sleepTimer, viewModel::setSleepTimer)
-    }
-}
-
-@Composable
-private fun PauseAfterRow(selected: PauseAfterAyah, onSelect: (PauseAfterAyah) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        Text(text = stringResource(R.string.panel_pause_after), style = AwnTypography.small)
-        Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-            for (choice in PauseAfterAyah.entries) {
-                Chip(
-                    label = stringResource(pauseLabel(choice)),
-                    isSelected = choice == selected,
-                    onClick = { onSelect(choice) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-    }
+    AwnChoiceRow(
+        label = stringResource(R.string.panel_pause_after),
+        options = PauseAfterAyah.entries,
+        selected = state.options.pauseAfterAyah,
+        optionLabel = { stringResource(pauseLabel(it)) },
+        onSelect = viewModel::setPauseAfterAyah,
+    )
+    SettingsSwitchRow(
+        label = stringResource(R.string.panel_cumulative),
+        hint = stringResource(R.string.panel_cumulative_hint),
+        checked = state.options.cumulative,
+        onCheckedChange = viewModel::setCumulative,
+    )
+    AwnChoiceRow(
+        label = stringResource(R.string.panel_sleep),
+        options = SLEEP_TIMER_CHOICES,
+        selected = state.sleepTimer,
+        optionLabel = { sleepTimerLabel(it) },
+        onSelect = viewModel::setSleepTimer,
+    )
 }
 
 @StringRes
@@ -253,22 +227,6 @@ private fun pauseLabel(choice: PauseAfterAyah): Int =
     }
 
 @Composable
-private fun SleepTimerRow(selected: SleepTimer?, onSelect: (SleepTimer?) -> Unit) {
-    val choices = SLEEP_TIMER_CHOICES
-    val labels = choices.map { sleepTimerLabel(it) }
-    val selectedIndex = choices.indexOf(selected).coerceAtLeast(0)
-    Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        Text(text = stringResource(R.string.panel_sleep), style = AwnTypography.small)
-        Picker(
-            text = labels[selectedIndex],
-            options = labels.mapIndexed { index, label -> index to label },
-            onSelect = { index -> onSelect(choices[index]) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
 private fun sleepTimerLabel(timer: SleepTimer?): String =
     when (timer) {
         null -> stringResource(R.string.sleep_off)
@@ -277,29 +235,6 @@ private fun sleepTimerLabel(timer: SleepTimer?): String =
         is SleepTimer.Minutes ->
             pluralStringResource(R.plurals.sleep_minutes, timer.minutes, timer.minutes)
     }
-
-@Composable
-internal fun Chip(label: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier) {
-    val field = Awn.field
-    Box(
-        modifier =
-            modifier
-                .heightIn(min = AwnSpacing.touchTarget)
-                .clip(AwnShapes.control)
-                .background(
-                    if (isSelected) field.buttonFill
-                    else field.content.copy(alpha = CHIP_BACKGROUND_ALPHA),
-                )
-                .clickable(role = Role.RadioButton, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            style = AwnTypography.bodyStrong,
-            color = if (isSelected) field.onButton else field.content,
-        )
-    }
-}
 
 @Composable
 private fun SpeedRow(speed: Float, onChange: (Float) -> Unit) {

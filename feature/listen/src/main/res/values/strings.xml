@@ -48,8 +48,6 @@
   <string name="manager_range_item">%1$s to %2$s</string>
   <string name="manager_download">Download</string>
   <string name="manager_delete">Delete</string>
-  <string name="manager_delete_title">Delete downloaded audio?</string>
-  <string name="manager_delete_message">%1$s, %2$s</string>
   <string name="manager_size_estimate">About %1$s</string>
   <string name="manager_size_downloaded">%1$s downloaded</string>
   <string name="manager_part_downloaded">%1$s of %2$s ayahs</string>
@@ -79,4 +77,12 @@
   <string name="audio_download_question">Download %1$s?</string>
   <string name="audio_download_action">Download</string>
   <string name="audio_stream_action">Stream</string>
+  <string name="audio_group_playback">Playback</string>
+  <string name="audio_group_downloads">Downloads</string>
+  <string name="audio_setting_download_amount_hint">How much audio is fetched when you press play</string>
+  <string name="audio_downloads_hint">Audio on this phone, by reciter</string>
+  <string name="manager_view">Show by</string>
+  <string name="manager_remove_reciter">Remove audio of %1$s</string>
+  <string name="manager_remove_title">Remove audio of %1$s?</string>
+  <string name="manager_remove_frees">Frees %1$s. You can download it again.</string>
 </resources>

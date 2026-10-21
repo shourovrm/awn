@@ -29,7 +29,7 @@ class CatalogueViewModel(packs: PackRepository, downloads: PackDownloads) : View
 
     fun remove(id: String) = catalogue.remove(id)
 
-    /** Bundles the three actions of one item for [CatalogueItemRow]. */
+    /** Bundles the three actions of one item for [CatalogueEntryRow]. */
     fun actionsFor(id: String) =
         CatalogueRowActions(
             onInstall = { install(id) },

@@ -49,18 +49,14 @@
   <string name="settings_audio">Audio</string>
   <string name="settings_downloads">Downloads</string>
   <string name="downloads_space_used">Space used</string>
-  <string name="downloads_page_types">Page types</string>
   <string name="downloads_translations">Translations</string>
   <string name="downloads_word_by_word">Word by word</string>
   <string name="downloads_transliteration">Transliteration</string>
   <string name="downloads_reciters">Reciters</string>
-  <string name="downloads_reciters_open">Manage reciter downloads</string>
-  <string name="downloads_language_other">Other</string>
   <string name="settings_recite">Recite and memorise</string>
   <string name="settings_appearance">Appearance</string>
   <string name="settings_backup">Backup</string>
   <string name="settings_about">About</string>
-  <string name="settings_placeholder">No settings yet</string>
 
   <string name="appearance_day_colours">Day colours</string>
   <string name="appearance_night_colours">Night colours</string>
@@ -72,9 +68,6 @@
   <string name="colours_dark">Dark</string>
   <string name="colours_black">Black</string>
 
-  <string name="audio_reciter">Reciter</string>
-  <string name="audio_downloads">Downloads</string>
-  <string name="audio_space_used">Space used</string>
   <string name="audio_wifi_only">Wi-Fi only</string>
 
   <string name="recite_memorised_after">Memorised after</string>
@@ -113,4 +106,29 @@
   <string name="notice_english" translatable="false">This app is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</string>
   <string name="notice_bangla" translatable="false">এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।</string>
   <string name="notice_arabic" translatable="false">هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.</string>
+  <string name="downloads_page_types">Prints</string>
+  <string name="settings_group_reading">Reading</string>
+  <string name="settings_group_listening">Listening</string>
+  <string name="settings_group_app">App</string>
+  <string name="settings_search_placeholder">Search settings</string>
+  <string name="settings_search_clear">Clear search</string>
+  <string name="settings_search_empty">No settings found</string>
+  <string name="downloads_group_on_phone">On this phone</string>
+  <string name="downloads_on_phone_count">%1$d of %2$d on this phone</string>
+  <string name="summary_page_details_shown">page details shown</string>
+  <string name="summary_page_details_hidden">page details hidden</string>
+  <plurals name="summary_translations">
+    <item quantity="one">%d translation</item>
+    <item quantity="other">%d translations</item>
+  </plurals>
+  <string name="summary_transliteration">transliteration</string>
+  <string name="summary_word_by_word">word by word</string>
+  <string name="summary_arabic_only">Arabic only</string>
+  <string name="summary_words_hidden">Words hidden</string>
+  <string name="summary_hint_on">Hint on</string>
+  <string name="summary_memorised_after">Memorised after %1$s</string>
+  <string name="summary_space_used">%1$s used</string>
+  <string name="summary_appearance">%1$s by day · %2$s at night · %3$s</string>
+  <string name="summary_backup">Bookmarks and recent pages</string>
+  <string name="summary_about">Version %1$s</string>
 </resources>

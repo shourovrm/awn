@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="translation_note_bn_quantum">meaning-based</string>
+  <string name="translation_name_with_note">%1$s (%2$s)</string>
+</resources>

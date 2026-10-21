@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -149,7 +150,7 @@ private fun TranslationTab(
             block?.translations?.forEach { translation ->
                 Text(text = translation.text, style = bodyStyle)
                 Text(
-                    text = translation.name,
+                    text = translationNameWithNote(translation.name, translation.packId),
                     style = AwnTypography.caption,
                     color = Awn.field.buttonFill,
                 )

@@ -26,12 +26,13 @@ fun AwnIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     tint: Color = Awn.field.content,
+    isEnabled: Boolean = true,
 ) {
     Box(
         modifier =
             modifier
                 .sizeIn(minWidth = AwnSpacing.touchTarget, minHeight = AwnSpacing.touchTarget)
-                .clickable(role = Role.Button, onClick = onClick),
+                .clickable(enabled = isEnabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

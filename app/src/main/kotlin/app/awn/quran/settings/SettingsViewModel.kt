@@ -4,9 +4,11 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.services.AwnServices
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +26,10 @@ data class SettingsState(
     val wifiOnly: Boolean = true,
     val downloadedBytes: Long = 0L,
     val memorisationThreshold: Int = 0,
+    /** What the hub's second lines say about Mushaf and Reading. */
+    val readSettings: ReadSettings = ReadSettings(),
+    val hifzEnabled: Boolean = false,
+    val hintEnabled: Boolean = true,
 )
 
 /** How an export or import ended. */
@@ -39,19 +45,33 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
     private val reciterNames = MutableStateFlow<Map<String, String>>(emptyMap())
     private val downloadedBytes = MutableStateFlow(0L)
 
+    private val audioAndLearnState: Flow<SettingsState> =
+        combine(
+            services.listenSettings.selectedReciterId,
+            services.listenSettings.wifiOnly,
+            services.learn.settings.memorisationThreshold,
+            reciterNames,
+            downloadedBytes,
+        ) { reciterId, wifiOnly, threshold, names, bytes ->
+            SettingsState(
+                reciterName = names[reciterId].orEmpty(),
+                wifiOnly = wifiOnly,
+                downloadedBytes = bytes,
+                memorisationThreshold = threshold,
+            )
+        }
+
     val state: StateFlow<SettingsState> =
         combine(
-                services.listenSettings.selectedReciterId,
-                services.listenSettings.wifiOnly,
-                services.learn.settings.memorisationThreshold,
-                reciterNames,
-                downloadedBytes,
-            ) { reciterId, wifiOnly, threshold, names, bytes ->
-                SettingsState(
-                    reciterName = names[reciterId].orEmpty(),
-                    wifiOnly = wifiOnly,
-                    downloadedBytes = bytes,
-                    memorisationThreshold = threshold,
+                audioAndLearnState,
+                services.readDependencies.settingsStore.settings,
+                services.reciteSettings.hifzEnabled,
+                services.reciteSettings.hintEnabled,
+            ) { base, readSettings, hifzEnabled, hintEnabled ->
+                base.copy(
+                    readSettings = readSettings,
+                    hifzEnabled = hifzEnabled,
+                    hintEnabled = hintEnabled,
                 )
             }
             .stateIn(

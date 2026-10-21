@@ -39,12 +39,12 @@ val fetchModels =
 spotless {
     kotlin {
         target("**/*.kt")
-        targetExclude("**/build/**")
+        targetExclude("**/build/**", ".claude/**")
         ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle()
     }
     kotlinGradle {
         target("**/*.kts")
-        targetExclude("**/build/**")
+        targetExclude("**/build/**", ".claude/**")
         ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle()
     }
 }
@@ -56,6 +56,8 @@ detekt {
         fileTree(layout.projectDirectory) {
             include("**/src/**/*.kt")
             exclude("**/build/**")
+            // Agent worktrees live under .claude/worktrees; their unfinished code is not ours yet.
+            exclude(".claude/**")
         },
     )
 }

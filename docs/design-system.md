@@ -25,7 +25,9 @@ Awn has one main screen, the Quran screen: the printed Mushaf page, floor to cei
 - Ayah selection: a floating bar of icon buttons above the selected ayah (play from here, recite from here, bookmark, translation, copy, share). The ayah panel rises over about 60 % of the screen and moves the page up so the ayah stays visible.
 - Fills behind Quran text, never on the text: selected ayah (teal), playing ayah (green), playing word (ochre, on the ayah fill), bookmarked ayah (faint ochre). Fills cover each line fragment, so a long ayah has a stepped shape.
 - Word states while reciting: confirmed, tentative, wrong, hidden. Light modes: green, ochre, red ink and a block for hidden words; dark modes: the light variants and a paper-coloured block.
-- Switches are 48 x 28dp soft rectangles with a square knob. Sliders: 8dp track in the ink at 30 % and a 24dp thumb in the accent.
+- Switches (`AwnSwitch`) are thin-rail: a 32dp wide, 4dp rail (ink at 25 % off, accent at 45 % on) and a 16dp round knob (off: page colour with a 2dp ring of the ink at 55 %; on: accent fill) that slides in 120 ms, inside a 48dp touch target; a settings row toggles from the whole row. Sliders: 8dp track in the ink at 30 % and a 24dp thumb in the accent.
+- Single choices (`AwnChoiceRow`): the row shows the label, an optional hint line and the chosen value in the accent with a small chevron; a tap opens a menu anchored under the value (12dp corners, raised surface, 44dp items, tick on the chosen one). No segmented buttons, no chips, no rows that cycle on tap. Several choices at once are tick boxes.
+- Steppers (`SettingsStepperRow`): minus, value in tabular figures, plus; each button is a 48dp touch target.
 - No dividers, no outlined boxes, no shadows at rest, no gradients. Floating bars, sheets and menus may carry a shadow.
 - Bars fade in and out in at most 120 ms; closing a popup, panel or selection is instant. Screens change with a 200 ms slide (150 to 250 ms is allowed): the new screen slides in from the trailing edge, Back slides the old one out to it and the previous screen in from the leading edge, mirrored in right-to-left layouts (`ScreenTransitions`, NavTransitionsTest). The manifest opts out of predictive back, whose back-to-home animation shrinks the whole window.
 
@@ -52,7 +54,9 @@ Top bar: app name, search, last page, Learn, Settings. Tabs Surahs (grouped unde
 
 ## Layout of the Settings screen
 
-A short list of sections, each an icon and a label opening its own page: Mushaf, Reading, Audio, Recite and memorise, Appearance, Backup, About. Pages use 48dp rows: label left, value right in the accent, or a switch; choices open a dialog, never a row that cycles on tap.
+The hub has a search field (44dp, 12dp corners, soft fill) at the top of the body under the green bar, then sections grouped under small accent headings: Reading (Mushaf, Reading), Listening (Audio, Downloads, Recite and memorise), App (Appearance, Backup, About). Each section is a 64dp row: icon, label, the current value as a muted second line, chevron. No boxes, no dividers. Typing filters every setting of every page (label and value names, English and Bangla); a result opens its page scrolled to the row, which flashes once.
+Inner pages use the same two-line rows (64dp with a second line, 52dp without) under small accent group headings: switches (`SettingsSwitchRow`), choices, steppers, links (`SettingsLinkRow`).
+Downloadable lists (translations, transliteration, word by word, prints) are one page each, opened from a row. Entries sit under a heading in the language's own script with its name in the app language at the end; each row has a tick box at the start (only once the entry is on the phone), the name with a muted detail line (size, Included, progress), and one button at the end: download, cancel, or remove (not for bundled entries or the print in use). Remove asks first in a small dialog that names the entry and the space it frees.
 
 ## Layout of the Learn screen
 

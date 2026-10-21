@@ -3,7 +3,6 @@ package app.awn.quran.feature.learn.reminder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,7 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import app.awn.quran.core.ui.components.AwnSwitch
+import app.awn.quran.core.ui.components.SettingRowKeys
+import app.awn.quran.core.ui.components.SettingsLinkRow
+import app.awn.quran.core.ui.components.SettingsSwitchRow
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -83,16 +84,18 @@ fun ReviseReminderSettingsPage(modifier: Modifier = Modifier) {
     }
 
     Column(modifier.fillMaxWidth()) {
-        SwitchRow(
+        SettingsSwitchRow(
             label = stringResource(R.string.reminder_setting),
             checked = enabled,
             onCheckedChange = ::setEnabled,
+            rowKey = SettingRowKeys.RECITE_REMINDER,
         )
         if (enabled) {
-            ValueRow(
+            SettingsLinkRow(
                 label = stringResource(R.string.reminder_time),
                 value = formatTime(hour, minute),
                 onClick = { timePickerOpen = true },
+                rowKey = SettingRowKeys.RECITE_REMINDER_TIME,
             )
         }
         if (permissionRefused) {
@@ -100,7 +103,6 @@ fun ReviseReminderSettingsPage(modifier: Modifier = Modifier) {
                 text = stringResource(R.string.reminder_permission),
                 style = AwnTypography.small,
                 color = Awn.field.content,
-                modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
             )
         }
     }
@@ -116,37 +118,6 @@ fun ReviseReminderSettingsPage(modifier: Modifier = Modifier) {
             },
             onDismiss = { timePickerOpen = false },
         )
-    }
-}
-
-@Composable
-private fun SwitchRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier =
-            Modifier.fillMaxWidth()
-                .heightIn(min = AwnSpacing.settingsRowHeight)
-                .padding(start = AwnSpacing.screenMargin),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = label, style = AwnTypography.body, color = Awn.field.content)
-        AwnSwitch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-private fun ValueRow(label: String, value: String, onClick: () -> Unit) {
-    Row(
-        modifier =
-            Modifier.fillMaxWidth()
-                .heightIn(min = AwnSpacing.settingsRowHeight)
-                .clickable(role = Role.Button, onClick = onClick)
-                .padding(horizontal = AwnSpacing.screenMargin),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = label, style = AwnTypography.body, color = Awn.field.content)
-        Text(text = value, style = AwnTypography.bodyStrong, color = Awn.field.buttonFill)
     }
 }
 
