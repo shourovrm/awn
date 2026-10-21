@@ -193,7 +193,8 @@ data class QuranUiState(
  * panel, recite mode, playback following and the pages-read timer. Each public function is one user
  * action, so the function count follows the screen, not the logic.
  */
-@Suppress("TooManyFunctions")
+// One class holds the screen's single state, so every action changes it in one place.
+@Suppress("TooManyFunctions", "LargeClass")
 class QuranViewModel(
     private val dependencies: ReadDependencies,
     /** "en" or "bn": picks the word-by-word pack. */
