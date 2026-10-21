@@ -6,9 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 
 /**
- * Scrolls the list to the playing ayah while following, and to a newly selected one, and tells the
- * screen when the reader scrolls by hand. Nothing scrolls before the fonts are ready, because the
- * list has no items until then.
+ * Scrolls the list to the playing ayah while following, to the ayah being recited, and to a newly
+ * selected one, and tells the screen when the reader scrolls by hand. Nothing scrolls before the
+ * fonts are ready, because the list has no items until then.
  */
 @Composable
 internal fun FollowListTargets(
@@ -21,6 +21,13 @@ internal fun FollowListTargets(
         if (!areFontsReady) return@LaunchedEffect
         val index = environment.playingAyah?.let(content::indexOf) ?: -1
         if (index >= 0 && environment.isFollowing) listState.showItem(index)
+    }
+    // The reciter moves on below the screen, and a page with translations shows only an ayah or
+    // two, so without this the fills of the words being recited are never seen.
+    LaunchedEffect(content, environment.recitedAyah, areFontsReady) {
+        if (!areFontsReady) return@LaunchedEffect
+        val index = environment.recitedAyah?.let(content::indexOf) ?: -1
+        if (index >= 0) listState.showItem(index)
     }
     LaunchedEffect(content, environment.selection?.first, environment.isPanelOpen, areFontsReady) {
         if (!areFontsReady) return@LaunchedEffect

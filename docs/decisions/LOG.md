@@ -116,3 +116,4 @@
 2026-10-21 | recite: list views never got word states (fixed); grace period + preparing bar + word problem card added | user report; phone logs showed tracker fine
 2026-10-21 | Per-app language through AppCompat (setApplicationLocales + autoStoreLocales) | one route for Android 8 to 16; Compose needs an AppCompatActivity below 13
 2026-10-21 | Language screen shows once before the notice; accepted notice means skip | upgrading users keep their flow; see architecture.md
+2026-10-21 | Line view scrolls to the recited ayah | live recitation moved below the screen, so its fills were never seen (read.md)

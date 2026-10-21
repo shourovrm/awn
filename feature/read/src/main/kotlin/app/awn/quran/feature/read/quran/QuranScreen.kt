@@ -317,8 +317,16 @@ private fun QuranContent(
         val currentShiftPx: () -> Int =
             remember(panelShiftPx, barShiftPx) { { panelShiftPx + barShiftPx.value } }
 
-        val reciteStates = if (state.isReciting) slots.reciteWordStates() else emptyMap()
-        val reciteProblems = if (state.isReciting) slots.reciteWordProblems() else emptyMap()
+        val reciteMarks =
+            if (state.isReciting) {
+                ReciteMarks(
+                    states = slots.reciteWordStates(),
+                    problems = slots.reciteWordProblems(),
+                    currentAyah = slots.reciteCurrentAyah(),
+                )
+            } else {
+                ReciteMarks.None
+            }
         val arabicScript =
             state.settings.script.takeUnless { isGlyphScript(it) } ?: ScriptId.QpcHafs
         // Loaded off the main thread; the lists wait for the answer (a few milliseconds).
@@ -333,8 +341,7 @@ private fun QuranContent(
                 viewModel = viewModel,
                 fontCache = fontCache,
                 arabicLookup = arabicLookup,
-                reciteStates = reciteStates,
-                reciteProblems = reciteProblems,
+                reciteMarks = reciteMarks,
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
                 shiftPx = currentShiftPx,
@@ -545,8 +552,7 @@ private fun QuranPager(
     viewModel: QuranViewModel,
     fontCache: PageFontCache,
     arabicLookup: FontLookup?,
-    reciteStates: Map<WordKey, WordState>,
-    reciteProblems: Map<WordKey, WordProblem>,
+    reciteMarks: ReciteMarks,
     playingWord: State<Int?>,
     fullHeightPx: Int,
     shiftPx: () -> Int,
@@ -604,7 +610,7 @@ private fun QuranPager(
 
     // Only a word that was recited badly has a card; the lambda is remembered so the pages do not
     // see a new callback each time the problems change.
-    val currentProblems by rememberUpdatedState(reciteProblems)
+    val currentProblems by rememberUpdatedState(reciteMarks.problems)
     val onProblemWordTap: (WordKey, Rect) -> Unit =
         remember(viewModel, onMushafWordAnchor) {
             { key, bounds ->
@@ -667,7 +673,7 @@ private fun QuranPager(
                                     chapters = state.chapters,
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
-                                    wordStates = reciteStates,
+                                    wordStates = reciteMarks.states,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
                                     onTap = onPageTapped,
@@ -703,8 +709,9 @@ private fun QuranPager(
                         settings = state.settings,
                         arabicFamily = arabicLookup.family,
                         fontCache = fontCache,
-                        wordStates = reciteStates,
+                        wordStates = reciteMarks.states,
                         isReciting = state.isReciting,
+                        recitedAyah = reciteMarks.currentAyah,
                         selection = state.selectedRange,
                         playingAyah = state.playingAyah,
                         playingWordPosition = playingWord,
@@ -720,11 +727,23 @@ private fun QuranPager(
                         },
                         onWordTap = { ayah, word, bounds ->
                             onWordAnchor(bounds)
-                            viewModel.onWordTapped(ayah, word, reciteProblems[word.key])
+                            viewModel.onWordTapped(ayah, word, reciteMarks.problems[word.key])
                         },
                         onUserScrolled = viewModel::onPagerDragged,
                     ),
             )
         }
+    }
+}
+
+/** What recitation marks on the pages: empty while not reciting. */
+private class ReciteMarks(
+    val states: Map<WordKey, WordState>,
+    val problems: Map<WordKey, WordProblem>,
+    /** The ayah of the word the reciter is on. */
+    val currentAyah: AyahRef?,
+) {
+    companion object {
+        val None = ReciteMarks(emptyMap(), emptyMap(), currentAyah = null)
     }
 }
