@@ -185,7 +185,6 @@ internal class PageContentLoader(
             translations.wordByWord(ENGLISH_WORD_LANGUAGE, ayah),
         )
     }
-
 }
 
 /**
