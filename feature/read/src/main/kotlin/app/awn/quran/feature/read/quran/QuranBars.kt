@@ -1,5 +1,9 @@
+@file:Suppress("MatchingDeclarationName") // TopBarActions is the contract; the bar follows it.
+
 package app.awn.quran.feature.read.quran
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,38 +11,39 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadIconButton
 import app.awn.quran.feature.read.settings.PageView
-import app.awn.quran.feature.read.settings.TextScale
-
-private const val PERCENT = 100
+import app.awn.quran.feature.read.settings.TextLayer
 
 /** What the top bar's buttons do. Each one is a single user action. */
 @Suppress("LongParameterList") // One callback per button and menu item.
 internal class TopBarActions(
     val onOpenIndex: () -> Unit,
-    val onCycleView: () -> Unit,
+    val onSwitchView: () -> Unit,
+    val onOpenLayers: () -> Unit,
+    val onToggleLayer: (TextLayer) -> Unit,
+    val onToggleTranslation: (TranslationId) -> Unit,
     val onToggleNight: () -> Unit,
     val onOpenTextSize: () -> Unit,
     val onOpenOverflow: () -> Unit,
     val onDismissPopup: () -> Unit,
-    val onTextSizeChange: (Int) -> Unit,
+    val onTextSizeChange: (TextLayer, Int) -> Unit,
+    val onMushafSizeChange: (Int) -> Unit,
     val onSearch: () -> Unit,
     val onGoToPage: () -> Unit,
     val onBookmarkPage: () -> Unit,
+    val onRotate: () -> Unit,
     val onLearn: () -> Unit,
     val onSettings: () -> Unit,
 )
@@ -47,10 +52,11 @@ internal class TopBarActions(
 internal const val LARGE_TEXT_SCALE = 1.3f
 
 /**
- * The bar at the top of the page: index, a two-line title, the view button, day and night, text
- * size and the overflow menu. It floats over the page and never changes its width. At a large
- * system font scale the buttons move to a second row under the title, so the title has the whole
- * width and nothing is cut off; the bar then grows taller.
+ * The bar at the top of the page: index, a two-line title, the view button, the layers button (in
+ * the line-by-line view), day and night, text size, settings and the overflow menu. It floats over
+ * the page and never changes its width. At a large system font scale the buttons move to a second
+ * row under the title, so the title has the whole width and nothing is cut off; the bar then grows
+ * taller.
  */
 @Composable
 internal fun QuranTopBar(
@@ -126,16 +132,26 @@ private fun TopBarTitle(
     }
 }
 
-@Suppress("LongMethod") // One row of buttons.
 @Composable
 private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBarActions) {
     val field = Awn.field
+    val view = state.settings.pageView
     ReadIconButton(
-        iconRes = viewIcon(state.settings.pageView.next()),
-        description = stringResource(viewDescription(state.settings.pageView.next())),
-        onClick = actions.onCycleView,
+        iconRes = viewIcon(view.other()),
+        description = stringResource(viewDescription(view.other())),
+        onClick = actions.onSwitchView,
         tint = field.onButton,
     )
+    if (view == PageView.LineByLine) {
+        MenuButton(R.drawable.ic_read_layers, R.string.bar_layers, actions.onOpenLayers) {
+            DropdownMenu(
+                expanded = state.popup == Popup.Layers,
+                onDismissRequest = actions.onDismissPopup,
+            ) {
+                LayerTicks(state, actions)
+            }
+        }
+    }
     ReadIconButton(
         iconRes = if (isNight) R.drawable.ic_read_light else R.drawable.ic_read_dark,
         description =
@@ -143,18 +159,12 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
         onClick = actions.onToggleNight,
         tint = field.onButton,
     )
-    Box {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_text_size,
-            description = stringResource(R.string.bar_text_size),
-            onClick = actions.onOpenTextSize,
-            tint = field.onButton,
-        )
+    MenuButton(R.drawable.ic_read_text_size, R.string.bar_text_size, actions.onOpenTextSize) {
         DropdownMenu(
             expanded = state.popup == Popup.TextSize,
             onDismissRequest = actions.onDismissPopup,
         ) {
-            TextSizeControls(state, actions.onTextSizeChange)
+            TextSizeRows(state, actions)
         }
     }
     ReadIconButton(
@@ -163,13 +173,7 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
         onClick = actions.onSettings,
         tint = field.onButton,
     )
-    Box {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_more,
-            description = stringResource(R.string.bar_more),
-            onClick = actions.onOpenOverflow,
-            tint = field.onButton,
-        )
+    MenuButton(R.drawable.ic_read_more, R.string.bar_more, actions.onOpenOverflow) {
         DropdownMenu(
             expanded = state.popup == Popup.Overflow,
             onDismissRequest = actions.onDismissPopup,
@@ -179,71 +183,34 @@ private fun TopBarButtons(state: QuranUiState, isNight: Boolean, actions: TopBar
     }
 }
 
+/** A top-bar icon button with the menu it opens, anchored under it. */
+@Composable
+private fun MenuButton(
+    @DrawableRes iconRes: Int,
+    @StringRes descriptionRes: Int,
+    onClick: () -> Unit,
+    menu: @Composable () -> Unit,
+) {
+    Box {
+        ReadIconButton(
+            iconRes = iconRes,
+            description = stringResource(descriptionRes),
+            onClick = onClick,
+            tint = Awn.field.onButton,
+        )
+        menu()
+    }
+}
+
 private fun viewIcon(view: PageView): Int =
     when (view) {
         PageView.Mushaf -> R.drawable.ic_read_view_mushaf
-        PageView.Translation -> R.drawable.ic_read_translate
-        PageView.WordByWord -> R.drawable.ic_read_word_by_word
+        PageView.LineByLine -> R.drawable.ic_read_translate
     }
 
 /** The button describes the view it switches to, not the one that is showing. */
 private fun viewDescription(view: PageView): Int =
     when (view) {
         PageView.Mushaf -> R.string.bar_view_mushaf
-        PageView.Translation -> R.string.bar_view_translation
-        PageView.WordByWord -> R.string.bar_view_word_by_word
+        PageView.LineByLine -> R.string.bar_view_line_by_line
     }
-
-@Composable
-private fun TextSizeControls(state: QuranUiState, onChange: (Int) -> Unit) {
-    val step = state.settings.arabicSizeStep
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_minus,
-            description = stringResource(R.string.action_smaller),
-            onClick = { onChange(-1) },
-            isEnabled = step > 0,
-        )
-        Text(
-            text =
-                stringResource(
-                    R.string.size_percent,
-                    (state.settings.arabicScale * PERCENT).toInt(),
-                ),
-            style = AwnTypography.body,
-        )
-        ReadIconButton(
-            iconRes = R.drawable.ic_read_plus,
-            description = stringResource(R.string.action_larger),
-            onClick = { onChange(1) },
-            isEnabled = step < TextScale.STEP_COUNT - 1,
-        )
-    }
-}
-
-@Composable
-private fun OverflowItems(state: QuranUiState, actions: TopBarActions) {
-    MenuItem(R.string.menu_search, R.drawable.ic_read_search, actions.onSearch)
-    MenuItem(R.string.menu_go_to_page, R.drawable.ic_read_go_to_page, actions.onGoToPage)
-    MenuItem(
-        label =
-            if (state.isPageBookmarked) R.string.menu_remove_page_bookmark
-            else R.string.menu_bookmark_page,
-        icon =
-            if (state.isPageBookmarked) R.drawable.ic_read_bookmark_filled
-            else R.drawable.ic_read_bookmark,
-        onClick = actions.onBookmarkPage,
-    )
-    MenuItem(R.string.menu_learn, R.drawable.ic_read_learn, actions.onLearn)
-}
-
-@Composable
-private fun MenuItem(label: Int, icon: Int, onClick: () -> Unit) {
-    DropdownMenuItem(
-        text = { Text(text = stringResource(label), style = AwnTypography.body) },
-        leadingIcon = {
-            Icon(painter = painterResource(icon), contentDescription = null)
-        },
-        onClick = onClick,
-    )
-}

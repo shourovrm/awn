@@ -43,11 +43,11 @@ class QuranScreenRenderTest {
     }
 
     @Test
-    fun translationViewShowsTheReferenceChipAndTheSurahBand() {
+    fun lineByLineViewShowsTheReferenceChipAndTheSurahBand() {
         fixture.store.let { store ->
             kotlinx.coroutines.runBlocking {
                 store.update {
-                    it.copy(pageView = app.awn.quran.feature.read.settings.PageView.Translation)
+                    it.copy(pageView = app.awn.quran.feature.read.settings.PageView.LineByLine)
                 }
             }
         }

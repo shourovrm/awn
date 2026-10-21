@@ -68,6 +68,19 @@ internal fun scrollToKeepVisible(
     return minOf(toShowBottom, mostBeforeTopIsHidden).coerceAtLeast(0f)
 }
 
+/**
+ * How far the Mushaf page slides up so a selection on its last lines is not under the audio bar,
+ * which covers the bottom [clearance] of a page [pageHeight] tall. The slide never exceeds the bar.
+ */
+internal fun shiftToClearAudioBar(
+    spanTop: Float,
+    spanBottom: Float,
+    pageHeight: Float,
+    clearance: Float,
+    margin: Float,
+): Float =
+    scrollToKeepVisible(spanTop, spanBottom, pageHeight - clearance, margin).coerceAtMost(clearance)
+
 /** What a volume key does on the Quran screen when the setting is on. */
 internal enum class VolumeKeyAction {
     NextPage,

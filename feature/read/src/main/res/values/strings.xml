@@ -7,8 +7,10 @@
   <string name="bar_index">Index</string>
   <string name="bar_title_subtitle">Page %1$d · Juz %2$d</string>
   <string name="bar_view_mushaf">Mushaf</string>
-  <string name="bar_view_translation">Translation</string>
-  <string name="bar_view_word_by_word">Word by word</string>
+  <string name="bar_view_line_by_line">Line by line</string>
+  <string name="bar_layers">Layers</string>
+  <string name="bar_rotate">Rotate screen</string>
+  <string name="layer_arabic">Arabic</string>
   <string name="bar_day_mode">Switch to day</string>
   <string name="bar_night_mode">Switch to night</string>
   <string name="bar_text_size">Text size</string>
@@ -27,6 +29,8 @@
   <string name="menu_settings">Settings</string>
 
   <string name="ayah_play">Play from here</string>
+  <string name="ayah_pause">Pause</string>
+  <string name="ayah_resume">Resume</string>
   <string name="ayah_recite">Recite from here</string>
   <string name="ayah_bookmark">Bookmark</string>
   <string name="ayah_remove_bookmark">Remove bookmark</string>

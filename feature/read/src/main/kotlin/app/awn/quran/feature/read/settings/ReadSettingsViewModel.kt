@@ -33,12 +33,17 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
         it.copy(translationSizeStep = TextScale.clampStep(step))
     }
 
-    /** Moves the Arabic and the translation size together by [delta] steps (the popup). */
+    /** Moves the Arabic and the translation size together by [delta] steps. */
     fun changeTextSize(delta: Int) = change {
-        it.copy(
-            arabicSizeStep = TextScale.clampStep(it.arabicSizeStep + delta),
-            translationSizeStep = TextScale.clampStep(it.translationSizeStep + delta),
-        )
+        it.withStepMoved(TextLayer.Arabic, delta).withStepMoved(TextLayer.Translation, delta)
+    }
+
+    fun setQuranOrientation(orientation: ScreenOrientation) = change {
+        it.copy(quranOrientation = orientation)
+    }
+
+    fun setAppOrientation(orientation: ScreenOrientation) = change {
+        it.copy(appOrientation = orientation)
     }
 
     fun setHighlightBookmarks(enabled: Boolean) = change { it.copy(highlightBookmarks = enabled) }

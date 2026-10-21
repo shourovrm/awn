@@ -89,3 +89,9 @@
 2026-10-21 | Night tajweed = patched font copy with CPAL palette 0 -> palette 1 | Android cannot pick a palette; docs/decisions/read.md Page
 2026-10-21 | Mushaf scale grows lines and glyphs up to the width limit, then only spacing | same breaks and no horizontal scroll cap glyph growth
 2026-10-21 | Recite marks are soft fills behind words, ink keeps its colour | COLR tajweed glyphs ignore text colour
+2026-10-21 | Views are Mushaf and LineByLine; a layers menu ticks each text layer | the user asked for one list view with layers
+2026-10-21 | Text size is saved per layer; Mushaf has its own step (1.0 to 1.6 x width) | fit-width must stay the default; the page scrolls when larger
+2026-10-21 | A page tap closes the word card or ayah bar before it toggles bars | outside taps never closed them
+2026-10-21 | Ayah bar Play toggles pause and resume from the real playback state | it restarted the audio on every press
+2026-10-21 | Word meanings are matched by word position, not list index | an extra token must not shift meanings
+2026-10-21 | Quran-page and app orientation are saved separately; the Quran screen restores the app one on exit | the user wants rotation defaults for both

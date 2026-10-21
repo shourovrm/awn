@@ -3,15 +3,12 @@ package app.awn.quran.feature.read.quran
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -19,7 +16,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -34,15 +30,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnColors
@@ -54,12 +47,6 @@ import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.BASMALA_TEXT
 import app.awn.quran.feature.read.settings.ReadSettings
-
-/** Which of the two list views a page is drawn in. */
-internal enum class ListMode {
-    Translation,
-    WordByWord,
-}
 
 /** The fills behind ayahs and words in the list views, taken from the colour mode. */
 internal class ReaderFills(
@@ -83,7 +70,6 @@ internal fun readerFills(): ReaderFills {
 /** What a list page needs to know about the screen it sits in. */
 @Suppress("LongParameterList") // Plain data and callbacks handed from the screen to each page.
 internal class ListPageEnvironment(
-    val mode: ListMode,
     val settings: ReadSettings,
     val arabicFamily: FontFamily?,
     val selection: AyahRange?,
@@ -106,8 +92,9 @@ internal class ListPageEnvironment(
 )
 
 /**
- * One page of the Translation or Word by word view: a list of ayah blocks with a band at each
- * surah. When [isCurrent], the list scrolls the playing ayah, or a newly selected one, to the top.
+ * One page of the line-by-line view: a list of ayah blocks with a band at each surah. Each block
+ * shows the layers the settings tick: Arabic, word by word, transliteration and translations. When
+ * [isCurrent], the list scrolls the playing ayah, or a newly selected one, to the top.
  */
 @Composable
 internal fun PageListView(
@@ -159,26 +146,19 @@ private fun itemKey(item: PageItem): String =
         is PageItem.Ayah -> "ayah-${item.block.ayah}"
     }
 
+/** The surah name, centred in the accent colour with no fill, so the list stays quiet. */
 @Composable
 private fun SurahBand(item: PageItem.SurahBand) {
-    val field = Awn.field
-    Box(
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(vertical = AwnSpacing.small)
-                .clip(AwnShapes.wordBlock)
-                .background(field.buttonFill)
-                .padding(vertical = AwnSpacing.small),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = item.chapter.localName(),
-            style = AwnTypography.bodyStrong,
-            color = field.onButton,
-        )
-    }
+    Text(
+        text = item.chapter.localName(),
+        style = AwnTypography.lead,
+        color = Awn.field.buttonFill,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(vertical = AwnSpacing.medium),
+    )
 }
 
+/** The Basmalah in the Quran font, like the Arabic of the ayahs below it. */
 @Composable
 private fun BasmalahBlock(environment: ListPageEnvironment) {
     Text(
@@ -186,6 +166,7 @@ private fun BasmalahBlock(environment: ListPageEnvironment) {
         style =
             AwnTypography.quran.copy(
                 fontSize = AwnTypography.quran.fontSize * environment.settings.arabicScale,
+                fontFamily = environment.arabicFamily ?: AwnTypography.quran.fontFamily,
                 textAlign = TextAlign.Center,
             ),
         modifier = Modifier.fillMaxWidth().padding(vertical = AwnSpacing.medium),
@@ -242,38 +223,45 @@ private fun AyahItem(block: AyahBlock, environment: ListPageEnvironment, fills: 
                 fontSize = AwnTypography.quran.fontSize * settings.arabicScale,
                 fontFamily = environment.arabicFamily ?: AwnTypography.quran.fontFamily,
             )
-        when (environment.mode) {
-            ListMode.Translation ->
-                Text(
-                    text = block.arabic,
-                    style = arabicStyle,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            ListMode.WordByWord ->
-                WordsFlow(
-                    block = block,
-                    environment = environment,
-                    arabicStyle = arabicStyle,
-                    fills = fills,
-                    playingWord = playingWord,
-                    onAyahLongPress = reportLongPress,
-                )
+        if (settings.showWordByWord) {
+            WordsFlow(
+                block = block,
+                environment = environment,
+                arabicStyle = arabicStyle,
+                fills = fills,
+                playingWord = playingWord,
+                onAyahLongPress = reportLongPress,
+            )
+        } else if (settings.showArabic) {
+            Text(text = block.arabic, style = arabicStyle, modifier = Modifier.fillMaxWidth())
         }
         if (settings.showTransliteration && block.transliteration != null) {
             Text(
                 text = block.transliteration,
-                style = scaled(AwnTypography.body, settings.translationScale),
+                style = scaled(AwnTypography.body, settings.transliterationScale),
                 color = Awn.field.buttonFill,
                 modifier = Modifier.padding(top = AwnSpacing.small),
             )
         }
-        block.translations.forEach { translation ->
-            val label = translation.rangeLabel?.let { "$it  " }.orEmpty()
-            Text(
-                text = label + translation.text,
-                style = scaled(AwnTypography.body, settings.translationScale),
-                modifier = Modifier.padding(top = AwnSpacing.small),
-            )
+        TranslationTexts(block, settings.translationScale)
+    }
+}
+
+/** Each translation of the ayah; its name shows above it when more than one is ticked. */
+@Composable
+private fun TranslationTexts(block: AyahBlock, scale: Float) {
+    val namesShow = block.translations.size > 1
+    block.translations.forEach { translation ->
+        val label = translation.rangeLabel?.let { "$it  " }.orEmpty()
+        Column(Modifier.padding(top = AwnSpacing.small)) {
+            if (namesShow) {
+                Text(
+                    text = translation.name,
+                    style = AwnTypography.caption,
+                    color = Awn.field.buttonFill,
+                )
+            }
+            Text(text = label + translation.text, style = scaled(AwnTypography.body, scale))
         }
     }
 }
@@ -282,7 +270,7 @@ private class CoordinatesHolder {
     var coordinates: LayoutCoordinates? = null
 }
 
-private fun scaled(style: TextStyle, scale: Float): TextStyle =
+internal fun scaled(style: TextStyle, scale: Float): TextStyle =
     style.copy(fontSize = style.fontSize * scale)
 
 /** The "2:255" chip at the start of a block. */
@@ -301,61 +289,6 @@ private fun ReferenceChip(ayah: AyahRef) {
             color = AwnColors.ink,
             maxLines = 1,
         )
-    }
-}
-
-/** The words right to left and wrapping, each with its meaning under it. */
-@Composable
-private fun WordsFlow(
-    block: AyahBlock,
-    environment: ListPageEnvironment,
-    arabicStyle: TextStyle,
-    fills: ReaderFills,
-    playingWord: Int?,
-    onAyahLongPress: () -> Unit,
-) {
-    val settings = environment.settings
-    val meaningStyle =
-        scaled(AwnTypography.caption, settings.translationScale).copy(textAlign = TextAlign.Center)
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().padding(top = AwnSpacing.small),
-            horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
-            verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
-            itemVerticalAlignment = Alignment.Bottom,
-        ) {
-            block.words.forEach { word ->
-                val isPlayingWord = playingWord == word.key.wordPosition
-                val meaningLabel = stringResource(R.string.word_meaning_action)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier =
-                        Modifier.clip(AwnShapes.wordBlock)
-                            .semantics(mergeDescendants = true) {
-                                onClick(label = meaningLabel) {
-                                    environment.onWordTap(block.ayah, word)
-                                    true
-                                }
-                            }
-                            .background(if (isPlayingWord) fills.playingWord else Color.Transparent)
-                            .pointerInput(word.key) {
-                                detectTapGestures(
-                                    onTap = { environment.onWordTap(block.ayah, word) },
-                                    onLongPress = { onAyahLongPress() },
-                                )
-                            },
-                ) {
-                    Text(text = word.arabic, style = arabicStyle)
-                    if (settings.showWordByWord && word.meaning != null) {
-                        Text(
-                            text = word.meaning,
-                            style = meaningStyle,
-                            modifier = Modifier.widthIn(max = AwnSpacing.giant + AwnSpacing.large),
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 

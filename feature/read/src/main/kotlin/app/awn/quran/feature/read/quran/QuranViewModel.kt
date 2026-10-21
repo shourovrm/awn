@@ -6,6 +6,8 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.TranslationId
+import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
@@ -14,7 +16,9 @@ import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
-import app.awn.quran.feature.read.settings.TextScale
+import app.awn.quran.feature.read.settings.ScreenOrientation
+import app.awn.quran.feature.read.settings.TextLayer
+import app.awn.quran.feature.read.settings.withTranslation
 import app.awn.quran.player.PlaybackState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,8 +47,19 @@ private enum class Arrival {
 enum class Popup {
     None,
     TextSize,
+    Layers,
     Overflow,
     GoToPage,
+}
+
+/** What the Play button of the ayah bar does for the current selection. */
+enum class PlayButtonMode {
+    /** The selection is not playing: start playing it. */
+    Play,
+    /** The selection is playing: pause it. */
+    Pause,
+    /** The selection is paused: carry on from where it stopped. */
+    Resume,
 }
 
 /** The small card that shows the meaning and transliteration of a tapped word. */
@@ -77,6 +92,10 @@ data class QuranUiState(
     val popup: Popup = Popup.None,
     val wordPopup: WordPopup? = null,
     val playingAyah: AyahRef? = null,
+    /** True while the playing ayah is paused, so the ayah bar offers Resume instead of Pause. */
+    val isPlaybackPaused: Boolean = false,
+    /** The translations on the phone, for the layers menu of the line-by-line view. */
+    val installedTranslations: List<TranslationInfo> = emptyList(),
     /** The page the playing ayah starts on; null while nothing plays. */
     val playingPage: Int? = null,
     /**
@@ -96,6 +115,18 @@ data class QuranUiState(
     /** The selected ayahs, or null when nothing is selected. */
     val selectedRange: AyahRange?
         get() = selection?.let { AyahRange(it, selectionEnd ?: it) }
+
+    /** The Play button of the ayah bar: pause or resume when the selected ayahs hold the audio. */
+    val playButtonMode: PlayButtonMode
+        get() {
+            val range = selectedRange
+            val isSelectionPlaying = range != null && playingAyah != null && playingAyah in range
+            return when {
+                !isSelectionPlaying -> PlayButtonMode.Play
+                isPlaybackPaused -> PlayButtonMode.Resume
+                else -> PlayButtonMode.Pause
+            }
+        }
 
     /** The back-to-playing control shows while audio plays and the reader is not following it. */
     val showBackToPlaying: Boolean
@@ -184,6 +215,7 @@ class QuranViewModel(
 
     init {
         viewModelScope.launch { loadChapters() }
+        viewModelScope.launch { loadInstalledTranslations() }
         viewModelScope.launch { followSettings() }
         viewModelScope.launch { followBookmarks() }
         viewModelScope.launch { followSavedAyahs() }
@@ -280,23 +312,60 @@ class QuranViewModel(
         }
     }
 
-    /** The view button: Mushaf, then Translation, then Word by word. The choice is saved. */
-    fun cycleView() {
-        viewModelScope.launch {
-            dependencies.settingsStore.update { it.copy(pageView = it.pageView.next()) }
+    /** The view button: Mushaf or line by line. The choice is saved. */
+    fun switchView() {
+        updateSettings { it.copy(pageView = it.pageView.other()) }
+    }
+
+    /** A layers-menu tickbox for Arabic, transliteration or word by word. */
+    fun toggleLayer(layer: TextLayer) {
+        updateSettings { settings ->
+            val changed =
+                when (layer) {
+                    TextLayer.Arabic -> settings.copy(showArabic = !settings.showArabic)
+                    TextLayer.Transliteration ->
+                        settings.copy(showTransliteration = !settings.showTransliteration)
+                    TextLayer.WordByWord -> settings.copy(showWordByWord = !settings.showWordByWord)
+                    TextLayer.Translation -> settings
+                }
+            keepingOneLayer(settings, changed)
         }
     }
 
-    /** The text-size popup: moves the Arabic and the translation size together by [delta] steps. */
-    fun changeTextSize(delta: Int) {
-        viewModelScope.launch {
-            dependencies.settingsStore.update { settings ->
+    /** A layers-menu tickbox for one translation. */
+    fun toggleTranslation(id: TranslationId) {
+        updateSettings { settings ->
+            val changed =
                 settings.copy(
-                    arabicSizeStep = TextScale.clampStep(settings.arabicSizeStep + delta),
-                    translationSizeStep = TextScale.clampStep(settings.translationSizeStep + delta),
+                    translations =
+                        settings.translations.withTranslation(id, id !in settings.translations),
                 )
-            }
+            keepingOneLayer(settings, changed)
         }
+    }
+
+    /** The text-size popup: moves the size of one layer by [delta] steps. */
+    fun changeTextSize(layer: TextLayer, delta: Int) {
+        updateSettings { it.withStepMoved(layer, delta) }
+    }
+
+    /** The text-size popup in the Mushaf view: prints the page larger or smaller. */
+    fun changeMushafSize(delta: Int) {
+        updateSettings { it.withMushafStepMoved(delta) }
+    }
+
+    /** The rotate button: turns the Quran pages to the other way than they are now. */
+    fun rotate(isLandscapeNow: Boolean) {
+        val next = if (isLandscapeNow) ScreenOrientation.Portrait else ScreenOrientation.Landscape
+        updateSettings { it.copy(quranOrientation = next) }
+    }
+
+    /** An empty page helps nobody, so a tick that would hide the last layer is ignored. */
+    private fun keepingOneLayer(before: ReadSettings, after: ReadSettings): ReadSettings =
+        if (after.visibleLayers.isEmpty()) before else after
+
+    private fun updateSettings(transform: (ReadSettings) -> ReadSettings) {
+        viewModelScope.launch { dependencies.settingsStore.update(transform) }
     }
 
     /** The reader dragged the pager: stop turning pages for the audio until they come back. */
@@ -314,6 +383,20 @@ class QuranViewModel(
         } else {
             // The list views scroll to the ayah again; the page has nothing to move.
             mutableState.update { it.copy(jumpToken = it.jumpToken + 1) }
+        }
+    }
+
+    /**
+     * A tap on the page. Whatever floats over it (the word card, the ayah bar) closes first and the
+     * bars stay as they are; with nothing open the tap shows or hides the bars. The ayah panel has
+     * its own close button, so a tap above it still toggles the bars.
+     */
+    fun onPageTapped() {
+        val state = mutableState.value
+        when {
+            state.wordPopup != null -> dismissWordPopup()
+            state.selection != null && !state.isPanelOpen -> clearSelection()
+            else -> toggleBars()
         }
     }
 
@@ -414,6 +497,25 @@ class QuranViewModel(
         }
     }
 
+    /**
+     * The Play button of the ayah bar. While the selected ayahs are playing it pauses them, while
+     * they are paused it resumes, otherwise [startPlayback] starts them. Starting or resuming
+     * closes the bar so it does not hang over the page; the playing fill stays.
+     */
+    fun onPlayPressed(startPlayback: () -> Unit) {
+        when (mutableState.value.playButtonMode) {
+            PlayButtonMode.Pause -> dependencies.audioPlayer.pause()
+            PlayButtonMode.Resume -> {
+                dependencies.audioPlayer.resume()
+                clearSelection()
+            }
+            PlayButtonMode.Play -> {
+                startPlayback()
+                clearSelection()
+            }
+        }
+    }
+
     /** Switches the bottom bar to the recite bar. The caller also tells :feature:recite to load. */
     fun enterReciteMode() {
         mutableState.update {
@@ -445,7 +547,17 @@ class QuranViewModel(
 
     /** Shows the word's meaning and plays it when the chosen reciter has word timings. */
     fun onWordTapped(ayah: AyahRef, word: AyahWord) {
-        mutableState.update { it.copy(wordPopup = WordPopup(ayah, word)) }
+        // The word card and the ayah bar never show together.
+        mutableState.update {
+            it.copy(
+                wordPopup = WordPopup(ayah, word),
+                selection = null,
+                selectionEnd = null,
+                selectionPage = null,
+                isPanelOpen = false,
+                panelBlock = null,
+            )
+        }
         viewModelScope.launch {
             val reciterId = dependencies.selectedReciterId.first()
             val timings = dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty()
@@ -618,6 +730,11 @@ class QuranViewModel(
         }
     }
 
+    private suspend fun loadInstalledTranslations() {
+        val installed = dependencies.translations.available().filter { it.installed }
+        mutableState.update { it.copy(installedTranslations = installed) }
+    }
+
     private suspend fun followSettings() {
         dependencies.settingsStore.settings.distinctUntilChanged().collect { settings ->
             val previous = mutableState.value.settings
@@ -668,6 +785,7 @@ class QuranViewModel(
      */
     private suspend fun followInstalledPacks() {
         dependencies.packs.installed().drop(1).collect {
+            loadInstalledTranslations()
             mutableState.update {
                 // The page lists hold translation text, so a new or removed translation redoes
                 // them.
@@ -730,6 +848,7 @@ class QuranViewModel(
             mutableState.update {
                 it.copy(
                     playingAyah = ayah,
+                    isPlaybackPaused = playback is PlaybackState.Paused,
                     playingPage = playingPage,
                     isAudioIdle = playback is PlaybackState.Idle || playback is PlaybackState.Error,
                     // A new playback is followed from its first ayah, wherever the reader is.

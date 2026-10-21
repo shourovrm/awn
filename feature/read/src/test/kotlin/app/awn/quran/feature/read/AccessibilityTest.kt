@@ -39,6 +39,7 @@ import app.awn.quran.feature.read.page.SelectionBounds
 import app.awn.quran.feature.read.page.spokenAyahsOf
 import app.awn.quran.feature.read.quran.AyahActionBar
 import app.awn.quran.feature.read.quran.AyahBarActions
+import app.awn.quran.feature.read.quran.PlayButtonMode
 import app.awn.quran.feature.read.quran.QuranTopBar
 import app.awn.quran.feature.read.quran.QuranUiState
 import app.awn.quran.feature.read.quran.TopBarActions
@@ -66,22 +67,27 @@ class AccessibilityTest {
     private val doNothing = {}
     private val topBarActions =
         TopBarActions(
-            doNothing,
-            doNothing,
-            doNothing,
-            doNothing,
-            doNothing,
-            doNothing,
-            {},
-            doNothing,
-            doNothing,
-            doNothing,
-            doNothing,
-            doNothing,
+            onOpenIndex = doNothing,
+            onSwitchView = doNothing,
+            onOpenLayers = doNothing,
+            onToggleLayer = {},
+            onToggleTranslation = {},
+            onToggleNight = doNothing,
+            onOpenTextSize = doNothing,
+            onOpenOverflow = doNothing,
+            onDismissPopup = doNothing,
+            onTextSizeChange = { _, _ -> },
+            onMushafSizeChange = {},
+            onSearch = doNothing,
+            onGoToPage = doNothing,
+            onBookmarkPage = doNothing,
+            onRotate = doNothing,
+            onLearn = doNothing,
+            onSettings = doNothing,
         )
 
     private val barDescriptions =
-        listOf("Index", "Settings", "More", "Text size", "Switch to night", "Translation")
+        listOf("Index", "Settings", "More", "Text size", "Switch to night", "Line by line")
 
     private fun atDoubleFontScale(content: @androidx.compose.runtime.Composable () -> Unit) {
         composeRule.setContent {
@@ -167,6 +173,7 @@ class AccessibilityTest {
         atDoubleFontScale {
             Box(Modifier.width(360.dp).height(640.dp)) {
                 AyahActionBar(
+                    playMode = PlayButtonMode.Play,
                     bounds =
                         SelectionBounds(
                             firstLine = Rect(40f, 600f, 600f, 700f),
@@ -212,6 +219,7 @@ class AccessibilityTest {
                 Box(Modifier.width(360.dp).height(640.dp)) {
                     QuranTopBar(QuranUiState(), "Al-Fatihah", false, topBarActions)
                     AyahActionBar(
+                        playMode = PlayButtonMode.Play,
                         bounds =
                             SelectionBounds(
                                 Rect(40f, 600f, 600f, 700f),

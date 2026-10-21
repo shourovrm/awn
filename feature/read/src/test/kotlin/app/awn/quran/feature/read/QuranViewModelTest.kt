@@ -60,25 +60,23 @@ class QuranViewModelTest {
 
     @Test
     fun backNeverChangesTheSavedView() = runTest {
-        fixture.store.update { it.copy(pageView = PageView.WordByWord) }
+        fixture.store.update { it.copy(pageView = PageView.LineByLine) }
         viewModel.open(null)
         viewModel.selectAyah(AyahRef(1, 1))
         viewModel.openPanel()
 
         while (viewModel.onBack()) Unit
 
-        assertEquals(PageView.WordByWord, fixture.store.settings.first().pageView)
+        assertEquals(PageView.LineByLine, fixture.store.settings.first().pageView)
     }
 
     @Test
-    fun viewButtonCyclesThroughThreeViewsAndSavesThem() = runTest {
+    fun viewButtonSwitchesBetweenMushafAndLineByLineAndSavesIt() = runTest {
         viewModel.open(null)
 
-        viewModel.cycleView()
-        assertEquals(PageView.Translation, fixture.store.settings.first().pageView)
-        viewModel.cycleView()
-        assertEquals(PageView.WordByWord, fixture.store.settings.first().pageView)
-        viewModel.cycleView()
+        viewModel.switchView()
+        assertEquals(PageView.LineByLine, fixture.store.settings.first().pageView)
+        viewModel.switchView()
         assertEquals(PageView.Mushaf, fixture.store.settings.first().pageView)
     }
 
@@ -516,10 +514,10 @@ class QuranViewModelTest {
         assertFalse(model.state.value.hasStarted)
 
         late.complete(
-            app.awn.quran.feature.read.settings.ReadSettings(pageView = PageView.Translation),
+            app.awn.quran.feature.read.settings.ReadSettings(pageView = PageView.LineByLine),
         )
 
         assertTrue(model.state.value.hasStarted)
-        assertEquals(PageView.Translation, model.state.value.settings.pageView)
+        assertEquals(PageView.LineByLine, model.state.value.settings.pageView)
     }
 }

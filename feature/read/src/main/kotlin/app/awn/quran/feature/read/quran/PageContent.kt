@@ -113,11 +113,11 @@ internal class PageContentLoader(
         return AyahBlock(
             ayah = ayah,
             words =
-                words.mapIndexed { index, word ->
+                words.map { word ->
                     AyahWord(
                         key = word.key,
                         arabic = normalizeFallbackText(word.textUthmani),
-                        meaning = meanings.getOrNull(index),
+                        meaning = meaningAtPosition(meanings, word.key.wordPosition),
                         transliteration = word.transliteration,
                     )
                 },
@@ -130,3 +130,12 @@ internal class PageContentLoader(
         )
     }
 }
+
+/**
+ * The meaning of the word at [position] (counted from 1). The pack lists one meaning per word
+ * position, so the position of a word, not its place in the word list, picks the entry; a list that
+ * holds another token, or starts later, cannot shift the meanings. A blank entry (the pack empties
+ * repeated phrases) shows nothing.
+ */
+internal fun meaningAtPosition(meanings: List<String>, position: Int): String? =
+    meanings.getOrNull(position - 1)?.takeIf { it.isNotBlank() }

@@ -14,6 +14,10 @@ object TextScale {
     /** Step 3 is 1.17, the nearest to the old Medium size of 1.15. */
     const val DEFAULT_STEP = 3
 
+    /** The printed page has five sizes: step 0 fits the width, each step adds 15 %. */
+    const val MUSHAF_LAST_STEP = 4
+    private const val MUSHAF_SPAN_PER_STEP = 0.15f
+
     private const val LEGACY_SMALL_ZOOM = 1.0f
     private const val LEGACY_MEDIUM_ZOOM = 1.15f
     private const val LEGACY_LARGE_ZOOM = 1.3f
@@ -24,6 +28,11 @@ object TextScale {
     fun scaleOf(step: Int): Float = MIN_SCALE + clampStep(step) * SPAN_PER_STEP
 
     fun clampStep(step: Int): Int = step.coerceIn(0, LAST_STEP)
+
+    /** The factor that prints the Mushaf page larger than the width: 1.0 at step 0, 1.6 at 4. */
+    fun mushafScaleOf(step: Int): Float = 1f + clampMushafStep(step) * MUSHAF_SPAN_PER_STEP
+
+    fun clampMushafStep(step: Int): Int = step.coerceIn(0, MUSHAF_LAST_STEP)
 
     /**
      * Maps the name of the old 3-step size (Small 1.0, Medium 1.15, Large 1.3) to the step with the

@@ -4,26 +4,22 @@
 
 package app.awn.quran.feature.read.quran
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,7 +42,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -64,7 +59,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -76,7 +70,6 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
@@ -185,6 +178,10 @@ fun QuranScreen(
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.setScreenActive(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.setScreenActive(false) }
     BackHandler(enabled = state.hasBackWork) { viewModel.onBack() }
+    QuranOrientation(
+        quranOrientation = state.settings.quranOrientation,
+        appOrientation = state.settings.appOrientation,
+    )
 
     val focusRequester = remember { FocusRequester() }
     val turnsPagesWithVolume = state.settings.volumeKeysTurnPages
@@ -259,7 +256,7 @@ private fun QuranContent(
         val marginPx = with(density) { AwnSpacing.medium.toPx() }
         val isMushaf = state.settings.pageView == PageView.Mushaf
         val pageBounds = mushafBounds?.translate(Offset(marginPx, 0f))
-        val shiftPx =
+        val panelShiftPx =
             if (state.isPanelOpen && isMushaf && pageBounds != null) {
                 // The page keeps its full height under the panel and slides up only as far as
                 // the selected ayahs need, never further than the panel is tall.
@@ -274,6 +271,26 @@ private fun QuranContent(
             } else {
                 0
             }
+        // While the audio bar shows, a selection on the last lines would sit under it: the page
+        // slides up just enough, then back when the bar hides.
+        val audioBarClearancePx =
+            with(density) { (AwnSpacing.dockHeight + AwnSpacing.small).toPx() }
+        val isAudioBarOverPage = state.areBarsVisible && !state.isPanelOpen
+        val barShiftTarget =
+            if (isAudioBarOverPage && isMushaf && pageBounds != null) {
+                shiftToClearAudioBar(
+                        spanTop = pageBounds.all.top,
+                        spanBottom = pageBounds.all.bottom,
+                        pageHeight = fullHeightPx.toFloat(),
+                        clearance = audioBarClearancePx,
+                        margin = marginPx,
+                    )
+                    .toInt()
+            } else {
+                0
+            }
+        val barShiftPx by animateIntAsState(barShiftTarget, tween(BAR_FADE_MS), label = "barShift")
+        val shiftPx = panelShiftPx + barShiftPx
 
         val reciteStates = if (state.isReciting) slots.reciteWordStates() else emptyMap()
         val arabicScript =
@@ -337,7 +354,7 @@ private fun QuranContent(
                     )
                 }
                 // An enabled translation is missing: say so and offer it, instead of showing none.
-                if (state.settings.pageView == PageView.Translation) {
+                if (!isMushaf) {
                     MissingTranslationPrompt(dependencies, state.settings.translations)
                 }
                 if (state.showBackToPlaying) {
@@ -371,16 +388,18 @@ private fun QuranContent(
         if (range != null && !state.isPanelOpen && !isSelecting) {
             val bounds =
                 if (isMushaf) {
-                    pageBounds
+                    // The page may have slid up to clear the audio bar; the bar follows it.
+                    pageBounds?.translate(Offset(0f, -shiftPx.toFloat()))
                 } else {
                     listAnchor?.translate(-rootOrigin.x, -rootOrigin.y)?.let { listBlockBounds(it) }
                 }
             AyahActionBar(
                 bounds = bounds,
                 isBookmarked = range.first in state.savedAyahs,
+                playMode = state.playButtonMode,
                 actions =
                     AyahBarActions(
-                        onPlay = { playRange(slots, range) },
+                        onPlay = { viewModel.onPlayPressed { playRange(slots, range) } },
                         onRecite = {
                             slots.onReciteFrom(range.first)
                             viewModel.enterReciteMode()
@@ -429,6 +448,7 @@ private fun QuranContent(
 
         if (state.popup == Popup.GoToPage) {
             GoToPageDialog(
+                currentPage = state.currentPage,
                 quranText = dependencies.quranText,
                 script = state.settings.script,
                 chapters = state.chapters,
@@ -482,31 +502,6 @@ private fun PlayTab(slots: QuranScreenSlots, range: AyahRange, page: Int) {
     }
 }
 
-private fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots) =
-    TopBarActions(
-        onOpenIndex = slots.onOpenIndex,
-        onCycleView = viewModel::cycleView,
-        onToggleNight = slots.onToggleNight,
-        onOpenTextSize = { viewModel.openPopup(Popup.TextSize) },
-        onOpenOverflow = { viewModel.openPopup(Popup.Overflow) },
-        onDismissPopup = viewModel::closePopup,
-        onTextSizeChange = viewModel::changeTextSize,
-        onSearch = {
-            viewModel.closePopup()
-            slots.onOpenSearch()
-        },
-        onGoToPage = { viewModel.openPopup(Popup.GoToPage) },
-        onBookmarkPage = {
-            viewModel.closePopup()
-            viewModel.toggleBookmarkOfPage()
-        },
-        onLearn = {
-            viewModel.closePopup()
-            slots.onOpenLearn()
-        },
-        onSettings = slots.onOpenSettings,
-    )
-
 @Suppress("LongMethod") // The pager with the page of each of the three views.
 @Composable
 private fun QuranPager(
@@ -541,14 +536,19 @@ private fun QuranPager(
         }
     }
 
+    // The list scrolls clear of the top bar above and of the audio bar and the navigation bar
+    // below, so a search result or the playing ayah never sits under either.
+    val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val barPadding =
         PaddingValues(
-            vertical = AwnSpacing.huge + AwnSpacing.small,
-            horizontal = AwnSpacing.screenMargin,
+            start = AwnSpacing.screenMargin,
+            end = AwnSpacing.screenMargin,
+            top = AwnSpacing.huge + AwnSpacing.small,
+            bottom = AwnSpacing.dockHeight + AwnSpacing.small + navigationBarHeight,
         )
     val view = state.settings.pageView
     val tapToggle =
-        Modifier.pointerInput(Unit) { detectTapGestures(onTap = { viewModel.toggleBars() }) }
+        Modifier.pointerInput(Unit) { detectTapGestures(onTap = { viewModel.onPageTapped() }) }
 
     // Page 1 is on the right, so swiping right turns to the next page.
     HorizontalPager(
@@ -588,7 +588,8 @@ private fun QuranPager(
                                     plainFamily = fontCache.familyFor(ScriptId.QpcHafs, pageNumber),
                                     wordStates = reciteStates,
                                     showPageInfo = state.settings.showPageInfo,
-                                    onTap = viewModel::toggleBars,
+                                    onTap = viewModel::onPageTapped,
+                                    pageScale = state.settings.mushafScale,
                                     onAyahPressed = { ayah ->
                                         selectionActions.onRangeStart()
                                         viewModel.selectAyah(ayah)
@@ -617,9 +618,6 @@ private fun QuranPager(
                 isCurrent = isCurrent,
                 environment =
                     ListPageEnvironment(
-                        mode =
-                            if (view == PageView.Translation) ListMode.Translation
-                            else ListMode.WordByWord,
                         settings = state.settings,
                         arabicFamily = arabicFamily,
                         selection = state.selectedRange,
@@ -630,7 +628,7 @@ private fun QuranPager(
                         isPanelOpen = state.isPanelOpen,
                         savedAyahs = state.savedAyahs,
                         contentPadding = barPadding,
-                        onTap = viewModel::toggleBars,
+                        onTap = viewModel::onPageTapped,
                         onAyahLongPress = { ayah, bounds ->
                             onListAnchor(bounds)
                             viewModel.selectAyah(ayah)
@@ -641,49 +639,4 @@ private fun QuranPager(
             )
         }
     }
-}
-
-/** A small card with the tapped word, its meaning and its transliteration. */
-@Composable
-private fun WordPopupCard(popup: WordPopup, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-    val field = Awn.field
-    Column(
-        modifier
-            .padding(bottom = AwnSpacing.dockHeight + AwnSpacing.medium)
-            .shadow(AwnSpacing.small, AwnShapes.control)
-            .background(field.buttonFill, AwnShapes.control)
-            .clickable(
-                onClickLabel = stringResource(R.string.panel_close),
-                role = Role.Button,
-                onClick = onDismiss,
-            )
-            .padding(AwnSpacing.medium),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
-    ) {
-        Text(text = popup.word.arabic, style = AwnTypography.lead, color = field.onButton)
-        popup.word.meaning?.let {
-            Text(text = it, style = AwnTypography.body, color = field.onButton)
-        }
-        popup.word.transliteration?.let {
-            Text(text = it, style = AwnTypography.small, color = field.onButton)
-        }
-    }
-}
-
-private fun copyToClipboard(context: Context, ayah: AyahRef, text: String) {
-    val clipboard = context.getSystemService(ClipboardManager::class.java)
-    clipboard.setPrimaryClip(ClipData.newPlainText(ayah.toString(), text))
-}
-
-private fun shareText(context: Context, text: String) {
-    val send =
-        Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-        }
-    val chooser =
-        Intent.createChooser(send, context.getString(R.string.ayah_share))
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(chooser)
 }

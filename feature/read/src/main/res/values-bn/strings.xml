@@ -6,8 +6,10 @@
   <string name="bar_index">সূচি</string>
   <string name="bar_title_subtitle">পৃষ্ঠা %1$d · পারা %2$d</string>
   <string name="bar_view_mushaf">মাসহাফ</string>
-  <string name="bar_view_translation">অনুবাদ</string>
-  <string name="bar_view_word_by_word">শব্দে শব্দে</string>
+  <string name="bar_view_line_by_line">লাইনে লাইনে</string>
+  <string name="bar_layers">স্তর</string>
+  <string name="bar_rotate">স্ক্রিন ঘোরান</string>
+  <string name="layer_arabic">আরবি</string>
   <string name="bar_day_mode">দিনের রঙে যান</string>
   <string name="bar_night_mode">রাতের রঙে যান</string>
   <string name="bar_text_size">লেখার আকার</string>
@@ -26,6 +28,8 @@
   <string name="menu_settings">সেটিংস</string>
 
   <string name="ayah_play">এখান থেকে চালান</string>
+  <string name="ayah_pause">বিরতি</string>
+  <string name="ayah_resume">আবার চালান</string>
   <string name="ayah_recite">এখান থেকে তিলাওয়াত</string>
   <string name="ayah_bookmark">বুকমার্ক</string>
   <string name="ayah_remove_bookmark">বুকমার্ক সরান</string>

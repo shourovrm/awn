@@ -123,6 +123,11 @@ internal data class MushafHost(
     val plainFamily: FontFamily?,
     val wordStates: Map<WordKey, WordState>,
     val showPageInfo: Boolean,
+    /**
+     * How much larger than the screen width the page prints (1 fits the width). The page scrolls
+     * vertically above 1. Not read yet: the page agent's `scale` parameter takes it.
+     */
+    val pageScale: Float,
     val onTap: () -> Unit,
     val onAyahPressed: (AyahRef) -> Unit,
     val onRangeDrag: (AyahRange) -> Unit,

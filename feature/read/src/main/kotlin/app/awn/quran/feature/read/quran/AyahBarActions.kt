@@ -29,16 +29,17 @@ internal class AyahBarActions(
 )
 
 /**
- * The bar of six icon buttons for the selected ayahs. [bounds] is where they are, in the
- * coordinates of the parent; [placeSelectionBar] puts the bar above the first line, below the
- * selection when there is no room above, and inside the parent. Nothing is drawn until the bounds
- * are known.
+ * The bar of six icon buttons for the selected ayahs. The first one plays, pauses or resumes, as
+ * [playMode] says. [bounds] is where they are, in the coordinates of the parent;
+ * [placeSelectionBar] puts the bar above the first line, below the selection when there is no room
+ * above, and inside the parent. Nothing is drawn until the bounds are known.
  */
 @Suppress("LongMethod") // Placement plus six buttons.
 @Composable
 internal fun AyahActionBar(
     bounds: SelectionBounds?,
     isBookmarked: Boolean,
+    playMode: PlayButtonMode,
     actions: AyahBarActions,
     modifier: Modifier = Modifier,
 ) {
@@ -69,9 +70,11 @@ internal fun AyahActionBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             ReadIconButton(
-                R.drawable.ic_read_play,
-                stringResource(R.string.ayah_play),
-                actions.onPlay,
+                iconRes =
+                    if (playMode == PlayButtonMode.Pause) R.drawable.ic_read_pause
+                    else R.drawable.ic_read_play,
+                description = stringResource(playDescription(playMode)),
+                onClick = actions.onPlay,
                 tint = field.onButton,
             )
             ReadIconButton(
@@ -112,6 +115,13 @@ internal fun AyahActionBar(
         }
     }
 }
+
+private fun playDescription(mode: PlayButtonMode): Int =
+    when (mode) {
+        PlayButtonMode.Play -> R.string.ayah_play
+        PlayButtonMode.Pause -> R.string.ayah_pause
+        PlayButtonMode.Resume -> R.string.ayah_resume
+    }
 
 /**
  * The control that brings the reader back to the playing ayah. It shows while audio plays and the

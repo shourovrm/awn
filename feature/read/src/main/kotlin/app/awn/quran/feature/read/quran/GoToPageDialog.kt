@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,8 +19,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.Dialog
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
@@ -34,10 +39,12 @@ import kotlinx.coroutines.launch
 
 /**
  * The Go to page dialog: a page field, and surah and ayah fields that fill each other in, so typing
- * page 312 shows Maryam 96 and typing 19 and 96 shows page 312.
+ * page 312 shows Maryam 96 and typing 19 and 96 shows page 312. It opens with the page field
+ * focused and holding [currentPage], selected, so typing replaces it.
  */
 @Composable
 internal fun GoToPageDialog(
+    currentPage: Int,
     quranText: QuranTextRepository,
     script: ScriptId,
     chapters: List<Chapter>,
@@ -46,14 +53,34 @@ internal fun GoToPageDialog(
 ) {
     val resolver = remember(chapters, script) { GoToPageResolver(quranText, script, chapters) }
     val scope = rememberCoroutineScope()
-    var page by rememberSaveable { mutableStateOf("") }
-    var surah by rememberSaveable { mutableStateOf("") }
-    var ayah by rememberSaveable { mutableStateOf("") }
+    val pageFocus = remember { FocusRequester() }
+    var pageField by
+        rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            val text = currentPage.toString()
+            mutableStateOf(TextFieldValue(text, selection = TextRange(0, text.length)))
+        }
+    var surahField by
+        rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            mutableStateOf(TextFieldValue())
+        }
+    var ayahField by
+        rememberSaveable(stateSaver = TextFieldValue.Saver) {
+            mutableStateOf(TextFieldValue())
+        }
+    fun currentFields() = GoToFields(pageField.text, surahField.text, ayahField.text)
     fun apply(fields: GoToFields) {
-        page = fields.page
-        surah = fields.surah
-        ayah = fields.ayah
+        pageField = pageField.copy(text = fields.page)
+        surahField = surahField.copy(text = fields.surah)
+        ayahField = ayahField.copy(text = fields.ayah)
     }
+
+    LaunchedEffect(Unit) { pageFocus.requestFocus() }
+    // The surah and ayah of the prefilled page, so the three fields agree from the start.
+    LaunchedEffect(resolver) {
+        if (surahField.text.isEmpty()) apply(resolver.afterPageEdited(currentFields()))
+    }
+
+    val surahName = chapters.firstOrNull { it.number == surahField.text.toIntOrNull() }?.localName()
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -64,35 +91,41 @@ internal fun GoToPageDialog(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             Text(text = stringResource(R.string.go_title), style = AwnTypography.lead)
-            NumberField(stringResource(R.string.go_page), page) { typed ->
-                page = typed
-                scope.launch { apply(resolver.afterPageEdited(GoToFields(typed, surah, ayah))) }
+            NumberField(
+                label = stringResource(R.string.go_page),
+                value = pageField,
+                modifier = Modifier.focusRequester(pageFocus),
+            ) { typed ->
+                pageField = typed
+                scope.launch { apply(resolver.afterPageEdited(currentFields())) }
             }
             NumberField(
                 label = stringResource(R.string.go_surah),
-                value = surah,
-                supporting = chapters.firstOrNull { it.number == surah.toIntOrNull() }?.localName(),
+                value = surahField,
+                supporting = surahName,
             ) { typed ->
-                surah = typed
-                scope.launch {
-                    apply(resolver.afterSurahOrAyahEdited(GoToFields(page, typed, ayah)))
-                }
+                surahField = typed
+                scope.launch { apply(resolver.afterSurahOrAyahEdited(currentFields())) }
             }
-            NumberField(stringResource(R.string.go_ayah), ayah) { typed ->
-                ayah = typed
-                scope.launch {
-                    apply(resolver.afterSurahOrAyahEdited(GoToFields(page, surah, typed)))
-                }
+            NumberField(label = stringResource(R.string.go_ayah), value = ayahField) { typed ->
+                ayahField = typed
+                scope.launch { apply(resolver.afterSurahOrAyahEdited(currentFields())) }
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.go_cancel)) }
-                TextButton(
-                    onClick = { resolver.targetPage(GoToFields(page, surah, ayah))?.let(onGo) },
-                    enabled = resolver.targetPage(GoToFields(page, surah, ayah)) != null,
-                ) {
-                    Text(stringResource(R.string.go_action))
-                }
-            }
+            GoToButtons(
+                target = resolver.targetPage(currentFields()),
+                onGo = onGo,
+                onDismiss = onDismiss,
+            )
+        }
+    }
+}
+
+@Composable
+private fun GoToButtons(target: Int?, onGo: (Int) -> Unit, onDismiss: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = onDismiss) { Text(stringResource(R.string.go_cancel)) }
+        TextButton(onClick = { target?.let(onGo) }, enabled = target != null) {
+            Text(stringResource(R.string.go_action))
         }
     }
 }
@@ -100,17 +133,18 @@ internal fun GoToPageDialog(
 @Composable
 private fun NumberField(
     label: String,
-    value: String,
+    value: TextFieldValue,
+    modifier: Modifier = Modifier,
     supporting: String? = null,
-    onChange: (String) -> Unit,
+    onChange: (TextFieldValue) -> Unit,
 ) {
     TextField(
         value = value,
-        onValueChange = { typed -> onChange(typed.filter(Char::isDigit)) },
+        onValueChange = { typed -> onChange(typed.copy(text = typed.text.filter(Char::isDigit))) },
         label = { Text(label) },
         supportingText = supporting?.let { { Text(it) } },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     )
 }

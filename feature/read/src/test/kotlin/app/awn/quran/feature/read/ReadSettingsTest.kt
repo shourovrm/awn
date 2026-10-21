@@ -1,7 +1,9 @@
 package app.awn.quran.feature.read
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
@@ -9,6 +11,8 @@ import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ReadSettingsViewModel
+import app.awn.quran.feature.read.settings.ScreenOrientation
+import app.awn.quran.feature.read.settings.TextLayer
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -37,12 +41,18 @@ class ReadSettingsTest {
         val changed =
             ReadSettings(
                 script = ScriptId.V2,
-                pageView = PageView.WordByWord,
+                pageView = PageView.LineByLine,
+                showArabic = false,
                 translations = listOf(TranslationId("en_saheeh"), TranslationId("bn_zakaria")),
                 showTransliteration = false,
                 showWordByWord = false,
                 arabicSizeStep = 6,
                 translationSizeStep = 1,
+                transliterationSizeStep = 5,
+                wordByWordSizeStep = 0,
+                mushafSizeStep = 3,
+                quranOrientation = ScreenOrientation.Landscape,
+                appOrientation = ScreenOrientation.Portrait,
                 highlightBookmarks = false,
                 volumeKeysTurnPages = true,
             )
@@ -73,7 +83,94 @@ class ReadSettingsTest {
 
         assertEquals(4, loaded.arabicSizeStep)
         assertEquals(4, loaded.translationSizeStep)
-        assertEquals(PageView.Translation, loaded.pageView)
+        assertEquals(PageView.LineByLine, loaded.pageView)
+        assertEquals(false, loaded.showWordByWord)
+    }
+
+    @Test
+    fun theOldWordByWordViewBecomesLineByLineWithTheWordByWordLayerTicked() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        val dataStore =
+            PreferenceDataStoreFactory.create(scope = scope) {
+                File(folder.root, "legacy_word_by_word.preferences_pb")
+            }
+        dataStore.edit {
+            it[stringPreferencesKey("page_view")] = "WordByWord"
+            it[booleanPreferencesKey("word_by_word")] = false
+            it[intPreferencesKey("translation_size_step")] = 5
+        }
+        val store = DataStoreReadSettingsStore(dataStore)
+
+        val migrated = store.settings.first()
+        // Saving once writes the new form; reading it again must give the same settings.
+        store.update { it }
+        val resaved = store.settings.first()
+        scope.cancel()
+
+        assertEquals(PageView.LineByLine, migrated.pageView)
+        assertEquals(true, migrated.showWordByWord)
+        assertEquals(migrated, resaved)
+        // The layers that had no size of their own followed the translation size.
+        assertEquals(5, migrated.transliterationSizeStep)
+        assertEquals(5, migrated.wordByWordSizeStep)
+    }
+
+    @Test
+    fun aTickTheUserRemovedIsNotBroughtBackAfterTheMigration() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        val store = openStore(File(folder.root, "after.preferences_pb"), scope)
+
+        store.update { it.copy(pageView = PageView.LineByLine, showWordByWord = false) }
+        val loaded = store.settings.first()
+        scope.cancel()
+
+        assertEquals(false, loaded.showWordByWord)
+    }
+
+    @Test
+    fun layersListsOnlyTheTickedOnesInThePopupOrder() {
+        val everything = ReadSettings(translations = listOf(TranslationId("en_saheeh")))
+        assertEquals(
+            listOf(
+                TextLayer.Arabic,
+                TextLayer.Translation,
+                TextLayer.Transliteration,
+                TextLayer.WordByWord,
+            ),
+            everything.visibleLayers,
+        )
+
+        val onlyMeanings =
+            everything.copy(
+                showArabic = false,
+                translations = emptyList(),
+                showTransliteration = false,
+            )
+        assertEquals(listOf(TextLayer.WordByWord), onlyMeanings.visibleLayers)
+    }
+
+    @Test
+    fun eachLayerKeepsItsOwnSizeInsideTheRange() {
+        val settings = ReadSettings(arabicSizeStep = 3, wordByWordSizeStep = 0)
+
+        val changed =
+            settings
+                .withStepMoved(TextLayer.Arabic, 2)
+                .withStepMoved(TextLayer.WordByWord, -1)
+                .withStepMoved(TextLayer.Transliteration, 99)
+
+        assertEquals(5, changed.arabicSizeStep)
+        assertEquals(0, changed.wordByWordSizeStep)
+        assertEquals(7, changed.transliterationSizeStep)
+        assertEquals(settings.translationSizeStep, changed.translationSizeStep)
+    }
+
+    @Test
+    fun thePrintedPageFitsTheWidthAtStepZeroAndGrowsFromThere() {
+        assertEquals(1f, ReadSettings().mushafScale, 0.001f)
+        assertEquals(1.6f, ReadSettings(mushafSizeStep = 4).mushafScale, 0.001f)
+        assertEquals(4, ReadSettings().withMushafStepMoved(99).mushafSizeStep)
+        assertEquals(0, ReadSettings().withMushafStepMoved(-1).mushafSizeStep)
     }
 
     @Test

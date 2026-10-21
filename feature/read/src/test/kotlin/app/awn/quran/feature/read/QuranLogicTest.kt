@@ -15,6 +15,7 @@ import app.awn.quran.feature.read.quran.adjacentAyah
 import app.awn.quran.feature.read.quran.ayahShareText
 import app.awn.quran.feature.read.quran.isFollowingOn
 import app.awn.quran.feature.read.quran.scrollToKeepVisible
+import app.awn.quran.feature.read.quran.shiftToClearAudioBar
 import app.awn.quran.feature.read.quran.shouldTurnToPlayingPage
 import app.awn.quran.feature.read.quran.titleSurahNumber
 import app.awn.quran.feature.read.quran.volumeKeyAction
@@ -197,5 +198,17 @@ class QuranLogicTest {
         val tawbahItems = itemsOf(187)
         assertTrue(tawbahItems[0] is PageItem.SurahBand)
         assertTrue(tawbahItems.none { it is PageItem.Basmalah })
+    }
+
+    @Test
+    fun aSelectionUnderTheAudioBarSlidesTheMushafPageUpByJustEnough() {
+        // A page 1000 px tall; the audio bar covers the bottom 100 px; margin 16 px.
+        fun shift(top: Float, bottom: Float) =
+            shiftToClearAudioBar(top, bottom, pageHeight = 1000f, clearance = 100f, margin = 16f)
+
+        assertEquals(0f, shift(top = 300f, bottom = 500f), 0.01f)
+        assertEquals(66f, shift(top = 900f, bottom = 950f), 0.01f)
+        // Never further than the bar is tall.
+        assertEquals(100f, shift(top = 960f, bottom = 990f), 0.01f)
     }
 }
