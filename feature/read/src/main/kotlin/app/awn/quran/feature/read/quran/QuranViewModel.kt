@@ -234,6 +234,11 @@ class QuranViewModel(
     private val pageOfAyahCache = mutableMapOf<AyahRef, Int>()
     private val pagesLoadingContent = mutableSetOf<Int>()
 
+    // The Mushaf page reports a word tap and then the same tap as a page tap. The card of a problem
+    // word opens only after its text is read, so without this the page tap would toggle the bars
+    // (or close the card it is opening).
+    private var problemWordTapPending = false
+
     init {
         viewModelScope.launch { loadChapters() }
         viewModelScope.launch { loadInstalledTranslations() }
@@ -444,6 +449,10 @@ class QuranViewModel(
      * its own close button, so a tap above it still toggles the bars.
      */
     fun onPageTapped() {
+        if (problemWordTapPending) {
+            problemWordTapPending = false
+            return
+        }
         val state = mutableState.value
         when {
             state.wordPopup != null -> dismissWordPopup()
@@ -624,6 +633,7 @@ class QuranViewModel(
      * the key, so the word's text, meaning and transliteration are read before the card opens.
      */
     fun onProblemWordTapped(key: WordKey, problem: WordProblem) {
+        problemWordTapPending = true
         viewModelScope.launch {
             val ayah = AyahRef(key.surah, key.ayah)
             val block =
