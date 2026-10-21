@@ -123,8 +123,12 @@ private fun IndexTabs(selected: Int, onSelect: (Int) -> Unit) {
                         ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // A minimum height, not a weight: the tab row has no height limit of its own, so a
+                // weighted label grew to fill the whole screen and hid the list below it.
                 Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .heightIn(min = AwnSpacing.touchTarget - AwnSpacing.tabIndicatorHeight),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
