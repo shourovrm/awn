@@ -110,4 +110,17 @@ class ReciteWordCardTest {
 
         assertNull(viewModel.state.value.wordPopup)
     }
+
+    @Test
+    fun theTapThatOpensAProblemWordCardOnThePageNeitherClosesItNorTogglesTheBars() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        val barsBefore = viewModel.state.value.areBarsVisible
+
+        // The page reports a word tap and then the same tap as a page tap.
+        viewModel.onProblemWordTapped(firstKey, WordProblem.Skipped)
+        viewModel.onPageTapped()
+
+        assertNotNull(viewModel.state.value.wordPopup)
+        assertEquals(barsBefore, viewModel.state.value.areBarsVisible)
+    }
 }

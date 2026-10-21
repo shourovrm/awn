@@ -48,10 +48,13 @@ fun PageFontWord(
             isNight,
             fontCache,
         ) {
-            if (value == null) {
-                value =
-                    withContext(Dispatchers.IO) { loadWordFonts(fontCache, script, page, isNight) }
-            }
+            // The state outlives a change of keys, so a switch to night must replace the day fonts
+            // here rather than keep whatever was loaded first.
+            value =
+                cachedWordFonts(fontCache, script, page, isNight)
+                    ?: withContext(Dispatchers.IO) {
+                        loadWordFonts(fontCache, script, page, isNight)
+                    }
         }
     val loaded = fonts ?: return
     val glyphFamily = loaded.glyphFamily

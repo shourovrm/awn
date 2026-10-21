@@ -109,6 +109,8 @@ class ReciteController(
      * microphone. A page that holds the end of one surah and the start of the next loads both.
      */
     fun reciteFrom(ayah: AyahRef) {
+        // The microphone would hear the reciter, so audio never plays under a new recitation.
+        audioPlayer.stop()
         mutableRevising.value = false
         load(ayah)
     }
@@ -129,6 +131,7 @@ class ReciteController(
      * through `onOpenAyah` when it is not already loaded.
      */
     fun reviseAt(ayah: AyahRef) {
+        audioPlayer.stop()
         mutableRevising.value = true
         mutableActive.value = true
         val previous = loadJob

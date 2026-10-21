@@ -35,7 +35,11 @@ internal fun rememberFontLookup(
             page,
             isNight,
         ) {
-            if (value == null) value = FontLookup(fontCache.load(script, page, isNight))
+            // The state outlives a change of keys: a switch to night must replace the day family,
+            // not keep it because a value is already there.
+            value =
+                cachedLookup(fontCache, script, page, isNight)
+                    ?: FontLookup(fontCache.load(script, page, isNight))
         }
     return lookup
 }
@@ -65,10 +69,10 @@ internal fun rememberFontsLoaded(
     val alreadyCached = pages.all { page -> fontCache.cachedFamily(script, page, isNight) != null }
     val isLoaded by
         produceState(initialValue = alreadyCached, fontCache, script, pages, isNight) {
-            if (!value) {
-                pages.forEach { page -> loadGlyphOrFallbackFont(fontCache, script, page, isNight) }
-                value = true
-            }
+            // Runs again on every change of keys (a switch to night, say): the list keeps showing
+            // meanwhile, and each cached page returns at once.
+            pages.forEach { page -> loadGlyphOrFallbackFont(fontCache, script, page, isNight) }
+            value = true
         }
     return isLoaded
 }

@@ -59,13 +59,23 @@ class SelectionBarPlacementTest {
     }
 
     @Test
-    fun theBarIsClampedToTheScreenEdges() {
+    fun theBarKeepsTheGapFromTheScreenEdges() {
         val leftEdge =
             placeSelectionBar(boundsOf(500f, 700f, 0f, 100f), bar, screen, gap, flipLimit)
         val rightEdge =
             placeSelectionBar(boundsOf(500f, 700f, 900f, 1000f), bar, screen, gap, flipLimit)
 
-        assertEquals(0, leftEdge.x)
-        assertEquals(screen.width - bar.width, rightEdge.x)
+        assertEquals(gap, leftEdge.x)
+        assertEquals(screen.width - bar.width - gap, rightEdge.x)
+    }
+
+    @Test
+    fun aBarWiderThanTheScreenStartsAtTheLeftEdge() {
+        val wideBar = IntSize(screen.width, 100)
+
+        val place =
+            placeSelectionBar(boundsOf(500f, 700f, 0f, 100f), wideBar, screen, gap, flipLimit)
+
+        assertEquals(0, place.x)
     }
 }

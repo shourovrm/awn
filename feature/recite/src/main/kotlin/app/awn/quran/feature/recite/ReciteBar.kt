@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,7 @@ import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.player.PlaybackState
 import kotlin.math.abs
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -59,6 +61,9 @@ const val RECITE_BAR_HIDE_TAG = "recite-bar-hide-words"
 const val RECITE_BAR_HINT_TAG = "recite-bar-hint"
 const val RECITE_BAR_REVEAL_WORD_TAG = "recite-bar-reveal-word"
 const val RECITE_BAR_REVEAL_AYAH_TAG = "recite-bar-reveal-ayah"
+const val RECITE_BAR_LISTEN_TAG = "recite-bar-listen"
+const val RECITE_BAR_AUDIO_STOP_TAG = "recite-bar-audio-stop"
+const val RECITE_BAR_AUDIO_PROGRESS_TAG = "recite-bar-audio-progress"
 
 /** A grade button's tag is this prefix plus the grade in lower case: easy, good, hard, forgot. */
 const val RECITE_BAR_GRADE_TAG_PREFIX = "recite-bar-grade-"
@@ -85,8 +90,8 @@ private val speedLabels =
  * when the close button is tapped. Leaving the composition, for example when Back removes the bar,
  * also stops reciting and clears the word states.
  */
-// One bar: its state, the six controls and the review sheet belong together.
-@Suppress("LongMethod")
+// One bar: its state, the controls and the review sheet belong together.
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @Composable
 fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifier = Modifier) {
     val session = controller.session
@@ -112,6 +117,12 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val barMode = reciteBarMode(speechState)
     val canListen = barMode == ReciteBarMode.Controls && words.isNotEmpty()
 
+    val playback by controller.audioPlayer.state.collectAsState(initial = PlaybackState.Idle)
+    val audio = reciteAudioStateOf(playback)
+    val isAudioActive = audio.isActive()
+    // Whatever starts the audio (Listen, the ayah bar, a word), the microphone must not hear it.
+    LaunchedEffect(isAudioActive) { if (isAudioActive) controller.pauseMicrophone() }
+
     Column(
         modifier
             .padding(horizontal = AwnSpacing.screenMargin)
@@ -131,7 +142,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
             )
         } else {
             Text(
-                text = barStatusText(controller, phase, access),
+                text = barStatusText(controller, phase, access, audio, playback),
                 style = AwnTypography.small,
                 color = colors.content,
                 maxLines = 1,
@@ -139,6 +150,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                 modifier =
                     Modifier.padding(horizontal = AwnSpacing.small).testTag(RECITE_BAR_STATUS_TAG),
             )
+            if (isAudioActive) AudioProgressLine(playback, colors)
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -163,7 +175,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     tag = RECITE_BAR_HIDE_TAG,
                     colors = colors,
                 )
-                if (hintEnabled) {
+                if (hintEnabled && !isAudioActive) {
                     BarIconButton(
                         icon = R.drawable.ic_recite_hint,
                         description = stringResource(R.string.recite_hint),
@@ -173,19 +185,33 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                         colors = colors,
                     )
                 }
-                if (phase == RecitationPhase.Stopped) {
+                ListenButton(
+                    audio = audio,
+                    enabled = canListen || isAudioActive,
+                    colors = colors,
+                    onClick = {
+                        when (listenActionFor(audio)) {
+                            ListenAction.PlayAyah -> scope.launch { controller.listenToAyah() }
+                            ListenAction.Pause -> controller.audioPlayer.pause()
+                            ListenAction.Resume -> controller.audioPlayer.resume()
+                            null -> Unit
+                        }
+                    },
+                )
+                if (isAudioActive) {
                     BarIconButton(
-                        icon = R.drawable.ic_recite_review,
-                        description = stringResource(R.string.recite_review),
-                        onClick = { reviewOpen = true },
-                        tag = RECITE_BAR_REVIEW_TAG,
+                        icon = R.drawable.ic_recite_stop,
+                        description = stringResource(R.string.recite_listen_stop),
+                        onClick = controller.audioPlayer::stop,
+                        tag = RECITE_BAR_AUDIO_STOP_TAG,
                         colors = colors,
                     )
                 }
                 MicrophoneButton(
                     listening = listening,
                     access = access,
-                    enabled = canListen || listening,
+                    // The microphone stays off while audio plays: the user taps it afterwards.
+                    enabled = (canListen && !isAudioActive) || listening,
                     colors = colors,
                     onClick = {
                         when {
@@ -197,22 +223,35 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     },
                 )
             }
-            if (hideWords) {
+            // Review sits here, not in the first row, which has no room for a seventh button.
+            val showsReview = phase == RecitationPhase.Stopped && !isAudioActive
+            if (hideWords || showsReview) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    BarIconButton(
-                        icon = R.drawable.ic_recite_reveal_word,
-                        description = stringResource(R.string.recite_reveal_word),
-                        onClick = session::revealNextWord,
-                        tag = RECITE_BAR_REVEAL_WORD_TAG,
-                        colors = colors,
-                    )
-                    BarIconButton(
-                        icon = R.drawable.ic_recite_reveal_ayah,
-                        description = stringResource(R.string.recite_reveal_ayah),
-                        onClick = session::revealAyah,
-                        tag = RECITE_BAR_REVEAL_AYAH_TAG,
-                        colors = colors,
-                    )
+                    if (hideWords) {
+                        BarIconButton(
+                            icon = R.drawable.ic_recite_reveal_word,
+                            description = stringResource(R.string.recite_reveal_word),
+                            onClick = session::revealNextWord,
+                            tag = RECITE_BAR_REVEAL_WORD_TAG,
+                            colors = colors,
+                        )
+                        BarIconButton(
+                            icon = R.drawable.ic_recite_reveal_ayah,
+                            description = stringResource(R.string.recite_reveal_ayah),
+                            onClick = session::revealAyah,
+                            tag = RECITE_BAR_REVEAL_AYAH_TAG,
+                            colors = colors,
+                        )
+                    }
+                    if (showsReview) {
+                        BarIconButton(
+                            icon = R.drawable.ic_recite_review,
+                            description = stringResource(R.string.recite_review),
+                            onClick = { reviewOpen = true },
+                            tag = RECITE_BAR_REVIEW_TAG,
+                            colors = colors,
+                        )
+                    }
                 }
             }
             gradePrompt?.let { prompt ->
@@ -285,6 +324,8 @@ private fun barStatusText(
     controller: ReciteController,
     phase: RecitationPhase,
     access: MicrophoneAccess,
+    audio: ReciteAudioState,
+    playback: PlaybackState,
 ): String {
     val session = controller.session
     val status by session.status.collectAsState()
@@ -297,6 +338,7 @@ private fun barStatusText(
     val currentPrompt = gradePrompt
     val listening = phase == RecitationPhase.Listening
     return when {
+        audio.isActive() -> audioStatusText(audio, playback)
         access == MicrophoneAccess.CanAsk && !listening ->
             stringResource(R.string.recite_status_allow_microphone)
         access == MicrophoneAccess.DeniedPermanently && !listening ->
@@ -430,7 +472,7 @@ private fun SpeedChoice(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun BarIconButton(
+internal fun BarIconButton(
     icon: Int,
     description: String,
     onClick: () -> Unit,

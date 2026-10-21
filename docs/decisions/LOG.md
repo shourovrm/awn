@@ -117,3 +117,6 @@
 2026-10-21 | Per-app language through AppCompat (setApplicationLocales + autoStoreLocales) | one route for Android 8 to 16; Compose needs an AppCompatActivity below 13
 2026-10-21 | Language screen shows once before the notice; accepted notice means skip | upgrading users keep their flow; see architecture.md
 2026-10-21 | Line view scrolls to the recited ayah | live recitation moved below the screen, so its fills were never seen (read.md)
+2026-10-21 | Page follows the next expected word, animated for one page, jump for more | audio-style jump hid the recitation (read.md)
+2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
+2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
