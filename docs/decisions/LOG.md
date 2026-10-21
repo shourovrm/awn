@@ -122,3 +122,4 @@
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
 2026-10-21 | Word-by-word language is its own setting (null = app language), radio list, English fallback | one flag ticked every row and read the device locale
 2026-10-21 | Word-timing packs are a Word audio download group; ayah-level timings (Basfar) are not offered | nothing installed timings, so word play hid
+2026-10-21 | Word audio downloads by itself for the chosen reciter on unmetered networks; the card offers it otherwise | same rule as audio, 3 MB each

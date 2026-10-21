@@ -488,6 +488,7 @@ private fun QuranContent(
                 isPlaying = state.isPopupWordPlaying,
                 onPlay = viewModel::playPopupWord,
                 onStop = viewModel::stopPopupWord,
+                onDownloadAudio = viewModel::downloadWordAudio,
                 modifier = Modifier.fillMaxSize(),
             )
         }

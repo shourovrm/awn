@@ -117,6 +117,7 @@ class AwnServices(private val application: Application) {
             downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
+            isNetworkMetered = networkStatus::isMetered,
         )
 
     private val modelFiles =

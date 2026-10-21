@@ -30,6 +30,11 @@ data class ReadDependencies(
     val reciters: ReciterRepository? = null,
     /** The id of the reciter chosen in the audio settings, emitted again after each change. */
     val selectedReciterId: Flow<String> = flowOf(DEFAULT_RECITER_ID),
+    /**
+     * True on mobile data or a hotspot. A reciter's word audio (about 3 MB) downloads by itself
+     * only when this is false, the same rule as the audio downloads; otherwise the word card asks.
+     */
+    val isNetworkMetered: () -> Boolean = { false },
 ) {
     companion object {
         /** The reciter :feature:listen starts with. */
