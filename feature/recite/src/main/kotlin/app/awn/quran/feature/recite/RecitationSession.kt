@@ -167,7 +167,7 @@ class RecitationSession(
         private set
 
     private var recognitionJob: Job? = null
-    private var activeInput: TrackerInput? = null
+    @Volatile private var activeInput: TrackerInput? = null
 
     suspend fun chapters(): List<Chapter> = quranText.chapters()
 
@@ -257,6 +257,12 @@ class RecitationSession(
                 }
                 val input = inputFactory()
                 activeInput = input
+                // A stop that came after the phase check above but before the line above found no
+                // input to close, so the microphone would stay open and block here for good.
+                if (mutablePhase.value != RecitationPhase.Listening) {
+                    (input as? AutoCloseable)?.close()
+                    return@launch
+                }
                 recognise(input)
             }
     }
@@ -272,10 +278,12 @@ class RecitationSession(
 
     /** Closes the audio input; what was heard so far stays on screen. */
     fun stop() {
-        (activeInput as? AutoCloseable)?.close()
+        // The phase changes first: the recognition job checks it after publishing its input, so one
+        // of the two sees the other and the microphone is always closed.
         if (mutablePhase.value == RecitationPhase.Listening) {
             mutablePhase.value = RecitationPhase.Stopped
         }
+        (activeInput as? AutoCloseable)?.close()
     }
 
     /** Stops and forgets the loaded words as well as everything heard; the page draws normally. */

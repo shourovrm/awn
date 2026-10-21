@@ -35,3 +35,4 @@
 - Text "Review" label under each ayah, then per-ayah icon button: replaced by one review button in the bar.
 - Voice-activity gate on the microphone: the model emitted 0 phonemes on 26 synthetic noises, so it would only risk cutting quiet recitation.
 - Grades committed only when the user taps (no automatic rating): a silent session would lose every ayah the user forgot to grade; the automatic rating is kept and replaced on a tap.
+- CI hung 45 min: tests that never called finishPreparing left a load blocked on a Dispatchers.Default thread (2 on the runner); ControllerFixtures now closes fixtures and tests run with a pool of 2. Stopping the session between the phase check and the mic opening left the mic open; fixed in stop().
