@@ -155,7 +155,8 @@ class ListRecitationFollowTest {
                         isCurrent = true,
                         environment(
                             recited.value,
-                            contentPadding = listContentPadding(BAR_HEIGHT.dp, navigationBarHeight = 0.dp),
+                            contentPadding =
+                                listContentPadding(BAR_HEIGHT.dp, navigationBarHeight = 0.dp),
                         ),
                     )
                 }

@@ -23,6 +23,7 @@ import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -51,7 +52,7 @@ class ReciteBarTest {
     fun setUp() {
         shadowOf(ApplicationProvider.getApplicationContext<Application>())
             .grantPermissions(Manifest.permission.RECORD_AUDIO)
-        fixture = ControllerFixture(folder.root)
+        fixture = ControllerFixture(folder.root, hasWordTimings = true)
         fixture.controller.reciteFrom(AyahRef(1, 1))
         runBlocking { fixture.controller.joinPendingWork() }
         composeRule.setContent {
@@ -84,13 +85,13 @@ class ReciteBarTest {
     }
 
     @Test
-    fun afterStoppingOneReviewButtonOpensTheSheetWithTheFlaggedWord() {
+    fun afterStoppingOneReviewButtonOpensTheCardOnTheFirstFlaggedWord() {
         recite(TrackerEvent.Skipped(index = 1))
 
         composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag(REVIEW_SHEET_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(REVIEW_CARD_TAG).assertIsDisplayed()
         composeRule.onNodeWithTag(REVIEW_LISTEN_TAG).performClick()
         // The reciter comes from a DataStore read on another thread.
         composeRule.waitUntil(timeoutMillis = 5_000) { fixture.audioPlayer.wordCalls.isNotEmpty() }
@@ -101,13 +102,45 @@ class ReciteBarTest {
     }
 
     @Test
-    fun theReviewSheetOpensEvenWhenNothingWasFlagged() {
+    fun previousAndNextMoveTheFocusedWordOfTheSession() {
+        recite(TrackerEvent.Skipped(index = 0), TrackerEvent.Skipped(index = 1))
+        composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).performClick()
+        composeRule.waitForIdle()
+        assertEquals(fixture.first, fixture.controller.focusedWord.value)
+
+        composeRule.onNode(hasText("Next")).performClick()
+        composeRule.waitForIdle()
+        assertEquals(fixture.second, fixture.controller.focusedWord.value)
+
+        composeRule.onNode(hasText("Previous")).performClick()
+        composeRule.waitForIdle()
+        assertEquals(fixture.first, fixture.controller.focusedWord.value)
+    }
+
+    @Test
+    fun aFocusSetFromThePageOpensTheCardAndClosingItClearsTheFocus() {
+        recite(TrackerEvent.Skipped(index = 0))
+        composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).assertIsDisplayed()
+
+        fixture.controller.focusWord(fixture.first)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(REVIEW_CARD_TAG).assertIsDisplayed()
+
+        composeRule.onNodeWithTag(REVIEW_CLOSE_TAG).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(REVIEW_CARD_TAG).assertDoesNotExist()
+        assertNull(fixture.controller.focusedWord.value)
+    }
+
+    @Test
+    fun theReviewCardOpensEvenWhenNothingWasFlagged() {
         recite(fixture.confirmed(0))
 
         composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag(REVIEW_SHEET_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(REVIEW_CARD_TAG).assertIsDisplayed()
         composeRule.onNode(hasText("Nothing to review")).assertIsDisplayed()
     }
 

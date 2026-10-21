@@ -55,14 +55,13 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -318,7 +317,10 @@ private fun QuranContent(
         val reciteWordBounds = trackedWordBounds
         val barShiftTarget =
             when {
-                state.isReciting && isMushaf && reciteWordBounds != null && bottomStackHeightPx > 0 ->
+                state.isReciting &&
+                    isMushaf &&
+                    reciteWordBounds != null &&
+                    bottomStackHeightPx > 0 ->
                     shiftToClearAudioBar(
                             spanTop = reciteWordBounds.top,
                             spanBottom = reciteWordBounds.bottom,

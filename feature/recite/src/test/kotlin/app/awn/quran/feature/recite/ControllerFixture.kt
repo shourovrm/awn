@@ -47,6 +47,8 @@ class ControllerFixture(
     microphone: (() -> TrackerInput)? = null,
     /** Replaces the test dispatcher, for an input that blocks its thread. */
     recognitionThread: CoroutineDispatcher? = null,
+    /** Whether the chosen reciter has word timings, so Listen can play a single word. */
+    hasWordTimings: Boolean = false,
 ) {
     val first = WordKey(1, 1, 1)
     val second = WordKey(1, 1, 2)
@@ -147,6 +149,7 @@ class ControllerFixture(
                 gradeSink = { ayah, grade -> graded += ayah to grade },
                 revisionQueue = { dueAyahs.toList() },
                 onOpenAyah = { opened += it },
+                hasWordTimings = { _, _ -> hasWordTimings },
             )
     }
 
