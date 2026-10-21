@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8239373b2822f8ddbae70632fbdae27f",
+    "identityHash": "47d9b3b7984cbae5b43155c8f5f31fa4",
     "entities": [
       {
         "tableName": "plan",
@@ -88,7 +88,7 @@
       },
       {
         "tableName": "page_progress",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`page` INTEGER NOT NULL, `status` INTEGER NOT NULL, `learned_on` INTEGER, `last_revised_on` INTEGER, `stability` REAL, `difficulty` REAL, `due` INTEGER, `last_review` INTEGER, `reps` INTEGER NOT NULL, `lapses` INTEGER NOT NULL, `state` INTEGER NOT NULL, `step` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`page`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`page` INTEGER NOT NULL, `status` INTEGER NOT NULL, `learned_on` INTEGER, `last_revised_on` INTEGER, `stability` REAL, `difficulty` REAL, `due` INTEGER, `last_review` INTEGER, `state` INTEGER NOT NULL, `step` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`page`))",
         "fields": [
           {
             "fieldPath": "page",
@@ -131,18 +131,6 @@
             "fieldPath": "lastReview",
             "columnName": "last_review",
             "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "reps",
-            "columnName": "reps",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lapses",
-            "columnName": "lapses",
-            "affinity": "INTEGER",
-            "notNull": true
           },
           {
             "fieldPath": "state",
@@ -310,7 +298,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8239373b2822f8ddbae70632fbdae27f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '47d9b3b7984cbae5b43155c8f5f31fa4')"
     ]
   }
 }

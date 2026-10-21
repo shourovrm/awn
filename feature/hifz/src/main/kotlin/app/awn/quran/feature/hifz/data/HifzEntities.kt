@@ -50,8 +50,6 @@ data class PageProgressEntity(
     val due: Long?,
     /** Epoch milliseconds. */
     @ColumnInfo(name = "last_review") val lastReview: Long?,
-    val reps: Int,
-    val lapses: Int,
     val state: Int,
     @ColumnInfo(defaultValue = "0") val step: Int = 0,
 )

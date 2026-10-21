@@ -63,8 +63,6 @@ class HifzDaoTest {
             difficulty = null,
             due = null,
             lastReview = null,
-            reps = 0,
-            lapses = 0,
             state = 0,
         )
 
