@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -31,13 +31,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -48,9 +48,9 @@ import app.awn.quran.core.ui.theme.AwnFieldColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.feature.hifz.method.HifzProgress
 import app.awn.quran.feature.hifz.method.PartGrade
 import app.awn.quran.feature.hifz.method.PartKind
-import app.awn.quran.feature.hifz.method.HifzProgress
 import app.awn.quran.feature.hifz.ui.pagesText
 import app.awn.quran.feature.hifz.ui.partTitle
 import app.awn.quran.feature.recite.MicrophoneAccess
@@ -190,7 +190,10 @@ fun HifzBar(
             val suggested =
                 if (didRecite) {
                     HifzProgress.suggestedGrade(
-                        PracticeMistakes.mistakenWords(reviews, current.firstAyah..current.lastAyah),
+                        PracticeMistakes.mistakenWords(
+                            reviews,
+                            current.firstAyah..current.lastAyah,
+                        ),
                         current.ayahCount,
                     )
                 } else {
@@ -208,7 +211,8 @@ fun HifzBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BarToggle(
-                icon = if (hideWords) R.drawable.ic_hifz_hide_words else R.drawable.ic_hifz_show_words,
+                icon =
+                    if (hideWords) R.drawable.ic_hifz_hide_words else R.drawable.ic_hifz_show_words,
                 description =
                     stringResource(
                         if (hideWords) R.string.bar_show_words else R.string.bar_hide_words,
@@ -393,7 +397,10 @@ private fun RepeatButton(count: Int, onChange: (Int) -> Unit, colors: HifzBarCol
     val description = stringResource(R.string.bar_repeat)
     Box {
         Row(
-            Modifier.defaultMinSize(minWidth = AwnSpacing.touchTarget, minHeight = AwnSpacing.touchTarget)
+            Modifier.defaultMinSize(
+                    minWidth = AwnSpacing.touchTarget,
+                    minHeight = AwnSpacing.touchTarget,
+                )
                 .semantics { contentDescription = description }
                 .clickable(role = Role.Button) { isOpen = true }
                 .testTag(HIFZ_BAR_REPEAT_TAG),
@@ -430,7 +437,8 @@ private fun RepeatButton(count: Int, onChange: (Int) -> Unit, colors: HifzBarCol
                 ) {
                     Text(
                         text = stringResource(R.string.bar_repeat_value, choice),
-                        style = if (choice == count) AwnTypography.bodyStrong else AwnTypography.body,
+                        style =
+                            if (choice == count) AwnTypography.bodyStrong else AwnTypography.body,
                         color = Awn.field.content,
                     )
                 }

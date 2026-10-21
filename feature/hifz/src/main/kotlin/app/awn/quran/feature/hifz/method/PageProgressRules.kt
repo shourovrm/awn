@@ -35,9 +35,9 @@ object PageProgressRules {
 
     /**
      * Applies a graded new lesson. A forgotten lesson leaves the pages Learning and the cursor
-     * where it was, so the same lesson comes back. Any other grade moves the cursor past the lesson;
-     * a page whose last ayah is inside the lesson becomes Memorised, a page that is only partly
-     * covered stays Learning.
+     * where it was, so the same lesson comes back. Any other grade moves the cursor past the
+     * lesson; a page whose last ayah is inside the lesson becomes Memorised, a page that is only
+     * partly covered stays Learning.
      */
     fun completeLesson(
         table: PageTable,
@@ -122,7 +122,8 @@ object PageProgressRules {
     }
 
     private fun statusFor(card: FsrsCard, current: PageStatus): PageStatus {
-        val stability = card.stability ?: return current.takeIf { it.isKnown } ?: PageStatus.Memorised
+        val stability =
+            card.stability ?: return current.takeIf { it.isKnown } ?: PageStatus.Memorised
         return if (stability >= SOLID_STABILITY_DAYS) PageStatus.Solid else PageStatus.Memorised
     }
 
@@ -146,7 +147,12 @@ object PageProgressRules {
                 PageRecord(
                     page,
                     PageStatus.Memorised,
-                    card = scheduler.reviewCard(scheduler.newCard(nowMillis), FsrsRating.Good, nowMillis),
+                    card =
+                        scheduler.reviewCard(
+                            scheduler.newCard(nowMillis),
+                            FsrsRating.Good,
+                            nowMillis,
+                        ),
                 )
             PageStatus.Solid -> PageRecord(page, PageStatus.Solid, card = solidCard(nowMillis))
         }

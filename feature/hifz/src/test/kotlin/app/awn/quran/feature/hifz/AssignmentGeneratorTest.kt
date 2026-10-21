@@ -97,7 +97,8 @@ class AssignmentGeneratorTest {
         fun oldCount(cycleDays: Int) =
             generate(
                     planOf(
-                        settings = MethodSettings(manzilCycleDays = cycleDays, revisionPageLimit = 50),
+                        settings =
+                            MethodSettings(manzilCycleDays = cycleDays, revisionPageLimit = 50),
                     ),
                     records,
                 )
@@ -179,7 +180,8 @@ class AssignmentGeneratorTest {
 
         val lessonDone =
             FinishedPart(testDay, PartKind.NewLesson, listOf(3), ayah(9), ayah(12), PartGrade.Good)
-        val recentDone = FinishedPart(testDay, PartKind.Recent, listOf(1), null, null, PartGrade.Good)
+        val recentDone =
+            FinishedPart(testDay, PartKind.Recent, listOf(1), null, null, PartGrade.Good)
         val oldDone = FinishedPart(testDay, PartKind.Old, listOf(2), null, null, PartGrade.Good)
 
         assertEquals(PartKind.Recent, generate(planOf(), records, listOf(lessonDone)).nextPart())
@@ -195,7 +197,14 @@ class AssignmentGeneratorTest {
     @Test
     fun aFinishedLessonShowsTheAyahsThatWereDone() {
         val lessonDone =
-            FinishedPart(testDay, PartKind.NewLesson, listOf(3, 4), ayah(9), ayah(12), PartGrade.Good)
+            FinishedPart(
+                testDay,
+                PartKind.NewLesson,
+                listOf(3, 4),
+                ayah(9),
+                ayah(12),
+                PartGrade.Good,
+            )
 
         val lesson = generate(planOf(), emptyMap(), listOf(lessonDone)).newLesson
 
@@ -207,7 +216,10 @@ class AssignmentGeneratorTest {
     @Test
     fun methodsWithoutARecentSplitRevisePagesWhoseMemoryIsDue() {
         val nowMillis = testDay.atStartOfDay(zone).toInstant().toEpochMilli()
-        val dueCard = checkNotNull(PageProgressRules.markPage(1, PageStatus.Memorised, testDay, nowMillis).card)
+        val dueCard =
+            checkNotNull(
+                PageProgressRules.markPage(1, PageStatus.Memorised, testDay, nowMillis).card,
+            )
         val dueNow = known(1).copy(card = dueCard.copy(dueMillis = nowMillis - 1_000))
         val notDue = known(2).copy(card = dueCard.copy(dueMillis = nowMillis + 5 * 86_400_000L))
         val plan =

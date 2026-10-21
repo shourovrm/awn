@@ -129,16 +129,17 @@ class PageTable(
     }
 
     companion object {
-        /** Builds a table from the ayahs of every page, finding each page's juz from its first ayah. */
+        /**
+         * Builds a table from the ayahs of every page, finding each page's juz from its first ayah.
+         */
         fun fromPages(ayahsByPage: List<List<AyahRef>>): PageTable {
             var previousJuz = 1
-            val juzByPage =
-                ayahsByPage.map { ayahs ->
-                    // A page with no ayah of its own (not expected in a Quran print) keeps the
-                    // juz before it.
-                    ayahs.firstOrNull()?.let { previousJuz = Quarters.containing(it).juz }
-                    previousJuz
-                }
+            val juzByPage = ayahsByPage.map { ayahs ->
+                // A page with no ayah of its own (not expected in a Quran print) keeps the
+                // juz before it.
+                ayahs.firstOrNull()?.let { previousJuz = Quarters.containing(it).juz }
+                previousJuz
+            }
             return PageTable(ayahsByPage, juzByPage)
         }
     }

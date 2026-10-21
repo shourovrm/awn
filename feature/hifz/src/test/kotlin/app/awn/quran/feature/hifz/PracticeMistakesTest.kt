@@ -23,8 +23,7 @@ class PracticeMistakesTest {
                         review(155, 4, ReviewFinding.Skipped),
                     ),
                 ayah(149) to listOf(review(149, 2, ReviewFinding.WrongWord)),
-                ayah(150) to
-                    listOf(review(150, 1, ReviewFinding.Skipped, ReviewFinding.WrongWord)),
+                ayah(150) to listOf(review(150, 1, ReviewFinding.Skipped, ReviewFinding.WrongWord)),
             )
 
         val records = PracticeMistakes.recordsOf(reviews, atMillis = 9)

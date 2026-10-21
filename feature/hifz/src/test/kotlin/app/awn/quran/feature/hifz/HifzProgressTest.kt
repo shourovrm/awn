@@ -39,7 +39,10 @@ class HifzProgressTest {
 
     @Test
     fun aJuzIsTheJuzOfThePagesFirstAyah() {
-        val real = PageTable.fromPages(listOf(listOf(ayah(1)), listOf(app.awn.quran.core.data.AyahRef(2, 142))))
+        val real =
+            PageTable.fromPages(
+                listOf(listOf(ayah(1)), listOf(app.awn.quran.core.data.AyahRef(2, 142))),
+            )
 
         assertEquals(1, real.juzOf(1))
         assertEquals(2, real.juzOf(2))

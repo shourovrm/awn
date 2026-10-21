@@ -61,13 +61,16 @@ class HifzController(
     val screenState: StateFlow<HifzScreenState> =
         family
             .flatMapLatest { currentFamily -> screenStateFor(currentFamily) }
-            .stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HifzScreenState.Loading)
+            .stateIn(
+                scope,
+                SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+                HifzScreenState.Loading,
+            )
 
     private fun screenStateFor(currentFamily: PageLayoutFamily): Flow<HifzScreenState> {
         val today = repository.today()
         val weekAgo = today.minusDays(WEAK_SPOT_DAYS).atStartOfDay()
-        val sinceMillis =
-            weekAgo.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val sinceMillis = weekAgo.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         return combine(
             repository.observePlan(),
             repository.observeRecords(),
@@ -105,7 +108,10 @@ class HifzController(
     }
 
     /** Starts or replaces the plan with [method]; page records stay. */
-    fun chooseMethod(method: HifzMethodId, settings: MethodSettings = MethodDefaults.settingsFor(method)) {
+    fun chooseMethod(
+        method: HifzMethodId,
+        settings: MethodSettings = MethodDefaults.settingsFor(method),
+    ) {
         scope.launch {
             val script = scripts.first()
             val existing = repository.plan()

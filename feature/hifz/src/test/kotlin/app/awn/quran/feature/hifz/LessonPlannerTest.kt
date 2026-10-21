@@ -83,9 +83,10 @@ class LessonPlannerTest {
         val part = LessonPlanner.nextPart(table, LessonSize.OnePage, ayah(48), nothingKnown)!!
         assertEquals(ayah(48), part.last)
 
-        val everythingKnown = LessonPlanner.nextPart(table, LessonSize.OnePage, null) {
-            PageStatus.Memorised
-        }
+        val everythingKnown =
+            LessonPlanner.nextPart(table, LessonSize.OnePage, null) {
+                PageStatus.Memorised
+            }
         assertNull(everythingKnown)
     }
 }

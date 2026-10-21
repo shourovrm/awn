@@ -53,7 +53,8 @@ object AssignmentGenerator {
         zone: ZoneId = ZoneId.systemDefault(),
     ): DayAssignment {
         val settings = plan.settings
-        if (plan.method == HifzMethodId.TrackOnly) return DayAssignment.empty(settings.revisionPageLimit)
+        if (plan.method == HifzMethodId.TrackOnly)
+            return DayAssignment.empty(settings.revisionPageLimit)
 
         val lesson = assignLesson(plan, table, records, finishedToday)
         return when (plan.method) {
@@ -111,12 +112,12 @@ object AssignmentGenerator {
 
         val doneOld = finishedToday.lastOrNull { it.kind == PartKind.Old }
         val oldPages =
-            doneOld?.pages
-                ?: oldPagesFor(records, windowStart, settings, limit - recentPages.size)
+            doneOld?.pages ?: oldPagesFor(records, windowStart, settings, limit - recentPages.size)
 
         return DayAssignment(
             newLesson = lesson,
-            recent = recentPages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneRecent != null) },
+            recent =
+                recentPages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneRecent != null) },
             old = oldPages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneOld != null) },
             revisionPageLimit = limit,
         )
@@ -125,7 +126,8 @@ object AssignmentGenerator {
     // A page taught today is not revised on the day it was taught.
     private fun isRecent(record: PageRecord, windowStart: LocalDate, today: LocalDate): Boolean {
         val learnedOn = record.learnedOn ?: return false
-        val isInProgress = record.status == PageStatus.Learning || record.status == PageStatus.Memorised
+        val isInProgress =
+            record.status == PageStatus.Learning || record.status == PageStatus.Memorised
         return isInProgress && learnedOn >= windowStart && learnedOn < today
     }
 
@@ -144,7 +146,8 @@ object AssignmentGenerator {
         if (old.isEmpty()) return emptyList()
         val perDay = (old.size + settings.manzilCycleDays - 1) / settings.manzilCycleDays
         return old.sortedWith(
-                compareBy<PageRecord, LocalDate?>(nullsFirst()) { it.lastRevisedOn }.thenBy { it.page },
+                compareBy<PageRecord, LocalDate?>(nullsFirst()) { it.lastRevisedOn }
+                    .thenBy { it.page },
             )
             .take(minOf(perDay, room))
             .map { it.page }

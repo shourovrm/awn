@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
@@ -43,7 +44,6 @@ import app.awn.quran.feature.hifz.method.MistakeType
 import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.hifz.method.PartMinutes
 import app.awn.quran.feature.hifz.method.WeakSpot
-import app.awn.quran.core.ui.R as UiR
 
 /** What the main Hifz page can ask for. */
 internal data class HifzActions(

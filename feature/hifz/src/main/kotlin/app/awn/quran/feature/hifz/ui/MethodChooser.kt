@@ -1,7 +1,7 @@
 package app.awn.quran.feature.hifz.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.theme.Awn
@@ -35,8 +36,6 @@ import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.LessonSize
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.method.MethodSettings
-import androidx.compose.foundation.background
-import app.awn.quran.core.ui.R as UiR
 
 private val ayahsPerDayChoices = listOf(1, 2, 3, 5, 10, 15, 20)
 private val lessonSizeChoices =
@@ -71,8 +70,9 @@ internal fun MethodChooser(
                 isSelected = option == method,
                 onSelect = {
                     method = option
-                    settings = if (option == initialMethod) initialSettings
-                    else MethodDefaults.settingsFor(option)
+                    settings =
+                        if (option == initialMethod) initialSettings
+                        else MethodDefaults.settingsFor(option)
                 },
             )
         }

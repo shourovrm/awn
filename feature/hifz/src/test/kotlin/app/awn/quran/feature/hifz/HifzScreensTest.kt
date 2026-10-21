@@ -50,8 +50,7 @@ class HifzScreensTest {
     @get:Rule val composeRule = createComposeRule()
 
     private val table = smallTable()
-    private val fatihahOnly =
-        PageTable(listOf(listOf(AyahRef(1, 1), AyahRef(1, 2))), listOf(1))
+    private val fatihahOnly = PageTable(listOf(listOf(AyahRef(1, 1), AyahRef(1, 2))), listOf(1))
 
     private fun stateOf(
         method: HifzMethodId = HifzMethodId.SabaqSabqiManzil,
@@ -90,8 +89,7 @@ class HifzScreensTest {
             ) {
                 AwnTheme {
                     val scrolling =
-                        if (isScrolled) Modifier.verticalScroll(rememberScrollState())
-                        else Modifier
+                        if (isScrolled) Modifier.verticalScroll(rememberScrollState()) else Modifier
                     Box(Modifier.width(360.dp).then(scrolling)) { content() }
                 }
             }
@@ -141,8 +139,17 @@ class HifzScreensTest {
     @Test
     fun aFinishedLessonShowsDoneAndTheButtonMovesOn() {
         val done =
-            FinishedPart(testDay, PartKind.NewLesson, listOf(3, 4), ayah(9), ayah(12), PartGrade.Good)
-        show(ColourMode.Awn) { HifzMainContent(stateOf(finished = listOf(done)), { "" }, noActions) }
+            FinishedPart(
+                testDay,
+                PartKind.NewLesson,
+                listOf(3, 4),
+                ayah(9),
+                ayah(12),
+                PartGrade.Good,
+            )
+        show(ColourMode.Awn) {
+            HifzMainContent(stateOf(finished = listOf(done)), { "" }, noActions)
+        }
 
         composeRule.onNodeWithText("Done").assertExists()
         composeRule.onNodeWithText("Start Sabqi").assertExists()

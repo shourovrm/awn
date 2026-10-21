@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,8 +24,8 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.ui.components.AwnTopBar
-import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.ui.HifzActions
 import app.awn.quran.feature.hifz.ui.HifzMainContent

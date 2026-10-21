@@ -15,8 +15,8 @@ data class LessonPart(
 object LessonPlanner {
 
     /**
-     * The next new lesson, starting at [cursor] (the first ayah of the Quran when null). Pages
-     * the user already knows are skipped. Returns null when nothing is left after the cursor.
+     * The next new lesson, starting at [cursor] (the first ayah of the Quran when null). Pages the
+     * user already knows are skipped. Returns null when nothing is left after the cursor.
      *
      * A page lesson is the ayahs that start on the page, a half-page lesson is half of them
      * (rounded up for the first half; a page with one ayah is never cut), an ayah lesson is the
@@ -78,4 +78,3 @@ object LessonPlanner {
     private fun ayahsFrom(table: PageTable, start: AyahRef, count: Int): List<AyahRef> =
         table.allAyahs.filter { it >= start }.take(count)
 }
-

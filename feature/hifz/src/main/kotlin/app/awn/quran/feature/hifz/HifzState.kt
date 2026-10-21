@@ -79,7 +79,8 @@ object HifzStateBuilder {
                         lesson = part,
                     )
                 }
-            PartKind.Recent -> assignment.recent?.let { revisionPractice(state, kind, it.pages, repeat) }
+            PartKind.Recent ->
+                assignment.recent?.let { revisionPractice(state, kind, it.pages, repeat) }
             PartKind.Old -> assignment.old?.let { revisionPractice(state, kind, it.pages, repeat) }
         }
     }

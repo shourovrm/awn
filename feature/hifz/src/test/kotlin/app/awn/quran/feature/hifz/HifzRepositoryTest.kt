@@ -32,7 +32,8 @@ class HifzRepositoryTest {
 
     private lateinit var database: HifzDatabase
     private lateinit var repository: HifzRepository
-    private val nowMillis = testDay.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() + 3_600_000L
+    private val nowMillis =
+        testDay.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() + 3_600_000L
 
     @Before
     fun open() {
@@ -76,7 +77,8 @@ class HifzRepositoryTest {
     fun finishingALessonRecordsThePagesTheCursorAndTheDay() = runBlocking {
         repository.savePlan(planOf())
         val table = smallTable()
-        val part = LessonPlanner.nextPart(table, LessonSize.OnePage, null) { PageStatus.NotStarted }!!
+        val part =
+            LessonPlanner.nextPart(table, LessonSize.OnePage, null) { PageStatus.NotStarted }!!
 
         repository.finishLesson(table, part, PartGrade.Good)
 

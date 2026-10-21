@@ -13,15 +13,14 @@ object HifzProgress {
     fun map(table: PageTable, records: Map<Int, PageRecord>): ProgressMap {
         // Only juz that have a page in this print get a row; a full print has all 30.
         val juzList = (1..table.pageCount).map(table::juzOf).distinct()
-        val rows =
-            juzList.map { juz ->
-                val pages = table.pagesOfJuz(juz)
-                JuzRow(
-                    juz = juz,
-                    firstPage = pages.first,
-                    statuses = pages.map { records[it]?.status ?: PageStatus.NotStarted },
-                )
-            }
+        val rows = juzList.map { juz ->
+            val pages = table.pagesOfJuz(juz)
+            JuzRow(
+                juz = juz,
+                firstPage = pages.first,
+                statuses = pages.map { records[it]?.status ?: PageStatus.NotStarted },
+            )
+        }
         val memorised = records.values.count { it.status.isKnown }
         return ProgressMap(rows, memorised, table.pageCount)
     }
@@ -35,14 +34,13 @@ object HifzProgress {
         oldTable: PageTable,
         newTable: PageTable,
         records: Map<Int, PageRecord>,
-    ): Map<Int, PageRecord> =
-        buildMap {
-            for (page in 1..newTable.pageCount) {
-                val firstAyah = newTable.ayahsOn(page).firstOrNull() ?: continue
-                val oldRecord = records[oldTable.startPageOf(firstAyah)] ?: continue
-                put(page, oldRecord.copy(page = page))
-            }
+    ): Map<Int, PageRecord> = buildMap {
+        for (page in 1..newTable.pageCount) {
+            val firstAyah = newTable.ayahsOn(page).firstOrNull() ?: continue
+            val oldRecord = records[oldTable.startPageOf(firstAyah)] ?: continue
+            put(page, oldRecord.copy(page = page))
         }
+    }
 
     /** A suggested grade for a finished part from the words the user got wrong while reciting. */
     fun suggestedGrade(mistakenWords: Int, ayahCount: Int): PartGrade =
@@ -68,7 +66,10 @@ object WeakSpots {
     const val MINIMUM_COUNT = 2
     const val LIST_SIZE = 5
 
-    /** Ayahs with the same mistake at least [MINIMUM_COUNT] times, worst first, then in reading order. */
+    /**
+     * Ayahs with the same mistake at least [MINIMUM_COUNT] times, worst first, then in reading
+     * order.
+     */
     fun of(mistakes: List<MistakeRecord>): List<WeakSpot> =
         mistakes
             .groupingBy { it.ayah to it.type }

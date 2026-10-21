@@ -13,12 +13,11 @@ class PageTableLoader(private val quranText: QuranTextRepository) {
     private val mutex = Mutex()
     private val tables = mutableMapOf<PageLayoutFamily, PageTable>()
 
-    suspend fun load(family: PageLayoutFamily): PageTable =
-        mutex.withLock {
-            tables.getOrPut(family) {
-                val script = PageLayoutFamily.scriptFor(family)
-                val pageCount = quranText.pageCount(script)
-                PageTable.fromPages((1..pageCount).map { quranText.ayahsOnPage(it, script) })
-            }
+    suspend fun load(family: PageLayoutFamily): PageTable = mutex.withLock {
+        tables.getOrPut(family) {
+            val script = PageLayoutFamily.scriptFor(family)
+            val pageCount = quranText.pageCount(script)
+            PageTable.fromPages((1..pageCount).map { quranText.ayahsOnPage(it, script) })
         }
+    }
 }

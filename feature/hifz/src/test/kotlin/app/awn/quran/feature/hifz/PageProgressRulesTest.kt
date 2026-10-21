@@ -114,8 +114,7 @@ class PageProgressRulesTest {
     fun forgettingARevisedPageSendsItBackToLearningAsARecentLesson() {
         val record = PageProgressRules.markPage(5, PageStatus.Memorised, testDay, nowMillis)
 
-        val after =
-            PageProgressRules.gradeRevision(record, PartGrade.Forgot, testDay, nowMillis)
+        val after = PageProgressRules.gradeRevision(record, PartGrade.Forgot, testDay, nowMillis)
 
         assertEquals(PageStatus.Learning, after.status)
         assertEquals(testDay, after.learnedOn)

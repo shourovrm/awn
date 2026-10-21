@@ -89,7 +89,10 @@ class HifzRepository(
                 )
             dao.upsertPages(outcome.records.map { it.toEntity() })
             dao.upsertPlan(
-                plan.copy(cursorSurah = outcome.nextCursor?.surah, cursorAyah = outcome.nextCursor?.ayah),
+                plan.copy(
+                    cursorSurah = outcome.nextCursor?.surah,
+                    cursorAyah = outcome.nextCursor?.ayah,
+                ),
             )
             dao.insertSession(
                 SessionEntity(
@@ -114,11 +117,10 @@ class HifzRepository(
         val day = today()
         database.withTransaction {
             val current = records()
-            val updated =
-                pages.map { page ->
-                    val record = current[page] ?: PageRecord(page, PageStatus.NotStarted)
-                    PageProgressRules.gradeRevision(record, grade, day, nowMillis)
-                }
+            val updated = pages.map { page ->
+                val record = current[page] ?: PageRecord(page, PageStatus.NotStarted)
+                PageProgressRules.gradeRevision(record, grade, day, nowMillis)
+            }
             dao.upsertPages(updated.map { it.toEntity() })
             dao.insertSession(
                 SessionEntity(

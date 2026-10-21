@@ -29,11 +29,10 @@ internal fun consecutiveRuns(pages: List<Int>): List<IntRange> {
 @Composable
 internal fun pagesText(pages: List<Int>): String {
     val runs = consecutiveRuns(pages)
-    val pieces =
-        runs.map { run ->
-            if (run.first == run.last) run.first.toString()
-            else stringResource(R.string.pages_span, run.first, run.last)
-        }
+    val pieces = runs.map { run ->
+        if (run.first == run.last) run.first.toString()
+        else stringResource(R.string.pages_span, run.first, run.last)
+    }
     val joined = pieces.joinToString(", ")
     val isOnePage = pages.size == 1
     return if (isOnePage) stringResource(R.string.pages_one, joined)

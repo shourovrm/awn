@@ -32,9 +32,9 @@ abstract class HifzDatabase : RoomDatabase() {
         val migrations: List<Migration> = emptyList()
 
         /**
-         * Opens the memorisation database. There is deliberately no destructive-migration
-         * fallback: a user's map of memorised pages is never dropped, so a missing migration fails
-         * in tests, not in the field.
+         * Opens the memorisation database. There is deliberately no destructive-migration fallback:
+         * a user's map of memorised pages is never dropped, so a missing migration fails in tests,
+         * not in the field.
          */
         // Room takes a vararg; this runs once at startup, so the array copy is irrelevant.
         @Suppress("SpreadOperator")

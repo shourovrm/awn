@@ -146,8 +146,8 @@ data class QuranScreenSlots(
     val onBackWhenIdle: (() -> Unit)? = null,
     /**
      * Optional. The bar of a memorisation practice (Hifz), set only while one is open. It takes the
-     * place of the recite bar while recite mode is on; recite mode itself, with its hidden words and
-     * following, is started by the host through [isReciteActive].
+     * place of the recite bar while recite mode is on; recite mode itself, with its hidden words
+     * and following, is started by the host through [isReciteActive].
      */
     val hifzBar: (@Composable (onExit: () -> Unit) -> Unit)? = null,
 ) {
