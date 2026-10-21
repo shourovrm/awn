@@ -63,7 +63,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -151,20 +150,12 @@ data class QuranScreenSlots(
 }
 
 private const val PANEL_SHARE = 0.6f
-private const val LONG_PRESS_MS = 500L
 
 /** Bars fade in and out in this long: the first change on screen comes well inside 150 ms. */
 internal const val BAR_FADE_MS = 120
 private const val BANGLA_LANGUAGE = "bn"
 private const val ENGLISH_LANGUAGE = "en"
 private const val FIRST_PAGE = 1
-
-/**
- * The platform view configuration with the 500 ms long press the ayah selection is specified for.
- */
-private class FixedLongPress(private val base: ViewConfiguration) : ViewConfiguration by base {
-    override val longPressTimeoutMillis: Long = LONG_PRESS_MS
-}
 
 /**
  * The Quran screen: a pager of the 604 pages in one of three views, with a top bar, the audio or
@@ -223,9 +214,7 @@ fun QuranScreen(
             Modifier
         }
 
-    CompositionLocalProvider(
-        LocalViewConfiguration provides FixedLongPress(LocalViewConfiguration.current),
-    ) {
+    CompositionLocalProvider(LocalViewConfiguration provides rememberFixedLongPress()) {
         Box(modifier.fillMaxSize().background(Awn.field.background).then(keyModifier)) {
             if (state.hasStarted) {
                 QuranContent(dependencies, slots, viewModel, state)
