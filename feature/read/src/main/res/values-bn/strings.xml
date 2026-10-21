@@ -60,6 +60,9 @@
   <string name="go_ayah">আয়াত</string>
   <string name="go_action">যান</string>
   <string name="go_cancel">বাতিল</string>
+  <string name="go_error_page">পৃষ্ঠা ১ থেকে %1$s পর্যন্ত।</string>
+  <string name="go_error_surah">সূরা ১ থেকে %1$s পর্যন্ত।</string>
+  <string name="go_error_ayah">সূরা %1$s-এ %2$sটি আয়াত আছে।</string>
 
   <string name="setting_translations">অনুবাদ</string>
   <string name="setting_transliteration">উচ্চারণ</string>
