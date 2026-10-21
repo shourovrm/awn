@@ -124,6 +124,12 @@ internal class PageGeometry(
 
         /** The glyph ink of a line stays inside this share of its slot height. */
         const val MAX_FONT_SHARE_OF_SLOT = 0.8f
+
+        /**
+         * The narrowest gap between two words, in ems. Enlarging the page squeezes the gaps of the
+         * widest lines down to this, and no further, so the words never touch.
+         */
+        const val MIN_GAP_EM = 0.04f
     }
 }
 
@@ -132,15 +138,22 @@ internal class PageGeometry(
  * font. The font size is the largest at which the widest line fits the text block; short last lines
  * of a surah stay short and centred, all others are justified to the block width.
  *
+ * [heightPx] is the height of the whole page and [scale] says how many times taller than the screen
+ * body it was made: the slots grow with it and the font grows by the same factor, but never past
+ * the size at which the widest line, with its gaps squeezed to [PageGeometry.MIN_GAP_EM], still
+ * fits the width. Line breaks never change, so a line never needs to leave the page width.
+ *
  * Pages 1 and 2 ([isCentredBlock]) keep the spacing of normal pages scaled up a little, put the
  * surah banner at 27 % of the height and centre every line; they are not stretched to 15 slots.
  */
+@Suppress("LongParameterList") // Pure placement; the tests call it with these arguments.
 internal fun layoutPage(
     rows: List<PageRow>,
     isCentredBlock: Boolean,
     widthPx: Float,
     heightPx: Float,
     tokenWidthEm: (LineToken) -> Float,
+    scale: Float = 1f,
 ): PageGeometry {
     val textRows = rows.filterIsInstance<PageRow.TextRow>()
     val slotHeight =
@@ -159,9 +172,22 @@ internal fun layoutPage(
 
     val naturalEm = textRows.associate { row -> row.slot to naturalWidthEm(row, tokenWidthEm) }
     val widestEm = naturalEm.values.maxOrNull() ?: 1f
-    val fitToWidth = availableWidth / widestEm
-    val fitToHeight = slotHeight * PageGeometry.MAX_FONT_SHARE_OF_SLOT
-    val fontSize = minOf(fitToWidth, fitToHeight)
+    val widestSqueezedEm =
+        textRows.maxOfOrNull { row -> naturalWidthEm(row, tokenWidthEm, PageGeometry.MIN_GAP_EM) }
+            ?: 1f
+    // What the font would be on the unscaled page, then grown by the scale as far as width allows.
+    val unscaledSlotHeight = slotHeight / scale
+    val unscaledFontSize =
+        minOf(
+            availableWidth / widestEm,
+            unscaledSlotHeight * PageGeometry.MAX_FONT_SHARE_OF_SLOT,
+        )
+    val fontSize =
+        minOf(
+            unscaledFontSize * scale,
+            availableWidth / widestSqueezedEm,
+            slotHeight * PageGeometry.MAX_FONT_SHARE_OF_SLOT,
+        )
     val frameWidth = minOf(availableWidth, widestEm * fontSize)
     val frameLeft = (widthPx - frameWidth) / 2f
     val frameRight = frameLeft + frameWidth
@@ -187,9 +213,13 @@ internal fun layoutPage(
     )
 }
 
-private fun naturalWidthEm(row: PageRow.TextRow, tokenWidthEm: (LineToken) -> Float): Float {
+private fun naturalWidthEm(
+    row: PageRow.TextRow,
+    tokenWidthEm: (LineToken) -> Float,
+    gapEm: Float = PageGeometry.GAP_EM,
+): Float {
     val gaps = (row.tokens.size - 1).coerceAtLeast(0)
-    return row.tokens.sumOf { tokenWidthEm(it).toDouble() }.toFloat() + gaps * PageGeometry.GAP_EM
+    return row.tokens.sumOf { tokenWidthEm(it).toDouble() }.toFloat() + gaps * gapEm
 }
 
 /** The horizontal extent of the text block and whether a line is stretched to fill it. */
@@ -206,11 +236,16 @@ private fun placeTokens(
     val gapCount = (row.tokens.size - 1).coerceAtLeast(0)
     val wordsWidth = widths.sum()
     val canStretch = frame.isJustified && gapCount > 0
+    // A line that was short at the unscaled size may not fit with natural gaps once enlarged.
     val gap =
-        if (canStretch) {
-            (frame.right - frame.left - wordsWidth) / gapCount
-        } else {
-            fontSize * PageGeometry.GAP_EM
+        when {
+            gapCount == 0 -> 0f
+            canStretch -> (frame.right - frame.left - wordsWidth) / gapCount
+            else ->
+                minOf(
+                    fontSize * PageGeometry.GAP_EM,
+                    (frame.right - frame.left - wordsWidth) / gapCount,
+                )
         }
     val lineWidth = wordsWidth + gap * gapCount
     var right = if (canStretch) frame.right else (frame.left + frame.right + lineWidth) / 2f

@@ -34,8 +34,12 @@ internal fun megabytesOf(bytes: Long): String =
 /**
  * The prompt shown over a page that is drawn in the fallback font because the font pack of the
  * chosen page type is missing. It names the page type ([pageTypeName]) and its download size
- * ([sizeBytes], null while unknown), recommends Wi-Fi, and offers the download with its progress
- * ([progress] is 0 to 1 while downloading, [failure] after an error) or keeping the fallback.
+ * ([sizeBytes], null while unknown), recommends Wi-Fi, and offers the download or keeping the
+ * fallback.
+ *
+ * While a download runs ([progress] is 0 to 1) the Download button gives way to the progress bar
+ * and, when [onCancel] is given, a Cancel action, which makes the prompt two lines tall instead of
+ * four so it hides as little of the page as possible. [failure] shows after an error.
  */
 @Composable
 fun FontDownloadPrompt(
@@ -46,6 +50,7 @@ fun FontDownloadPrompt(
     onDownload: () -> Unit,
     onKeepFallback: () -> Unit,
     modifier: Modifier = Modifier,
+    onCancel: (() -> Unit)? = null,
 ) {
     val field = Awn.field
     Column(
@@ -54,51 +59,87 @@ fun FontDownloadPrompt(
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         Text(text = pageTypeName, style = AwnTypography.lead, color = field.content)
-        val sizeText = sizeBytes?.let { stringResource(R.string.font_prompt_size, megabytesOf(it)) }
-        val details = listOfNotNull(sizeText, stringResource(R.string.font_prompt_wifi))
-        Text(
-            text = details.joinToString(separator = " · "),
-            style = AwnTypography.small,
-            color = field.content,
-        )
-        if (failure != null) {
-            Text(
-                text = failureMessage(failure),
-                style = AwnTypography.small,
-                color = field.wrongWord,
-            )
-        }
         if (progress != null) {
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth(),
-                color = field.buttonFill,
-            )
-            Text(
-                text = stringResource(R.string.font_prompt_progress, (progress * PERCENT).toInt()),
-                style = AwnTypography.small,
-                color = field.content,
-            )
-        }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AwnButton(
-                label = stringResource(R.string.font_prompt_download),
-                onClick = onDownload,
-                enabled = progress == null,
-            )
-            Text(
-                text = stringResource(R.string.font_prompt_keep),
-                style = AwnTypography.bodyStrong,
-                color = field.buttonFill,
-                modifier =
-                    Modifier.heightIn(min = AwnSpacing.touchTarget)
-                        .clickable(role = Role.Button, onClick = onKeepFallback)
-                        .padding(vertical = AwnSpacing.small),
+            DownloadProgress(progress = progress, onCancel = onCancel)
+        } else {
+            DownloadChoice(
+                sizeBytes = sizeBytes,
+                failure = failure,
+                onDownload = onDownload,
+                onKeepFallback = onKeepFallback,
             )
         }
     }
+}
+
+@Composable
+private fun DownloadChoice(
+    sizeBytes: Long?,
+    failure: PackTransfer.Failed?,
+    onDownload: () -> Unit,
+    onKeepFallback: () -> Unit,
+) {
+    val field = Awn.field
+    val sizeText = sizeBytes?.let { stringResource(R.string.font_prompt_size, megabytesOf(it)) }
+    val details = listOfNotNull(sizeText, stringResource(R.string.font_prompt_wifi))
+    Text(
+        text = details.joinToString(separator = " · "),
+        style = AwnTypography.small,
+        color = field.content,
+    )
+    if (failure != null) {
+        Text(text = failureMessage(failure), style = AwnTypography.small, color = field.wrongWord)
+    }
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AwnButton(label = stringResource(R.string.font_prompt_download), onClick = onDownload)
+        PromptTextAction(
+            label = stringResource(R.string.font_prompt_keep),
+            onClick = onKeepFallback,
+        )
+    }
+}
+
+@Composable
+private fun DownloadProgress(progress: Float, onCancel: (() -> Unit)?) {
+    val field = Awn.field
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = Modifier.fillMaxWidth(),
+        color = field.buttonFill,
+    )
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.font_prompt_progress, (progress * PERCENT).toInt()),
+            style = AwnTypography.small,
+            color = field.content,
+            modifier = Modifier.weight(1f),
+        )
+        if (onCancel != null) {
+            PromptTextAction(
+                label = stringResource(R.string.font_prompt_cancel),
+                onClick = onCancel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PromptTextAction(label: String, onClick: () -> Unit) {
+    Text(
+        text = label,
+        style = AwnTypography.bodyStrong,
+        color = Awn.field.buttonFill,
+        modifier =
+            Modifier.heightIn(min = AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(vertical = AwnSpacing.small),
+    )
 }

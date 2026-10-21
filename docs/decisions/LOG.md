@@ -85,3 +85,7 @@
 2026-10-21 | Translation terms judged by Tanzil provenance (identical ayahs) | Tanzil's non-commercial terms bind only matching text
 2026-10-21 | 14 reciters use everyayah.com for ayah files | the QuranicAudio mirror lacks their folders
 2026-10-21 | Search tries three dagger-alef readings per ayah | keyboard alef and Uthmani dagger alef do not map one to one
+2026-10-21 | Pages measured on a worker thread and cached (8) | font load and shaping took 85-110 ms inside a swipe frame
+2026-10-21 | Night tajweed = patched font copy with CPAL palette 0 -> palette 1 | Android cannot pick a palette; docs/decisions/read.md Page
+2026-10-21 | Mushaf scale grows lines and glyphs up to the width limit, then only spacing | same breaks and no horizontal scroll cap glyph growth
+2026-10-21 | Recite marks are soft fills behind words, ink keeps its colour | COLR tajweed glyphs ignore text colour

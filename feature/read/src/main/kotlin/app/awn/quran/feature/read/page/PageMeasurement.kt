@@ -1,16 +1,21 @@
 package app.awn.quran.feature.read.page
 
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import app.awn.quran.core.data.PageLayout
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal const val MEASURE_FONT_PX = 200f
 /** Used when the text engine reports no baseline, as the test fonts of Robolectric do. */
@@ -74,3 +79,185 @@ internal fun measureTokens(
 
 internal fun toArabicIndicDigits(number: Int): String =
     number.toString().map { digit -> '٠' + (digit - '0') }.joinToString("")
+
+/** Where the measuring of a page runs; tests set it to run inline so a page is ready at once. */
+internal object PageWork {
+    @Volatile var dispatcher: CoroutineDispatcher = Dispatchers.Default
+}
+
+/** A page placed and the measurements it was placed with. */
+internal class MeasuredPage(
+    val geometry: PageGeometry,
+    val measurements: TokenMeasurements,
+    /** Width of the Basmalah line in ems of the plain font, or null when the page has none. */
+    val basmalaWidthEm: Float?,
+)
+
+/**
+ * Measures the tokens twice: first at a large size to find the font size that fits the page, then
+ * at that size, so the placed rectangles are the widths the text really draws with. Loads the
+ * typeface of the page font as a side effect, which is why this runs off the main thread.
+ *
+ * [pageHeightPx] is the whole height of the page, [scale] times the height of the screen body.
+ */
+internal fun measurePage(
+    rows: List<PageRow>,
+    families: PageFamilies,
+    density: Density,
+    measurer: TextMeasurer,
+    size: PagePlacement,
+): MeasuredPage {
+    val isCentredBlock = size.isCentredBlock
+    val coarseStyle = pageTextStyle(families.text, MEASURE_FONT_PX, density)
+    val coarse = measureTokens(rows, coarseStyle, MEASURE_FONT_PX, measurer)
+    val coarseSize =
+        layoutPage(
+                rows,
+                isCentredBlock,
+                size.widthPx,
+                size.pageHeightPx,
+                coarse::widthEm,
+                size.scale,
+            )
+            .fontSizePx
+    val style = pageTextStyle(families.text, coarseSize, density)
+    val measurements = measureTokens(rows, style, coarseSize, measurer)
+    val geometry =
+        layoutPage(
+            rows,
+            isCentredBlock,
+            size.widthPx,
+            size.pageHeightPx,
+            measurements::widthEm,
+            size.scale,
+        )
+    val hasBasmala = rows.any { it is PageRow.BasmalaRow }
+    val basmalaWidthEm =
+        if (hasBasmala) {
+            val probe = pageTextStyle(families.plain, MEASURE_FONT_PX, density)
+            measurer.measure(BASMALA_TEXT, probe).size.width / MEASURE_FONT_PX
+        } else {
+            null
+        }
+    return MeasuredPage(geometry, measurements, basmalaWidthEm)
+}
+
+/** The fonts a page is drawn with: [text] for words, [plain] for the banner and Basmalah. */
+internal data class PageFamilies(val text: FontFamily?, val plain: FontFamily?)
+
+/** The pixel size a page is placed in, and whether it is the centred block of pages 1 and 2. */
+internal data class PagePlacement(
+    val widthPx: Float,
+    val pageHeightPx: Float,
+    val scale: Float,
+    val isCentredBlock: Boolean,
+)
+
+/** Compares by reference, so a layout is keyed without hashing every word it holds. */
+private class SameInstance(val value: Any) {
+    override fun equals(other: Any?): Boolean = other is SameInstance && other.value === value
+
+    override fun hashCode(): Int = System.identityHashCode(value)
+}
+
+/** Everything the placement of a page depends on. */
+internal class PageMeasureKey(
+    layout: PageLayout,
+    private val hasGlyphFont: Boolean,
+    private val families: PageFamilies,
+    private val size: PagePlacement,
+    private val density: Density,
+) {
+    private val layoutInstance = SameInstance(layout)
+
+    override fun equals(other: Any?): Boolean =
+        other is PageMeasureKey &&
+            other.layoutInstance == layoutInstance &&
+            other.hasGlyphFont == hasGlyphFont &&
+            other.families == families &&
+            other.size == size &&
+            other.density.density == density.density &&
+            other.density.fontScale == density.fontScale
+
+    override fun hashCode(): Int =
+        listOf(layoutInstance, hasGlyphFont, families, size, density.density, density.fontScale)
+            .hashCode()
+}
+
+/**
+ * The most recently used pages that were placed, so a page that comes back (a swipe back, a
+ * rotation) is drawn at once. Bounded, because a page holds its placed tokens.
+ */
+internal class PageMeasurementCache(private val capacity: Int = DEFAULT_CAPACITY) {
+    private val entries =
+        object : LinkedHashMap<PageMeasureKey, MeasuredPage>(capacity, LOAD_FACTOR, true) {
+            override fun removeEldestEntry(
+                eldest: MutableMap.MutableEntry<PageMeasureKey, MeasuredPage>,
+            ): Boolean = size > capacity
+        }
+
+    @Synchronized operator fun get(key: PageMeasureKey): MeasuredPage? = entries[key]
+
+    @Synchronized
+    operator fun set(key: PageMeasureKey, page: MeasuredPage) {
+        entries[key] = page
+    }
+
+    @get:Synchronized
+    val size: Int
+        get() = entries.size
+
+    companion object {
+        const val DEFAULT_CAPACITY = 8
+        private const val LOAD_FACTOR = 0.75f
+    }
+}
+
+internal val sharedPageMeasurements = PageMeasurementCache()
+
+/**
+ * The placed [layout] at [size], or null while it is being measured on [PageWork.dispatcher]. A
+ * page that was measured before comes back from [sharedPageMeasurements] in the same frame. The
+ * main thread never measures text, so turning to a page does not wait for its font to load.
+ */
+@Composable
+internal fun rememberMeasuredPage(
+    layout: PageLayout,
+    rows: List<PageRow>,
+    hasGlyphFont: Boolean,
+    families: PageFamilies,
+    size: PagePlacement,
+): MeasuredPage? {
+    val density = LocalDensity.current
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    val key = PageMeasureKey(layout, hasGlyphFont, families, size, density)
+    val cached = sharedPageMeasurements[key]
+    // While a new size is being measured, the state still holds the page measured before it.
+    val measured by
+        produceState<MeasuredPage?>(initialValue = cached, key) {
+            if (cached == null) {
+                value =
+                    withContext(PageWork.dispatcher) {
+                        // Its own measurer: a TextMeasurer keeps a cache that is not shared safely.
+                        val measurer =
+                            TextMeasurer(
+                                fontFamilyResolver,
+                                density,
+                                LayoutDirection.Ltr,
+                                MEASURER_CACHE_SIZE,
+                            )
+                        measurePage(
+                                rows,
+                                families,
+                                density,
+                                measurer,
+                                size,
+                            )
+                            .also { sharedPageMeasurements[key] = it }
+                    }
+            }
+        }
+    return cached ?: measured
+}
+
+private const val MEASURER_CACHE_SIZE = 4

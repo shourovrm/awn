@@ -66,6 +66,9 @@ class FontPackController(
     /** Downloads and installs the font of [script]; progress and failure show in [statuses]. */
     fun install(script: ScriptId) = catalogue.install(script.packId)
 
+    /** Stops the running or queued download of the font of [script]. */
+    fun cancel(script: ScriptId) = catalogue.cancel(script.packId)
+
     /** Deletes the font of [script]. */
     fun remove(script: ScriptId) = catalogue.remove(script.packId)
 

@@ -27,7 +27,7 @@
 - Reading settings: translation rows come from the download catalogue. A row shows size or status, a download button, remove (after a confirm dialog that names the translation), the order button and the switch. Downloading a translation turns it on; removing turns it off. Word by word and transliteration show the missing download under their switch while on.
 - The Translation view shows `MissingTranslationPrompt` (one line, Download action, then progress) for the first enabled translation that is not on the phone. Any pack install clears the cached page lists, so a new translation appears at once.
 - `FontPackController` is a thin view of `CatalogueModel`, so page fonts download in the background like every other item.
-- Font families are cached per (print, page) for the page plus or minus five (`PageFontCache`).
+- Font families are cached per (print, page, night) for the page plus or minus five (`PageFontCache`); see Page below.
 
 ## Open items
 - Phone check of the merged screen: long press, panel shift, font prompt, page types, font scale 1.3, Black mode.
@@ -48,3 +48,11 @@
 - Robolectric text widths do not scale with font size, so geometry is measured a second time at the final size.
 - ktfmt rewrites `'۞'` escapes into the raw character; use integer code points for invisible characters.
 - Drawing the ۞ sign as a vector: it is a symbol with a real glyph in the font.
+
+## Page (wave 3, page agent)
+- Pages are measured off the main thread: `rememberMeasuredPage` (PageMeasurement.kt) runs `measurePage` on `PageWork.dispatcher` (Default) and keeps the last 8 results in `sharedPageMeasurements`; until ready the page draws nothing. Compose tests must add `InlinePageWorkRule`.
+- `PageFontCache.familyFor(script, page, isNight)` is keyed by (script, page, night); `retainAround` also prepares pages +-2 on IO for the script and mode last asked for. Fonts are `FontFamily(Font(file))`; the typeface itself loads inside the worker's measure.
+- Tajweed at night: Android draws CPAL palette 0 only, so `NightFontFiles` writes `night/pN.ttf` beside the font with palette 0 index set to palette 1's (`CpalNightPatch`, checksums kept valid); fonts without a second palette use the original. Night = `!Awn.field.isLight`.
+- `MushafPage(scale)` (1 or more): page height is body height x scale and the body scrolls; font = min(unscaled x scale, width limit with gaps squeezed to 0.04 em, 0.8 slot). Line breaks never change and no line leaves the width, so glyph growth stops at about the width limit (roughly 10 to 15 %); further scale only adds line spacing.
+- Word states are soft fills behind the word (`wordStateFills`, tokens `AwnReciteFills`, day family for light fields, night family for dark ones); the ink keeps its colour, Hidden words keep their block.
+- `FontDownloadPrompt` shows bar, percent and Cancel (`onCancel`) instead of Download while `progress` is not null. `PageFontWord` draws one word with its page font.

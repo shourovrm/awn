@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnFieldColors
+import app.awn.quran.core.ui.theme.AwnReciteFills
 import app.awn.quran.tracker.WordState
 import kotlin.math.roundToInt
 
@@ -160,13 +160,11 @@ internal fun BasmalaLine(
     geometry: PageGeometry,
     slot: Int,
     family: FontFamily?,
-    measurer: TextMeasurer,
+    widthEm: Float,
     color: Color,
 ) {
     val density = LocalDensity.current
     val frameWidth = geometry.frameRight - geometry.frameLeft
-    val probe = pageTextStyle(family, MEASURE_FONT_PX, density)
-    val widthEm = measurer.measure(BASMALA_TEXT, probe).size.width / MEASURE_FONT_PX
     val fontSize =
         minOf(
             frameWidth * BASMALA_WIDTH_SHARE / widthEm,
@@ -260,6 +258,44 @@ internal fun hiddenWordFills(
             }
     }
 
+/**
+ * The soft fill behind each word whose recitation state is Confirmed, Tentative or Wrong. Colour
+ * glyph fonts ignore the text colour, so a fill is the one mark that shows on every print.
+ */
+internal fun wordStateFills(
+    geometry: PageGeometry,
+    decorations: PageDecorations,
+    field: AwnFieldColors,
+): List<PageFill> =
+    geometry.textLines.flatMap { line ->
+        line.tokens.mapNotNull { placement ->
+            val token = placement.token as? LineToken.WordToken ?: return@mapNotNull null
+            val color =
+                reciteFillColor(decorations.wordStates(token.key), field) ?: return@mapNotNull null
+            val rect =
+                Rect(placement.left, line.top, placement.right, line.top + geometry.slotHeightPx)
+            PageFill(rect, color)
+        }
+    }
+
+/** The fill colour for [state] on [field], or null when the state is drawn some other way. */
+internal fun reciteFillColor(state: WordState, field: AwnFieldColors): Color? =
+    if (field.isLight) {
+        when (state) {
+            WordState.Confirmed -> AwnReciteFills.dayConfirmed
+            WordState.Tentative -> AwnReciteFills.dayTentative
+            WordState.Wrong -> AwnReciteFills.dayWrong
+            else -> null
+        }
+    } else {
+        when (state) {
+            WordState.Confirmed -> AwnReciteFills.nightConfirmed
+            WordState.Tentative -> AwnReciteFills.nightTentative
+            WordState.Wrong -> AwnReciteFills.nightWrong
+            else -> null
+        }
+    }
+
 /** Paints the fills behind the page text. */
 internal fun DrawScope.drawFills(
     geometry: PageGeometry,
@@ -271,6 +307,7 @@ internal fun DrawScope.drawFills(
     val inset = geometry.slotHeightPx * FILL_INSET_SHARE
     val fills =
         ayahFills(geometry, decorations, field, playingFade) +
+            wordStateFills(geometry, decorations, field) +
             hiddenWordFills(geometry, decorations, field)
     for ((rect, color) in fills) {
         drawRoundRect(
@@ -282,11 +319,9 @@ internal fun DrawScope.drawFills(
     }
 }
 
+/**
+ * The ink of a word. Recitation states are shown by fills behind the word ([wordStateFills]), so
+ * the ink stays readable on every print; only a Hidden word is blanked, under its block.
+ */
 internal fun wordColor(state: WordState, field: AwnFieldColors): Color =
-    when (state) {
-        WordState.Confirmed -> field.confirmedWord
-        WordState.Tentative -> field.tentativeWord
-        WordState.Wrong -> field.wrongWord
-        WordState.Hidden -> Color.Transparent
-        else -> field.content
-    }
+    if (state == WordState.Hidden) Color.Transparent else field.content

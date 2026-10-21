@@ -39,6 +39,8 @@ import org.robolectric.annotation.Config
 class PageTypeSwitchTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     private val unicode = "بِسْمِ"
     private val unicodeDrawn = "بِسۡمِ"
     private val v1Code = 0xFB51.toChar().toString()

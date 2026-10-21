@@ -36,6 +36,8 @@ import org.robolectric.annotation.Config
 class MushafPageGestureTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     private val pageWidth = 300
     private val pageHeight = 450
     private val slotHeight = pageHeight / 15f

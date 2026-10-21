@@ -24,6 +24,8 @@ import org.robolectric.annotation.Config
 class LongPressConfigurationTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     @Test
     fun theConfigurationIsTheSameObjectAfterARecomposition() {
         var recompositions by mutableIntStateOf(0)

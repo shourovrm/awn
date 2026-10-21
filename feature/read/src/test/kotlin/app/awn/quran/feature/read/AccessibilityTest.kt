@@ -61,6 +61,8 @@ private const val SCREEN_WIDTH_PX = 360f
 class AccessibilityTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     private val doNothing = {}
     private val topBarActions =
         TopBarActions(

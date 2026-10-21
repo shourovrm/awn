@@ -21,6 +21,8 @@ import org.robolectric.annotation.Config
 class MushafPageRenderTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     private val fixture = ReadFixture()
 
     @Test

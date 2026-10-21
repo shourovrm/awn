@@ -22,6 +22,8 @@ import org.robolectric.annotation.Config
 class QuranScreenRenderTest {
     @get:Rule val composeRule = createComposeRule()
 
+    @get:Rule val inlinePageWork = InlinePageWorkRule()
+
     private val fixture = ReadFixture()
 
     @Test

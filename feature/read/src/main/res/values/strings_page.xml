@@ -11,6 +11,7 @@
   <string name="font_prompt_download">Download</string>
   <string name="font_prompt_keep">Not now</string>
   <string name="font_prompt_progress">Downloading %1$d%%</string>
+  <string name="font_prompt_cancel">Cancel</string>
   <string name="mushaf_type_v2">Madani 1421</string>
   <string name="mushaf_type_v1">Madani 1405</string>
   <string name="mushaf_type_v4">Tajweed colours</string>

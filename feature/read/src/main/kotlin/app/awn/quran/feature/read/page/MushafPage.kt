@@ -3,10 +3,13 @@ package app.awn.quran.feature.read.page
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -16,6 +19,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -26,7 +30,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -51,6 +54,11 @@ private const val INK_CENTER_ABOVE_BASELINE_EM = 0.35f
  * and the Basmalah are drawn from Unicode text in every script, because the page fonts hold no
  * glyphs for them.
  *
+ * [scale] (1 or more, default 1) makes the printed page that many times taller than the screen
+ * body: the lines keep their breaks, the glyphs grow with the scale as far as the widest line fits
+ * the screen width (see [layoutPage]), and the body scrolls vertically while the header and the
+ * page number stay in place. Horizontal drags still reach the pager.
+ *
  * A tap anywhere on the page calls [onTap] the moment the finger lifts; a tap on a word also calls
  * [onWordClick]. A long press (500 ms) anywhere, even in a margin, calls [onAyahLongPress] with the
  * nearest ayah; dragging on calls [onRangeDrag] with the range from that ayah to the one under the
@@ -67,6 +75,7 @@ fun MushafPage(
     modifier: Modifier = Modifier,
     decorations: PageDecorations = PageDecorations(),
     showPageInfo: Boolean = true,
+    scale: Float = 1f,
     onWordClick: (WordKey) -> Unit = {},
     onTap: () -> Unit = {},
     onAyahLongPress: (AyahRef) -> Unit = {},
@@ -91,19 +100,34 @@ fun MushafPage(
                 },
             ) {
                 val density = LocalDensity.current
-                PageBody(
-                    layout = layout,
-                    rows = rows,
-                    chapters = chapters,
-                    textFamily = textFamily,
-                    plainFamily = plainFamily,
-                    widthPx = with(density) { maxWidth.toPx() },
-                    heightPx = with(density) { maxHeight.toPx() },
-                    decorations = decorations,
-                    touchActions = touchActions,
-                    bodyTop = bodyTop,
-                    onSelectionBounds = onSelectionBounds,
-                )
+                val pageScale = scale.coerceAtLeast(1f)
+                val scrollState = rememberScrollState()
+                val pageSize =
+                    PagePlacement(
+                        widthPx = with(density) { maxWidth.toPx() },
+                        pageHeightPx = with(density) { maxHeight.toPx() } * pageScale,
+                        scale = pageScale,
+                        isCentredBlock = isCentredBlockPage(layout),
+                    )
+                // Only a taller page scrolls, so the normal page has no scroll container at all.
+                val scrollModifier =
+                    if (pageScale > 1f) Modifier.verticalScroll(scrollState) else Modifier
+                Box(Modifier.fillMaxSize().then(scrollModifier)) {
+                    PageBody(
+                        layout = layout,
+                        rows = rows,
+                        hasGlyphFont = hasGlyphFont,
+                        chapters = chapters,
+                        textFamily = textFamily,
+                        plainFamily = plainFamily,
+                        size = pageSize,
+                        decorations = decorations,
+                        touchActions = touchActions,
+                        bodyTop = bodyTop,
+                        scrollOffsetPx = { scrollState.value },
+                        onSelectionBounds = onSelectionBounds,
+                    )
+                }
             }
             if (showPageInfo) PageNumberRow(layout.page)
         }
@@ -142,64 +166,58 @@ private fun rememberTouchActions(
 private fun PageBody(
     layout: PageLayout,
     rows: List<PageRow>,
+    hasGlyphFont: Boolean,
     chapters: List<Chapter>,
     textFamily: FontFamily?,
     plainFamily: FontFamily?,
-    widthPx: Float,
-    heightPx: Float,
+    size: PagePlacement,
     decorations: PageDecorations,
     touchActions: PageTouchActions,
     bodyTop: Float,
+    scrollOffsetPx: () -> Int,
     onSelectionBounds: (SelectionBounds?) -> Unit,
 ) {
     val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
-    val measured = rememberPageGeometry(layout, rows, textFamily, widthPx, heightPx)
+    val measured =
+        rememberMeasuredPage(
+            layout,
+            rows,
+            hasGlyphFont,
+            PageFamilies(textFamily, plainFamily),
+            size,
+        )
+    if (measured == null) {
+        // The page is being measured off the main thread; nothing is drawn for a frame or two.
+        Box(Modifier.fillMaxSize())
+        return
+    }
     val geometry = measured.geometry
-    val measurements = measured.measurements
     val field = Awn.field
-    ReportSelectionBounds(geometry, decorations.selectedAyahs, bodyTop, onSelectionBounds)
+    ReportSelectionBounds(
+        geometry,
+        decorations.selectedAyahs,
+        bodyTop,
+        scrollOffsetPx,
+        onSelectionBounds,
+    )
     val playingFade = rememberPlayingFade(decorations.playingAyah)
 
+    val pageHeight = with(density) { size.pageHeightPx.toDp() }
+    val heightModifier =
+        if (size.scale > 1f) Modifier.height(pageHeight) else Modifier.fillMaxHeight()
     Box(
-        Modifier.fillMaxSize().pageGestures(geometry, touchActions).drawBehind {
-            drawFills(geometry, decorations, field, playingFade.snapshot())
-        },
+        Modifier.fillMaxWidth()
+            .then(heightModifier)
+            .pageGestures(geometry, touchActions)
+            .drawBehind { drawFills(geometry, decorations, field, playingFade.snapshot()) },
     ) {
-        val fontSizePx = geometry.fontSizePx
-        val style = pageTextStyle(textFamily, fontSizePx, density)
-        val baselineShift = measurements.firstBaselineEm * fontSizePx
-        val inkLift = INK_CENTER_ABOVE_BASELINE_EM * fontSizePx
-
-        for (row in rows) {
-            when (row) {
-                is PageRow.TextRow ->
-                    TextLine(
-                        placement = geometry.textLines.first { it.slot == row.slot },
-                        geometry = geometry,
-                        style = style,
-                        topOfText = geometry.slotCenter(row.slot) + inkLift - baselineShift,
-                        decorations = decorations,
-                        field = field,
-                    )
-                is PageRow.HeaderRow ->
-                    SurahBanner(
-                        name = chapters.firstOrNull { it.number == row.surah }?.nameArabic,
-                        geometry = geometry,
-                        slot = row.slot,
-                        family = plainFamily,
-                        field = field,
-                    )
-                is PageRow.BasmalaRow ->
-                    BasmalaLine(
-                        geometry = geometry,
-                        slot = row.slot,
-                        family = plainFamily,
-                        measurer = textMeasurer,
-                        color = field.content,
-                    )
-            }
-        }
+        PageRowsLayer(
+            rows = rows,
+            measured = measured,
+            families = PageFamilies(textFamily, plainFamily),
+            chapters = chapters,
+            decorations = decorations,
+        )
         // What is drawn may be private-use glyph codes; screen readers get the Unicode text here.
         AyahTextLayer(
             layout = layout,
@@ -219,13 +237,20 @@ private fun ReportSelectionBounds(
     geometry: PageGeometry,
     selectedAyahs: Set<AyahRef>,
     bodyTop: Float,
+    scrollOffsetPx: () -> Int,
     onSelectionBounds: (SelectionBounds?) -> Unit,
 ) {
     val currentOnSelectionBounds by rememberUpdatedState(onSelectionBounds)
     LaunchedEffect(geometry, selectedAyahs, bodyTop) {
-        currentOnSelectionBounds(
-            geometry.selectionBounds(selectedAyahs)?.translate(Offset(0f, bodyTop)),
-        )
+        // The bounds are reported relative to the screen body, so a scrolled page moves them.
+        snapshotFlow { scrollOffsetPx() }
+            .collect { scrolled ->
+                currentOnSelectionBounds(
+                    geometry
+                        .selectionBounds(selectedAyahs)
+                        ?.translate(Offset(0f, bodyTop - scrolled)),
+                )
+            }
     }
 }
 
@@ -300,41 +325,50 @@ private fun Modifier.alignedToSlot(
 }
     .offset { IntOffset(left.roundToInt(), slotTop.roundToInt()) }
 
-/** The placed page and the measurements it was placed with. */
-private class MeasuredPage(val geometry: PageGeometry, val measurements: TokenMeasurements)
-
-/**
- * Measures the tokens twice: first at a large size to find the font size that fits the page, then
- * at that size, so the placed rectangles are the widths the text really draws with.
- */
+/** The banner, Basmalah and text lines of a page, each at the place its row has in the geometry. */
 @Composable
-private fun rememberPageGeometry(
-    layout: PageLayout,
+private fun PageRowsLayer(
     rows: List<PageRow>,
-    textFamily: FontFamily?,
-    widthPx: Float,
-    heightPx: Float,
-): MeasuredPage {
+    measured: MeasuredPage,
+    families: PageFamilies,
+    chapters: List<Chapter>,
+    decorations: PageDecorations,
+) {
     val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
-    val isCentredBlock = isCentredBlockPage(layout)
-    val coarse =
-        remember(rows, textFamily, density) {
-            val style = pageTextStyle(textFamily, MEASURE_FONT_PX, density)
-            measureTokens(rows, style, MEASURE_FONT_PX, textMeasurer)
+    val field = Awn.field
+    val geometry = measured.geometry
+    val fontSizePx = geometry.fontSizePx
+    val style = pageTextStyle(families.text, fontSizePx, density)
+    val baselineShift = measured.measurements.firstBaselineEm * fontSizePx
+    val inkLift = INK_CENTER_ABOVE_BASELINE_EM * fontSizePx
+
+    for (row in rows) {
+        when (row) {
+            is PageRow.TextRow ->
+                TextLine(
+                    placement = geometry.textLines.first { it.slot == row.slot },
+                    geometry = geometry,
+                    style = style,
+                    topOfText = geometry.slotCenter(row.slot) + inkLift - baselineShift,
+                    decorations = decorations,
+                    field = field,
+                )
+            is PageRow.HeaderRow ->
+                SurahBanner(
+                    name = chapters.firstOrNull { it.number == row.surah }?.nameArabic,
+                    geometry = geometry,
+                    slot = row.slot,
+                    family = families.plain,
+                    field = field,
+                )
+            is PageRow.BasmalaRow ->
+                BasmalaLine(
+                    geometry = geometry,
+                    slot = row.slot,
+                    family = families.plain,
+                    widthEm = checkNotNull(measured.basmalaWidthEm),
+                    color = field.content,
+                )
         }
-    val coarseSize =
-        remember(rows, widthPx, heightPx, coarse) {
-            layoutPage(rows, isCentredBlock, widthPx, heightPx, coarse::widthEm).fontSizePx
-        }
-    val measurements =
-        remember(rows, textFamily, density, coarseSize) {
-            val style = pageTextStyle(textFamily, coarseSize, density)
-            measureTokens(rows, style, coarseSize, textMeasurer)
-        }
-    val geometry =
-        remember(rows, widthPx, heightPx, measurements) {
-            layoutPage(rows, isCentredBlock, widthPx, heightPx, measurements::widthEm)
-        }
-    return MeasuredPage(geometry, measurements)
+    }
 }

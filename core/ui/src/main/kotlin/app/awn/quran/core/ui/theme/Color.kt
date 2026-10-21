@@ -35,3 +35,19 @@ object AwnColors {
     /** Text on the dark and black pages: warm off-white, easier on the eye than pure white. */
     val nightText = Color(0xFFE8E2D2)
 }
+
+/**
+ * Soft fills drawn behind a word while it is recited. The hues are green, gold and red, which the
+ * tajweed print does not use for its ink, and the alpha keeps black ink (day family: Awn and Light)
+ * or light ink (night family: Dark and Black) above 4.5:1 contrast. Values are tokens only; the
+ * Mushaf page picks the family from the field, not from the mode name.
+ */
+object AwnReciteFills {
+    val dayConfirmed = Color(0x4D2E9E5B)
+    val dayTentative = Color(0x59E0B000)
+    val dayWrong = Color(0x4DE5484D)
+
+    val nightConfirmed = Color(0x4D4ADE80)
+    val nightTentative = Color(0x4DFACC15)
+    val nightWrong = Color(0x4DF87171)
+}
