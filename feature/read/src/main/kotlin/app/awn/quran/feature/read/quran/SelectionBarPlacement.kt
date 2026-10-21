@@ -10,7 +10,8 @@ import app.awn.quran.feature.read.page.SelectionBounds
  * The bar sits [gapPx] above the first line of the selection. When the first line is closer than
  * [flipBelowTopPx] to the top of the screen there is no room above, so the bar flips below the last
  * line. When below does not fit either, the bar sits under the first line, over the selection.
- * Horizontally the bar is centred on the selection and kept inside the screen.
+ * Horizontally the bar is centred on the selection and kept [gapPx] inside the screen edges, so a
+ * word card for the first word of a line does not touch the edge of the glass.
  */
 internal fun placeSelectionBar(
     bounds: SelectionBounds,
@@ -20,7 +21,13 @@ internal fun placeSelectionBar(
     flipBelowTopPx: Float,
 ): IntOffset {
     val centredLeft = bounds.all.center.x - barSize.width / 2f
-    val x = centredLeft.toInt().coerceIn(0, (screenSize.width - barSize.width).coerceAtLeast(0))
+    val rightmost = screenSize.width - barSize.width - gapPx
+    val x =
+        if (rightmost < gapPx) {
+            ((screenSize.width - barSize.width) / 2).coerceAtLeast(0)
+        } else {
+            centredLeft.toInt().coerceIn(gapPx, rightmost)
+        }
 
     val above = bounds.firstLine.top - barSize.height - gapPx
     val below = bounds.all.bottom + gapPx
