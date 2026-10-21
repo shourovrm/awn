@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size

@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
