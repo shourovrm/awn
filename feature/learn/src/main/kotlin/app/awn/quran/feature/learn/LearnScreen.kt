@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +38,7 @@ fun LearnScreen(
     onProgressClick: () -> Unit,
     onReviseClick: () -> Unit,
     modifier: Modifier = Modifier,
+    barActions: @Composable RowScope.() -> Unit = {},
 ) {
     AwnTheme(field = LearnField) {
         Column(modifier.fillMaxSize()) {
@@ -45,6 +47,7 @@ fun LearnScreen(
                     title = stringResource(R.string.learn_title),
                     endLinkLabel = stringResource(R.string.learn_progress_link),
                     onEndLinkClick = onProgressClick,
+                    actions = barActions,
                 )
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                     FigureTile(

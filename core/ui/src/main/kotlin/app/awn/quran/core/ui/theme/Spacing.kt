@@ -58,6 +58,14 @@ object AwnSpacing {
     val dockHeight: Dp = 72.dp
     val dockFloatGap: Dp = 12.dp
 
+    // Quran tab: the number badge of a list row, the juz rail, the tab bar and its indicator.
+    val numberBadge: Dp = 40.dp
+    val railWidth: Dp = 32.dp
+    val railMarkerSize: Dp = 24.dp
+    val tabBarHeight: Dp = 64.dp
+    val tabIndicatorWidth: Dp = 32.dp
+    val cardRowHeight: Dp = 56.dp
+
     val sliderTrackHeight: Dp = 8.dp
     val sliderThumbSize: Dp = 24.dp
 

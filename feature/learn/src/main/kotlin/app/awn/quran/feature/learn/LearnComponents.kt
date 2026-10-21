@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -49,6 +50,7 @@ internal fun LearnBar(
     onStartLinkClick: () -> Unit = {},
     endLinkLabel: String? = null,
     onEndLinkClick: () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier =
@@ -81,6 +83,7 @@ internal fun LearnBar(
         if (endLinkLabel != null) {
             TextLink(label = endLinkLabel, onClick = onEndLinkClick)
         }
+        actions()
     }
 }
 
