@@ -38,4 +38,5 @@ include(
     ":feature:listen",
     ":feature:recite",
     ":feature:learn",
+    ":feature:hifz",
 )
