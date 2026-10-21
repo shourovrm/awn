@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.awn.quran.core.ui.components.AwnSwitch
+import app.awn.quran.core.ui.components.AwnTopBar
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.player.DownloadAmount
@@ -41,20 +42,19 @@ fun AudioSettingsPage(feature: AudioFeature, onBack: () -> Unit, modifier: Modif
         if (managerReciterId != null) managerReciterId = null else managerOpen = false
     }
     Column(modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = AwnSpacing.small),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val goBack: () -> Unit = {
-                when {
-                    managerReciterId != null -> managerReciterId = null
-                    managerOpen -> managerOpen = false
-                    else -> onBack()
-                }
+        val goBack: () -> Unit = {
+            when {
+                managerReciterId != null -> managerReciterId = null
+                managerOpen -> managerOpen = false
+                else -> onBack()
             }
-            IconAction(R.drawable.ic_listen_back, stringResource(R.string.audio_back), goBack)
-            Text(text = stringResource(R.string.audio_settings_title), style = AwnTypography.lead)
         }
+        // The shared bar, like every other settings page: it also keeps clear of the status bar.
+        AwnTopBar(
+            title = stringResource(R.string.audio_settings_title),
+            onNavigateBack = goBack,
+            backDescription = stringResource(R.string.audio_back),
+        )
         val reciterId = managerReciterId
         when {
             !managerOpen -> AudioSettingsMain(feature, onOpenManager = { managerOpen = true })
