@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Ranks the written forms of the Quran's words and writes the file the Learn tab ships.
 
-Run with `python3 -I tools/build_learn_words.py --quran quran.sqlite --meanings wbw_en.sqlite --out
-word_forms.bin`. The Gradle task `generateLearnContent` of :feature:learn runs it at build time
-from the bundled packs, so the output is not committed.
+Run with `python3 -I tools/build_learn_words.py --quran quran.sqlite --out word_forms.bin`. The
+Gradle task `generateLearnContent` of :feature:learn runs it at build time from the bundled Quran
+text pack, so the output is not committed.
 
 Why forms and not base words: no base-word (lemma) data with a usable licence is available. The
 Quranic Arabic Corpus is GPL and forbids changes, and QUL's morphology states no licence. A form is
@@ -21,9 +21,9 @@ File format, version 1, all numbers big-endian:
     W x 2     form rank (1 is the most frequent) of each word, in reading order
     F x 4     representative word of each form, in rank order: its index among all words, from 0
 
-The representative word of a form is the first occurrence of its most common meaning (English
-word-by-word text), written in the commonest spelling among those occurrences; the app shows it as
-the word and reads its meaning from the installed word-by-word pack.
+The representative word of a form is the first occurrence of its commonest spelling; the app shows
+it as the word and reads its meaning from the installed word-by-word pack. The word-by-word packs
+are downloads, so this script does not read them.
 """
 
 import argparse
@@ -60,30 +60,20 @@ def normalise(text):
     return "".join(letters)
 
 
-def read_words(quran_database, meaning_database):
+def read_words(quran_database):
     """Returns (ayah_counts, words) in reading order.
 
     `ayah_counts[surah - 1]` is the number of ayahs of the surah and every word is a tuple
-    (surah, ayah, position, text, meaning).
+    (surah, ayah, position, text).
     """
     quran = sqlite3.connect(quran_database)
-    meanings = sqlite3.connect(meaning_database)
-    meaning_of = {
-        (surah, ayah, position): text
-        for surah, ayah, position, text in meanings.execute(
-            "SELECT surah, ayah, position, text FROM word_translation"
+    words = list(
+        quran.execute(
+            "SELECT surah, ayah, position, text_uthmani FROM word ORDER BY surah, ayah, position"
         )
-    }
-    words = []
-    for surah, ayah, position, text in quran.execute(
-        "SELECT surah, ayah, position, text_uthmani FROM word ORDER BY surah, ayah, position"
-    ):
-        meaning = meaning_of.get((surah, ayah, position))
-        if meaning is None:
-            raise ValueError(f"No meaning for word {surah}:{ayah}:{position}.")
-        words.append((surah, ayah, position, text, meaning))
+    )
     ayah_counts = [0] * SURAH_COUNT
-    for surah, ayah, _, _, _ in words:
+    for surah, ayah, _, _ in words:
         ayah_counts[surah - 1] = max(ayah_counts[surah - 1], ayah)
     return ayah_counts, words
 
@@ -110,21 +100,11 @@ def representative_indexes(words, form_of_word, order):
     representatives = []
     for form in order:
         indexes = indexes_of_form[form]
-        meaning_counts = collections.Counter(words[index][4] for index in indexes)
-        best_count = max(meaning_counts.values())
-        # The earliest word with the most common meaning decides a tie between meanings.
-        meaning = next(
-            words[index][4] for index in indexes if meaning_counts[words[index][4]] == best_count
-        )
-        with_meaning = [index for index in indexes if words[index][4] == meaning]
-        spelling_counts = collections.Counter(words[index][3] for index in with_meaning)
-        best_spelling_count = max(spelling_counts.values())
+        spelling_counts = collections.Counter(words[index][3] for index in indexes)
+        best_count = max(spelling_counts.values())
+        # The earliest word of the commonest spelling decides a tie between spellings.
         representatives.append(
-            next(
-                index
-                for index in with_meaning
-                if spelling_counts[words[index][3]] == best_spelling_count
-            )
+            next(index for index in indexes if spelling_counts[words[index][3]] == best_count)
         )
     return representatives
 
@@ -176,8 +156,8 @@ def decode(data):
     return list(ayah_counts), words_per_ayah, list(form_ranks), list(representatives)
 
 
-def build(quran_database, meaning_database):
-    ayah_counts, words = read_words(quran_database, meaning_database)
+def build(quran_database):
+    ayah_counts, words = read_words(quran_database)
     form_of_word, order = rank_forms(words)
     representatives = representative_indexes(words, form_of_word, order)
     return encode(ayah_counts, words, form_of_word, order, representatives)
@@ -186,10 +166,9 @@ def build(quran_database, meaning_database):
 def main(arguments):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--quran", required=True, type=Path)
-    parser.add_argument("--meanings", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     options = parser.parse_args(arguments)
-    data = build(options.quran, options.meanings)
+    data = build(options.quran)
     options.out.parent.mkdir(parents=True, exist_ok=True)
     options.out.write_bytes(data)
     print(f"Wrote {options.out} ({len(data)} bytes).")
