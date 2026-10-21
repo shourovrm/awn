@@ -27,7 +27,9 @@ import kotlinx.coroutines.flow.first
 class WorkManagerDownloadRunner(context: Context) : AudioDownloadRunner {
 
     private val appContext = context.applicationContext
-    private val workManager = WorkManager.getInstance(appContext)
+    // Created on first use: this runner is built while AwnApplication builds its services, and
+    // WorkManager's start-up reads those services, so asking for it here crashes the app.
+    private val workManager: WorkManager by lazy { WorkManager.getInstance(appContext) }
     private val jobDirectory = File(appContext.filesDir, JOB_DIRECTORY)
 
     override suspend fun run(
