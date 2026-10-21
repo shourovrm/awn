@@ -37,6 +37,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
+import app.awn.quran.feature.hifz.HifzBar
 import app.awn.quran.feature.learn.LearnScreen
 import app.awn.quran.feature.listen.AudioBar
 import app.awn.quran.feature.listen.PlayRangePanel
@@ -272,6 +273,7 @@ private fun QuranRoute(
         }
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
+    val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()
     // The audio bar maps a page to its ayahs in the print the reader shows.
     LaunchedEffect(services) {
         services.readDependencies.settingsStore.settings
@@ -303,6 +305,23 @@ private fun QuranRoute(
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
+            hifzBar =
+                if (practice == null) {
+                    null
+                } else {
+                    { onExit ->
+                        ReciteBarOrDownload(services, onExit) {
+                            HifzBar(
+                                controller = services.hifz.controller,
+                                recite = services.recite,
+                                playRange = { first, last ->
+                                    services.audio.controller.playRange(first, last)
+                                },
+                                onExit = onExit,
+                            )
+                        }
+                    }
+                },
         )
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {

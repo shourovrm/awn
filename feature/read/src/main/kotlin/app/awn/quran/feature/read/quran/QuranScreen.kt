@@ -144,6 +144,12 @@ data class QuranScreenSlots(
      * home page. When null, Back is left to the host's default (leaving the app).
      */
     val onBackWhenIdle: (() -> Unit)? = null,
+    /**
+     * Optional. The bar of a memorisation practice (Hifz), set only while one is open. It takes the
+     * place of the recite bar while recite mode is on; recite mode itself, with its hidden words and
+     * following, is started by the host through [isReciteActive].
+     */
+    val hifzBar: (@Composable (onExit: () -> Unit) -> Unit)? = null,
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -438,7 +444,10 @@ private fun QuranContent(
                         BackToPlayingButton(onClick = viewModel::backToPlaying)
                     }
                 }
-                if (state.isReciting) {
+                val hifzBar = slots.hifzBar
+                if (state.isReciting && hifzBar != null) {
+                    hifzBar(viewModel::exitReciteMode)
+                } else if (state.isReciting) {
                     slots.reciteBar(viewModel::exitReciteMode)
                 } else {
                     AnimatedVisibility(

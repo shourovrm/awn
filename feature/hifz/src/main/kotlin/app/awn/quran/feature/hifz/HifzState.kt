@@ -34,8 +34,8 @@ data class PracticeRequest(
     val method: HifzMethodId,
     val pages: List<Int>,
     val firstAyah: AyahRef,
-    /** The last ayah of a new lesson; null for revision, which covers whole pages. */
-    val lastAyah: AyahRef?,
+    /** The last ayah of the part: the lesson's last ayah, or the last ayah on the last page. */
+    val lastAyah: AyahRef,
     val ayahCount: Int,
     val repeatCount: Int,
     /** The lesson itself, kept so that finishing it records the same ayahs that were shown. */
@@ -97,7 +97,7 @@ object HifzStateBuilder {
             method = state.plan.method,
             pages = pages,
             firstAyah = first,
-            lastAyah = null,
+            lastAyah = state.table.ayahsOn(pages.last()).last(),
             ayahCount = ayahCount,
             repeatCount = repeat,
             lesson = null,
