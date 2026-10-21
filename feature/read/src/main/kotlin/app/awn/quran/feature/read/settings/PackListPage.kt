@@ -77,6 +77,14 @@ fun PackListPage(
                             settingsViewModel = settingsViewModel,
                             baseActions = baseActions,
                         )
+                    PackListKind.WordAudio ->
+                        // Word audio is used by whichever reciter is chosen, so it has no tick.
+                        CatalogueEntryRow(
+                            row = row,
+                            tick = PackTick.Absent,
+                            onTickChange = {},
+                            actions = baseActions,
+                        )
                     PackListKind.PageTypes ->
                         PageTypeEntry(row, settings.script, mushafViewModel, baseActions)
                 }

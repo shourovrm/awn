@@ -121,3 +121,4 @@
 2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
 2026-10-21 | Word-by-word language is its own setting (null = app language), radio list, English fallback | one flag ticked every row and read the device locale
+2026-10-21 | Word-timing packs are a Word audio download group; ayah-level timings (Basfar) are not offered | nothing installed timings, so word play hid

@@ -63,7 +63,8 @@ fun CatalogueEntryRow(
     AwnPackRow(
         title = name,
         detail = statusText(row),
-        tick = if (row.item.isInstalled) tick else PackTick.None,
+        // Absent means the list has no tick boxes, so no space is kept for one either.
+        tick = if (row.item.isInstalled || tick == PackTick.Absent) tick else PackTick.None,
         onTickChange = onTickChange,
         modifier = modifier,
         isDetailError = row.transfer is PackTransfer.Failed,

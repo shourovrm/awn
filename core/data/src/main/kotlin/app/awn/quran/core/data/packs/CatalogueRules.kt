@@ -20,11 +20,12 @@ object CatalogueGrouping {
     private const val AYAH_KIND = "ayah"
     private const val WORD_KIND = "word"
     private const val TRANSLITERATION = "transliteration"
+    private const val WORD_TIMING_GRANULARITY = "word"
 
     /**
      * Returns the section of [record], or null when the record is not a catalogue item: the Quran
-     * text, fonts that ship inside the app, and reciter timings. [isBundled] says the app ships the
-     * file.
+     * text, fonts that ship inside the app, and timings that only mark ayahs. [isBundled] says the
+     * app ships the file. A timing pack with word timings is the reciter's word audio.
      *
      * A translation is a transliteration when its manifest `kind` says so or its id does; the
      * manifests list the English transliteration with kind "ayah".
@@ -33,6 +34,13 @@ object CatalogueGrouping {
         when (record.kindLabel) {
             "font" -> if (isBundled) null else CatalogueGroup.PageType
             "translation" -> translationGroupOf(record)
+            // An ayah-level timing pack (Basfar) cannot play a word, so it is not offered.
+            "timing" ->
+                if (record.timingGranularity == WORD_TIMING_GRANULARITY) {
+                    CatalogueGroup.WordAudio
+                } else {
+                    null
+                }
             else -> null
         }
 

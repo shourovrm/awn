@@ -20,7 +20,8 @@ enum class PackFileLayout {
  * A manifest entry with the extra fields the app needs to download and place the pack. [kindLabel]
  * is the label shown by `InstalledPack.kind`: script, font, translation or timing. [fileName] is
  * the basename of the manifest `file` path, which is also the release asset name. [memberCount] is
- * the number of files in a font archive, or null for other layouts.
+ * the number of files in a font archive, or null for other layouts. [timingGranularity] is "word"
+ * or "ayah" for a timing pack and null for every other kind.
  */
 data class PackRecord(
     val entry: PackEntry,
@@ -32,6 +33,7 @@ data class PackRecord(
     val translationKind: String? = null,
     val language: String? = null,
     val displayName: String,
+    val timingGranularity: String? = null,
 )
 
 /** A reciter row of `reciters.json`; [timingPack] is null when the reciter has no timings. */
@@ -84,6 +86,7 @@ class ManifestCatalog(
         val timingPack =
             if (timingPackId != null && json.getInt("format_version") <= supportedFormatVersion) {
                 recordOf(json, "timing", id = timingPackId)
+                    .copy(timingGranularity = json.stringOrNull("timing_granularity"))
             } else {
                 null
             }
