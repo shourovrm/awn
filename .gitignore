@@ -84,3 +84,5 @@ captures/
 
 # Browser automation scratch
 .playwright-mcp/
+awn-data-next/
+awn-data-unbundle/
