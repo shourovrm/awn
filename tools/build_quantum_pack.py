@@ -87,6 +87,44 @@ def split_block(text, first, last):
     return rows
 
 
+# The publisher numbers Al-Fatihah without the Basmalah and splits the last Hafs ayah in two
+# (their 1 is "Alhamdulillah", their "5-6" and 7 together are Hafs 6 and 7). Awn keys every pack
+# by the Hafs numbering, so their surah 1 is moved: Hafs 2-5 take their 1-4, Hafs 6-7 share
+# their "5-6" followed by their 7. Their site has no Basmalah line for Al-Fatihah; Hafs 1:1 uses
+# their own rendering of the same words from 27:30 ("দয়াময় মেহেরবান আল্লাহর নামে।").
+FATIHA_BASMALAH = "দয়াময় মেহেরবান আল্লাহর নামে।"
+
+
+def fatiha_in_hafs_numbering(publisher_rows):
+    """Maps {ayah: (from, to, text)} in the publisher's Al-Fatihah numbering to Hafs numbering."""
+    if publisher_rows.get(5, (0, 0, ""))[:2] != (5, 6) or publisher_rows.get(7, (0, 0, ""))[:2] != (7, 7):
+        raise ValueError("Al-Fatihah no longer has the publisher's 5-6 and 7 blocks; review the mapping")
+    closing = publisher_rows[5][2] + " " + publisher_rows[7][2]
+    return {
+        1: (1, 1, FATIHA_BASMALAH),
+        2: (2, 2, publisher_rows[1][2]),
+        3: (3, 3, publisher_rows[2][2]),
+        4: (4, 4, publisher_rows[3][2]),
+        5: (5, 5, publisher_rows[4][2]),
+        6: (6, 7, closing),
+        7: (6, 7, closing),
+    }
+
+
+def with_fatiha_in_hafs_numbering(rows):
+    """Replaces the surah 1 rows of (surah, ayah, from, to, text) rows by their Hafs numbering."""
+    publisher = {ayah: (start, end, text) for surah, ayah, start, end, text in rows if surah == 1}
+    hafs = fatiha_in_hafs_numbering(publisher)
+    fatiha = [(1, ayah, start, end, text) for ayah, (start, end, text) in sorted(hafs.items())]
+    return fatiha + [row for row in rows if row[0] != 1]
+
+
+def is_publisher_fatiha(rows):
+    """True while surah 1 is still in the publisher's numbering (1:5 and 1:6 share one block)."""
+    fatiha = {ayah: (start, end) for surah, ayah, start, end, _ in rows if surah == 1}
+    return fatiha.get(5) == (5, 6)
+
+
 def create_pack_tables(connection):
     """Create the same schema as tools/build_translations.py, so every pack is read the same way."""
     connection.execute(
@@ -107,7 +145,7 @@ def create_pack_tables(connection):
 
 
 def add_pack_info(existing_path, output_path):
-    """Copy an earlier pack that has only a translation table into the current schema."""
+    """Copy an earlier pack into the current schema, moving Al-Fatihah to Hafs numbering."""
     if os.path.exists(output_path):
         os.remove(output_path)
     source = sqlite3.connect(existing_path)
@@ -115,6 +153,8 @@ def add_pack_info(existing_path, output_path):
         "SELECT surah, ayah, ayah_from, ayah_to, text FROM translation ORDER BY surah, ayah"
     ).fetchall()
     source.close()
+    if is_publisher_fatiha(rows):
+        rows = with_fatiha_in_hafs_numbering(rows)
     connection = sqlite3.connect(output_path)
     create_pack_tables(connection)
     connection.executemany("INSERT INTO translation VALUES (?, ?, ?, ?, ?)", rows)
@@ -141,6 +181,8 @@ def main():
             first = block["ayat_number_start"] or block["ayat_number"]
             last = block["ayat_number_end"] or first
             rows.update(split_block(clean(block["ayat_bangla_description"]), first, last))
+        if surah == 1:
+            rows = fatiha_in_hafs_numbering(rows)
         for ayah in range(1, VERSES_PER_SURAH[surah - 1] + 1):
             if ayah not in rows or not rows[ayah][2]:
                 missing.append(f"{surah}:{ayah}")

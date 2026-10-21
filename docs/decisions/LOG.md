@@ -124,3 +124,4 @@
 2026-10-21 | Speech model moved to a :speech process | in-process PSS stayed +54 MB after release; separate process returns to baseline (recite.md)
 2026-10-21 | Font lookups reload on key change | tajweed list words stayed black after switching to night (read.md)
 2026-10-21 | Start after Listen continues the recitation | user: listening must not throw away the marks (recite.md)
+2026-10-21 | Quantum Al-Fatihah moved to Hafs numbering; 1:1 uses their Basmalah from 27:30 | 1:1 showed 1:2's meaning (ops.md)
