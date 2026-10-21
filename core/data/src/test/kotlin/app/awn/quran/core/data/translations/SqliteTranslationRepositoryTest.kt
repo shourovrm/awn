@@ -42,7 +42,14 @@ class SqliteTranslationRepositoryTest {
         val available = realRepository().available().associateBy { it.id.id }
 
         assertEquals(
-            setOf("en_saheeh", "en_abdul_haleem", "en_transliteration", "bn_zakaria", "bn_quantum"),
+            setOf(
+                "en_saheeh",
+                "en_abdul_haleem",
+                "en_transliteration",
+                "bn_zakaria",
+                "bn_quantum",
+                "en_asad",
+            ),
             available.keys,
         )
         assertTrue(available.getValue("en_saheeh").installed)
@@ -50,6 +57,7 @@ class SqliteTranslationRepositoryTest {
         assertTrue(available.getValue("en_transliteration").installed)
         assertFalse(available.getValue("en_abdul_haleem").installed)
         assertFalse(available.getValue("bn_quantum").installed)
+        assertFalse(available.getValue("en_asad").installed)
         assertEquals("bn", available.getValue("bn_zakaria").language)
     }
 
