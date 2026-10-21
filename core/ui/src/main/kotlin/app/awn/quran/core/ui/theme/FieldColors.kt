@@ -153,3 +153,10 @@ val AwnFieldColors.raisedSurface: Color
     get() =
         if (isLight) lerp(background, Color.White, RAISED_LIGHT_MIX)
         else lerp(background, content, RAISED_DARK_MIX)
+
+private const val SCRIM_LIGHT_ALPHA = 0.5f
+private const val SCRIM_DARK_ALPHA = 0.62f
+
+/** The dimming drawn over the page behind a floating card; heavier on dark pages. */
+val AwnFieldColors.scrim: Color
+    get() = Color.Black.copy(alpha = if (isLight) SCRIM_LIGHT_ALPHA else SCRIM_DARK_ALPHA)

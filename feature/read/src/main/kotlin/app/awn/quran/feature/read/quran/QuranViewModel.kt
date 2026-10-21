@@ -124,9 +124,10 @@ data class QuranUiState(
     val isFollowing: Boolean = true,
     /** No audio is playing, paused or downloading; only then do the volume keys turn pages. */
     val isAudioIdle: Boolean = true,
-    /** Install state of the chosen page type's font; null while unknown. */
-    val fontStatus: FontPackStatus? = null,
-    val isFontPromptDismissed: Boolean = false,
+    /** Install state and progress of each printed page type, for the print offer card. */
+    val printStatuses: Map<ScriptId, FontPackStatus> = emptyMap(),
+    /** The one-time card that offers a printed Mushaf. */
+    val printOffer: PrintOfferState = PrintOfferState(),
     /** Changes whenever a pack is installed or removed, so cached fonts are looked up again. */
     val packRevision: Int = 0,
 ) {
@@ -150,10 +151,6 @@ data class QuranUiState(
     val showBackToPlaying: Boolean
         get() = playingAyah != null && !isFollowing
 
-    /** The chosen print's font is missing and the user has not chosen to keep the fallback. */
-    val showFontPrompt: Boolean
-        get() = fontStatus != null && !fontStatus.isInstalled && !isFontPromptDismissed
-
     /**
      * The surah the title names for the page shown: the first surah that starts on it, or else the
      * one that continues there. Null until the page is loaded.
@@ -176,7 +173,8 @@ data class QuranUiState(
     /** True while Back has something to close before the screen may be left. */
     val hasBackWork: Boolean
         get() =
-            popup != Popup.None ||
+            printOffer.isOpen ||
+                popup != Popup.None ||
                 wordPopup != null ||
                 isPanelOpen ||
                 selection != null ||
@@ -264,8 +262,9 @@ class QuranViewModel(
             // The saved settings come first, so every entry opens in the saved view and print.
             val saved = dependencies.settingsStore.settings.first()
             mutableState.update {
-                it.copy(settings = saved, fontStatus = fontPacks.statuses.value[saved.script])
+                it.copy(settings = saved, printStatuses = fontPacks.statuses.value)
             }
+            openPrintOfferIfPending()
             when (target) {
                 is QuranTarget.Page -> showPage(target.page, barsVisible = true)
                 is QuranTarget.Ayah -> {
@@ -689,6 +688,7 @@ class QuranViewModel(
     fun onBack(): Boolean {
         val state = mutableState.value
         when {
+            state.printOffer.isOpen -> dismissOrKeepReading(state.printOffer)
             state.popup != Popup.None -> closePopup()
             state.wordPopup != null -> dismissWordPopup()
             state.isPanelOpen -> closePanel()
@@ -701,6 +701,10 @@ class QuranViewModel(
             else -> return false
         }
         return true
+    }
+
+    private fun dismissOrKeepReading(offer: PrintOfferState) {
+        if (offer.downloading != null) keepReadingDuringPrintDownload() else dismissPrintOffer()
     }
 
     /** Tells the pages-read timer whether the screen is in front; it counts only then. */
@@ -847,10 +851,6 @@ class QuranViewModel(
             mutableState.update {
                 it.copy(
                     settings = settings,
-                    isFontPromptDismissed = if (scriptChanged) false else it.isFontPromptDismissed,
-                    fontStatus =
-                        if (scriptChanged) fontPacks.statuses.value[settings.script]
-                        else it.fontStatus,
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
                         if (scriptChanged || translationsChanged) emptyMap() else it.contents,
@@ -863,24 +863,98 @@ class QuranViewModel(
         }
     }
 
-    /** Downloads the font of the chosen page type; progress and failure show in the state. */
-    fun downloadFont() {
-        fontPacks.install(mutableState.value.settings.script)
+    /** Opens the print offer card once, on a new installation that has no print yet. */
+    private suspend fun openPrintOfferIfPending() {
+        val isPending = dependencies.printOffer.isPending.first()
+        val installedIds = dependencies.packs.installed().first().map { it.id }.toSet()
+        if (!shouldOpenPrintOffer(isPending, installedIds)) return
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = true)) }
     }
 
-    /** Stops the running font download; the prompt offers Download again. */
-    fun cancelFont() {
-        fontPacks.cancel(mutableState.value.settings.script)
+    /** Ticks [script] in the print offer card; the Download label shows its size. */
+    fun choosePrint(script: ScriptId) {
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(choice = script)) }
     }
 
-    /** Keeps the fallback font for the chosen page type and hides the prompt. */
-    fun keepFallbackFont() {
-        mutableState.update { it.copy(isFontPromptDismissed = true) }
+    /**
+     * Sets the chosen print as the page type and starts its download. The pages keep the bundled
+     * font until the pack is installed, then switch.
+     */
+    fun downloadPrint() {
+        val offer = mutableState.value.printOffer
+        val choice = offer.choice
+        markPrintOfferHandled()
+        mutableState.update {
+            it.copy(
+                printOffer = offer.copy(downloading = choice, previousScript = it.settings.script),
+            )
+        }
+        viewModelScope.launch { dependencies.settingsStore.update { it.copy(script = choice) } }
+        fontPacks.install(choice)
+    }
+
+    /** Not now, or Back on the question: closes the card for good. */
+    fun dismissPrintOffer() {
+        markPrintOfferHandled()
+        closePrintOfferCard()
+    }
+
+    /** Keep reading: closes the card; a running download goes on in the background. */
+    fun keepReadingDuringPrintDownload() {
+        closePrintOfferCard()
+    }
+
+    /** Cancel: stops the download and shows the question again with the page type as before. */
+    fun cancelPrintDownload() {
+        val offer = mutableState.value.printOffer
+        val downloading = offer.downloading ?: return
+        fontPacks.cancel(downloading)
+        val previous = offer.previousScript
+        viewModelScope.launch {
+            dependencies.settingsStore.update {
+                if (previous != null && it.script == downloading) it.copy(script = previous) else it
+            }
+        }
+        mutableState.update {
+            it.copy(printOffer = it.printOffer.copy(downloading = null, previousScript = null))
+        }
+    }
+
+    private fun markPrintOfferHandled() {
+        viewModelScope.launch { dependencies.printOffer.markHandled() }
+    }
+
+    private fun closePrintOfferCard() {
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = false)) }
     }
 
     private suspend fun followFontStatus() {
         fontPacks.statuses.collect { statuses ->
-            mutableState.update { it.copy(fontStatus = statuses[it.settings.script]) }
+            mutableState.update {
+                it.copy(
+                    printStatuses = statuses,
+                    printOffer = settledOffer(it.printOffer, statuses),
+                )
+            }
+        }
+    }
+
+    /**
+     * Follows the download started from the card: a finished one closes the card, a failed one
+     * shows its message in the open card or, when the card is closed, counts for the screen's note.
+     */
+    private fun settledOffer(
+        offer: PrintOfferState,
+        statuses: Map<ScriptId, FontPackStatus>,
+    ): PrintOfferState {
+        val status = offer.downloading?.let { statuses[it] }
+        return when {
+            status == null -> offer
+            status.isInstalled -> offer.copy(isOpen = false, downloading = null)
+            status.failure == null -> offer
+            offer.isOpen -> offer.copy(downloading = null)
+            else ->
+                offer.copy(downloading = null, closedFailureCount = offer.closedFailureCount + 1)
         }
     }
 
