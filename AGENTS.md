@@ -41,7 +41,7 @@ Rules:
 
 ## Project conventions
 These apply to every contributor and agent; the maintainer's global rules are not available to outside contributors, so the essentials are repeated here.
-- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `ci:`), imperative subject under 50 characters, body says why. One logical change per commit. No AI co-author trailers.
+- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `ci:`), one line only, imperative subject under 50 characters, no body (`git commit -m "<subject>"` with a single `-m`). The reason for a change goes in `docs/decisions/` or a code comment, not the commit. One logical change per commit. No AI co-author trailers.
 - Branching: GitHub Flow. Feature and fix work goes on a branch named `<issue>-<slug>` (for example `42-add-bookmarks`), pull request to `main` with `Refs #n` or `Fixes #n`, squash merge, branch deleted after merge. Small direct commits to `main` are allowed for docs, typos and config tweaks. Agents commit on the branch after each completed change.
 - Before saying "done": format, lint and tests run locally with real output shown; anything that could not be run is stated first.
 - Secrets (keystore, passwords, `HF_TOKEN`) live only in GitHub Secrets and the maintainer's offline backup, never in git, logs or chat. Losing the signing key means users can never update.
