@@ -1,5 +1,7 @@
 package app.awn.quran
 
+import android.app.Application
+import android.content.ComponentName
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Text
@@ -11,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -18,18 +21,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 
 /**
- * Back on the Quran screen goes to the index (home) and Back on the index leaves the app. The
- * graph below has the routes of the real one; its Quran screen handles Back the way QuranScreen
- * does: first what is open, then [goToHomeFromQuran].
+ * Back on the Quran screen goes to the index (home) and Back on the index leaves the app. The graph
+ * below has the routes of the real one; its Quran screen handles Back the way QuranScreen does:
+ * first what is open, then [goToHomeFromQuran].
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], application = Application::class)
 class HomeNavigationTest {
 
     @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    init {
+        // The app's own manifest does not declare the activity that Compose tests launch.
+        val application = ApplicationProvider.getApplicationContext<Application>()
+        Shadows.shadowOf(application.packageManager)
+            .addActivityIfNotPresent(
+                ComponentName(application.packageName, "androidx.activity.ComponentActivity"),
+            )
+    }
 
     private lateinit var navController: NavHostController
     private var isSomethingOpen by mutableStateOf(false)
@@ -107,7 +120,10 @@ class HomeNavigationTest {
 
         pressBack()
         assertEquals(Routes.INDEX, currentRoute())
-        assertEquals(1, navController.currentBackStack.value.count { it.destination.route == Routes.INDEX })
+        assertEquals(
+            1,
+            navController.currentBackStack.value.count { it.destination.route == Routes.INDEX },
+        )
         pressBack()
         assertTrue(composeRule.activity.isFinishing)
     }
