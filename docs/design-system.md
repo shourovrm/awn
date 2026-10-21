@@ -27,7 +27,7 @@ Awn has one main screen, the Quran screen: the printed Mushaf page, floor to cei
 - Word states while reciting: confirmed, tentative, wrong, hidden. Light modes: green, ochre, red ink and a block for hidden words; dark modes: the light variants and a paper-coloured block.
 - Switches are 48 x 28dp soft rectangles with a square knob. Sliders: 8dp track in the ink at 30 % and a 24dp thumb in the accent.
 - No dividers, no outlined boxes, no shadows at rest, no gradients. Floating bars, sheets and menus may carry a shadow.
-- Bars fade in and out in at most 120 ms; closing a popup, panel or selection is instant. Screens change with no transition (NavTransitionsTest).
+- Bars fade in and out in at most 120 ms; closing a popup, panel or selection is instant. Screens change with a 200 ms slide (150 to 250 ms is allowed): the new screen slides in from the trailing edge, Back slides the old one out to it and the previous screen in from the leading edge, mirrored in right-to-left layouts (`ScreenTransitions`, NavTransitionsTest). The manifest opts out of predictive back, whose back-to-home animation shrinks the whole window.
 
 ## Colour
 
@@ -48,7 +48,7 @@ The page pager fills the screen; swiping right goes to the next page. Mushaf vie
 
 ## Layout of the index
 
-Top bar: app name, search, last page, Learn, Settings. Tabs Surahs (grouped by juz with its first page), Juz (8 quarters per juz with their first words and page), Bookmarks (recent pages, then bookmarks). Rows at least 48dp.
+Top bar: app name, search, last page, Learn, Settings. Tabs Surahs (grouped under juz headings that are plain text with the first page at the end, no filled band; the list opens at the surah read last), Juz (8 quarters per juz with their first words and page), Bookmarks (recent pages, then bookmarks). Rows at least 48dp.
 
 ## Layout of the Settings screen
 
@@ -62,5 +62,5 @@ Ochre field in Awn mode. Two figure tiles (days in a row, pages this week), the 
 
 - Compose gate test: no `.dp` literal outside the theme package except 0, 1, 2, 4; no `.sp` literal; no `Color(0x` literal; sizes come from `Spacing.kt`, `Type.kt`, `Color.kt`.
 - Copy gate: no quoted text in a Compose text call; banned words in any string file are listed in `docs/copy.md` rule 9.
-- Navigation gate: every `NavHost` passes `None` for its four transitions.
+- Navigation gate: every `NavHost` passes the four `ScreenTransitions` (a slide of 150 to 250 ms) and the manifest sets `enableOnBackInvokedCallback="false"`.
 - Screenshot check on the phone at font scale 1.0 and 1.3, in Awn and Black mode, for every screen above (no emulator is used).

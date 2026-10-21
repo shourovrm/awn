@@ -5,10 +5,17 @@
   <!-- Android 13 and later hide the media notification of the player without it. -->
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+  <!--
+    Apps that target Android 16 get predictive back by default, and at the first screen it plays
+    the system's back-to-home animation: the whole window shrinks towards the launcher icon. The
+    opt-out keeps Back quick; screens slide in the navigation host (ScreenTransitions).
+  -->
   <application
     android:name=".AwnApplication"
     android:allowBackup="false"
     android:dataExtractionRules="@xml/data_extraction_rules"
+    android:enableOnBackInvokedCallback="false"
+    tools:targetApi="33"
     android:fullBackupContent="@xml/backup_rules"
     android:icon="@mipmap/ic_launcher"
     android:label="@string/app_name"

@@ -4,8 +4,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -24,6 +25,13 @@ class ReciteSettingsTest {
             },
         )
 
+    // DataStore frees its file only when the scope's job has completed, and cancel() returns before
+    // that. Opening a second DataStore on the same file straight after cancel() therefore fails
+    // now and then with "multiple DataStores active for the same file". Joining makes it certain.
+    private suspend fun closeAndWait(scope: CoroutineScope) {
+        scope.coroutineContext.job.cancelAndJoin()
+    }
+
     @Test
     fun defaultsAreMiddleSpeedHifzOffHintOnAndHusary() = runBlocking {
         val scope = CoroutineScope(Dispatchers.IO)
@@ -33,7 +41,7 @@ class ReciteSettingsTest {
         assertEquals(false, settings.hifzEnabled.first())
         assertTrue(settings.hintEnabled.first())
         assertEquals("husary", settings.reciterId.first())
-        scope.cancel()
+        closeAndWait(scope)
     }
 
     @Test
@@ -43,13 +51,13 @@ class ReciteSettingsTest {
             setSpeed(0.8f)
             setHifzEnabled(true)
         }
-        firstScope.cancel()
+        closeAndWait(firstScope)
 
         val secondScope = CoroutineScope(Dispatchers.IO)
         val reopened = newSettings(secondScope)
 
         assertEquals(0.8f, reopened.speed.first())
         assertTrue(reopened.hifzEnabled.first())
-        secondScope.cancel()
+        closeAndWait(secondScope)
     }
 }

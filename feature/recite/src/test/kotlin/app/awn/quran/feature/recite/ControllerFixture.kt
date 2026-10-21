@@ -66,6 +66,10 @@ class ControllerFixture(
     // Preparation work held back until finishPreparing() when prepareImmediately is false.
     private val pendingWork = ArrayDeque<Runnable>()
 
+    /** How many times a loaded speech model was closed. */
+    var closedModelCount = 0
+        private set
+
     val speech =
         SpeechPreparation(
             executor = { work -> if (prepareImmediately) work.run() else pendingWork += work },
@@ -75,7 +79,9 @@ class ControllerFixture(
 
                 override fun newPhonemeSource(): PhonemeSource = phonemeSource()
 
-                override fun close() = Unit
+                override fun close() {
+                    closedModelCount++
+                }
             }
         }
 

@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,8 +65,16 @@ fun IndexScreen(
             IndexTabs(selected = selectedTab, onSelect = { selectedTab = it })
             val content = state.content
             if (content != null) {
+                val surahRows = remember(content) { surahListRows(content.surahGroups) }
+                // Created once the surahs are known and kept across tab switches; it starts at the
+                // surah read last (null before anything was read, which means the top).
+                val surahsListState =
+                    rememberLazyListState(
+                        initialFirstVisibleItemIndex =
+                            rowIndexOfSurah(surahRows, state.lastSurah) ?: 0,
+                    )
                 when (IndexTab.entries[selectedTab]) {
-                    IndexTab.Surahs -> SurahsTab(state, content, actions.onOpen)
+                    IndexTab.Surahs -> SurahsTab(state, surahRows, surahsListState, actions.onOpen)
                     IndexTab.Juz -> JuzTab(content, actions.onOpen)
                     IndexTab.Bookmarks -> BookmarksTab(state, onSortChange, actions.onOpen)
                 }

@@ -30,8 +30,6 @@ class AwnApplication : Application(), Configuration.Provider {
             services.audioFreeSpace,
             services.networkStatus,
         )
-        // Copies and loads the speech files on a low-priority thread, so the first recite is quick.
-        services.recite.prepareSpeech()
         // A download that Android stopped, or that died with the process, starts again.
         services.applicationScope.launch {
             services.coreData.packDownloads.resumeWanted(services.coreData.packs)

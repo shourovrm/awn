@@ -7,16 +7,18 @@ import org.junit.Test
 
 /**
  * Navigation Compose cross-fades every screen change over 700 ms unless the NavHost is given
- * transitions, which made Back slow. The source of every NavHost in :app must pass all four.
+ * transitions, which made Back slow. The source of every NavHost in :app must pass all four from
+ * [ScreenTransitions], a short slide. The manifest must also opt out of the system's predictive
+ * back animation, which shrinks the whole app towards the launcher icon.
  */
 class NavTransitionsTest {
 
     private val requiredArguments =
         mapOf(
-            "enterTransition" to "EnterTransition.None",
-            "exitTransition" to "ExitTransition.None",
-            "popEnterTransition" to "EnterTransition.None",
-            "popExitTransition" to "ExitTransition.None",
+            "enterTransition" to "ScreenTransitions.enter",
+            "exitTransition" to "ScreenTransitions.exit",
+            "popEnterTransition" to "ScreenTransitions.popEnter",
+            "popExitTransition" to "ScreenTransitions.popExit",
         )
 
     private val navHostCall = Regex("""\bNavHost\(""")
@@ -40,7 +42,7 @@ class NavTransitionsTest {
     }
 
     @Test
-    fun everyNavHostSetsAllFourTransitionsToNone() {
+    fun everyNavHostPassesTheFourScreenTransitions() {
         val calls =
             appSources().flatMap { file ->
                 val source = file.readText()
@@ -50,9 +52,9 @@ class NavTransitionsTest {
         assertTrue("no NavHost call found", calls.isNotEmpty())
         for (call in calls) {
             for ((argument, expected) in requiredArguments) {
-                val pattern = Regex("""$argument\s*=\s*\{\s*$expected\s*}""")
+                val pattern = Regex("""$argument\s*=\s*${Regex.escape(expected)}\b""")
                 assertTrue(
-                    "NavHost lacks $argument = { $expected }:\n$call",
+                    "NavHost lacks $argument = $expected:\n$call",
                     pattern.containsMatchIn(call),
                 )
             }
@@ -60,9 +62,28 @@ class NavTransitionsTest {
     }
 
     @Test
+    fun theSlideIsQuick() {
+        assertTrue(
+            "a screen slide must take 150 to 250 ms, was ${ScreenTransitions.SLIDE_MILLIS}",
+            ScreenTransitions.SLIDE_MILLIS in 150..250,
+        )
+    }
+
+    @Test
+    fun theManifestOptsOutOfPredictiveBack() {
+        val manifest = File("src/main/AndroidManifest.xml").readText()
+
+        assertTrue(
+            "android:enableOnBackInvokedCallback=\"false\" is missing on <application>",
+            Regex("""android:enableOnBackInvokedCallback\s*=\s*"false"""")
+                .containsMatchIn(manifest),
+        )
+    }
+
+    @Test
     fun theCheckSeesAMissingTransition() {
-        val call = "NavHost(navController, start, enterTransition = { EnterTransition.None })"
-        val pattern = Regex("""popExitTransition\s*=\s*\{\s*ExitTransition.None\s*}""")
+        val call = "NavHost(navController, start, enterTransition = ScreenTransitions.enter)"
+        val pattern = Regex("""popExitTransition\s*=\s*ScreenTransitions.popExit\b""")
 
         assertEquals(false, pattern.containsMatchIn(call))
     }

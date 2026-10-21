@@ -11,14 +11,22 @@ one passage, every ayah in the range stores the same text together with the
 range, so the app can show "5-6" instead of repeating the passage.
 
 Output: a SQLite file with table translation(surah, ayah, ayah_from, ayah_to,
-text) plus a coverage report on stdout. Permission to redistribute the text is
-handled by the maintainer and is not checked here.
+text) and table pack_info(key, value), plus a coverage report on stdout. The app
+refuses a pack database that has no pack_info format_version, so the table is
+required. Permission to redistribute the text is handled by the maintainer and is
+not checked here.
 
-Usage: python3 tools/build_quantum_pack.py [output.sqlite]
+Usage:
+  python3 tools/build_quantum_pack.py [output.sqlite]
+      fetch the site and write a new pack
+  python3 tools/build_quantum_pack.py --add-pack-info existing.sqlite output.sqlite
+      copy the rows of an earlier build that has no pack_info into a new file with
+      the current schema, without fetching anything
 """
 
 import html
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -79,14 +87,51 @@ def split_block(text, first, last):
     return rows
 
 
-def main():
-    output = sys.argv[1] if len(sys.argv) > 1 else "awn-data/translations/bn_quantum.sqlite"
-    connection = sqlite3.connect(output)
-    connection.execute("DROP TABLE IF EXISTS translation")
+def create_pack_tables(connection):
+    """Create the same schema as tools/build_translations.py, so every pack is read the same way."""
     connection.execute(
-        "CREATE TABLE translation (surah INTEGER, ayah INTEGER, ayah_from INTEGER,"
-        " ayah_to INTEGER, text TEXT, PRIMARY KEY (surah, ayah))"
+        "CREATE TABLE translation (surah INTEGER NOT NULL, ayah INTEGER NOT NULL,"
+        " ayah_from INTEGER NOT NULL, ayah_to INTEGER NOT NULL, text TEXT NOT NULL,"
+        " PRIMARY KEY (surah, ayah))"
     )
+    connection.execute("CREATE TABLE pack_info (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    connection.executemany(
+        "INSERT INTO pack_info VALUES (?, ?)",
+        [
+            ("format_version", "1"),
+            ("source", "alquran.org.bd"),
+            ("author", "Quantum Foundation"),
+            ("language", "Bangla"),
+        ],
+    )
+
+
+def add_pack_info(existing_path, output_path):
+    """Copy an earlier pack that has only a translation table into the current schema."""
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    source = sqlite3.connect(existing_path)
+    rows = source.execute(
+        "SELECT surah, ayah, ayah_from, ayah_to, text FROM translation ORDER BY surah, ayah"
+    ).fetchall()
+    source.close()
+    connection = sqlite3.connect(output_path)
+    create_pack_tables(connection)
+    connection.executemany("INSERT INTO translation VALUES (?, ?, ?, ?, ?)", rows)
+    connection.commit()
+    connection.close()
+    print(f"copied {len(rows)} rows into {output_path}")
+
+
+def main():
+    if len(sys.argv) == 4 and sys.argv[1] == "--add-pack-info":
+        add_pack_info(sys.argv[2], sys.argv[3])
+        return
+    output = sys.argv[1] if len(sys.argv) > 1 else "awn-data/translations/bn_quantum.sqlite"
+    if os.path.exists(output):
+        os.remove(output)
+    connection = sqlite3.connect(output)
+    create_pack_tables(connection)
     missing = []
     merged_ranges = 0
     for surah in range(1, 115):

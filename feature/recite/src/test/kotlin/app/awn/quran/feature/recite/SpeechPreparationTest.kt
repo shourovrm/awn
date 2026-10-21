@@ -3,6 +3,8 @@ package app.awn.quran.feature.recite
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.ReferencePhonemes
 import app.awn.quran.tracker.fakes.FakeReferencePhonemes
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
@@ -88,5 +90,79 @@ class SpeechPreparationTest {
 
         assertEquals(true, prepared.closed)
         assertEquals(SpeechState.Idle, preparation.state.value)
+    }
+
+    @Test
+    fun releaseWhilePreparingClosesTheResultThatIsStillBeingBuilt() {
+        val held = mutableListOf<Runnable>()
+        val prepared = FakePrepared()
+        val preparation = SpeechPreparation(executor = { held += it }) { prepared }
+        preparation.prepare()
+
+        preparation.release()
+        held.single().run()
+
+        assertEquals(true, prepared.closed)
+        assertEquals(SpeechState.Idle, preparation.state.value)
+    }
+
+    @Test
+    fun aStaleBuildNeverOverwritesTheStateOfANewerPreparation() {
+        val held = mutableListOf<Runnable>()
+        val builtModels = mutableListOf<FakePrepared>()
+        val preparation =
+            SpeechPreparation(executor = { held += it }) {
+                FakePrepared().also { builtModels += it }
+            }
+        preparation.prepare()
+        preparation.release()
+        preparation.prepare()
+
+        held[0].run()
+
+        assertEquals(SpeechState.Preparing, preparation.state.value)
+        assertEquals(true, builtModels[0].closed)
+
+        held[1].run()
+
+        assertEquals(SpeechState.Ready, preparation.state.value)
+        assertEquals(false, builtModels[1].closed)
+        assertSame(builtModels[1], preparation.awaitReady())
+    }
+
+    @Test
+    fun aStaleBuildThatFailsLeavesTheStateAlone() {
+        val held = mutableListOf<Runnable>()
+        val preparation = SpeechPreparation(executor = { held += it }) { error("copy failed") }
+        preparation.prepare()
+        preparation.release()
+
+        held.single().run()
+
+        assertEquals(SpeechState.Idle, preparation.state.value)
+    }
+
+    @Test
+    fun releaseWakesAWaiterInsteadOfLeavingItBlocked() {
+        val preparation = SpeechPreparation(executor = {}) { FakePrepared() }
+        val waiterOutcome = AtomicReference<Throwable?>()
+        val waiter = Thread {
+            try {
+                preparation.awaitReady()
+            } catch (problem: IllegalStateException) {
+                waiterOutcome.set(problem)
+            }
+        }
+        waiter.start()
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+        while (waiter.state != Thread.State.WAITING && System.nanoTime() < deadline) {
+            Thread.sleep(5)
+        }
+
+        preparation.release()
+        waiter.join(5_000)
+
+        assertEquals(false, waiter.isAlive)
+        assertEquals(true, waiterOutcome.get() is IllegalStateException)
     }
 }

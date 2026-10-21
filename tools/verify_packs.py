@@ -69,6 +69,30 @@ def sha256_of_file(path):
     return digest.hexdigest()
 
 
+def has_readable_format_version(path):
+    """True when the file has pack_info with an integer format_version, as the app requires on install."""
+    connection = sqlite3.connect(path)
+    try:
+        row = connection.execute("SELECT value FROM pack_info WHERE key = 'format_version'").fetchone()
+    except sqlite3.DatabaseError:
+        return False
+    finally:
+        connection.close()
+    return row is not None and row[0].isdigit()
+
+
+def verify_pack_info():
+    """The app refuses a pack database without pack_info.format_version and never retries it."""
+    for folder in ("quran", "translations", "timings"):
+        folder_path = os.path.join(DATA_ROOT, folder)
+        if not os.path.isdir(folder_path):
+            continue
+        for name in sorted(os.listdir(folder_path)):
+            if name.endswith(".sqlite"):
+                check(has_readable_format_version(os.path.join(folder_path, name)),
+                      f"{folder}/{name} has a readable pack_info format_version")
+
+
 def verify_quran_text():
     connection = open_pack("quran", "quran.sqlite")
     if connection is None:
@@ -397,6 +421,7 @@ def verify_against_baseline():
 
 def main():
     word_counts = verify_quran_text()
+    verify_pack_info()
     verify_fonts()
     verify_indopak(word_counts)
     verify_tajweed(word_counts)

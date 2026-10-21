@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.core.ui.theme.AwnColors
+import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.tracker.DurationCheck
@@ -65,10 +65,12 @@ fun ReciteReviewSheet(
     val review = reviews.getOrNull(position)
     val wordText = words.firstOrNull { it.key == review?.key }?.textUthmani.orEmpty()
 
+    // The sheet follows the colour mode; fixed paper and ink made it glare in the night modes.
+    val field = Awn.field
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = AwnColors.paper,
-        contentColor = AwnColors.ink,
+        containerColor = field.background,
+        contentColor = field.content,
     ) {
         Column(
             Modifier.fillMaxWidth()
@@ -125,7 +127,8 @@ private fun SheetAction(
     Text(
         text = label,
         style = AwnTypography.bodyStrong,
-        color = if (enabled) AwnColors.green else AwnColors.ink.copy(alpha = BAR_TRACK_ALPHA),
+        color =
+            if (enabled) Awn.field.buttonFill else Awn.field.content.copy(alpha = BAR_TRACK_ALPHA),
         modifier =
             modifier
                 .defaultMinSize(minHeight = AwnSpacing.touchTarget)
@@ -171,13 +174,13 @@ private fun PronunciationBlock(substitution: TrackerEvent.Substitution) {
         SoundBox(
             label = stringResource(R.string.recite_yours),
             sound = substitution.heard,
-            color = AwnColors.red,
+            color = Awn.field.wrongWord,
             modifier = Modifier.weight(1f),
         )
         SoundBox(
             label = stringResource(R.string.recite_correct),
             sound = substitution.expected,
-            color = AwnColors.green,
+            color = Awn.field.confirmedWord,
             modifier = Modifier.weight(1f),
         )
     }
@@ -206,7 +209,7 @@ private fun DurationBlock(check: DurationCheck) {
         style = AwnTypography.bodyStrong,
     )
     val barColor: Color =
-        if (check.verdict == DurationVerdict.Ok) AwnColors.green else AwnColors.red
+        if (check.verdict == DurationVerdict.Ok) Awn.field.confirmedWord else Awn.field.wrongWord
     val filledFraction =
         if (check.expectedSeconds > 0f) {
             (check.measuredSeconds / check.expectedSeconds).coerceIn(0f, 1f)
@@ -217,7 +220,7 @@ private fun DurationBlock(check: DurationCheck) {
         Modifier.fillMaxWidth()
             .height(AwnSpacing.sliderTrackHeight)
             .clip(barShape)
-            .background(AwnColors.ink.copy(alpha = BAR_TRACK_ALPHA)),
+            .background(Awn.field.content.copy(alpha = BAR_TRACK_ALPHA)),
     ) {
         Box(Modifier.fillMaxWidth(filledFraction).fillMaxHeight().background(barColor))
     }

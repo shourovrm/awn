@@ -5,8 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -103,10 +101,10 @@ private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
 }
 
 /**
- * Every screen switches instantly. Navigation Compose's default is a 700 ms cross-fade on every
- * navigate and pop, which made Back feel slow; the four transitions below must stay `None`
- * (NavTransitionsTest checks this file). Predictive back still works: with no transition there is
- * nothing to seek, and at the start destination the system plays its back-to-home animation.
+ * Screens slide for [ScreenTransitions.SLIDE_MILLIS] ms. Navigation Compose's default is a 700 ms
+ * cross-fade on every navigate and pop, which made Back feel slow; the four transitions below
+ * replace it (NavTransitionsTest checks this file). The manifest opts out of the system's
+ * predictive back, whose back-to-home animation shrank the whole app.
  */
 @Composable
 private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings) {
@@ -120,10 +118,10 @@ private fun AwnNavigation(services: AwnServices, colourSettings: ColourSettings)
     NavHost(
         navController = navController,
         startDestination = Routes.QURAN,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
-        popEnterTransition = { EnterTransition.None },
-        popExitTransition = { ExitTransition.None },
+        enterTransition = ScreenTransitions.enter,
+        exitTransition = ScreenTransitions.exit,
+        popEnterTransition = ScreenTransitions.popEnter,
+        popExitTransition = ScreenTransitions.popExit,
     ) {
         composable(
             route = Routes.QURAN,

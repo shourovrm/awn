@@ -127,7 +127,7 @@ class AwnServices(private val application: Application) {
         SpeechFiles(paths.model, paths.tokens, paths.referencePhonemes)
     }
 
-    /** Reciting on the Quran screen; [ReciteController.prepareSpeech] runs at app start. */
+    /** Reciting on the Quran screen; the speech model loads when recite starts. */
     val recite =
         ReciteController(
             quranText = coreData.quranText,

@@ -155,6 +155,21 @@ class ColourModeTest {
         }
     }
 
+    @Test
+    fun noBarOrBandIsGreenOrBrightInTheNightModes() {
+        for (mode in listOf(ColourMode.Dark, ColourMode.Black)) {
+            for (field in AwnField.entries) {
+                val bar = awnFieldColors(field, mode).barBackground
+
+                assertNotEquals("$mode $field bar is the Awn green", AwnColors.green, bar)
+                assertTrue(
+                    "$mode $field bar is too bright: ${bar.luminance()}",
+                    bar.luminance() < MAXIMUM_NIGHT_BAR_LUMINANCE,
+                )
+            }
+        }
+    }
+
     private fun contrastRatio(first: Color, second: Color): Float {
         val lighter = maxOf(first.luminance(), second.luminance())
         val darker = minOf(first.luminance(), second.luminance())
@@ -164,5 +179,6 @@ class ColourModeTest {
     private companion object {
         const val MINIMUM_TEXT_CONTRAST = 4.5f
         const val CONTRAST_OFFSET = 0.05f
+        const val MAXIMUM_NIGHT_BAR_LUMINANCE = 0.05f
     }
 }

@@ -95,3 +95,7 @@
 2026-10-21 | Ayah bar Play toggles pause and resume from the real playback state | it restarted the audio on every press
 2026-10-21 | Word meanings are matched by word position, not list index | an extra token must not shift meanings
 2026-10-21 | Quran-page and app orientation are saved separately; the Quran screen restores the app one on exit | the user wants rotation defaults for both
+2026-10-21 | bn_quantum rebuilt with pack_info; verify_packs fails any pack without format_version | the app rejected the old file as unreadable and never retried
+2026-10-21 | Speech model loads on recite start and is released on exit | it held 144 MB of native memory for the whole app life
+2026-10-21 | Screens slide 200 ms; manifest opts out of predictive back | back-to-home animation shrank the window; Nav default was 700 ms
+2026-10-21 | Index juz headers are plain text, no filled band | the bands were heavy; the list opens at the last-read surah with the list state hoisted

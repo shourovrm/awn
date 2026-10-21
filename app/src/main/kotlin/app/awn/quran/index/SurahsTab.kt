@@ -1,6 +1,5 @@
 package app.awn.quran.index
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,11 +9,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -48,22 +45,29 @@ private const val BANGLA_LANGUAGE = "bn"
 internal fun pageLabel(page: Int): String =
     stringResource(R.string.index_page, NumberFormat.getIntegerInstance().format(page))
 
+/** The Surahs tab as one flat list: each juz header followed by the surahs that begin in it. */
+internal fun surahListRows(groups: List<JuzGroup>): List<SurahListRow> = groups.flatMap { group ->
+    listOf<SurahListRow>(SurahListRow.Header(group)) + group.surahs.map { SurahListRow.Surah(it) }
+}
+
+/** The list position of [surah]'s row, or null when nothing was read yet or it is not listed. */
+internal fun rowIndexOfSurah(rows: List<SurahListRow>, surah: Int?): Int? {
+    if (surah == null) return null
+    val index = rows.indexOfFirst { it is SurahListRow.Surah && it.entry.chapter.number == surah }
+    return index.takeIf { it >= 0 }
+}
+
+/**
+ * The surahs under their juz. [listState] belongs to the index screen, which creates it already
+ * scrolled to the surah read last, so a visit to another tab and back keeps the user's place.
+ */
 @Composable
 internal fun SurahsTab(
     state: IndexState,
-    content: IndexContent,
+    rows: List<SurahListRow>,
+    listState: LazyListState,
     onOpen: (page: Int, ayah: AyahRef?) -> Unit,
 ) {
-    val rows =
-        content.surahGroups.flatMap { group ->
-            listOf<SurahListRow>(SurahListRow.Header(group)) +
-                group.surahs.map { SurahListRow.Surah(it) }
-        }
-    val lastSurahIndex = rows.indexOfFirst {
-        it is SurahListRow.Surah && it.entry.chapter.number == state.lastSurah
-    }
-    val listState =
-        rememberLazyListState(initialFirstVisibleItemIndex = lastSurahIndex.coerceAtLeast(0))
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
         items(rows.size) { index ->
             when (val row = rows[index]) {
@@ -81,30 +85,37 @@ internal fun SurahsTab(
     }
 }
 
-private sealed interface SurahListRow {
+internal sealed interface SurahListRow {
     data class Header(val group: JuzGroup) : SurahListRow
 
     data class Surah(val entry: SurahEntry) : SurahListRow
 }
 
+/**
+ * A juz heading inside a list: text only, with the juz's first page at the end. A filled band here
+ * read as heavy next to the rows, and in the night modes it stood out more than the content.
+ */
 @Composable
 internal fun GroupHeader(title: String, page: Int) {
     val field = Awn.field
     Row(
         modifier =
             Modifier.fillMaxWidth()
-                .background(field.barBackground)
-                .heightIn(min = AwnSpacing.touchTarget)
-                .padding(horizontal = AwnSpacing.screenMargin),
+                .padding(
+                    start = AwnSpacing.screenMargin,
+                    end = AwnSpacing.screenMargin,
+                    top = AwnSpacing.medium,
+                    bottom = AwnSpacing.small,
+                ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
             style = AwnTypography.bodyStrong,
-            color = field.onBar,
+            color = field.buttonFill,
             modifier = Modifier.weight(1f),
         )
-        Text(text = pageLabel(page), style = AwnTypography.small, color = field.onBar)
+        Text(text = pageLabel(page), style = AwnTypography.small, color = field.content)
     }
 }
 

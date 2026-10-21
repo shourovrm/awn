@@ -39,7 +39,8 @@ fun interface RevisionQueue {
  * `reciteWordStates`.
  *
  * Create it once per process (for example in `AwnServices`) with a [scope] that outlives the
- * screens, and call [prepareSpeech] at app start.
+ * screens. The speech model (about 144 MB of native memory) is loaded when recite mode starts and
+ * released when [exit] has unloaded the session.
  */
 // Each argument is a collaborator that :app supplies, and the entry points of recite mode (recite,
 // revise, grade, exit, speed, hide words) are the controller's whole purpose.
@@ -101,12 +102,6 @@ class ReciteController(
             settings.hifzEnabled.distinctUntilChanged().collect { session.setHifzEnabled(it) }
         }
     }
-
-    /**
-     * Copies and parses the speech files and loads the speech model in the background. Call it at
-     * app start; it returns at once.
-     */
-    fun prepareSpeech() = speech.prepare()
 
     /**
      * Loads the words from [ayah] to the end of its page and waits for the user to start the
@@ -207,6 +202,9 @@ class ReciteController(
         loadJob = scope.launch {
             previous?.cancelAndJoin()
             session.unload()
+            // Only after the session let go of the recogniser: closing it earlier would free the
+            // native model under a running recognition.
+            speech.release()
         }
     }
 

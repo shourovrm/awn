@@ -87,15 +87,51 @@ class ReciteControllerTest {
     }
 
     @Test
-    fun speechStateFollowsThePreparation() {
+    fun speechIsNotPreparedUntilReciteStarts() {
         val fixture = ControllerFixture(folder.root, prepareImmediately = false)
-        assertEquals(SpeechState.Idle, fixture.controller.speechState.value)
 
-        fixture.controller.prepareSpeech()
+        assertEquals(SpeechState.Idle, fixture.controller.speechState.value)
+    }
+
+    @Test
+    fun speechStateShowsPreparingWhileReciteLoads() = runTest {
+        val fixture = ControllerFixture(folder.root, prepareImmediately = false)
+
+        fixture.controller.reciteFrom(AyahRef(1, 1))
         assertEquals(SpeechState.Preparing, fixture.controller.speechState.value)
 
         fixture.finishPreparing()
+        fixture.controller.joinPendingWork()
         assertEquals(SpeechState.Ready, fixture.controller.speechState.value)
+    }
+
+    @Test
+    fun exitReleasesTheSpeechModel() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        assertEquals(SpeechState.Ready, fixture.controller.speechState.value)
+
+        fixture.controller.exit()
+        fixture.controller.joinPendingWork()
+
+        assertEquals(SpeechState.Idle, fixture.controller.speechState.value)
+        assertEquals(1, fixture.closedModelCount)
+    }
+
+    @Test
+    fun reciteAfterExitLoadsTheModelAgain() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.controller.exit()
+        fixture.controller.joinPendingWork()
+
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+
+        assertEquals(SpeechState.Ready, fixture.controller.speechState.value)
+        assertEquals(true, fixture.controller.session.words.value.isNotEmpty())
     }
 
     @Test
