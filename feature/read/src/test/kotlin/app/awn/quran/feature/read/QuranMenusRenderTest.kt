@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
@@ -68,12 +69,21 @@ class QuranMenusRenderTest {
 
     @Test
     fun lineByLineTextSizeHasOneRowPerVisibleLayer() {
+        runBlocking {
+            fixture.store.update {
+                it.copy(
+                    translations = listOf(TranslationId("en_saheeh")),
+                    showTransliteration = true,
+                    showWordByWord = true,
+                )
+            }
+        }
         showScreen(PageView.LineByLine)
 
         composeRule.onNodeWithContentDescription("Text size").performClick()
         composeRule.waitForIdle()
 
-        // Arabic, translations, transliteration and word by word are all on by default.
+        // Arabic, a translation, transliteration and word by word are all ticked above.
         composeRule.onAllNodesWithContentDescription("Smaller").assertCountEquals(4)
     }
 
