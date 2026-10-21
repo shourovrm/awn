@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -174,6 +176,31 @@ class PackListRenderTest(private val mode: ColourMode, private val fontScale: Fl
         composeRule.onNodeWithText("Quantum Foundation (meaning-based)").assertIsDisplayed()
         composeRule.onNodeWithText("Abu Bakr Zakaria").assertIsDisplayed()
         composeRule.onNodeWithText("Abu Bakr Zakaria (meaning-based)").assertDoesNotExist()
+    }
+
+    @Test
+    fun twoWordByWordEntriesShowOneTickWhateverTheLayerFlagIs() {
+        val shown = wordLanguageShown(chosen = null, appLanguage = "bn", setOf("en", "bn"))
+        show {
+            Column {
+                listOf("en" to "English", "bn" to "Bangla").forEach { (language, name) ->
+                    CatalogueEntryRow(
+                        row =
+                            CatalogueRow(
+                                item("wbw_$language", name, installed = true)
+                                    .copy(language = language),
+                                null,
+                            ),
+                        actions = noActions,
+                        tick = if (language == shown) PackTick.On else PackTick.Off,
+                        onTickChange = {},
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("English").assertIsOff()
+        composeRule.onNodeWithContentDescription("Bangla").assertIsOn()
     }
 
     companion object {

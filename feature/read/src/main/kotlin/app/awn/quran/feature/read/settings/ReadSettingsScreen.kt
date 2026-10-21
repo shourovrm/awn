@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.core.data.CatalogueGroup
@@ -19,6 +20,7 @@ import app.awn.quran.core.ui.components.SettingsStepperRow
 import app.awn.quran.core.ui.components.SettingsSwitchRow
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
+import java.util.Locale
 
 private const val PERCENT = 100
 
@@ -63,6 +65,7 @@ fun ReadingSettingsPage(
             onClick = { onOpenPackList(PackListKind.WordByWord) },
             rowKey = SettingRowKeys.READING_WORD_BY_WORD,
         )
+        WordLanguageRow(catalogue, settings, viewModel)
 
         SettingsGroupHeading(stringResource(R.string.reading_group_size))
         TextLayer.entries.forEach { layer ->
@@ -70,6 +73,44 @@ fun ReadingSettingsPage(
         }
 
         PageAndRotationRows(settings, viewModel)
+    }
+}
+
+/**
+ * Chooses the language of the word-by-word meanings: the app language (the default) or one of the
+ * languages that has a pack on the phone.
+ */
+@Composable
+private fun WordLanguageRow(
+    catalogue: CatalogueState,
+    settings: ReadSettings,
+    viewModel: ReadSettingsViewModel,
+) {
+    val installedLanguages = installedWordLanguages(catalogue.rowsIn(CatalogueGroup.WordByWord))
+    val options: List<String?> = listOf(null) + installedLanguages
+    AwnChoiceRow(
+        label = stringResource(R.string.setting_word_language),
+        hint = stringResource(R.string.setting_word_language_hint),
+        options = options,
+        selected = settings.wordByWordLanguage.takeIf { it in installedLanguages },
+        optionLabel = { language ->
+            if (language == null) {
+                stringResource(R.string.word_language_app)
+            } else {
+                languageName(language)
+            }
+        },
+        onSelect = viewModel::setWordByWordLanguage,
+        rowKey = SettingRowKeys.READING_WORD_LANGUAGE,
+    )
+}
+
+/** The name of [languageCode] in the app's language, such as "Bangla" or "বাংলা". */
+@Composable
+private fun languageName(languageCode: String): String {
+    val appLocale = LocalConfiguration.current.locales[0]
+    return Locale.forLanguageTag(languageCode).getDisplayLanguage(appLocale).replaceFirstChar {
+        it.titlecase(appLocale)
     }
 }
 

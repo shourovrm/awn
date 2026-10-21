@@ -11,6 +11,7 @@ object SettingRowKeys {
     const val READING_TRANSLATIONS = "reading.translations"
     const val READING_TRANSLITERATION = "reading.transliteration"
     const val READING_WORD_BY_WORD = "reading.word_by_word"
+    const val READING_WORD_LANGUAGE = "reading.word_language"
     const val READING_SIZE_ARABIC = "reading.size_arabic"
     const val READING_SIZE_TRANSLATION = "reading.size_translation"
     const val READING_SIZE_TRANSLITERATION = "reading.size_transliteration"

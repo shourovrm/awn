@@ -197,7 +197,7 @@ data class QuranUiState(
 @Suppress("TooManyFunctions", "LargeClass")
 class QuranViewModel(
     private val dependencies: ReadDependencies,
-    /** "en" or "bn": picks the word-by-word pack. */
+    /** The app language when the screen opened, such as "en" or "bn". */
     wordLanguage: String,
     private val pageReadDelayMs: Long = PAGE_READ_DELAY_MS,
 ) : ViewModel() {
@@ -214,8 +214,14 @@ class QuranViewModel(
     private val mutablePlayingWord = MutableStateFlow<Int?>(null)
     val playingWordPosition: StateFlow<Int?> = mutablePlayingWord
 
+    // Word-by-word meanings follow the language chosen in Settings, else the app language.
+    private var appLanguage = wordLanguage
     private val contentLoader =
-        PageContentLoader(dependencies.quranText, dependencies.translations, wordLanguage)
+        PageContentLoader(
+            dependencies.quranText,
+            dependencies.translations,
+            wordLanguage = { mutableState.value.settings.wordByWordLanguage ?: appLanguage },
+        )
     private val wordAudio = WordAudio(dependencies)
     private val shareTexts = AyahShareTexts(contentLoader)
 
@@ -360,6 +366,17 @@ class QuranViewModel(
         } else {
             loadContent(page)
         }
+    }
+
+    /**
+     * Reads the word-by-word meanings again when the app language changes, because they follow it
+     * unless the user chose another language.
+     */
+    fun onAppLanguageChanged(language: String) {
+        if (language == appLanguage) return
+        appLanguage = language
+        if (mutableState.value.settings.wordByWordLanguage != null) return
+        reloadContents()
     }
 
     /** The view button: Mushaf or line by line. The choice is saved. */
@@ -813,6 +830,11 @@ class QuranViewModel(
         }
     }
 
+    private fun reloadContents() {
+        mutableState.update { it.copy(contents = emptyMap()) }
+        if (mutableState.value.hasStarted) loadAroundPage(mutableState.value.currentPage)
+    }
+
     private fun loadPanelBlock(ayah: AyahRef) {
         viewModelScope.launch {
             val block = contentLoader.loadBlock(ayah, mutableState.value.settings.translations)
@@ -844,6 +866,7 @@ class QuranViewModel(
             val scriptChanged = settings.script != previous.script
             val translationsChanged = settings.translations != previous.translations
             val viewChanged = settings.pageView != previous.pageView
+            val wordLanguageChanged = settings.wordByWordLanguage != previous.wordByWordLanguage
             mutableState.update {
                 it.copy(
                     settings = settings,
@@ -853,10 +876,15 @@ class QuranViewModel(
                         else it.fontStatus,
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
-                        if (scriptChanged || translationsChanged) emptyMap() else it.contents,
+                        if (scriptChanged || translationsChanged || wordLanguageChanged) {
+                            emptyMap()
+                        } else {
+                            it.contents
+                        },
                 )
             }
-            val needsReload = scriptChanged || translationsChanged || viewChanged
+            val needsReload =
+                scriptChanged || translationsChanged || wordLanguageChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
                 loadAroundPage(mutableState.value.currentPage)
             }

@@ -66,6 +66,12 @@ private val SETTINGS: List<RegisteredSetting> =
             ),
             RegisteredSetting(
                 SettingsSection.Reading,
+                SettingRowKeys.READING_WORD_LANGUAGE,
+                ReadR.string.setting_word_language,
+                listOf(ReadR.string.word_language_app),
+            ),
+            RegisteredSetting(
+                SettingsSection.Reading,
                 SettingRowKeys.READING_SIZE_ARABIC,
                 ReadR.string.layer_arabic,
                 listOf(ReadR.string.reading_group_size),
