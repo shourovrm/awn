@@ -38,7 +38,9 @@ import app.awn.quran.core.ui.theme.raisedSurface
  * A single-choice setting: the label (and an optional [hint] line) at the start, the chosen value
  * in the accent with a small chevron at the end. Tapping the row opens a small menu anchored under
  * the value, with the chosen option ticked; choosing one calls [onSelect] and closes the menu.
- * Every single-choice setting in the app uses this row.
+ * Every single-choice setting in the app uses this row. With [isCompact] the row is only as wide as
+ * its label and value, for a choice that shares a line with another control (the Show choice above
+ * the Quran tab list).
  */
 @Composable
 fun <T> AwnChoiceRow(
@@ -50,6 +52,7 @@ fun <T> AwnChoiceRow(
     modifier: Modifier = Modifier,
     hint: String? = null,
     rowKey: String? = null,
+    isCompact: Boolean = false,
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
     val field = Awn.field
@@ -57,7 +60,7 @@ fun <T> AwnChoiceRow(
     Row(
         modifier =
             modifier
-                .fillMaxWidth()
+                .then(if (isCompact) Modifier else Modifier.fillMaxWidth())
                 .heightIn(
                     min = if (hasHint) AwnSpacing.settingsRowTall else AwnSpacing.settingsRowShort,
                 )
@@ -67,7 +70,7 @@ fun <T> AwnChoiceRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
-        RowLabels(label, hint, Modifier.weight(1f))
+        RowLabels(label, hint, if (isCompact) Modifier else Modifier.weight(1f))
         Box {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

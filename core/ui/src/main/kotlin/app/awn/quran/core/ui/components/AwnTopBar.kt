@@ -1,6 +1,7 @@
 package app.awn.quran.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -25,8 +26,9 @@ import app.awn.quran.core.ui.theme.AwnTypography
  * A 56 dp bar in the bar colour of the active mode. It extends behind the status bar, so the screen
  * must use `AwnTheme(barBehindStatusBar = true)`.
  *
- * When [onNavigateBack] is set a back arrow described by [backDescription] leads the bar; [actions]
- * are icon buttons at the end.
+ * When [onNavigateBack] is set a back arrow described by [backDescription] leads the bar; [leading]
+ * is a mark before the title (the app logo on the Quran tab); [actions] are icon buttons at the
+ * end.
  */
 @Composable
 fun AwnTopBar(
@@ -34,6 +36,7 @@ fun AwnTopBar(
     modifier: Modifier = Modifier,
     onNavigateBack: (() -> Unit)? = null,
     backDescription: String = "",
+    leading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val field = Awn.field
@@ -56,6 +59,9 @@ fun AwnTopBar(
                     tint = field.onBar,
                 )
             }
+            if (leading != null) {
+                Box(Modifier.padding(start = AwnSpacing.screenMargin)) { leading() }
+            }
             Text(
                 text = title,
                 style = AwnTypography.lead,
@@ -65,7 +71,12 @@ fun AwnTopBar(
                 modifier =
                     Modifier.weight(1f)
                         .padding(
-                            start = if (onNavigateBack == null) AwnSpacing.screenMargin else 0.dp,
+                            start =
+                                when {
+                                    leading != null -> AwnSpacing.small
+                                    onNavigateBack == null -> AwnSpacing.screenMargin
+                                    else -> 0.dp
+                                },
                         ),
             )
             actions()

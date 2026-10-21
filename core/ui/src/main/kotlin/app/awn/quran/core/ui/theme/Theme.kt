@@ -21,6 +21,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -44,6 +45,12 @@ enum class AwnField {
 val LocalColourMode = staticCompositionLocalOf { ColourMode.Awn }
 
 private const val LIGHT_LUMINANCE = 0.5f
+
+/**
+ * The colour painted under the system navigation bar when a screen does not paint its own page
+ * there (the tab bar does). Null means the page colour is under it.
+ */
+val LocalNavigationBarBackground = staticCompositionLocalOf<Color?> { null }
 
 private val LocalFieldColors = staticCompositionLocalOf { awnFieldColors(AwnField.Paper) }
 
@@ -88,9 +95,10 @@ fun AwnTheme(
     // A screen that draws its bar behind the status bar (AwnTopBar) leaves the top inset to that
     // bar, so the status-bar icons must contrast with the bar, not with the page.
     val statusBarBackground = if (barBehindStatusBar) colors.barBackground else colors.background
+    val navigationBarBackground = LocalNavigationBarBackground.current ?: colors.background
     SystemBarIcons(
         isLightStatusBar = statusBarBackground.luminance() > LIGHT_LUMINANCE,
-        isLightNavigationBar = colors.isLight,
+        isLightNavigationBar = navigationBarBackground.luminance() > LIGHT_LUMINANCE,
     )
     val contentInsets =
         if (barBehindStatusBar) {

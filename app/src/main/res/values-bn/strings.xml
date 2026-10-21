@@ -2,9 +2,32 @@
 <resources>
   <string name="navigate_back">পেছনে</string>
 
+  <string name="tab_quran">কুরআন</string>
+  <string name="tab_learn">শিখুন</string>
+  <string name="tab_hifz">হিফয</string>
+  <string name="hifz_placeholder">হিফয এখনও পাওয়া যাচ্ছে না</string>
+  <string name="continue_reading">পড়া চালিয়ে যান</string>
+  <string name="continue_start">পড়া শুরু করুন</string>
+  <string name="continue_detail">%1$s · পৃষ্ঠা %2$s · পারা %3$s</string>
+  <string name="today_title">আজ</string>
+  <plurals name="today_learn_revise">
+    <item quantity="one">%d আয়াত পুনরাবৃত্তি</item>
+    <item quantity="other">%d আয়াত পুনরাবৃত্তি</item>
+  </plurals>
+  <string name="index_show">দেখান</string>
+  <string name="index_tab_pages">পৃষ্ঠা</string>
+  <string name="index_bookmarks">বুকমার্ক</string>
+  <string name="index_read_last">শেষ পড়া</string>
+  <string name="index_surah_starts">সূরা শুরু</string>
+  <string name="index_page_short">পৃ. %1$s</string>
+  <string name="index_page_lower">পৃষ্ঠা %1$d</string>
+  <string name="index_juz_continues">পারা %1$d · %2$s চলছে</string>
+  <string name="index_rail_description">পারায় যান</string>
+  <string name="go_to_page">পৃষ্ঠায় যান</string>
+  <string name="go_to_page_hint">পৃষ্ঠা ১ থেকে %1$d</string>
+  <string name="go_to_page_go">যান</string>
+  <string name="dialog_cancel">বাতিল</string>
   <string name="index_search">খুঁজুন</string>
-  <string name="index_last_page">শেষ পড়া পৃষ্ঠা</string>
-  <string name="index_learn">শিখুন</string>
   <string name="index_settings">সেটিংস</string>
   <string name="index_tab_surahs">সূরা</string>
   <string name="index_tab_juz">পারা</string>
@@ -17,7 +40,6 @@
     <item quantity="one">%d আয়াত</item>
     <item quantity="other">%d আয়াত</item>
   </plurals>
-  <string name="index_hizb_fraction">%1$s হিযব %2$d</string>
   <string name="index_recent_pages">সাম্প্রতিক পৃষ্ঠা</string>
   <string name="index_bookmarks_empty">এখনও কোনো বুকমার্ক নেই</string>
   <string name="index_sort">সাজান</string>

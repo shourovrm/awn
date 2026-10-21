@@ -144,3 +144,9 @@
 2026-10-21 | Speech model downloads from models-v1 (SHA-256, atomic rename); recite shows a card first | sherpa loads by path (data.md)
 2026-10-21 | New installs tick no translation; first launch offers en_saheeh+wbw_en or bn_zakaria+wbw_bn | nothing ships (read.md)
 2026-10-21 | bn_zakaria stays the Bangla starter download despite unstated terms | maintainer judges it usable (packs.md)
+2026-10-21 | Three bottom tabs (Quran, Learn, Hifz); the Quran screen opens above them; no dashboard, no Open-the-app-on setting | user decision after the tab mockups
+2026-10-21 | Hifz tab icon is Material Symbols psychology | the crossed-out eye reads as hidden, a heart as favourites
+2026-10-21 | Today rows come from TodayProvider composables, at most two, capped load, section absent when empty | no backlog counts on the home tab
+2026-10-21 | Surah meaning shows by default; Bangla from the pack, else English from surah_meanings_en | switch kept in Settings, default on
+2026-10-21 | Juz rail maps the finger height to 1..30 and prints 7 landmarks | 30 numbers do not fit small screens
+2026-10-21 | Learn tab reuses LearnScreen with a barActions slot for Settings | the Learn agent replaces it later
