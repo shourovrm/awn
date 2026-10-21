@@ -32,7 +32,7 @@ class PageHelpersTest {
 
     @Test
     fun glyphScriptDrawsItsCodeOnlyWhenTheFontIsThere() {
-        val word = Word(WordKey(1, 1, 1), "unicode", "v1code", "v2code", null)
+        val word = Word(WordKey(1, 1, 1), "unicode", "v1code", "v2code")
 
         assertEquals("v1code", textToDraw(word, ScriptId.V1, hasGlyphFont = true))
         assertEquals("v2code", textToDraw(word, ScriptId.V2, hasGlyphFont = true))

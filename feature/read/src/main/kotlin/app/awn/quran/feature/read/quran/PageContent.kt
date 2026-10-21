@@ -140,6 +140,7 @@ internal class PageContentLoader(
         val words = quranText.wordsOfAyah(ayah)
         val pageOfWord = if (script != null) fontPages?.pagesOf(ayah, words).orEmpty() else null
         val meanings = meaningsOf(ayah)
+        val wordTransliterations = translations.wordTransliteration(ayah)
         val ayahTranslations = enabledTranslations.mapNotNull { id ->
             val passage = translations.text(id, ayah) ?: return@mapNotNull null
             val isRange = passage.ayahFrom != passage.ayahTo
@@ -160,15 +161,12 @@ internal class PageContentLoader(
                         key = word.key,
                         arabic = normalizeFallbackText(word.textUthmani),
                         meaning = meaningAtPosition(meanings, word.key.wordPosition),
-                        transliteration = transliterationOf(word),
+                        transliteration =
+                            meaningAtPosition(wordTransliterations, word.key.wordPosition),
                         glyphs = pageOfWord?.let { glyphsOf(word, script, it) },
                     )
                 },
-            transliteration =
-                words
-                    .mapNotNull { transliterationOf(it) }
-                    .joinToString(separator = " ")
-                    .ifBlank { null },
+            transliteration = translations.ayahTransliterationLine(ayah, wordTransliterations),
             translations = ayahTranslations,
         )
     }
@@ -188,12 +186,6 @@ internal class PageContentLoader(
         )
     }
 
-    /**
-     * The transliteration of one word. Every transliteration lookup of the cards and lists goes
-     * through here, so moving the data out of quran.sqlite into a downloadable pack, or choosing a
-     * language for it, changes this one function. Only English exists today.
-     */
-    private fun transliterationOf(word: Word): String? = word.transliteration
 }
 
 /**
@@ -207,6 +199,23 @@ internal fun meaningsWithEnglishFallback(
     List(maxOf(wanted.size, english.size)) { index ->
         wanted.getOrNull(index)?.takeIf { it.isNotBlank() } ?: english.getOrNull(index).orEmpty()
     }
+
+/**
+ * The transliteration line of an ayah: its words joined, or, when the word transliteration pack is
+ * not installed, the whole-ayah English transliteration pack if that one is.
+ */
+private suspend fun TranslationRepository.ayahTransliterationLine(
+    ayah: AyahRef,
+    wordTransliterations: List<String>,
+): String? {
+    val fromWords = wordTransliterations.joinToString(separator = " ")
+    if (fromWords.isNotBlank()) return fromWords
+    return text(TranslationId(AYAH_TRANSLITERATION_PACK_ID), ayah)?.text?.takeIf {
+        it.isNotBlank()
+    }
+}
+
+private const val AYAH_TRANSLITERATION_PACK_ID = "en_transliteration"
 
 /**
  * The meaning of the word at [position] (counted from 1). The pack lists one meaning per word

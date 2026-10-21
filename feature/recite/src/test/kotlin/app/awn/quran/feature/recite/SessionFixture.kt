@@ -90,7 +90,7 @@ class SessionFixture(inputBlocks: Int = 1) {
 
     fun confirmed(index: Int) = TrackerEvent.WordChanged(index, WordState.Confirmed)
 
-    private fun word(key: WordKey, text: String) = Word(key, text, null, null, null)
+    private fun word(key: WordKey, text: String) = Word(key, text, null, null)
 
     private fun reference(key: WordKey) =
         ReferenceWord(WordKeyLike(key.surah, key.ayah, key.wordPosition), listOf("a"))

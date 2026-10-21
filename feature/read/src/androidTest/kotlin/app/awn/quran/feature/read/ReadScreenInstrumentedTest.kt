@@ -82,7 +82,6 @@ class ReadScreenInstrumentedTest {
                                 "بِسْمِ",
                                 null,
                                 null,
-                                null,
                             ),
                         ),
                     ),

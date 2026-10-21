@@ -139,3 +139,7 @@
 2026-10-21 | Word-by-word language is its own setting (null = app language), radio list, English fallback | one flag ticked every row and read the device locale
 2026-10-21 | Word-timing packs are a Word audio download group; ayah-level timings (Basfar) are not offered | nothing installed timings, so word play hid
 2026-10-21 | Word audio downloads by itself for the chosen reciter on unmetered networks; the card offers it otherwise | same rule as audio, 3 MB each
+2026-10-21 | Only Quran text, font and manifests ship in the APK; all other content downloads | user decision (data.md)
+2026-10-21 | Word transliteration is the pack en_transliteration_words, not a quran.sqlite column | the column was content (packs.md)
+2026-10-21 | Speech model downloads from models-v1 (SHA-256, atomic rename); recite shows a card first | sherpa loads by path (data.md)
+2026-10-21 | New installs tick no translation; first launch offers en_saheeh+wbw_en or bn_zakaria+wbw_bn | nothing ships (read.md)

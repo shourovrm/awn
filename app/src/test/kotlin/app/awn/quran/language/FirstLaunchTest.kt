@@ -95,4 +95,32 @@ class FirstLaunchTest {
 
         assertEquals(false, preferences.printOfferPending.first())
     }
+
+    @Test
+    fun theLanguageAnswerOfAFreshInstallationNamesTheStarterDownloadToOffer() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        assertEquals(null, preferences.starterOfferLanguage.first())
+
+        preferences.markLanguageChosen("bn")
+
+        assertEquals("bn", preferences.starterOfferLanguage.first())
+    }
+
+    @Test
+    fun anUpgradingUserIsNeverOfferedTheStarterDownload() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        preferences.acceptNotice()
+
+        assertEquals(null, preferences.starterOfferLanguage.first())
+    }
+
+    @Test
+    fun handlingTheStarterOfferOnceEndsItForGood() = runBlocking {
+        val preferences = AppPreferences(newDataStore())
+        preferences.markLanguageChosen("en")
+
+        preferences.markStarterOfferHandled()
+
+        assertEquals(null, preferences.starterOfferLanguage.first())
+    }
 }

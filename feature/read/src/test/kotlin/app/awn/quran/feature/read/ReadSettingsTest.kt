@@ -130,7 +130,12 @@ class ReadSettingsTest {
 
     @Test
     fun layersListsOnlyTheTickedOnesInThePopupOrder() {
-        val everything = ReadSettings(translations = listOf(TranslationId("en_saheeh")))
+        val everything =
+            ReadSettings(
+                translations = listOf(TranslationId("en_saheeh")),
+                showTransliteration = true,
+                showWordByWord = true,
+            )
         assertEquals(
             listOf(
                 TextLayer.Arabic,
@@ -210,6 +215,8 @@ class ReadSettingsTest {
         val bangla = TranslationId("bn_zakaria")
         val third = TranslationId("en_abdul_haleem")
 
+        viewModel.setTranslationEnabled(bangla, true)
+        viewModel.setTranslationEnabled(english, true)
         viewModel.setTranslationEnabled(third, true)
         assertEquals(listOf(bangla, english, third), viewModel.settings.value.translations)
 
@@ -274,5 +281,13 @@ class ReadSettingsTest {
         assertEquals("bn", viewModel.settings.value.wordByWordLanguage)
         viewModel.forgetWordByWordLanguage("bn")
         assertEquals(null, viewModel.settings.value.wordByWordLanguage)
+    }
+
+    @Test
+    fun aNewInstallationTicksOnlyTheArabicBecauseNothingElseShipsInTheApp() {
+        val fresh = ReadSettings()
+
+        assertEquals(listOf(TextLayer.Arabic), fresh.visibleLayers)
+        assertEquals(emptyList<TranslationId>(), fresh.translations)
     }
 }

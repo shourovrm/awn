@@ -5,6 +5,7 @@ import app.awn.quran.AppPreferences
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
+import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.fsrs.FsrsRating
 import app.awn.quran.feature.learn.learnProgressEvents
@@ -125,10 +126,12 @@ class AwnServices(private val application: Application) {
             isNetworkMetered = networkStatus::isMetered,
         )
 
-    private val modelFiles =
-        ModelFiles(application.assets, File(application.filesDir, MODEL_DIRECTORY))
+    /** The speech model is downloaded after install; recite offers the download first. */
+    val speechModel =
+        SpeechModelStore(File(application.filesDir, MODEL_DIRECTORY), applicationScope)
 
-    private val speechPreparation = RemoteSpeech.preparation(application, modelFiles)
+    /** Loads the model for reciting; the recite entry prepares it again after a download. */
+    val speechPreparation = RemoteSpeech.preparation(application, speechModel)
 
     /** Reciting on the Quran screen; the speech model loads when recite starts. */
     val recite =

@@ -135,7 +135,7 @@ class FallbackTextTest {
     @Test
     fun glyphPagesDrawTheirCodesUntouchedWithThePrintedEndSign() {
         val code = chars(0xFC41, 0xFC42)
-        val word = Word(WordKey(2, 1, 1), "x", null, code, null)
+        val word = Word(WordKey(2, 1, 1), "x", null, code)
         val layout =
             PageLayout(
                 3,
@@ -183,6 +183,5 @@ class FallbackTextTest {
         assertEquals(chars(meem, 0x06EC), normalizeFallbackText(chars(meem, 0x06EB)))
     }
 
-    private fun word(position: Int, text: String) =
-        Word(WordKey(2, 1, position), text, null, null, null)
+    private fun word(position: Int, text: String) = Word(WordKey(2, 1, position), text, null, null)
 }

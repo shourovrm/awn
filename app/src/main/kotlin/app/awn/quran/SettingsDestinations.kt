@@ -200,6 +200,8 @@ private fun NavGraphBuilder.appearanceAndDownloadsDestinations(
             audioBytes = state.downloadedBytes,
             onOpenList = openList,
             onOpenReciters = { navController.navigate(SettingsSection.Audio.route) },
+            speechModel = services.speechModel,
+            onSpeechModelRemoved = services.speechPreparation::release,
             onBack = goBack,
             targetRow = entry.targetRow(),
         )
