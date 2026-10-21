@@ -7,6 +7,8 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -17,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -95,7 +98,7 @@ fun AwnApp(
                         coroutineScope.launch {
                             // The flag is written first: applying the language recreates the
                             // activity, and the screen must not come back afterwards.
-                            preferences.markLanguageChosen()
+                            preferences.markLanguageChosen(language.languageTag)
                             languageApplier.apply(language)
                         }
                     },
@@ -299,6 +302,9 @@ private fun QuranRoute(
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
         )
     AwnTheme(field = ReadField) {
-        QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)
+        Box(Modifier.fillMaxSize()) {
+            QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)
+            StarterOfferOverlay(services)
+        }
     }
 }
