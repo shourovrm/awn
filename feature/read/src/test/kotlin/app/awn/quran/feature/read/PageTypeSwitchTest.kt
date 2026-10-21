@@ -40,6 +40,7 @@ class PageTypeSwitchTest {
     @get:Rule val composeRule = createComposeRule()
 
     private val unicode = "بِسْمِ"
+    private val unicodeDrawn = "بِسۡمِ"
     private val v1Code = 0xFB51.toChar().toString()
     private val v2Code = 0xFC41.toChar().toString()
 
@@ -94,7 +95,7 @@ class PageTypeSwitchTest {
         // The font is removed: the same page falls back to the Unicode text of the word.
         family = null
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(unicode).assertIsDisplayed()
+        composeRule.onNodeWithText(unicodeDrawn).assertIsDisplayed()
         assertEquals(0, composeRule.onAllNodesWithText(v2Code).fetchSemanticsNodes().size)
     }
 }

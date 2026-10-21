@@ -60,8 +60,9 @@ class FallbackTextTest {
 
     @Test
     fun marksInsideAWordAreKept() {
+        // The silent-letter circle stays on its letter, in the Hafs font's code.
         val word = chars(0x0642, 0x064E, 0x0627, 0x06DF, 0x0644)
-        assertEquals(word, normalizeFallbackText(word))
+        assertEquals(chars(0x0642, 0x064E, 0x0627, 0x0652, 0x0644), normalizeFallbackText(word))
     }
 
     @Test
@@ -158,6 +159,28 @@ class FallbackTextTest {
 
         assertEquals(code, (tokens[0] as LineToken.WordToken).text)
         assertEquals(chars(0xFC43), (tokens[1] as LineToken.RosetteToken).glyphCode)
+    }
+
+    @Test
+    fun silentLetterCircleAndSukunUseTheHafsFontCodes() {
+        // 4:176 "ٱمْرُؤٌا۟": the Hafs font draws U+06DF as a dotted ring. In its own text the
+        // silent-letter circle is U+0652 and sukun is U+06E1, so the two codes swap at once.
+        val alef = 0x0627
+        val meem = 0x0645
+        val source = chars(meem, 0x0652, reh, alef, 0x06DF)
+
+        assertEquals(chars(meem, 0x06E1, reh, alef, 0x0652), normalizeFallbackText(source))
+    }
+
+    @Test
+    fun rareSeenAndIshmamMarksUseTheHafsFontCodes() {
+        // 52:37 writes the small seen with U+06E3 and 12:11 the ishmam sign with U+06EB; the
+        // Hafs font draws both as dotted rings and expects U+06DC and U+06EC.
+        val sad = 0x0635
+        val meem = 0x0645
+
+        assertEquals(chars(sad, 0x06DC), normalizeFallbackText(chars(sad, 0x06E3)))
+        assertEquals(chars(meem, 0x06EC), normalizeFallbackText(chars(meem, 0x06EB)))
     }
 
     private fun word(position: Int, text: String) =

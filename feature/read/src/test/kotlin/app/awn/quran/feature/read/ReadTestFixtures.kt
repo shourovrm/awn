@@ -90,6 +90,9 @@ class ReadFixture(settings: ReadSettings = ReadSettings()) {
     companion object {
         const val FATIHA_VERSES = 7
         const val FIRST_WORD = "بِسْمِ"
+
+        /** [FIRST_WORD] as the Hafs font draws it: sukun is U+06E1 in that font's text. */
+        const val FIRST_WORD_DRAWN = "بِسۡمِ"
         const val SECOND_WORD = "ٱللَّهِ"
         val fatiha =
             Chapter(1, "الفاتحة", "Al-Fatihah", "আল-ফাতিহা", FATIHA_VERSES, "makkah", false)

@@ -7,6 +7,7 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.feature.read.page.normalizeFallbackText
 
 /** One Arabic word with what the word by word view and its popup show. */
 data class AyahWord(
@@ -115,7 +116,7 @@ internal class PageContentLoader(
                 words.mapIndexed { index, word ->
                     AyahWord(
                         key = word.key,
-                        arabic = word.textUthmani,
+                        arabic = normalizeFallbackText(word.textUthmani),
                         meaning = meanings.getOrNull(index),
                         transliteration = word.transliteration,
                     )

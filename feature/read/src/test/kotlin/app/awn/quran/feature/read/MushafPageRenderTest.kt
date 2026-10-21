@@ -40,7 +40,7 @@ class MushafPageRenderTest {
             }
         }
 
-        composeRule.onNodeWithText(ReadFixture.FIRST_WORD).assertIsDisplayed()
+        composeRule.onNodeWithText(ReadFixture.FIRST_WORD_DRAWN).assertIsDisplayed()
         composeRule.onNodeWithText(ReadFixture.SECOND_WORD).assertIsDisplayed()
         composeRule.onNodeWithText("\u0661").assertIsDisplayed()
     }

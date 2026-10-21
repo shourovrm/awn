@@ -35,7 +35,7 @@ class QuranScreenRenderTest {
         }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText(ReadFixture.FIRST_WORD).assertIsDisplayed()
+        composeRule.onNodeWithText(ReadFixture.FIRST_WORD_DRAWN).assertIsDisplayed()
         // The bars are shown for two seconds when the screen opens.
         assertEquals(0, searchOpened)
     }
