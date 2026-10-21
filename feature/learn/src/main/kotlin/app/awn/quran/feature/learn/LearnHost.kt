@@ -22,7 +22,7 @@ import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Lesson
 import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.feature.learn.content.SnippetRepository
-import app.awn.quran.feature.learn.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import java.time.LocalDate
 import java.time.ZoneId

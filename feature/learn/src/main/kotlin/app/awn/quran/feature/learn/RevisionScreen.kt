@@ -17,7 +17,7 @@ import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.feature.learn.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsRating
 
 /**
  * Cards due today, one ayah at a time. The user recites from memory, shows the text to check, then

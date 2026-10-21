@@ -18,7 +18,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.ColourMode
 import app.awn.quran.core.ui.theme.LocalColourMode
-import app.awn.quran.feature.learn.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsRating
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test

@@ -5,7 +5,7 @@ Usage (py-fsrs lives in a virtualenv, never system-wide):
     python3 -m venv /tmp/awn-fsrs && /tmp/awn-fsrs/bin/pip install fsrs
     /tmp/awn-fsrs/bin/python tools/generate_fsrs_vectors.py
 
-Output: feature/learn/src/test/resources/fsrs_vectors.json. Fuzzing is off, so every number is
+Output: core/data/src/test/resources/fsrs_vectors.json. Fuzzing is off, so every number is
 deterministic. The random generator is seeded, so a rerun with the same py-fsrs gives the same file.
 The py-fsrs git commit is the commit of the release tag v<version> on GitHub, read with
 `git ls-remote`; pass --git-commit to set it when offline.
@@ -29,7 +29,7 @@ RANDOM_SEED = 1409703933
 FIRST_REVIEW = datetime(2026, 1, 1, 6, 30, tzinfo=timezone.utc)
 OUTPUT = (
     Path(__file__).resolve().parent.parent
-    / "feature/learn/src/test/resources/fsrs_vectors.json"
+    / "core/data/src/test/resources/fsrs_vectors.json"
 )
 
 # Good is the most common rating in real use; Again and Hard are rarer.

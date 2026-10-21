@@ -6,7 +6,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.feature.learn.LearnServices
-import app.awn.quran.feature.learn.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings

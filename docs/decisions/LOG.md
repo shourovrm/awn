@@ -120,3 +120,4 @@
 2026-10-21 | Page follows the next expected word, animated for one page, jump for more | audio-style jump hid the recitation (read.md)
 2026-10-21 | Word card has its own play button; a word tap never plays | sound only on request, mic may be listening (read.md)
 2026-10-21 | Recite bar shows audio controls and pauses the mic while audio plays | the mic heard the reciter (recite.md)
+2026-10-21 | FSRS port moved from :feature:learn to :core:data | Hifz needs it too, two real callers (learn.md)
