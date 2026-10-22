@@ -236,7 +236,11 @@ internal fun WordPageScreen(
 private fun stateText(details: WordDetails): String =
     when {
         details.status == WordStatus.Known && details.backInDays != null ->
-            stringResource(R.string.word_state_known_back, details.backInDays)
+            pluralStringResource(
+                R.plurals.word_state_known_back,
+                details.backInDays,
+                details.backInDays,
+            )
         else -> statusLabel(details.status)
     }
 

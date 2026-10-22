@@ -82,6 +82,7 @@ internal class HubActions(
     val onSources: () -> Unit,
     val onDownloadMeanings: () -> Unit,
     val onLesson: (String) -> Unit,
+    val onChangeChoices: () -> Unit,
 )
 
 private val SESSION_MINUTES = listOf(5, 10, 15)
@@ -216,7 +217,9 @@ private fun planSummary(plan: TodayPlan): String {
         parts +=
             pluralStringResource(R.plurals.course_today_reviews, plan.reviewCount, plan.reviewCount)
     }
-    if (plan.newWordCount > 0) parts += stringResource(R.string.course_today_new, plan.newWordCount)
+    if (plan.newWordCount > 0)
+        parts +=
+            pluralStringResource(R.plurals.course_today_new, plan.newWordCount, plan.newWordCount)
     if (plan.lessonIds.isNotEmpty()) parts += stringResource(R.string.course_today_lesson)
     return parts.joinToString(", ")
 }
@@ -260,9 +263,14 @@ private fun FoldedRow(row: PathRow.Folded, state: HubState) {
 private fun SetRow(row: PathRow.SetStep) {
     val detail =
         when {
-            row.state == PathState.Done -> stringResource(R.string.course_set_known, row.knownCount)
+            row.state == PathState.Done ->
+                pluralStringResource(R.plurals.course_set_known, row.knownCount, row.knownCount)
             row.metCount > 0 ->
-                stringResource(R.string.course_set_left, LEARN_SET_SIZE - row.metCount)
+                pluralStringResource(
+                    R.plurals.course_set_left,
+                    LEARN_SET_SIZE - row.metCount,
+                    LEARN_SET_SIZE - row.metCount,
+                )
             else -> null
         }
     StepRow(
@@ -416,7 +424,13 @@ private fun ProgressCard(state: HubState) {
 private fun MoreRows(state: HubState, actions: HubActions) {
     SettingsLinkRow(
         label = stringResource(R.string.course_word_list),
-        value = stringResource(R.string.course_word_list_detail, state.wordsMet, state.wordsKnown),
+        value =
+            pluralStringResource(
+                R.plurals.course_word_list_detail,
+                state.wordsMet,
+                state.wordsMet,
+                state.wordsKnown,
+            ),
         icon = R.drawable.ic_learn_list,
         onClick = actions.onWordList,
     )
@@ -447,6 +461,10 @@ private fun MoreRows(state: HubState, actions: HubActions) {
         selected = state.sessionMinutes,
         optionLabel = { stringResource(R.string.course_minutes, it) },
         onSelect = actions.onSessionMinutes,
+    )
+    SettingsLinkRow(
+        label = stringResource(R.string.course_change_choices),
+        onClick = actions.onChangeChoices,
     )
     SettingsLinkRow(label = stringResource(R.string.course_sources), onClick = actions.onSources)
 }

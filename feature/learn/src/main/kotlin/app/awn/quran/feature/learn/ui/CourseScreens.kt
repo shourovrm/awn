@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,9 @@ import app.awn.quran.feature.learn.course.LessonReference
 /** The choices the first screen of the course collects. */
 internal data class FirstChoices(val includeLetters: Boolean, val minutes: Int)
 
+/** What the course starts with before the user has chosen anything. */
+internal val DEFAULT_FIRST_CHOICES = FirstChoices(includeLetters = false, minutes = 10)
+
 private const val SHORT_DAY_MINUTES = 5
 private const val MEDIUM_DAY_MINUTES = 10
 private const val SHORT_QUIZ_QUESTIONS = 10
@@ -47,9 +51,13 @@ private val TIME_CHOICES = listOf(5, 10, 15)
  * The first screen of the word course: whether the user reads Arabic yet, and the time each day.
  */
 @Composable
-internal fun FirstOpenScreen(onContinue: (FirstChoices) -> Unit, modifier: Modifier = Modifier) {
-    var includeLetters by remember { mutableStateOf(false) }
-    var minutes by remember { mutableStateOf(MEDIUM_DAY_MINUTES) }
+internal fun FirstOpenScreen(
+    onContinue: (FirstChoices) -> Unit,
+    modifier: Modifier = Modifier,
+    initial: FirstChoices = DEFAULT_FIRST_CHOICES,
+) {
+    var includeLetters by remember { mutableStateOf(initial.includeLetters) }
+    var minutes by remember { mutableStateOf(initial.minutes) }
     Column(modifier = modifier.fillMaxSize()) {
         Column(
             modifier =
@@ -133,7 +141,7 @@ internal fun RadioChoiceRow(
             modifier
                 .fillMaxWidth()
                 .heightIn(min = AwnSpacing.settingsRowTall)
-                .clickable(role = Role.RadioButton, onClick = onClick),
+                .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {

@@ -13,6 +13,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import app.awn.quran.core.ui.theme.Awn
@@ -42,8 +43,9 @@ private fun QuizEnd(summary: SessionSummary) {
     )
     Text(
         text =
-            stringResource(
-                R.string.end_quiz_summary,
+            pluralStringResource(
+                R.plurals.end_quiz_summary,
+                summary.wordsRevised,
                 summary.answeredCorrectly,
                 summary.wordsRevised,
             ),
@@ -60,7 +62,16 @@ private fun DayEnd(summary: SessionSummary) {
         color = Awn.field.content,
     )
     Text(
-        text = stringResource(R.string.end_summary, summary.wordsRevised, summary.newWords),
+        text =
+            stringResource(
+                R.string.end_summary_join,
+                pluralStringResource(
+                    R.plurals.end_summary_revised,
+                    summary.wordsRevised,
+                    summary.wordsRevised,
+                ),
+                pluralStringResource(R.plurals.end_summary_new, summary.newWords, summary.newWords),
+            ),
         style = AwnTypography.body,
         color = Awn.field.content,
     )
@@ -80,9 +91,17 @@ private fun DayEnd(summary: SessionSummary) {
     Text(
         text =
             stringResource(
-                R.string.end_tomorrow_detail,
-                summary.tomorrowReviews,
-                summary.tomorrowNewWords,
+                R.string.end_tomorrow_detail_join,
+                pluralStringResource(
+                    R.plurals.end_tomorrow_detail_revise,
+                    summary.tomorrowReviews,
+                    summary.tomorrowReviews,
+                ),
+                pluralStringResource(
+                    R.plurals.end_tomorrow_detail_new,
+                    summary.tomorrowNewWords,
+                    summary.tomorrowNewWords,
+                ),
             ),
         style = AwnTypography.body,
         color = Awn.field.content,
@@ -160,8 +179,9 @@ private fun LastAyahCard(lastAyah: LastAyah) {
         }
         Text(
             text =
-                stringResource(
-                    R.string.end_last_ayah_known,
+                pluralStringResource(
+                    R.plurals.end_last_ayah_known,
+                    lastAyah.words.size,
                     lastAyah.knownCount,
                     lastAyah.words.size,
                 ),
