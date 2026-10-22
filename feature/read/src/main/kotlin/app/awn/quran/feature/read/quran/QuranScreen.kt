@@ -466,7 +466,8 @@ private fun QuranContent(
             BottomBarStack(
                 onHeightChanged = { height ->
                     // Outside reciting the stack also holds prompts and the back-to-playing
-                    // button, which must not leave a permanent gap; the audio bar is measured alone.
+                    // button, which must not leave a permanent gap; the audio bar is measured
+                    // alone.
                     if (state.isReciting) barClearance.onBottomBarMeasured(height, true)
                 },
                 modifier = Modifier.align(Alignment.BottomCenter),

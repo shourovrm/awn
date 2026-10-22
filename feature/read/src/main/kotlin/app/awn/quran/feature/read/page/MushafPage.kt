@@ -214,7 +214,7 @@ private fun PageBody(
     Box(
         Modifier.fillMaxSize().pageGestures(geometry, gestures).drawBehind {
             drawFills(geometry, decorations, field, playingFade.snapshot())
-            drawHintLetters(geometry, decorations, field, textMeasurer, plainFamily)
+            drawHintLetters(geometry, decorations, field, textMeasurer, measured.families.plain)
         },
     ) {
         PageRowsLayer(
