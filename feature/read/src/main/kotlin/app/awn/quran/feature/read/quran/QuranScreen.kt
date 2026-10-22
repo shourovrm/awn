@@ -34,7 +34,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +54,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -79,6 +79,7 @@ import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontLookup
+import app.awn.quran.feature.read.page.PageBarInsets
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.page.SelectionBounds
@@ -279,8 +280,11 @@ private fun QuranContent(
     var wordAnchor by remember { mutableStateOf<Rect?>(null) }
     // Where the word the reciter is on lies on the Mushaf page, in the page's own coordinates.
     var trackedWordBounds by remember { mutableStateOf<Rect?>(null) }
-    // The height of everything stacked at the bottom while reciting; the lists end above it.
-    var bottomStackHeightPx by remember { mutableIntStateOf(0) }
+    // The room the bars take above and below the page; no page text is drawn there.
+    val barClearance = rememberBarClearance()
+    LaunchedEffect(state.isReciting) {
+        if (!state.isReciting) barClearance.onReciteEnded()
+    }
     // Remembered, so the pages see the same objects after every state change and can skip.
     val selectionActions = remember {
         MushafSelectionActions(
@@ -333,12 +337,12 @@ private fun QuranContent(
                 state.isReciting &&
                     isMushaf &&
                     reciteWordBounds != null &&
-                    bottomStackHeightPx > 0 ->
+                    barClearance.reciteBarPx > 0 ->
                     shiftToClearAudioBar(
                             spanTop = reciteWordBounds.top,
                             spanBottom = reciteWordBounds.bottom,
                             pageHeight = fullHeightPx.toFloat(),
-                            clearance = bottomStackHeightPx.toFloat(),
+                            clearance = barClearance.reciteBarPx.toFloat(),
                             margin = marginPx,
                         )
                         .toInt()
@@ -383,8 +387,8 @@ private fun QuranContent(
         // to the part above the panel so their scrolling keeps the ayah in view.
         val pagerHeight = if (isMushaf) fullHeight else windowHeight
         val reciteBarHeight: Dp? =
-            if (state.isReciting && bottomStackHeightPx > 0) {
-                with(density) { bottomStackHeightPx.toDp() }
+            if (state.isReciting && barClearance.reciteBarPx > 0) {
+                with(density) { barClearance.reciteBarPx.toDp() }
             } else {
                 null
             }
@@ -398,6 +402,7 @@ private fun QuranContent(
                 playingWord = playingWord,
                 fullHeightPx = fullHeightPx,
                 reciteBarHeight = reciteBarHeight,
+                barInsets = barClearance.insets(state.isReciting),
                 trackedWord = trackedWord,
                 focusedWord = focusedWord,
                 onFocusWord = slots.onReciteFocusWord,
@@ -423,6 +428,8 @@ private fun QuranContent(
                 surahName = state.headerSurah?.localName().orEmpty(),
                 isNight = slots.isNight,
                 actions = topBarActions(viewModel, slots),
+                modifier =
+                    Modifier.onSizeChanged { size -> barClearance.onTopBarMeasured(size.height) },
             )
         }
         if (!state.isPanelOpen) {
@@ -445,17 +452,20 @@ private fun QuranContent(
                     }
                 }
                 val hifzBar = slots.hifzBar
+                val measureBar = Modifier.onSizeChanged { size ->
+                    barClearance.onBottomBarMeasured(size.height, state.isReciting)
+                }
                 if (state.isReciting && hifzBar != null) {
-                    hifzBar(viewModel::exitReciteMode)
+                    Box(measureBar) { hifzBar(viewModel::exitReciteMode) }
                 } else if (state.isReciting) {
-                    slots.reciteBar(viewModel::exitReciteMode)
+                    Box(measureBar) { slots.reciteBar(viewModel::exitReciteMode) }
                 } else {
                     AnimatedVisibility(
                         visible = state.areBarsVisible,
                         enter = fadeIn(tween(BAR_FADE_MS)),
                         exit = fadeOut(tween(BAR_FADE_MS)),
                     ) {
-                        slots.audioBar(state.currentPage)
+                        Box(measureBar) { slots.audioBar(state.currentPage) }
                     }
                 }
             }
@@ -629,6 +639,7 @@ private fun QuranPager(
     playingWord: State<Int?>,
     fullHeightPx: Int,
     reciteBarHeight: Dp?,
+    barInsets: PageBarInsets,
     trackedWord: WordKey?,
     focusedWord: WordKey?,
     onFocusWord: (WordKey) -> Unit,
@@ -662,7 +673,8 @@ private fun QuranPager(
     // The list scrolls clear of the top bar above and of the audio bar and the navigation bar
     // below, so a search result or the playing ayah never sits under either.
     val navigationBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val barPadding = listContentPadding(reciteBarHeight, navigationBarHeight)
+    val topBarHeight = with(LocalDensity.current) { barInsets.topPx.toDp() }
+    val barPadding = listContentPadding(reciteBarHeight, navigationBarHeight, topBarHeight)
     val view = state.settings.pageView
     val tapToggle =
         remember(viewModel) {
@@ -751,7 +763,9 @@ private fun QuranPager(
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
                                     onTap = onPageTapped,
-                                    pageScale = state.settings.mushafScale,
+                                    sizeFactor = state.settings.mushafScale,
+                                    barInsets = barInsets,
+                                    revealGradually = !isCurrent,
                                     onAyahPressed = onAyahPressed,
                                     onRangeDrag = onRangeDrag,
                                     onRangeEnd = selectionActions.onRangeEnd,
