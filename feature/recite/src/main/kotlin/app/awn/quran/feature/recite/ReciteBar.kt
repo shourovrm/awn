@@ -103,7 +103,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val problems by session.wordProblems.collectAsState()
     val focusedWord by controller.focusedWord.collectAsState()
     val flaggedWords = remember(reviews, problems) { flaggedReviews(reviews, problems) }
-    val colors = ReciteBarColors.of(Awn.field)
+    val colors = ReciteBarColors.reciting()
     val speechState by controller.speechState.collectAsState()
     val hintEnabled by controller.settings.hintEnabled.collectAsState(initial = true)
     var reviewOpen by remember { mutableStateOf(false) }
@@ -227,7 +227,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                         colors = colors,
                         onClick = {
                             when (listenActionFor(audio)) {
-                                ListenAction.PlayAyah -> scope.launch { controller.listenToAyah() }
+                                ListenAction.PlayAyah -> controller.listenOnward()
                                 ListenAction.Pause -> controller.audioPlayer.pause()
                                 ListenAction.Resume -> controller.audioPlayer.resume()
                                 null -> Unit
@@ -238,7 +238,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                         BarIconButton(
                             icon = R.drawable.ic_recite_stop,
                             description = stringResource(R.string.recite_listen_stop),
-                            onClick = controller.audioPlayer::stop,
+                            onClick = controller::stopListening,
                             tag = RECITE_BAR_AUDIO_STOP_TAG,
                             colors = colors,
                         )
@@ -246,12 +246,14 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     MicrophoneButton(
                         listening = listening,
                         access = access,
-                        // The microphone stays off while audio plays: the user taps it afterwards.
-                        enabled = (canListen && !isAudioActive) || listening,
+                        // While the audio plays the microphone stops it and goes on reciting.
+                        enabled = canListen || listening,
                         colors = colors,
                         onClick = {
                             when {
                                 listening -> session.stop()
+                                access == MicrophoneAccess.Granted && isAudioActive ->
+                                    controller.resumeReciting()
                                 access == MicrophoneAccess.Granted -> session.start()
                                 access == MicrophoneAccess.CanAsk -> permission.requestAccess()
                                 else -> permission.openAppSettings()

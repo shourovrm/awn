@@ -2,6 +2,7 @@ package app.awn.quran.feature.recite
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.ColourMode
 import app.awn.quran.core.ui.theme.awnFieldColors
@@ -46,5 +47,15 @@ class ReciteBarColorsTest {
 
             assertTrue("$mode text on bar", contrast(colors.content, colors.background) >= 4.5f)
         }
+    }
+
+    @Test
+    fun theRecitingBarIsOchreWithReadableTextAndAMainButtonThatStandsOut() {
+        val colors = ReciteBarColors.reciting()
+
+        assertEquals(AwnColors.ochre, colors.background)
+        assertTrue("text on bar", contrast(colors.content, colors.background) >= 4.5f)
+        assertTrue("fill on bar", contrast(colors.primaryFill, colors.background) >= 3f)
+        assertTrue("icon on fill", contrast(colors.onPrimary, colors.primaryFill) >= 4.5f)
     }
 }

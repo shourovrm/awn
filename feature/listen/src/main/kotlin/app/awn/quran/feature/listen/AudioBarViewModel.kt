@@ -134,6 +134,17 @@ class AudioBarViewModel(
         }
     }
 
+    /**
+     * The ayah the microphone recites from: the one playing or paused, else the first ayah of the
+     * page the bar is on. Null when neither is known yet.
+     */
+    suspend fun reciteStart(): AyahRef? =
+        when (val playback = player.state.first()) {
+            is PlaybackState.Playing -> playback.ayah
+            is PlaybackState.Paused -> playback.ayah
+            else -> mutablePageStart.value
+        }
+
     fun choose(choice: StartChoice) {
         mutableStartChoices.value = emptyList()
         controller.playFrom(choice.ayah)
