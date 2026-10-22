@@ -44,6 +44,7 @@ import app.awn.quran.feature.recite.rememberMicrophonePermission
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteCurrentWord
 import app.awn.quran.feature.recite.rememberReciteFocusedWord
+import app.awn.quran.feature.recite.rememberReciteHintLetters
 import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.BookmarksScreen
@@ -319,16 +320,7 @@ private fun QuranRoute(
     entry: NavBackStackEntry,
     navigation: TabNavigation,
 ) {
-    val arguments = entry.arguments
-    val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val surah = arguments?.getInt(Routes.SURAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val ayah = arguments?.getInt(Routes.AYAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val target =
-        when {
-            surah != null && ayah != null -> QuranTarget.Ayah(AyahRef(surah, ayah))
-            page != null -> QuranTarget.Page(page)
-            else -> null
-        }
+    val target = quranTargetOf(entry)
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
     val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()
@@ -353,6 +345,7 @@ private fun QuranRoute(
             onReciteFrom = services.recite::reciteFrom,
             reciteWordStates = { rememberReciteWordStates(services.recite) },
             reciteWordProblems = { rememberReciteWordProblems(services.recite) },
+            reciteHintLetters = { rememberReciteHintLetters(services.recite) },
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navigation.showTab(AwnTab.Quran) },
@@ -376,6 +369,19 @@ private fun QuranRoute(
             QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)
             StarterOfferOverlay(services)
         }
+    }
+}
+
+/** Where the Quran screen opens: an ayah, a page, or null for the last place read. */
+private fun quranTargetOf(entry: NavBackStackEntry): QuranTarget? {
+    val arguments = entry.arguments
+    val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val surah = arguments?.getInt(Routes.SURAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val ayah = arguments?.getInt(Routes.AYAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    return when {
+        surah != null && ayah != null -> QuranTarget.Ayah(AyahRef(surah, ayah))
+        page != null -> QuranTarget.Page(page)
+        else -> null
     }
 }
 

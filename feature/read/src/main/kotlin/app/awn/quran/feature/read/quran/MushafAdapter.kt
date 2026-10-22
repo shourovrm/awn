@@ -123,6 +123,8 @@ internal data class MushafHost(
     val fontFamily: FontFamily?,
     val plainFamily: FontFamily?,
     val wordStates: Map<WordKey, WordState>,
+    /** The first letter shown inside the block of a Hidden word. */
+    val hintLetters: Map<WordKey, String> = emptyMap(),
     /** A tap on a word, with the word's place in the screen body. */
     val onWordTap: (WordKey, Rect) -> Unit,
     val showPageInfo: Boolean,
@@ -157,7 +159,7 @@ internal fun MushafPageHost(
     val wordStates = host.wordStates
     // Remembered, so equal marks give an equal PageDecorations and the page can skip recomposing.
     val decorations =
-        remember(highlights, wordStates, host.focusedWord) {
+        remember(highlights, wordStates, host.hintLetters, host.focusedWord) {
             PageDecorations(
                 selectedAyahs = highlights.selectedAyahs,
                 playingAyah = highlights.playingAyah,
@@ -165,6 +167,7 @@ internal fun MushafPageHost(
                 bookmarkedAyahs = highlights.bookmarkedAyahs,
                 focusedWord = host.focusedWord,
                 wordStates = { key -> wordStates[key] ?: WordState.Neutral },
+                hintLetter = { key -> host.hintLetters[key] },
             )
         }
     Box(modifier.fillMaxSize()) {
