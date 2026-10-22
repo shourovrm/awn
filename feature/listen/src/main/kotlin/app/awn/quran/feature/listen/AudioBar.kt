@@ -311,6 +311,18 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         evenly,
         tint,
     )
+    RepeatSpeedAndReciterButtons(state, actions)
+    state.step?.let { StepCounter(it, tint) }
+}
+
+/** The buttons that change how and with whom the audio plays, as evenly weighted as the rest. */
+@Composable
+private fun RowScope.RepeatSpeedAndReciterButtons(
+    state: AudioBarState.Active,
+    actions: AudioBarActions,
+) {
+    val tint = Awn.field.onBar
+    val evenly = Modifier.weight(1f)
     ValueButton(
         icon = R.drawable.ic_listen_repeat,
         plainDescription = stringResource(R.string.audio_repeat),
@@ -334,7 +346,6 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         evenly,
         tint,
     )
-    state.step?.let { StepCounter(it, tint) }
 }
 
 /** "3/7": where the cumulative drill is, read aloud as "Step 3 of 7". */
