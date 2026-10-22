@@ -157,3 +157,4 @@
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
 2026-10-22 | Do not ask for notifications when audio starts | The dialog stopped the first Listen; media notifications show without it (player.md)
+2026-10-22 | Search lists surahs by number or name above ayah results | users typed a surah name and found nothing

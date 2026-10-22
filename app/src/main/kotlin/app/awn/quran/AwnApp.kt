@@ -286,12 +286,18 @@ private fun NavGraphBuilder.indexDestinations(
         val viewModel: SearchViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
         val typedQuery by viewModel.typedQuery.collectAsStateWithLifecycle()
+        val coroutineScope = rememberCoroutineScope()
         SearchScreen(
             typedQuery = typedQuery,
             state = state,
             onQueryChange = viewModel::setQuery,
             onBack = { navController.popBackStack() },
             onOpen = navController::openQuran,
+            onOpenSurah = { surah ->
+                coroutineScope.launch {
+                    navController.openQuran(page = viewModel.firstPageOf(surah), ayah = null)
+                }
+            },
         )
     }
 }
