@@ -24,22 +24,20 @@ enum class MyWordState {
 
 /**
  * The icon at the start of the word card's heading: a bookmark with a plus while the word is not in
- * the list (a tap adds it), a filled bookmark once it is (nothing to tap).
+ * the list (a tap adds it), a filled bookmark once it is (a tap takes it out again, so a word saved by mistake can be undone).
  */
 @Composable
-internal fun AddToMyWordsButton(state: MyWordState, onAdd: () -> Unit) {
+internal fun AddToMyWordsButton(state: MyWordState, onAdd: () -> Unit, onRemove: () -> Unit) {
     val isAdded = state == MyWordState.Added
     val icon = if (isAdded) R.drawable.ic_read_bookmark_added else R.drawable.ic_read_bookmark_add
     val description =
         stringResource(
             if (isAdded) R.string.word_added_to_my_words else R.string.word_add_to_my_words,
         )
-    val tapModifier =
-        if (isAdded) Modifier else Modifier.clickable(role = Role.Button, onClick = onAdd)
     Box(
         Modifier.requiredSize(AwnSpacing.touchTarget)
             .semantics { contentDescription = description }
-            .then(tapModifier),
+            .clickable(role = Role.Button, onClick = if (isAdded) onRemove else onAdd),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(icon), contentDescription = null, tint = Awn.field.onBar)

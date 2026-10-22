@@ -73,6 +73,12 @@ fun learnWordIsAdded(context: Context, word: WordKey): Flow<Boolean> {
     }
 }
 
+/** Takes the form of [word] back out of the words taught next (a word already met stays). */
+suspend fun learnRemoveWord(context: Context, word: WordKey) {
+    val services = LearnServices.get(context)
+    services.courseRepository.unqueueWord(services.courseAssets().forms.rankOf(word))
+}
+
 /** Queues the form of [word] among the words taught next. */
 suspend fun learnAddWord(context: Context, word: WordKey) {
     val services = LearnServices.get(context)

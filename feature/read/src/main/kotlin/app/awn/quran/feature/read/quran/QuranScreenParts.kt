@@ -139,6 +139,7 @@ internal fun WordPopupCard(
     onDownloadAudio: () -> Unit = {},
     myWordState: MyWordState? = null,
     onAddToMyWords: () -> Unit = {},
+    onRemoveFromMyWords: () -> Unit = {},
 ) {
     val field = Awn.field
     Box(
@@ -186,6 +187,7 @@ internal fun WordPopupCard(
                 onStop = onStop,
                 myWordState = myWordState,
                 onAddToMyWords = onAddToMyWords,
+                onRemoveFromMyWords = onRemoveFromMyWords,
             )
             popup.word.meaning?.let {
                 Text(text = it, style = AwnTypography.body.ltr(), color = field.onBar)
@@ -227,11 +229,12 @@ private fun WordHeading(
     onStop: () -> Unit,
     myWordState: MyWordState?,
     onAddToMyWords: () -> Unit,
+    onRemoveFromMyWords: () -> Unit,
 ) {
     val hasCornerButton = popup.canPlay || myWordState != null
     Row(verticalAlignment = Alignment.Top) {
         if (myWordState != null) {
-            AddToMyWordsButton(myWordState, onAddToMyWords)
+            AddToMyWordsButton(myWordState, onAddToMyWords, onRemoveFromMyWords)
         } else if (hasCornerButton) {
             Spacer(Modifier.size(AwnSpacing.touchTarget))
         }

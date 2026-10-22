@@ -578,6 +578,11 @@ private fun QuranContent(
                         scope.launch { myWords.add(popup.word.key) }
                     }
                 },
+                onRemoveFromMyWords = {
+                    dependencies.myWords?.let { myWords ->
+                        scope.launch { myWords.remove(popup.word.key) }
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
             )
         }

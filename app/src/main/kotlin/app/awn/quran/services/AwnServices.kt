@@ -15,6 +15,7 @@ import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.learnAddWord
 import app.awn.quran.feature.learn.learnProgressEvents
+import app.awn.quran.feature.learn.learnRemoveWord
 import app.awn.quran.feature.learn.learnWordIsAdded
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
@@ -139,6 +140,8 @@ class AwnServices(private val application: Application) {
                     override fun isAdded(word: WordKey) = learnWordIsAdded(application, word)
 
                     override suspend fun add(word: WordKey) = learnAddWord(application, word)
+
+                    override suspend fun remove(word: WordKey) = learnRemoveWord(application, word)
                 },
         )
 

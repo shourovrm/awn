@@ -12,4 +12,7 @@ interface MyWords {
 
     /** Adds the form of [word] to the words taught next. */
     suspend fun add(word: WordKey)
+
+    /** Takes the form of [word] out of the words taught next; a word already learned stays. */
+    suspend fun remove(word: WordKey)
 }

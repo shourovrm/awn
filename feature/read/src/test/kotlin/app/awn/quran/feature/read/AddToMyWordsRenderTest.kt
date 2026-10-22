@@ -50,6 +50,7 @@ class AddToMyWordsRenderTest {
                     onDownloadAudio = {},
                     myWordState = state,
                     onAddToMyWords = { adds += 1 },
+                    onRemoveFromMyWords = { removes += 1 },
                 )
             }
         }
@@ -66,11 +67,16 @@ class AddToMyWordsRenderTest {
     }
 
     @Test
-    fun anAddedWordSaysSoAndOffersNothingMore() {
+    fun anAddedWordSaysSoAndATapTakesItOut() {
         show(MyWordState.Added)
 
         composeRule.onNodeWithContentDescription("Added to my words").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Add to my words").assertDoesNotExist()
+
+        composeRule.onNodeWithContentDescription("Added to my words").performClick()
+
+        assertEquals(1, removes)
+        assertEquals(0, adds)
     }
 
     @Test

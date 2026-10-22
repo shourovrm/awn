@@ -132,6 +132,11 @@ class WordCourseRepository(
         }
     }
 
+    /** Takes a word back out of the queue; a word already met stays in the course. */
+    suspend fun unqueueWord(rank: Int) {
+        dao.unqueueWord(rank)
+    }
+
     /**
      * Rates one answer about [rank] in a session and logs the step. Returns the epoch milliseconds
      * at which the word is due next.

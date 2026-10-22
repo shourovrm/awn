@@ -111,17 +111,25 @@ class AudioSettingsViewModel(
         val chosenWordId: String?,
     )
 
-    // The same order as the word card: the chosen reciter, the listening one, then the first.
-    private fun wordReciterIdInUse(choices: ReciterChoices, wordReciters: List<Reciter>): String? {
-        val ids = wordReciters.map { it.id }
-        return when {
-            choices.chosenWordId in ids -> choices.chosenWordId
-            choices.listeningId in ids -> choices.listeningId
-            else -> ids.firstOrNull()
-        }
-    }
+    private fun wordReciterIdInUse(choices: ReciterChoices, wordReciters: List<Reciter>): String? =
+        wordReciterIdInUse(choices.chosenWordId, choices.listeningId, wordReciters.map { it.id })
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
     }
 }
+
+/**
+ * The reciter whose voice plays a single word, in the same order as the word card: the chosen word
+ * reciter, the listening one, then the first with word timings. Null when [wordReciterIds] is empty.
+ */
+internal fun wordReciterIdInUse(
+    chosenWordId: String?,
+    listeningId: String,
+    wordReciterIds: List<String>,
+): String? =
+    when {
+        chosenWordId in wordReciterIds -> chosenWordId
+        listeningId in wordReciterIds -> listeningId
+        else -> wordReciterIds.firstOrNull()
+    }
