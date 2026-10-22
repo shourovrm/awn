@@ -137,93 +137,106 @@ internal class PageGeometry(
 internal const val LANDSCAPE_PAGE_ASPECT = 1.5f
 
 /**
- * The height of the whole page in pixels. In portrait the page at scale 1 is as tall as the screen
- * body, which fits the width on a phone. In landscape the body is too short for 15 lines at the
- * width of the screen, so the page keeps the proportions of the printed page ([widthPx] times
- * [LANDSCAPE_PAGE_ASPECT]) and the body scrolls; fitting the page to the height would print a
- * narrow block in the middle of the screen. [scale] then makes it taller still.
+ * The height of the whole page at the default size, in pixels. In portrait the page is as tall as
+ * the screen body, which fits the width on a phone. In landscape the body is too short for 15 lines
+ * at the width of the screen, so the page keeps the proportions of the printed page ([widthPx]
+ * times [LANDSCAPE_PAGE_ASPECT]) and the body scrolls; fitting the page to the height would print a
+ * narrow block in the middle of the screen.
  */
-internal fun pageHeightFor(widthPx: Float, bodyHeightPx: Float, scale: Float): Float {
-    val baseHeight =
-        if (widthPx > bodyHeightPx) maxOf(bodyHeightPx, widthPx * LANDSCAPE_PAGE_ASPECT)
-        else bodyHeightPx
-    return baseHeight * scale
+internal fun pageHeightFor(widthPx: Float, bodyHeightPx: Float): Float =
+    if (widthPx > bodyHeightPx) maxOf(bodyHeightPx, widthPx * LANDSCAPE_PAGE_ASPECT)
+    else bodyHeightPx
+
+/** The width the text block may use: pages 1 and 2 keep a margin on both sides. */
+internal fun availableWidthOf(widthPx: Float, isCentredBlock: Boolean): Float =
+    if (isCentredBlock) widthPx * PageGeometry.CENTRED_FRAME_SHARE else widthPx
+
+/** The height of one line slot and where the first slot starts, both in pixels. */
+internal data class SlotGrid(val slotHeightPx: Float, val firstSlotTopPx: Float) {
+    companion object {
+        /**
+         * The grid of a page [heightPx] tall at the default size: 15 equal slots, or for pages 1
+         * and 2 slots 1.2 times taller with the banner centred at 27 % of the height.
+         */
+        fun forPageHeight(heightPx: Float, isCentredBlock: Boolean): SlotGrid =
+            if (isCentredBlock) {
+                val slotHeight = heightPx / PageGeometry.SLOTS * PageGeometry.CENTRED_SLOT_SCALE
+                SlotGrid(
+                    slotHeightPx = slotHeight,
+                    firstSlotTopPx =
+                        heightPx * PageGeometry.CENTRED_BANNER_CENTER - slotHeight / 2f,
+                )
+            } else {
+                SlotGrid(slotHeightPx = heightPx / PageGeometry.SLOTS, firstSlotTopPx = 0f)
+            }
+    }
 }
 
 /**
- * Places the rows of one page. [tokenWidthEm] is the width of a word or end sign in ems of the page
- * font. The font size is the largest at which the widest line fits the text block; short last lines
- * of a surah stay short and centred, all others are justified to the block width.
- *
- * [heightPx] is the height of the whole page and [scale] says how many times taller than the screen
- * body it was made: the slots grow with it and the font grows by the same factor, but never past
- * the size at which the widest line, with its gaps squeezed to [PageGeometry.MIN_GAP_EM], still
- * fits the width. Line breaks never change, so a line never needs to leave the page width.
+ * Places the rows of one page at the default size. [tokenWidthEm] is the width of a word or end
+ * sign in ems of the page font. The font size is the largest at which the widest line fits the text
+ * block; short last lines of a surah stay short and centred, all others are justified to the block
+ * width.
  *
  * Pages 1 and 2 ([isCentredBlock]) keep the spacing of normal pages scaled up a little, put the
  * surah banner at 27 % of the height and centre every line; they are not stretched to 15 slots.
  */
-@Suppress("LongParameterList") // Pure placement; the tests call it with these arguments.
 internal fun layoutPage(
     rows: List<PageRow>,
     isCentredBlock: Boolean,
     widthPx: Float,
     heightPx: Float,
     tokenWidthEm: (LineToken) -> Float,
-    scale: Float = 1f,
 ): PageGeometry {
-    val textRows = rows.filterIsInstance<PageRow.TextRow>()
-    val slotHeight =
-        if (isCentredBlock) {
-            heightPx / PageGeometry.SLOTS * PageGeometry.CENTRED_SLOT_SCALE
-        } else {
-            heightPx / PageGeometry.SLOTS
-        }
-    val firstSlotTop =
-        if (isCentredBlock) {
-            heightPx * PageGeometry.CENTRED_BANNER_CENTER - slotHeight / 2f
-        } else {
-            0f
-        }
-    val availableWidth = if (isCentredBlock) widthPx * PageGeometry.CENTRED_FRAME_SHARE else widthPx
-
-    val naturalEm = textRows.associate { row -> row.slot to naturalWidthEm(row, tokenWidthEm) }
-    val widestEm = naturalEm.values.maxOrNull() ?: 1f
-    val widestSqueezedEm =
-        textRows.maxOfOrNull { row -> naturalWidthEm(row, tokenWidthEm, PageGeometry.MIN_GAP_EM) }
-            ?: 1f
-    // What the font would be on the unscaled page, then grown by the scale as far as width allows.
-    val unscaledSlotHeight = slotHeight / scale
-    val unscaledFontSize =
-        minOf(
-            availableWidth / widestEm,
-            unscaledSlotHeight * PageGeometry.MAX_FONT_SHARE_OF_SLOT,
-        )
+    val grid = SlotGrid.forPageHeight(heightPx, isCentredBlock)
+    val widestEm =
+        rows.filterIsInstance<PageRow.TextRow>().maxOfOrNull { row ->
+            naturalWidthEm(row, tokenWidthEm)
+        } ?: 1f
     val fontSize =
         minOf(
-            unscaledFontSize * scale,
-            availableWidth / widestSqueezedEm,
-            slotHeight * PageGeometry.MAX_FONT_SHARE_OF_SLOT,
+            availableWidthOf(widthPx, isCentredBlock) / widestEm,
+            grid.slotHeightPx * PageGeometry.MAX_FONT_SHARE_OF_SLOT,
         )
-    val frameWidth = minOf(availableWidth, widestEm * fontSize)
+    return placeLines(rows, isCentredBlock, widthPx, grid, fontSize, tokenWidthEm)
+}
+
+/**
+ * Places the text rows on [grid] with the font [fontSizePx], whatever the size: the block is as
+ * wide as the widest line, but never wider than the page allows, and centred on the page.
+ */
+@Suppress("LongParameterList") // Pure placement; the tests call it with these arguments.
+internal fun placeLines(
+    rows: List<PageRow>,
+    isCentredBlock: Boolean,
+    widthPx: Float,
+    grid: SlotGrid,
+    fontSizePx: Float,
+    tokenWidthEm: (LineToken) -> Float,
+): PageGeometry {
+    val textRows = rows.filterIsInstance<PageRow.TextRow>()
+    val naturalEm = textRows.associate { row -> row.slot to naturalWidthEm(row, tokenWidthEm) }
+    val widestEm = naturalEm.values.maxOrNull() ?: 1f
+    val frameWidth = minOf(availableWidthOf(widthPx, isCentredBlock), widestEm * fontSizePx)
     val frameLeft = (widthPx - frameWidth) / 2f
     val frameRight = frameLeft + frameWidth
 
     val lines = textRows.map { row ->
-        val top = firstSlotTop + (row.slot - 1) * slotHeight
+        val top = grid.firstSlotTopPx + (row.slot - 1) * grid.slotHeightPx
         val isFull =
             !isCentredBlock &&
-                naturalEm.getValue(row.slot) * fontSize >= frameWidth * PageGeometry.FULL_LINE_SHARE
+                naturalEm.getValue(row.slot) * fontSizePx >=
+                    frameWidth * PageGeometry.FULL_LINE_SHARE
         LinePlacement(
             row.slot,
             top,
-            placeTokens(row, fontSize, LineFrame(frameLeft, frameRight, isFull), tokenWidthEm),
+            placeTokens(row, fontSizePx, LineFrame(frameLeft, frameRight, isFull), tokenWidthEm),
         )
     }
     return PageGeometry(
-        fontSizePx = fontSize,
-        slotHeightPx = slotHeight,
-        firstSlotTop = firstSlotTop,
+        fontSizePx = fontSizePx,
+        slotHeightPx = grid.slotHeightPx,
+        firstSlotTop = grid.firstSlotTopPx,
         frameLeft = frameLeft,
         frameRight = frameRight,
         textLines = lines,

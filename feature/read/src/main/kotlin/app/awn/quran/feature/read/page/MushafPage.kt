@@ -2,31 +2,22 @@ package app.awn.quran.feature.read.page
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
@@ -42,6 +33,7 @@ import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnFieldColors
+import app.awn.quran.core.ui.theme.AwnSpacing
 import kotlin.math.roundToInt
 
 /** Where the middle of the ink of an Arabic line sits above its baseline, in ems. */
@@ -56,10 +48,16 @@ private const val INK_CENTER_ABOVE_BASELINE_EM = 0.35f
  * and the Basmalah are drawn from Unicode text in every script, because the page fonts hold no
  * glyphs for them.
  *
- * [scale] (1 or more, default 1) makes the printed page that many times taller than the screen
- * body: the lines keep their breaks, the glyphs grow with the scale as far as the widest line fits
- * the screen width (see [layoutPage]), and the body scrolls vertically while the header and the
- * page number stay in place. Horizontal drags still reach the pager.
+ * [sizeFactor] is the size of the letters compared with the default (see [planPage]): below 1 the
+ * printed lines stay and the page is a narrower column; above 1 the lines stay while they fit the
+ * width and are poured again when they do not. A page taller than the screen scrolls vertically,
+ * and then the frame rows scroll with it. Horizontal drags still reach the pager.
+ *
+ * [barInsets] is the room the bars over the top and bottom of the screen take. A page that fits
+ * sits between them; a page that scrolls has them as padding above its first row and below its
+ * last, so no text is under a bar and the page still uses the whole screen when the bars hide.
+ * [revealGradually] draws the rows of the page a few at a time over the next frames, for a page
+ * that is built ahead of the swipe so that no single frame has to build all of it.
  *
  * A tap anywhere on the page calls [onTap] the moment the finger lifts; a tap on a word also calls
  * [onWordClick]. A long press (500 ms) anywhere, even in a margin, calls [onAyahLongPress] with the
@@ -78,7 +76,9 @@ fun MushafPage(
     modifier: Modifier = Modifier,
     decorations: PageDecorations = PageDecorations(),
     showPageInfo: Boolean = true,
-    scale: Float = 1f,
+    sizeFactor: Float = 1f,
+    barInsets: PageBarInsets = PageBarInsets(),
+    revealGradually: Boolean = false,
     onWordClick: (WordKey) -> Unit = {},
     onWordTap: (WordKey, Rect) -> Unit = { _, _ -> },
     onTap: () -> Unit = {},
@@ -92,59 +92,58 @@ fun MushafPage(
     val hasGlyphFont = fontFamily != null && layout.script in glyphScripts
     val rows = remember(layout, hasGlyphFont) { buildPageRows(layout, hasGlyphFont) }
     val textFamily = if (hasGlyphFont) fontFamily else plainFamily
-    var bodyTop by remember { mutableFloatStateOf(0f) }
     val touchActions =
         rememberTouchActions(onWordClick, onTap, onAyahLongPress, onRangeDrag, onRangeEnd)
+    val scrollState = rememberScrollState()
 
     // The page is positioned from left to right in pixels; text direction is inside each word.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Column(modifier.fillMaxSize()) {
-            if (showPageInfo) PageHeaderRow(layout, chapters)
-            BoxWithConstraints(
-                Modifier.weight(1f).fillMaxWidth().onGloballyPositioned {
-                    bodyTop = it.positionInParent().y
-                },
-            ) {
-                val density = LocalDensity.current
-                val pageScale = scale.coerceAtLeast(1f)
-                val widthPx = with(density) { maxWidth.toPx() }
-                val bodyHeightPx = with(density) { maxHeight.toPx() }
-                val pageHeightPx = pageHeightFor(widthPx, bodyHeightPx, pageScale)
-                val isScrolling = pageHeightPx > bodyHeightPx + 1f
-                val scrollState = rememberScrollState()
-                val pageSize =
+        BoxWithConstraints(modifier.fillMaxSize()) {
+            val density = LocalDensity.current
+            val area =
+                PageArea(
+                    widthPx = with(density) { maxWidth.toPx() },
+                    heightPx = with(density) { maxHeight.toPx() },
+                    barInsets = barInsets,
+                    frameRowPx =
+                        if (showPageInfo) with(density) { AwnSpacing.large.toPx() } else 0f,
+                )
+            val measured =
+                rememberMeasuredPage(
+                    layout,
+                    rows,
+                    hasGlyphFont,
+                    PageFamilies(textFamily, plainFamily),
                     PagePlacement(
-                        widthPx = widthPx,
-                        pageHeightPx = pageHeightPx,
-                        scale = pageScale,
+                        widthPx = area.widthPx,
+                        bodyHeightPx = area.bodyHeightPx,
+                        sizeFactor = sizeFactor,
                         isCentredBlock = isCentredBlockPage(layout),
-                        isScrolling = isScrolling,
-                    )
-                // Only a page taller than the screen scrolls, so the portrait page at step 0 has
-                // no scroll container at all.
-                val scrollModifier =
-                    if (isScrolling) Modifier.verticalScroll(scrollState) else Modifier
-                Box(Modifier.fillMaxSize().then(scrollModifier)) {
-                    PageBody(
-                        layout = layout,
-                        rows = rows,
-                        hasGlyphFont = hasGlyphFont,
-                        chapters = chapters,
-                        textFamily = textFamily,
-                        plainFamily = plainFamily,
-                        size = pageSize,
-                        decorations = decorations,
-                        touchActions = touchActions,
-                        bodyTop = bodyTop,
-                        scrollOffsetPx = { scrollState.value },
-                        onSelectionBounds = onSelectionBounds,
-                        trackedWord = trackedWord,
-                        onTrackedWordBounds = onTrackedWordBounds,
-                        onWordTap = onWordTap,
-                    )
-                }
+                    ),
+                )
+            val body: @Composable () -> Unit = {
+                PageBody(
+                    layout = layout,
+                    measured = measured,
+                    chapters = chapters,
+                    decorations = decorations,
+                    touchActions = touchActions,
+                    bodyTop = area.pageTopPx,
+                    scrollOffsetPx = { scrollState.value },
+                    revealGradually = revealGradually,
+                    onSelectionBounds = onSelectionBounds,
+                    trackedWord = trackedWord,
+                    onTrackedWordBounds = onTrackedWordBounds,
+                    onWordTap = onWordTap,
+                )
             }
-            if (showPageInfo) PageNumberRow(layout.page)
+            val frame = PageFrameContent(layout, chapters, showPageInfo, barInsets)
+            val pageHeightPx = measured?.pageHeightPx
+            if (pageHeightPx != null && pageHeightPx > area.bodyHeightPx + 1f) {
+                ScrollingFrame(frame, pageHeightPx, scrollState, body)
+            } else {
+                FittedFrame(frame, body)
+            }
         }
     }
 }
@@ -180,30 +179,18 @@ private fun rememberTouchActions(
 @Composable
 private fun PageBody(
     layout: PageLayout,
-    rows: List<PageRow>,
-    hasGlyphFont: Boolean,
+    measured: MeasuredPage?,
     chapters: List<Chapter>,
-    textFamily: FontFamily?,
-    plainFamily: FontFamily?,
-    size: PagePlacement,
     decorations: PageDecorations,
     touchActions: PageTouchActions,
     bodyTop: Float,
     scrollOffsetPx: () -> Int,
+    revealGradually: Boolean,
     onSelectionBounds: (SelectionBounds?) -> Unit,
     trackedWord: WordKey?,
     onTrackedWordBounds: (Rect?) -> Unit,
     onWordTap: (WordKey, Rect) -> Unit,
 ) {
-    val density = LocalDensity.current
-    val measured =
-        rememberMeasuredPage(
-            layout,
-            rows,
-            hasGlyphFont,
-            PageFamilies(textFamily, plainFamily),
-            size,
-        )
     if (measured == null) {
         // The page is being measured off the main thread; nothing is drawn for a frame or two.
         Box(Modifier.fillMaxSize())
@@ -224,21 +211,17 @@ private fun PageBody(
     val gestures =
         rememberWordTapGestures(touchActions, geometry, bodyTop, scrollOffsetPx, onWordTap)
 
-    val pageHeight = with(density) { size.pageHeightPx.toDp() }
-    val heightModifier =
-        if (size.isScrolling) Modifier.height(pageHeight) else Modifier.fillMaxHeight()
     Box(
-        Modifier.fillMaxWidth().then(heightModifier).pageGestures(geometry, gestures).drawBehind {
+        Modifier.fillMaxSize().pageGestures(geometry, gestures).drawBehind {
             drawFills(geometry, decorations, field, playingFade.snapshot())
-            drawHintLetters(geometry, decorations, field, textMeasurer, plainFamily)
+            drawHintLetters(geometry, decorations, field, textMeasurer, measured.families.plain)
         },
     ) {
         PageRowsLayer(
-            rows = measured.rows,
             measured = measured,
-            families = measured.families,
             chapters = chapters,
             decorations = decorations,
+            revealGradually = revealGradually,
         )
         // What is drawn may be private-use glyph codes; screen readers get the Unicode text here.
         AyahTextLayer(
@@ -388,24 +371,29 @@ private fun Modifier.alignedToSlot(
 }
     .offset { IntOffset(left.roundToInt(), slotTop.roundToInt()) }
 
-/** The banner, Basmalah and text lines of a page, each at the place its row has in the geometry. */
+/**
+ * The banner, Basmalah and text lines of a page, each at the place its row has in the geometry.
+ * With [revealGradually] only the first rows are drawn at first and the rest follow a few per frame
+ * (see [rememberRevealedRowCount]).
+ */
 @Composable
 private fun PageRowsLayer(
-    rows: List<PageRow>,
     measured: MeasuredPage,
-    families: PageFamilies,
     chapters: List<Chapter>,
     decorations: PageDecorations,
+    revealGradually: Boolean,
 ) {
     val density = LocalDensity.current
     val field = Awn.field
     val geometry = measured.geometry
+    val families = measured.families
     val fontSizePx = geometry.fontSizePx
     val style = pageTextStyle(families.text, fontSizePx, density)
     val baselineShift = measured.measurements.firstBaselineEm * fontSizePx
     val inkLift = INK_CENTER_ABOVE_BASELINE_EM * fontSizePx
+    val revealedRowCount = rememberRevealedRowCount(measured.rows.size, revealGradually)
 
-    for (row in rows) {
+    for (row in measured.rows.take(revealedRowCount)) {
         when (row) {
             is PageRow.TextRow ->
                 TextLine(

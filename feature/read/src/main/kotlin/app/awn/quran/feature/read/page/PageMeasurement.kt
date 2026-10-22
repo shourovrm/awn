@@ -98,9 +98,14 @@ internal class MeasuredPage(
     val measurements: TokenMeasurements,
     /** Width of the Basmalah line in ems of the plain font, or null when the page has none. */
     val basmalaWidthEm: Float?,
-    /** The rows and fonts this page was placed with; the Hafs fallback has its own. */
+    /**
+     * The rows this page was placed with: the printed lines, or new lines when the chosen size made
+     * a printed line too wide. The Hafs fallback has its own.
+     */
     val rows: List<PageRow>,
     val families: PageFamilies,
+    /** The height of the whole page; more than the screen body when the page scrolls. */
+    val pageHeightPx: Float,
 )
 
 /**
@@ -108,7 +113,8 @@ internal class MeasuredPage(
  * at that size, so the placed rectangles are the widths the text really draws with. Loads the
  * typeface of the page font as a side effect, which is why this runs off the main thread.
  *
- * [pageHeightPx] is the whole height of the page, [scale] times the height of the screen body.
+ * [size] says how large the page is drawn (see [planPage]); the rows of the result may be broken
+ * differently from [rows] when the size is too big for the printed lines.
  */
 internal fun measurePage(
     rows: List<PageRow>,
@@ -117,30 +123,12 @@ internal fun measurePage(
     measurer: TextMeasurer,
     size: PagePlacement,
 ): MeasuredPage {
-    val isCentredBlock = size.isCentredBlock
     val coarseStyle = pageTextStyle(families.text, MEASURE_FONT_PX, density)
     val coarse = measureTokens(rows, coarseStyle, MEASURE_FONT_PX, measurer)
-    val coarseSize =
-        layoutPage(
-                rows,
-                isCentredBlock,
-                size.widthPx,
-                size.pageHeightPx,
-                coarse::widthEm,
-                size.scale,
-            )
-            .fontSizePx
-    val style = pageTextStyle(families.text, coarseSize, density)
-    val measurements = measureTokens(rows, style, coarseSize, measurer)
-    val geometry =
-        layoutPage(
-            rows,
-            isCentredBlock,
-            size.widthPx,
-            size.pageHeightPx,
-            measurements::widthEm,
-            size.scale,
-        )
+    val coarseFontSize = planPage(rows, size, coarse::widthEm).geometry.fontSizePx
+    val style = pageTextStyle(families.text, coarseFontSize, density)
+    val measurements = measureTokens(rows, style, coarseFontSize, measurer)
+    val plan = planPage(rows, size, measurements::widthEm)
     val hasBasmala = rows.any { it is PageRow.BasmalaRow }
     val basmalaWidthEm =
         if (hasBasmala) {
@@ -149,8 +137,17 @@ internal fun measurePage(
         } else {
             null
         }
-    check(isUsable(geometry)) { "The placement of the page is not finite: ${geometry.fontSizePx}" }
-    return MeasuredPage(geometry, measurements, basmalaWidthEm, rows, families)
+    check(isUsable(plan.geometry)) {
+        "The placement of the page is not finite: ${plan.geometry.fontSizePx}"
+    }
+    return MeasuredPage(
+        geometry = plan.geometry,
+        measurements = measurements,
+        basmalaWidthEm = basmalaWidthEm,
+        rows = plan.rows,
+        families = families,
+        pageHeightPx = plan.pageHeightPx,
+    )
 }
 
 /** True when the font size is positive and every token sits at a finite place. */
@@ -204,14 +201,16 @@ private const val TAG = "PageMeasurement"
 /** The fonts a page is drawn with: [text] for words, [plain] for the banner and Basmalah. */
 internal data class PageFamilies(val text: FontFamily?, val plain: FontFamily?)
 
-/** The pixel size a page is placed in, and whether it is the centred block of pages 1 and 2. */
+/**
+ * The pixel size a page is placed in: [widthPx] and the height of the screen body it fits between
+ * the page header and number ([bodyHeightPx]), how large it is drawn compared with the default
+ * ([sizeFactor], 1 is the printed page), and whether it is the centred block of pages 1 and 2.
+ */
 internal data class PagePlacement(
     val widthPx: Float,
-    val pageHeightPx: Float,
-    val scale: Float,
+    val bodyHeightPx: Float,
+    val sizeFactor: Float,
     val isCentredBlock: Boolean,
-    /** True when the page is taller than the screen body and the body scrolls. */
-    val isScrolling: Boolean = scale > 1f,
 )
 
 /**
@@ -261,7 +260,8 @@ internal class PageMeasureKey(
 
 /**
  * The most recently used pages that were placed, so a page that comes back (a swipe back, a
- * rotation) is drawn at once. Bounded, because a page holds its placed tokens.
+ * rotation) is drawn at once. Bounded to the page on screen and two on each side, because a page
+ * holds its placed tokens and the font families it was measured with.
  */
 internal class PageMeasurementCache(private val capacity: Int = DEFAULT_CAPACITY) {
     private val entries =
@@ -283,7 +283,7 @@ internal class PageMeasurementCache(private val capacity: Int = DEFAULT_CAPACITY
         get() = entries.size
 
     companion object {
-        const val DEFAULT_CAPACITY = 8
+        const val DEFAULT_CAPACITY = 5
         private const val LOAD_FACTOR = 0.75f
     }
 }

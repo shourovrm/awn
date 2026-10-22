@@ -184,3 +184,7 @@
 2026-10-23 | Tajweed units open at any time; the Reading-unit-7 rule is a note, not a lock | rows ignored taps for users who chose the letters; read the track as broken
 2026-10-23 | Reading track in Noorani Qaida order, drills folded into checks, new unit 8 | maintainer: shorter Qaida, non-commercial use
 2026-10-23 | IndoPak prints are two scripts (IndoPak15, IndoPak16) sharing one layout pack; font downloaded from Quran.com via download_url | font licence forbids our hosting it
+2026-10-23 | Mushaf size is 0.7 to 2.0 times the default; too-wide printed lines are re-broken by greedy fill | the old control did almost nothing (read.md)
+2026-10-23 | Mushaf page reserves bar-height strips top and bottom, measured from the bars; scrolling pages pad their content | no text under a bar (read.md)
+2026-10-23 | Pages built ahead of a swipe reveal two rows per frame | one 36 ms frame per swipe was the likely jank (read.md)
+2026-10-23 | Font cache keeps page +-2, one family per font file; measured-page cache 5; loaded layouts within 4 pages | memory grew 93 MB over 30 swipes (read.md)

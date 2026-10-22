@@ -19,6 +19,7 @@ import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.MushafPage
+import app.awn.quran.feature.read.page.PageBarInsets
 import app.awn.quran.feature.read.page.PageDecorations
 import app.awn.quran.feature.read.page.SelectionBounds
 import app.awn.quran.tracker.WordState
@@ -128,11 +129,12 @@ internal data class MushafHost(
     /** A tap on a word, with the word's place in the screen body. */
     val onWordTap: (WordKey, Rect) -> Unit,
     val showPageInfo: Boolean,
-    /**
-     * How much larger than the screen width the page prints (1 fits the width). The page scrolls
-     * vertically above 1. Not read yet: the page agent's `scale` parameter takes it.
-     */
-    val pageScale: Float,
+    /** The size of the letters compared with the default (1 is the default, see `planPage`). */
+    val sizeFactor: Float,
+    /** The room the bars over the top and bottom of the screen take; no text is drawn there. */
+    val barInsets: PageBarInsets,
+    /** True for a page built ahead of the swipe, which draws its rows a few per frame. */
+    val revealGradually: Boolean,
     val onTap: () -> Unit,
     val onAyahPressed: (AyahRef) -> Unit,
     val onRangeDrag: (AyahRange) -> Unit,
@@ -179,7 +181,9 @@ internal fun MushafPageHost(
             decorations = decorations,
             onWordTap = host.onWordTap,
             showPageInfo = host.showPageInfo,
-            scale = host.pageScale,
+            sizeFactor = host.sizeFactor,
+            barInsets = host.barInsets,
+            revealGradually = host.revealGradually,
             onTap = host.onTap,
             onAyahLongPress = host.onAyahPressed,
             onRangeDrag = host.onRangeDrag,

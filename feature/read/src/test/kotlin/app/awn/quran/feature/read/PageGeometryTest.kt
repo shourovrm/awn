@@ -3,7 +3,6 @@ package app.awn.quran.feature.read
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.LineToken
-import app.awn.quran.feature.read.page.PageGeometry
 import app.awn.quran.feature.read.page.PageRow
 import app.awn.quran.feature.read.page.layoutPage
 import app.awn.quran.feature.read.page.selectionBounds
@@ -93,74 +92,6 @@ class PageGeometryTest {
         }
         // Not stretched to the 15-line frame: all eight slots fit inside it.
         assertTrue(geometry.slotHeightPx * 8 < height * 0.9f)
-        assertTrue(geometry.frameRight - geometry.frameLeft <= width * 0.9f + 0.01f)
-    }
-
-    @Test
-    fun aLargerScaleGrowsTheTextOnlyAsFarAsTheWidestLineFits() {
-        val rows = listOf(fullLine(1, 1, 6), fullLine(2, 2, 6))
-        val normal = layoutPage(rows, false, width, height, emWidth)
-
-        val larger = layoutPage(rows, false, width, height * 1.5f, emWidth, scale = 1.5f)
-
-        // Six 2 em words and five gaps of at least MIN_GAP_EM each fill the width at the limit.
-        val widestFit = width / (12f + 5 * PageGeometry.MIN_GAP_EM)
-        assertTrue(larger.fontSizePx > normal.fontSizePx)
-        assertEquals(widestFit, larger.fontSizePx, 0.01f)
-        assertEquals(height * 1.5f / 15f, larger.slotHeightPx, 0.01f)
-    }
-
-    @Test
-    fun aScaleTheTextCanFollowEnlargesItByThatFactor() {
-        val rows = listOf(fullLine(1, 1, 3), fullLine(2, 2, 3))
-        val normal = layoutPage(rows, false, width, height, emWidth)
-
-        val larger = layoutPage(rows, false, width, height * 1.1f, emWidth, scale = 1.1f)
-
-        assertEquals(normal.fontSizePx * 1.1f, larger.fontSizePx, 0.01f)
-    }
-
-    @Test
-    fun noLineLeavesThePageWidthAtAnyScale() {
-        val rows =
-            listOf(
-                fullLine(1, 1, 6),
-                fullLine(2, 2, 5),
-                fullLine(3, 3, 2),
-                PageRow.TextRow(
-                    4,
-                    List(5) { word(2, 4, it + 1) } + LineToken.RosetteToken(AyahRef(2, 4), null),
-                ),
-            )
-        for (scale in listOf(1f, 1.25f, 1.6f, 3f)) {
-            val geometry = layoutPage(rows, false, width, height * scale, emWidth, scale = scale)
-
-            for (line in geometry.textLines) {
-                assertTrue("scale $scale", line.tokens.first().right <= width + 0.01f)
-                assertTrue("scale $scale", line.tokens.last().left >= -0.01f)
-            }
-        }
-    }
-
-    @Test
-    fun lineBreaksAreTheSameAtEveryScale() {
-        val rows = listOf(fullLine(1, 1, 6), fullLine(2, 2, 2))
-
-        val larger = layoutPage(rows, false, width, height * 1.6f, emWidth, scale = 1.6f)
-
-        assertEquals(listOf(6, 2), larger.textLines.map { it.tokens.size })
-    }
-
-    @Test
-    fun theCentredBlockOfPageOneStaysInsideItsFrameWhenScaled() {
-        val rows = listOf(fullLine(3, 1, 4), fullLine(4, 2, 5), fullLine(8, 3, 3))
-
-        val geometry = layoutPage(rows, true, width, height * 2f, emWidth, scale = 2f)
-
-        for (line in geometry.textLines) {
-            assertTrue(line.tokens.first().right <= geometry.frameRight + 0.01f)
-            assertTrue(line.tokens.last().left >= geometry.frameLeft - 0.01f)
-        }
         assertTrue(geometry.frameRight - geometry.frameLeft <= width * 0.9f + 0.01f)
     }
 

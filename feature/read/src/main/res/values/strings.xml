@@ -23,7 +23,6 @@
   <string name="busy_stop_microphone">Stop microphone</string>
   <string name="busy_start_microphone">Start microphone</string>
   <string name="action_go_to_playing_ayah">Go to playing ayah</string>
-  <string name="mushaf_size_hint">The page keeps its lines. For larger letters, rotate the screen.</string>
   <string name="size_percent">%1$d%%</string>
 
   <string name="menu_search">Search</string>

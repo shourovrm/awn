@@ -105,7 +105,7 @@ private fun LayerTick(label: String, isTicked: Boolean, onToggle: () -> Unit) {
 
 /**
  * One minus and plus row per layer the line-by-line view shows; the Mushaf view has the Arabic row
- * only, and it makes the printed page larger.
+ * only, and it sets the size of the printed page's letters.
  */
 @Composable
 internal fun TextSizeRows(state: QuranUiState, actions: TopBarActions) {
@@ -118,12 +118,6 @@ internal fun TextSizeRows(state: QuranUiState, actions: TopBarActions) {
                 canShrink = settings.mushafSizeStep > 0,
                 canGrow = settings.mushafSizeStep < TextScale.MUSHAF_LAST_STEP,
                 onChange = actions.onMushafSizeChange,
-            )
-            // The page keeps its line breaks, so only a wider page makes the letters larger.
-            Text(
-                text = stringResource(R.string.mushaf_size_hint),
-                style = AwnTypography.caption,
-                modifier = Modifier.padding(horizontal = AwnSpacing.medium),
             )
         } else {
             settings.visibleLayers.forEach { layer ->

@@ -22,7 +22,6 @@
   <string name="busy_stop_microphone">মাইক্রোফোন বন্ধ করুন</string>
   <string name="busy_start_microphone">মাইক্রোফোন চালু করুন</string>
   <string name="action_go_to_playing_ayah">চলমান আয়াতে যান</string>
-  <string name="mushaf_size_hint">পৃষ্ঠার লাইন একই থাকে। বড় অক্ষরের জন্য স্ক্রিন ঘোরান।</string>
   <string name="size_percent">%1$d%%</string>
 
   <string name="menu_search">খোঁজ</string>
