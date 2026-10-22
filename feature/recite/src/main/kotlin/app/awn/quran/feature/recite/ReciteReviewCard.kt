@@ -1,8 +1,6 @@
 package app.awn.quran.feature.recite
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,20 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -119,68 +108,22 @@ fun ReciteReviewCard(
             .padding(horizontal = AwnSpacing.medium, vertical = TIGHT_GAP)
             .testTag(REVIEW_CARD_TAG),
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (review == null) {
-                FindingTitle(stringResource(R.string.recite_review_empty))
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CardIconButton(
-                        style = CardIconStyle.Soft,
-                        icon =
-                            if (isPlaying) R.drawable.ic_recite_stop else R.drawable.ic_recite_play,
-                        description =
-                            stringResource(
-                                if (isPlaying) R.string.recite_word_stop
-                                else R.string.recite_word_play,
-                            ),
-                        tag = REVIEW_LISTEN_TAG,
-                        onClick = if (isPlaying) onStop else ({ onListen(review.key) }),
-                    )
-                    if (isSaved != null) {
-                        CardIconButton(
-                            style = if (isSaved) CardIconStyle.Filled else CardIconStyle.Ring,
-                            icon =
-                                if (isSaved) {
-                                    R.drawable.ic_recite_bookmark_filled
-                                } else {
-                                    R.drawable.ic_recite_bookmark
-                                },
-                            description =
-                                stringResource(
-                                    if (isSaved) R.string.recite_word_saved
-                                    else R.string.recite_word_save,
-                                ),
-                            tag = REVIEW_SAVE_TAG,
-                            onClick =
-                                if (isSaved) ({ onRemove(review.key) })
-                                else ({ onSave(review.key) }),
-                        )
-                    }
-                }
-            }
-            CloseButton(onDismiss)
-        }
+        ReviewCardHeader(
+            review = review,
+            isPlaying = isPlaying,
+            isSaved = isSaved,
+            onListen = onListen,
+            onStop = onStop,
+            onSave = onSave,
+            onRemove = onRemove,
+            onDismiss = onDismiss,
+        )
         if (review != null) {
             ReviewWord(wordText)
         }
         review?.findings?.forEach { finding -> FindingBlock(finding) }
         if (reviews.size > 1) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SheetAction(
-                    label = stringResource(R.string.recite_previous),
-                    enabled = position > 0,
-                    onClick = { onFocus(reviews[position - 1].key) },
-                )
-                SheetAction(
-                    label = stringResource(R.string.recite_next),
-                    enabled = position < reviews.lastIndex,
-                    onClick = { onFocus(reviews[position + 1].key) },
-                )
-            }
+            ReviewNavigation(reviews = reviews, position = position, onFocus = onFocus)
         }
         Text(
             text = stringResource(R.string.recite_review_note),
@@ -190,68 +133,28 @@ fun ReciteReviewCard(
     }
 }
 
-/** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
-private val TIGHT_GAP = AwnSpacing.small / 2
-
-/** How a round icon button of the card is drawn; see the mock-up q1-a-corners. */
-private enum class CardIconStyle {
-    /** A soft tint of the card ink: play. */
-    Soft,
-
-    /** An outline in the card ink: save word. */
-    Ring,
-
-    /** Ochre with an ink icon: the word is saved. */
-    Filled,
-}
-
 @Composable
-private fun CardIconButton(
-    style: CardIconStyle,
-    icon: Int,
-    description: String,
-    tag: String,
-    onClick: () -> Unit,
+private fun ReviewNavigation(
+    reviews: List<WordReview>,
+    position: Int,
+    onFocus: (WordKey) -> Unit,
 ) {
-    val ink = Awn.field.content
-    val isLightCard = Awn.field.background.luminance() >= LIGHT_CARD_LUMINANCE
-    val circle = CircleShape
-    val styled =
-        when (style) {
-            CardIconStyle.Soft -> Modifier.background(ink.copy(alpha = SOFT_ALPHA), circle)
-            CardIconStyle.Ring -> Modifier.border(BorderStroke(RING_WIDTH, ink), circle)
-            // Ochre on a light card is 2:1, so the circle gets an ink edge there.
-            CardIconStyle.Filled ->
-                Modifier.background(AwnColors.ochre, circle)
-                    .then(
-                        if (isLightCard) {
-                            Modifier.border(BorderStroke(RING_WIDTH, ink), circle)
-                        } else {
-                            Modifier
-                        },
-                    )
-        }
-    Box(
-        Modifier.requiredSize(AwnSpacing.touchTarget)
-            .semantics { contentDescription = description }
-            .clickable(role = Role.Button, onClick = onClick)
-            .testTag(tag),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.size(ROUND_BUTTON_SIZE).then(styled), contentAlignment = Alignment.Center) {
-            Icon(
-                painterResource(icon),
-                contentDescription = null,
-                tint = if (style == CardIconStyle.Filled) AwnColors.ink else ink,
-            )
-        }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        SheetAction(
+            label = stringResource(R.string.recite_previous),
+            enabled = position > 0,
+            onClick = { onFocus(reviews[position - 1].key) },
+        )
+        SheetAction(
+            label = stringResource(R.string.recite_next),
+            enabled = position < reviews.lastIndex,
+            onClick = { onFocus(reviews[position + 1].key) },
+        )
     }
 }
 
-private const val LIGHT_CARD_LUMINANCE = 0.5f
-private const val SOFT_ALPHA = 0.14f
-private val RING_WIDTH = AwnSpacing.small / 4
-private val ROUND_BUTTON_SIZE = AwnSpacing.touchTarget - AwnSpacing.small / 2
+/** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
+internal val TIGHT_GAP = AwnSpacing.small / 2
 
 /**
  * The flagged word on its own line, in the Quran font. It shrinks to fit the width on one line
@@ -271,24 +174,6 @@ private fun ReviewWord(word: String) {
                 maxFontSize = AwnTypography.quran.fontSize,
             ),
     )
-}
-
-@Composable
-private fun CloseButton(onClick: () -> Unit) {
-    val description = stringResource(R.string.recite_close)
-    Box(
-        Modifier.requiredSize(AwnSpacing.touchTarget)
-            .semantics { contentDescription = description }
-            .clickable(role = Role.Button, onClick = onClick)
-            .testTag(REVIEW_CLOSE_TAG),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            painterResource(R.drawable.ic_recite_close),
-            contentDescription = null,
-            tint = Awn.field.content,
-        )
-    }
 }
 
 @Composable
@@ -329,7 +214,7 @@ private fun FindingBlock(finding: ReviewFinding) {
 }
 
 @Composable
-private fun FindingTitle(title: String) {
+internal fun FindingTitle(title: String) {
     Text(text = title, style = AwnTypography.lead)
 }
 

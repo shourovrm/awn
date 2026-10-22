@@ -70,11 +70,38 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
     var reciterSheetOpen by rememberSaveable { mutableStateOf(false) }
     var wordSheetOpen by rememberSaveable { mutableStateOf(false) }
 
+    PlaybackSettingsGroup(
+        state = state,
+        viewModel = viewModel,
+        onOpenReciterSheet = { reciterSheetOpen = true },
+        onOpenWordSheet = { wordSheetOpen = true },
+    )
+    DownloadSettingsGroup(state = state, viewModel = viewModel, onOpenManager = onOpenManager)
+    if (reciterSheetOpen) {
+        ReciterSheet(feature, page = null, onDismiss = { reciterSheetOpen = false })
+    }
+    if (wordSheetOpen) {
+        ReciterSheet(
+            feature,
+            page = null,
+            onDismiss = { wordSheetOpen = false },
+            forWords = true,
+        )
+    }
+}
+
+@Composable
+private fun PlaybackSettingsGroup(
+    state: AudioSettingsState,
+    viewModel: AudioSettingsViewModel,
+    onOpenReciterSheet: () -> Unit,
+    onOpenWordSheet: () -> Unit,
+) {
     SettingsGroupHeading(stringResource(R.string.audio_group_playback), isFirst = true)
     SettingsLinkRow(
         label = stringResource(R.string.audio_setting_reciter),
         value = state.reciterName,
-        onClick = { reciterSheetOpen = true },
+        onClick = onOpenReciterSheet,
         rowKey = SettingRowKeys.AUDIO_RECITER,
     )
     val wordReciterInUse = state.wordReciters.firstOrNull { it.id == state.wordReciterId }
@@ -82,7 +109,7 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
         SettingsLinkRow(
             label = stringResource(R.string.audio_setting_word_audio),
             value = wordReciterInUse.name,
-            onClick = { wordSheetOpen = true },
+            onClick = onOpenWordSheet,
             rowKey = SettingRowKeys.AUDIO_WORD_RECITER,
         )
     }
@@ -92,7 +119,14 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
         onCheckedChange = viewModel::setStopOnTaskRemoved,
         rowKey = SettingRowKeys.AUDIO_STOP_ON_CLOSE,
     )
+}
 
+@Composable
+private fun DownloadSettingsGroup(
+    state: AudioSettingsState,
+    viewModel: AudioSettingsViewModel,
+    onOpenManager: () -> Unit,
+) {
     SettingsGroupHeading(stringResource(R.string.audio_group_downloads))
     AwnChoiceRow(
         label = stringResource(R.string.audio_setting_download_amount),
@@ -120,17 +154,6 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
         value = Formatter.formatShortFileSize(LocalContext.current, state.usedBytes),
         rowKey = SettingRowKeys.AUDIO_SPACE_USED,
     )
-    if (reciterSheetOpen) {
-        ReciterSheet(feature, page = null, onDismiss = { reciterSheetOpen = false })
-    }
-    if (wordSheetOpen) {
-        ReciterSheet(
-            feature,
-            page = null,
-            onDismiss = { wordSheetOpen = false },
-            forWords = true,
-        )
-    }
 }
 
 private fun amountLabel(amount: DownloadAmount): Int =
