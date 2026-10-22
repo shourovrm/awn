@@ -7,8 +7,9 @@ so the output is not committed. The file format is described in content/lessons/
 
 The script fails, with the file and line, on: missing or unknown front matter, a word or ayah key
 that is not in the Quran text, Arabic outside `{{key}}` and `[[fragment]]`, an `examples` list that
-differs from the keys the lesson uses, a check without a valid answer, and a translation whose
-screens or keys differ from the English file.
+differs from the keys the lesson uses, a check or practice item without a valid answer, a grid line that is not
+`Arabic | transliteration | clip id`, and a translation whose screens, keys or clip ids differ
+from the English file.
 """
 
 import argparse
@@ -20,7 +21,7 @@ from pathlib import Path
 
 FORMAT_VERSION = 1
 SOURCE_LANGUAGE = "en"
-COURSES = ("basics", "grammar", "letters")
+COURSES = ("basics", "grammar", "letters", "tajweed")
 REQUIRED_KEYS = ("id", "title", "order", "appears_after", "reference", "licence", "examples")
 TRANSLATION_KEYS = ("translated_from", "source_version", "translation_reviewed_by")
 GRAMMAR_KEYS = ("introduced_by",)
@@ -29,7 +30,11 @@ KEY_PATTERN = re.compile(r"^\d{1,3}:\d{1,3}(:\d{1,3})?$")
 TOKEN_PATTERN = re.compile(r"\{\{([^}]*)\}\}")
 FRAGMENT_PATTERN = re.compile(r"\[\[([^\]]*)\]\]")
 ARABIC_PATTERN = re.compile("[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
-HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer): (.+)$")
+HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer|Grid|Practice): (.+)$")
+CLIP_PATTERN = re.compile(r"^[a-z0-9-]+/[a-z0-9-]+$")
+GRID_LINE_PREFIX = "- "
+# Grid and Practice screens sit outside the Check and Answer pairing.
+FREE_KINDS = ("grid", "practice")
 URL_PATTERN = re.compile(r"https?://\S+")
 TERM_PATTERN = re.compile(r"^(.+?) \((.+)\)$")
 LETTERS_PREFIX = "letters:"
@@ -206,8 +211,14 @@ def split_paragraphs(lines):
     return paragraphs
 
 
-def parse_check(lines, where, used_keys):
-    """Reads the question lines of a Check screen."""
+def parse_clip(value, where):
+    if not CLIP_PATTERN.match(value):
+        raise LessonError(f"{where}: clip id must look like 'qaida-04/012', not {value!r}.")
+    return value
+
+
+def parse_check(lines, where, used_keys, is_practice=False):
+    """Reads the question lines of a Check screen, or of a Practice item when [is_practice]."""
     check = {"options": []}
     for line in lines:
         if not line.strip():
@@ -227,6 +238,10 @@ def parse_check(lines, where, used_keys):
             check[name] = value
         elif name == "answer":
             check["answer"] = int(value) if value.isdigit() else -1
+        elif is_practice and name == "clip":
+            check["clip"] = parse_clip(value, where)
+        elif is_practice and name == "explain":
+            check["explain"] = scan_text(value, where, used_keys)
         else:
             raise LessonError(f"{where}: unknown check line {line!r}.")
     if "question" not in check:
@@ -235,10 +250,36 @@ def parse_check(lines, where, used_keys):
         raise LessonError(f"{where}: a check needs at least two options.")
     if not 1 <= check.get("answer", -1) <= len(check["options"]):
         raise LessonError(f"{where}: answer must be an option number from 1 to {len(check['options'])}.")
+    if is_practice and "explain" not in check:
+        raise LessonError(f"{where}: a practice item needs an explain line.")
     if "highlight" in check and "ayah" not in check:
         raise LessonError(f"{where}: highlight needs an ayah.")
     check["answer"] -= 1
     return check
+
+
+def parse_grid(lines, where):
+    """Reads the lines of a Grid screen: `- Arabic | transliteration | clip id` per cell."""
+    cells = []
+    for line in lines:
+        if not line.strip():
+            continue
+        parts = [part.strip() for part in line[len(GRID_LINE_PREFIX) :].split("|")]
+        if not line.startswith(GRID_LINE_PREFIX) or len(parts) != 3 or not all(parts):
+            raise LessonError(
+                f"{where}: a grid line looks like '- بَ | ba | qaida-04/012', not {line!r}."
+            )
+        arabic, transliteration, clip = parts
+        if not ARABIC_PATTERN.search(arabic):
+            raise LessonError(f"{where}: grid cell {arabic!r} holds no Arabic.")
+        if ARABIC_PATTERN.search(transliteration):
+            raise LessonError(f"{where}: the transliteration {transliteration!r} holds Arabic.")
+        cells.append(
+            {"arabic": arabic, "transliteration": transliteration, "clip": parse_clip(clip, where)}
+        )
+    if not cells:
+        raise LessonError(f"{where}: a grid line looks like '- بَ | ba | qaida-04/012'; there is none.")
+    return cells
 
 
 def parse_body(body, name, first_line, used_keys):
@@ -250,7 +291,7 @@ def parse_body(body, name, first_line, used_keys):
         if line.startswith("## "):
             match = HEADING_PATTERN.match(line)
             if not match:
-                raise LessonError(f"{name}:{number}: heading must be '## Screen N: title', '## Check: title' or '## Answer: title'.")
+                raise LessonError(f"{name}:{number}: heading must be '## Screen N: title', '## Check: title', '## Answer: title', '## Grid: title' or '## Practice: title'.")
             kind = match.group(1).split(" ")[0].lower()
             title = scan_text(match.group(2).strip(), f"{name}:{number}", used_keys)
             current = {"kind": kind, "title": title, "lines": [], "where": f"{name}:{number}"}
@@ -267,6 +308,12 @@ def parse_body(body, name, first_line, used_keys):
         entry = {"kind": screen["kind"], "title": screen["title"]}
         if screen["kind"] == "check":
             entry["check"] = parse_check(screen["lines"], screen["where"], used_keys)
+        elif screen["kind"] == "practice":
+            entry["check"] = parse_check(
+                screen["lines"], screen["where"], used_keys, is_practice=True
+            )
+        elif screen["kind"] == "grid":
+            entry["cells"] = parse_grid(screen["lines"], screen["where"])
         else:
             entry["blocks"] = parse_blocks(screen["lines"], screen["where"], used_keys)
         result.append(entry)
@@ -276,7 +323,7 @@ def parse_body(body, name, first_line, used_keys):
 
 def check_screen_order(screens, name):
     """Reading screens come first; the lesson may end with Check and Answer pairs."""
-    kinds = [screen["kind"] for screen in screens]
+    kinds = [screen["kind"] for screen in screens if screen["kind"] not in FREE_KINDS]
     if "check" in kinds:
         position = kinds.index("check")
         tail = kinds[position:]
@@ -338,7 +385,14 @@ def read_lesson_file(path, database):
 
 def shape_of(screens):
     """What a translation must share with the English file: screen kinds and keys per screen."""
-    return [(screen["kind"], keys_of_screen(screen)) for screen in screens]
+    return [(screen["kind"], keys_of_screen(screen), clips_of_screen(screen)) for screen in screens]
+
+
+def clips_of_screen(screen):
+    """The sound ids a screen plays; they are not translated, so both languages must agree."""
+    clips = [cell["clip"] for cell in screen.get("cells", [])]
+    clip = screen.get("check", {}).get("clip")
+    return clips + ([clip] if clip else [])
 
 
 def keys_of_screen(screen):

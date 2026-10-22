@@ -269,6 +269,134 @@ class TranslationTest(unittest.TestCase):
         self.assertIn("no English file", str(raised.exception))
 
 
+GRID_BLOCK = """
+## Grid: Fatha
+
+- بَ | ba | qaida-04/012
+- تَ | ta | qaida-04/013
+"""
+
+PRACTICE_BLOCK = """
+## Practice: Heard sound
+
+question: Which one did you hear?
+clip: qaida-01/014
+- [[سَ]]
+- [[صَ]]
+answer: 2
+explain: The heavy s is said with the back of the tongue raised.
+"""
+
+
+class GridAndPracticeTest(unittest.TestCase):
+    def build_screens(self, extra, course="tajweed", name="11-first.md", lesson=None):
+        fixture = LessonFixture(self)
+        text = (lesson or ENGLISH_LESSON).replace("basics-01-first", f"{course}-{name[:-3]}")
+        fixture.write("en", course, name, text + extra)
+        return fixture.build()["lessons"][0]["languages"]["en"]["screens"]
+
+    def assert_build_fails(self, extra, message_part):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first") + extra
+        fixture.write("en", "tajweed", "11-first.md", text)
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn(message_part, str(raised.exception))
+
+    def test_a_grid_lists_its_cells_with_arabic_transliteration_and_clip(self):
+        screens = self.build_screens(GRID_BLOCK)
+
+        grid = screens[-1]
+        self.assertEqual("grid", grid["kind"])
+        self.assertEqual("Fatha", grid["title"])
+        self.assertEqual(
+            [
+                {"arabic": "بَ", "transliteration": "ba", "clip": "qaida-04/012"},
+                {"arabic": "تَ", "transliteration": "ta", "clip": "qaida-04/013"},
+            ],
+            grid["cells"],
+        )
+
+    def test_a_practice_item_keeps_its_clip_options_answer_and_explanation(self):
+        screens = self.build_screens(PRACTICE_BLOCK)
+
+        practice = screens[-1]
+        self.assertEqual("practice", practice["kind"])
+        check = practice["check"]
+        self.assertEqual("qaida-01/014", check["clip"])
+        self.assertEqual(["[[سَ]]", "[[صَ]]"], check["options"])
+        self.assertEqual(1, check["answer"])
+        self.assertEqual("The heavy s is said with the back of the tongue raised.", check["explain"])
+
+    def test_grids_and_practice_items_may_sit_between_check_and_answer_pairs(self):
+        extra = GRID_BLOCK + PRACTICE_BLOCK + "\n## Check: Again\n\nquestion: Which?\n- one\n- two\nanswer: 1\n\n## Answer: One\n\nIt is one.\n" + PRACTICE_BLOCK
+
+        kinds = [screen["kind"] for screen in self.build_screens(extra)]
+
+        self.assertEqual(
+            ["screen", "check", "answer", "grid", "practice", "check", "answer", "practice"], kinds
+        )
+
+    def test_the_tajweed_folder_is_a_course(self):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first")
+        fixture.write("en", "tajweed", "11-first.md", text)
+
+        self.assertEqual("tajweed", fixture.build()["lessons"][0]["course"])
+
+    def test_a_grid_line_needs_three_parts(self):
+        self.assert_build_fails("\n## Grid: Bad\n\n- بَ | ba\n", "a grid line looks like")
+
+    def test_a_grid_cell_needs_arabic_in_the_first_part(self):
+        self.assert_build_fails("\n## Grid: Bad\n\n- ba | ba | qaida-04/012\n", "holds no Arabic")
+
+    def test_a_transliteration_may_not_hold_arabic(self):
+        self.assert_build_fails("\n## Grid: Bad\n\n- بَ | بَ | qaida-04/012\n", "transliteration")
+
+    def test_a_clip_id_must_look_like_a_clip(self):
+        self.assert_build_fails("\n## Grid: Bad\n\n- بَ | ba | 12\n", "clip id")
+
+    def test_a_grid_without_cells_is_refused(self):
+        self.assert_build_fails("\n## Grid: Empty\n\ntext only\n", "a grid line looks like")
+
+    def test_a_practice_item_needs_an_explanation(self):
+        self.assert_build_fails(PRACTICE_BLOCK.replace("explain:", "note:"), "unknown")
+
+    def test_a_practice_item_without_explain_is_refused(self):
+        lines = [line for line in PRACTICE_BLOCK.split("\n") if not line.startswith("explain:")]
+        self.assert_build_fails("\n".join(lines), "needs an explain")
+
+    def test_a_practice_answer_outside_the_options_is_refused(self):
+        self.assert_build_fails(PRACTICE_BLOCK.replace("answer: 2", "answer: 5"), "answer must be")
+
+    def test_a_check_may_not_carry_a_clip_or_an_explanation(self):
+        text = ENGLISH_LESSON.replace("answer: 2", "answer: 2\nexplain: No.")
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", text)
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("unknown check line", str(raised.exception))
+
+    def test_an_error_names_the_file_and_the_line(self):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first") + "\n## Grid: Bad\n\n- بَ | ba\n"
+        path = fixture.write("en", "tajweed", "11-first.md", text)
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn(f"{path}:", str(raised.exception))
+
+    def test_a_translation_must_keep_the_clips_of_the_english_grid(self):
+        fixture = LessonFixture(self)
+        english = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first") + GRID_BLOCK
+        fixture.write("en", "tajweed", "11-first.md", english)
+        front = "order: 1\ntranslated_from: en\nsource_version: 2026-10-21\ntranslation_reviewed_by: \"\"\n"
+        other = english.replace("order: 1\n", front).replace("qaida-04/013", "qaida-04/099")
+        fixture.write("bn", "tajweed", "11-first.md", other)
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("differ from English", str(raised.exception))
+
+
 class RepositoryContentTest(unittest.TestCase):
     """The committed lessons obey the format, checked with a database that holds their keys."""
 
