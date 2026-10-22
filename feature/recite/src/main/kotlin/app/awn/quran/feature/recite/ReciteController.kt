@@ -19,6 +19,7 @@ import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -283,7 +284,12 @@ class ReciteController(
         // The tracker is not asked about the ayahs played, whatever the microphone hears later.
         session.continueAt(ayah)
         pauseMicrophone()
-        runAfterPendingWork { audioPlayer.play(settings.reciterId.first(), ayah, to = null) }
+        runAfterPendingWork {
+            audioPlayer.play(settings.reciterId.first(), ayah, to = null)
+            // Counted from the play call, not from a Playing state: a short ayah can go from
+            // Playing to Idle between two looks at the player.
+            onwardAudioHasStarted = true
+        }
     }
 
     /**
@@ -293,6 +299,7 @@ class ReciteController(
      */
     fun resumeReciting() {
         mutableListeningOnward.value = false
+        noteAudioEndedBeforeStopping()
         audioPlayer.stop()
         runAfterPendingWork {
             settleContinuationPoint()
@@ -303,8 +310,24 @@ class ReciteController(
     /** Stops the audio and leaves the microphone off; the next start goes on where it left off. */
     fun stopListening() {
         mutableListeningOnward.value = false
+        noteAudioEndedBeforeStopping()
         audioPlayer.stop()
         runAfterPendingWork { settleContinuationPoint() }
+    }
+
+    // Reads the player as it is before our own stop() makes it Idle: Idle then, after the play
+    // call,
+    // means the audio ran out. A state flow answers at once, so this runs before the caller goes
+    // on.
+    private fun noteAudioEndedBeforeStopping() {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            val playback = audioPlayer.state.first()
+            // The collector may have missed the last ayah too, so the player's own answer wins.
+            if (playback is PlaybackState.Playing) lastListenedAyah = playback.ayah
+            if (playback is PlaybackState.Paused) lastListenedAyah = playback.ayah
+            val isSilent = playback is PlaybackState.Idle || playback is PlaybackState.Error
+            if (onwardAudioHasStarted && isSilent) onwardAudioHasEnded = true
+        }
     }
 
     // Tells the session where the next start goes on. An ayah that is not loaded (the audio ran on
