@@ -107,6 +107,53 @@ class AudioViewModelsTest {
         assertEquals(false, (viewModel.state.value as AudioBarState.Active).isPlaying)
     }
 
+    /**
+     * Choosing another reciter from the page while audio plays goes on with the new voice from the
+     * ayah that was playing, to the same end; it does not wait for the next Play.
+     */
+    @Test
+    fun choosingAnotherReciterWhilePlayingGoesOnWithTheNewVoiceFromTheSameAyah() = runTest {
+        barViewModel()
+        val controller = controller()
+        settle()
+        controller.playRange(AyahRef(2, 10), AyahRef(2, 11))
+        settle()
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertEquals(Triple("husary", AyahRef(2, 10), AyahRef(2, 11)), player.playCalls.last())
+    }
+
+    @Test
+    fun choosingAnotherReciterWhilePausedStaysPaused() = runTest {
+        barViewModel()
+        val controller = controller()
+        settle()
+        controller.playRange(AyahRef(2, 10), null)
+        settle()
+        player.pause()
+        val callsBefore = player.playCalls.size
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertEquals(callsBefore, player.playCalls.size)
+        assertTrue(player.currentState.value is PlaybackState.Paused)
+    }
+
+    @Test
+    fun choosingAReciterWhileIdleStartsNothing() = runTest {
+        barViewModel()
+        controller()
+        settle()
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertTrue(player.playCalls.isEmpty())
+    }
+
     @Test
     fun barShowsDownloadingBytesAndError() = runTest {
         val viewModel = barViewModel()
