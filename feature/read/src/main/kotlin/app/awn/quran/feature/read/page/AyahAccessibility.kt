@@ -1,6 +1,5 @@
 package app.awn.quran.feature.read.page
 
-import app.awn.quran.core.ui.text.normalizeFallbackText
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -22,6 +21,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.localName
 import kotlin.math.roundToInt

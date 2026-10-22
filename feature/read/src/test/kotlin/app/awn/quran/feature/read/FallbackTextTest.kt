@@ -7,12 +7,12 @@ import app.awn.quran.core.data.PageLine
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.feature.read.page.LineToken
-import app.awn.quran.feature.read.page.PageRow
-import app.awn.quran.feature.read.page.buildPageRows
 import app.awn.quran.core.ui.text.isCombiningMark
 import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.core.ui.text.startsWithCombiningMark
+import app.awn.quran.feature.read.page.LineToken
+import app.awn.quran.feature.read.page.PageRow
+import app.awn.quran.feature.read.page.buildPageRows
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

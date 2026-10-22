@@ -1,12 +1,12 @@
 package app.awn.quran.feature.read.page
 
-import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.ui.text.normalizeFallbackText
 
 /** One thing drawn in a line of text: a tappable word or the rosette that ends an ayah. */
 internal sealed interface LineToken {
