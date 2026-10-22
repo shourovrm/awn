@@ -43,7 +43,8 @@ internal fun textToDraw(word: Word, script: ScriptId, hasGlyphFont: Boolean): St
             ScriptId.V2,
             ScriptId.V4Tajweed -> word.codeV2
             ScriptId.QpcHafs,
-            ScriptId.IndoPak -> null
+            ScriptId.IndoPak15,
+            ScriptId.IndoPak16 -> null
         }
     return glyphCode ?: word.textUthmani
 }
