@@ -10,6 +10,8 @@ Stack: Gradle wrapper 9.8.2, AGP 9.4, Kotlin 2.4.21, Compose BOM 2026.09.00, com
 - Build: `./gradlew assembleGithubRelease`. There are no debug builds: every build is a signed release build. Local signing reads the keystore path and passwords from `~/.gradle/gradle.properties` (never from the repo); CI reads GitHub Secrets. `android.testBuildType = "release"` so instrumented tests run on release builds.
 - Native and model inputs: sherpa-onnx has no Maven artifact. `./gradlew fetchNativeLibs` downloads `sherpa-onnx-static-link-onnxruntime-1.13.8.aar` and the Linux JNI jar from the k2-fsa release and `./gradlew fetchModels` downloads the Zipformer files from this repo's `models-v1` data release for the `:tracker` JVM tests; both verify SHA-256 and write into gitignored folders. The APK holds no model: the app downloads the same files from `models-v1` on first use of recite and checks the same hashes.
 - Test: `./gradlew testGithubReleaseUnitTest` (includes `:tracker` JVM tests on the Linux sherpa-onnx jar); instrumented and Compose UI tests: `./gradlew connectedGithubReleaseAndroidTest` (needs the emulator or the phone).
+- Verify (slice, cheap, for workers): `./gradlew :<module>:compileGithubReleaseKotlin :<module>:testGithubReleaseUnitTest --tests '<TestClass>'` for the one module the slice owns, e.g. `./gradlew :player:compileGithubReleaseKotlin :player:testGithubReleaseUnitTest --tests 'app.awn.player.*'`. No lint, no other modules, no connected tests.
+- Verify (full, main session only): steps 1 to 5 of the pre-push list below, once on the merged tree.
 - Lint / format: `./gradlew spotlessApply` to format (Spotless + ktfmt); `./gradlew spotlessCheck detekt lintGithubRelease` to check.
 - Run locally: `~/android-sdk/emu.sh start` (headless, blocks until boot; ~3.2 GB host RAM, stop when idle), then `./gradlew installGithubRelease && adb shell am start -n app.awn.quran/.MainActivity`. Phone: `adb devices`, then the same install task with `ANDROID_SERIAL=<serial>`.
 - Verify before any push, in order: 1 `./gradlew spotlessCheck`; 2 `./gradlew detekt lintGithubRelease`; 3 `./gradlew testGithubReleaseUnitTest`; 4 `./gradlew connectedGithubReleaseAndroidTest` on the headless emulator; 5 `./gradlew installGithubRelease` on the user's phone over USB or wireless ADB; 6 push. CI repeats 1 to 4.
@@ -61,13 +63,13 @@ These apply to every contributor and agent; the maintainer's global rules are no
 - Repo files: issue templates (bug, feature, content error), PR template, `CONTRIBUTING.md` stating contributions are under the repo licence. GitHub milestones per `0.x` version; a Project board (Backlog → Doing → Done) is welcome.
 
 ## Parallelism
-When tasks touch disjoint files, run cost-efficient subagents in parallel in the background. Serialize only true conflicts: same-file edits and the exclusive resources listed under Commands. Build-tool and git locks self-queue; agents retry once on lock errors. Subagents never run the build or claim a build passed; the main session builds and verifies.
+When tasks touch disjoint files, run cost-efficient subagents in parallel in the background. Serialize only true conflicts: same-file edits and the exclusive resources listed under Commands. Build-tool and git locks self-queue; agents retry once on lock errors. A worker writes its whole slice first, then runs the slice verify from Commands once; it rebuilds only on failure. Workers never run lint, the full unit suite, connected tests or a release build; the main session runs the full verify once on the merged tree. A slice that is docs, config or a single file with no new API calls needs no worker build. A worker's report is not proof: it must paste the slice verify output, and the main session does not repeat that check.
 
 ## Agent model tiers
 - cheapest: search, fetch, docs lookup, transcription
 - mid: tests, implementation, verification (fresh-eyes review after every logic-heavy task)
 - strong: complex judgement, adversarial review of risky modules (licence compliance, Quran-text and translation integrity, the tracker's alignment logic, release signing), final whole-branch review
-- main session: orchestration, builds, and final review; delegate work that touches three or more files or needs research
+- main session: orchestration, the full verify, and final review; delegate work that touches three or more files or needs research
 
 ## Token economy
 Terse replies, no filler; YAGNI; stdlib before dependencies; shortest working diff. Keep the `caveman` skill active if it is available.
