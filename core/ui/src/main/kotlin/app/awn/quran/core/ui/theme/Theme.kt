@@ -23,6 +23,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -72,6 +73,8 @@ fun AwnTheme(
     colors: AwnFieldColors = awnFieldColors(field, LocalColourMode.current),
     content: @Composable () -> Unit,
 ) {
+    // Arabic text styles read the Hafs family, which needs the app's assets.
+    HafsFont.install(LocalContext.current.assets)
     val materialColors =
         if (colors.isLight) {
             lightColorScheme(

@@ -68,26 +68,31 @@ object AwnTypography {
             letterSpacing = (-0.025).em,
         )
 
-    /** Quran text; the user's zoom may scale it, nothing else may. */
-    val quran =
-        TextStyle(
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Normal,
-            fontSize = 26.sp,
-            lineHeight = 2.0.em,
-        )
+    /**
+     * Quran text in the bundled Uthmanic Hafs font; the user's zoom may scale it, nothing else may.
+     * A getter, because the font family exists only after the theme installs it.
+     */
+    val quran: TextStyle
+        get() =
+            TextStyle(
+                fontFamily = HafsFont.family,
+                fontWeight = FontWeight.Normal,
+                fontSize = 26.sp,
+                lineHeight = 2.2.em,
+            )
 
     /**
      * A line of Quran text on the Quran tab (the continue card and the day's snippet): the lead
      * size, with the tall line height that Arabic marks above and below the letters need.
      */
-    val quranLead =
-        TextStyle(
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Normal,
-            fontSize = 22.sp,
-            lineHeight = 1.8.em,
-        )
+    val quranLead: TextStyle
+        get() =
+            TextStyle(
+                fontFamily = HafsFont.family,
+                fontWeight = FontWeight.Normal,
+                fontSize = 22.sp,
+                lineHeight = 2.0.em,
+            )
 
     fun toMaterialTypography(): Typography =
         Typography(
