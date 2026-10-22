@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -22,15 +23,24 @@ import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.feature.learn.CourseAssets
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.course.CourseChoices
+import app.awn.quran.feature.learn.course.CourseLesson
+import app.awn.quran.feature.learn.course.LearnTrack
+import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.course.RepositoryWordInfoSource
 import app.awn.quran.feature.learn.course.RepositoryWordMeanings
+import app.awn.quran.feature.learn.course.TajweedLessonTitle
+import app.awn.quran.feature.learn.course.TrackUnit
+import app.awn.quran.feature.learn.data.StepItemKind
+import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.progress.LearnSettings
 import app.awn.quran.feature.learn.session.PlanStep
 import app.awn.quran.feature.learn.session.QuestionFactory
 import app.awn.quran.feature.learn.session.SessionController
 import app.awn.quran.feature.learn.session.SessionDependencies
+import app.awn.quran.feature.learn.session.StepKind
 import app.awn.quran.feature.learn.words.CourseSnapshot
+import app.awn.quran.feature.learn.words.FinishedStep
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +108,7 @@ private class CourseScreenContext(
     val choices: CourseChoices,
     val scope: CoroutineScope,
     val onRouteChange: (LearnRoute) -> Unit,
+    val tajweedLessons: List<TajweedLessonTitle>,
     val startSession: (SessionRequest) -> Unit,
 ) {
     val services: LearnServices
@@ -119,6 +130,7 @@ internal fun CourseRoutes(
     dueAyahs: List<AyahRef>,
     onReviseAt: ((AyahRef) -> Unit)?,
     barActions: @Composable RowScope.() -> Unit,
+    tajweedLessons: List<TajweedLessonTitle>,
     modifier: Modifier,
 ) {
     if (runtime == null) return
@@ -136,6 +148,7 @@ internal fun CourseRoutes(
             choices = CourseChoices(sessionMinutes, includeLetters),
             scope = rememberCoroutineScope(),
             onRouteChange = onRouteChange,
+            tajweedLessons = tajweedLessons,
             startSession = { newRequest ->
                 request = newRequest
                 onRouteChange(LearnRoute.Session(newRequest.isOwnQuiz))
@@ -145,13 +158,23 @@ internal fun CourseRoutes(
         LearnRoute.FirstOpen -> FirstOpenRoute(context, modifier)
         LearnRoute.CourseChoices -> CourseChoicesRoute(context, modifier)
         LearnRoute.Hub ->
-            HubRoute(
-                context,
-                hubActions(context, dueAyahs, onReviseAt),
-                dueAyahs,
-                barActions,
-                modifier,
-            )
+            HubRoute(context, dueAyahs) {
+                CourseHub(it, hubActions(context, dueAyahs, onReviseAt), modifier, barActions)
+            }
+        is LearnRoute.Track ->
+            if (route.track == LearnTrack.Words) {
+                HubRoute(context, dueAyahs) {
+                    WordsTrackScreen(
+                        it,
+                        hubActions(context, dueAyahs, onReviseAt),
+                        context::goHub,
+                        modifier,
+                    )
+                }
+            } else {
+                TrackRoute(route.track, context, modifier)
+            }
+        is LearnRoute.CourseUnit -> CourseUnitRoute(route, context, modifier)
         is LearnRoute.Session -> SessionRouteOrHub(request, context, modifier)
         LearnRoute.QuizStart -> QuizStartRoute(context, modifier)
         LearnRoute.WordList -> WordListRoute(context, modifier)
@@ -225,7 +248,7 @@ private fun hubActions(
         onProgress = { context.onRouteChange(LearnRoute.Progress) },
         onWordList = { context.onRouteChange(LearnRoute.WordList) },
         onQuiz = { context.onRouteChange(LearnRoute.QuizStart) },
-        onTajweed = { context.onRouteChange(LearnRoute.Lessons) },
+        onTrack = { context.onRouteChange(LearnRoute.Track(it)) },
         onReadingProgress = { context.onRouteChange(LearnRoute.ReadingProgress) },
         onReviseAyahs = {
             val firstDue = dueAyahs.minOrNull()
@@ -241,7 +264,11 @@ private fun hubActions(
                 wordMeaningsPackId(context.dependencies.languageCode),
             )
         },
-        onLesson = { context.onRouteChange(LearnRoute.OneLesson(it)) },
+        onLesson = {
+            context.onRouteChange(
+                LearnRoute.CourseUnit(it, LearnTracks.trackOf(it, context.runtime.assets.content)),
+            )
+        },
         onChangeChoices = { context.onRouteChange(LearnRoute.CourseChoices) },
     )
 
@@ -328,13 +355,12 @@ private fun WordPageRoute(rank: Int, context: CourseScreenContext, modifier: Mod
     }
 }
 
+/** Builds the hub state off the main thread and draws [screen] with it: the hub or Words. */
 @Composable
 private fun HubRoute(
     context: CourseScreenContext,
-    actions: HubActions,
     dueAyahs: List<AyahRef>,
-    barActions: @Composable RowScope.() -> Unit,
-    modifier: Modifier,
+    screen: @Composable (HubState) -> Unit,
 ) {
     val meanings = rememberMeaningsState(context.dependencies)
     val snapshot = context.snapshot
@@ -345,10 +371,111 @@ private fun HubRoute(
             value =
                 withContext(Dispatchers.Default) {
                     val plan = context.services.planToday(snapshot, choices)
-                    buildHubState(lookups, snapshot, plan, choices, dueAyahs.size, meanings)
+                    buildHubState(
+                        lookups,
+                        snapshot,
+                        plan,
+                        choices,
+                        dueAyahs.size,
+                        meanings,
+                        context.tajweedLessons,
+                    )
                 }
         }
-    state?.let { CourseHub(it, actions, modifier, barActions) }
+    state?.let { screen(it) }
+}
+
+@Composable
+private fun TrackRoute(track: LearnTrack, context: CourseScreenContext, modifier: Modifier) {
+    val input =
+        trackInput(
+            context.runtime.lookups,
+            context.snapshot,
+            context.choices,
+            context.tajweedLessons,
+        )
+    TrackScreen(
+        summary = LearnTracks.summary(track, input),
+        units = LearnTracks.units(track, input),
+        onOpen = { unit -> context.onRouteChange(unitRoute(track, unit)) },
+        onBack = context::goHub,
+        modifier = modifier,
+    )
+}
+
+/** Tajweed units are still the older lessons; the other tracks open the paged course unit. */
+private fun unitRoute(track: LearnTrack, unit: TrackUnit): LearnRoute =
+    if (track == LearnTrack.Tajweed) LearnRoute.OneLesson(unit.id, track)
+    else LearnRoute.CourseUnit(unit.id, track)
+
+@Composable
+private fun CourseUnitRoute(
+    route: LearnRoute.CourseUnit,
+    context: CourseScreenContext,
+    modifier: Modifier,
+) {
+    val lesson = context.runtime.assets.content.lesson(route.id) ?: return
+    val track = route.track
+    val input =
+        trackInput(
+            context.runtime.lookups,
+            context.snapshot,
+            context.choices,
+            context.tajweedLessons,
+        )
+    val place = track?.let {
+        val number = LearnTracks.units(it, input).firstOrNull { unit -> unit.id == lesson.id }
+        UnitPlace(it, number?.number ?: 0, LearnTracks.unitAfter(it, lesson.id, input))
+    }
+    val openedAtMillis = remember(lesson.id) { Instant.now().toEpochMilli() }
+    val backRoute = track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
+    // The unit is drawn again for the next one, so its pages and answers start fresh.
+    key(lesson.id) {
+        UnitScreen(
+            lesson = lesson,
+            languageCode = context.dependencies.languageCode,
+            place = place,
+            actions =
+                UnitActions(
+                    onBack = { context.onRouteChange(backRoute) },
+                    onFinished = { rightCount ->
+                        context.scope.launch {
+                            finishUnit(context, lesson, rightCount, openedAtMillis)
+                        }
+                    },
+                    onNextUnit = { next ->
+                        context.onRouteChange(unitRoute(track ?: LearnTrack.Reading, next))
+                    },
+                ),
+            modifier = modifier,
+        )
+    }
+}
+
+/** Records the unit as done, with whether every check was answered right the first time. */
+private suspend fun finishUnit(
+    context: CourseScreenContext,
+    lesson: CourseLesson,
+    rightCount: Int,
+    openedAtMillis: Long,
+) {
+    val checkCount = lesson.text(context.dependencies.languageCode).checks.size
+    val outcome =
+        when {
+            checkCount == 0 -> StepOutcome.SEEN
+            rightCount == checkCount -> StepOutcome.CORRECT
+            else -> StepOutcome.WRONG
+        }
+    val step =
+        FinishedStep(
+            StepKind.Lesson,
+            StepItemKind.LESSON,
+            lesson.id,
+            null,
+            outcome,
+            Instant.now().toEpochMilli() - openedAtMillis,
+        )
+    context.services.courseRepository.finishLesson(lesson.id, step)
 }
 
 @Composable

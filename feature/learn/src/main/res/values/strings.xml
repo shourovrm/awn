@@ -73,7 +73,6 @@
     <item quantity="other">%d new</item>
   </plurals>
   <string name="course_today_lesson">one short lesson</string>
-  <string name="course_heading">Course</string>
   <string name="course_progress_heading">Progress</string>
   <string name="course_more_heading">More</string>
   <string name="course_today_tag">Today</string>
@@ -111,7 +110,6 @@
     <item quantity="other">%1$d met · %2$d known</item>
   </plurals>
   <string name="course_quiz">Quiz on my own</string>
-  <string name="course_tajweed">Tajweed lessons</string>
   <string name="course_reading_progress">Reading progress</string>
   <string name="course_revise_ayahs">Revise ayahs</string>
   <plurals name="course_ayahs_due">
@@ -275,4 +273,24 @@
   <string name="sources_wright_note">Public domain.</string>
   <string name="sources_wikibooks_note">Creative Commons Attribution-ShareAlike 4.0.</string>
   <string name="sources_open_link">Open %s</string>
+  <string name="track_heading">Tracks</string>
+  <string name="track_reading">Reading</string>
+  <string name="track_tajweed">Tajweed</string>
+  <string name="track_grammar">Grammar</string>
+  <string name="track_words">Quran words</string>
+  <string name="track_opens_after">Opens after Reading unit %d</string>
+  <string name="track_next_unit">Unit %1$d of %2$d · %3$s</string>
+  <plurals name="track_all_done">
+    <item quantity="one">%d unit done</item>
+    <item quantity="other">All %d units done</item>
+  </plurals>
+  <string name="unit_page_count">%1$d of %2$d</string>
+  <string name="unit_go_to_page">Page %d</string>
+  <string name="unit_done">Done</string>
+  <string name="unit_done_numbered">Unit %d done</string>
+  <string name="unit_checks_right">%1$d of %2$d right</string>
+  <string name="unit_next_in">Next in %s</string>
+  <string name="unit_numbered_title">%1$d · %2$s</string>
+  <string name="unit_next">Next unit</string>
+  <string name="unit_back_to_track">Back to %s</string>
 </resources>

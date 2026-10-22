@@ -32,6 +32,11 @@ sealed interface LessonBlock {
     data class Equation(val parts: List<Term>, val result: Term) : LessonBlock
 
     data class Term(val text: String, val gloss: String)
+
+    /** A grid of letters, each with its name: the alphabet page of the first letters lesson. */
+    data class Letters(val items: List<LetterName>) : LessonBlock
+
+    data class LetterName(val letter: String, val name: String)
 }
 
 /** The question that ends a lesson; [correctIndex] counts from 0. */
@@ -63,7 +68,26 @@ data class LessonText(val title: String, val screens: List<LessonScreenData>) {
 
     val answerBlocks: List<LessonBlock>
         get() = screens.firstOrNull { it.kind == ScreenKind.Answer }?.blocks.orEmpty()
+
+    val readingScreens: List<LessonScreenData>
+        get() = screens.filter { it.kind == ScreenKind.Reading }
+
+    /** Every check of the lesson with the explanation shown after it, in order. */
+    val checks: List<CheckWithAnswer>
+        get() = screens.mapIndexedNotNull { index, screen ->
+            val check = screen.check ?: return@mapIndexedNotNull null
+            val answer = screens.getOrNull(index + 1)?.takeIf { it.kind == ScreenKind.Answer }
+            CheckWithAnswer(screen.title, check, answer?.title, answer?.blocks.orEmpty())
+        }
 }
+
+/** A check and the explanation that follows it. */
+data class CheckWithAnswer(
+    val title: String,
+    val check: LessonCheck,
+    val answerTitle: String?,
+    val answerBlocks: List<LessonBlock>,
+)
 
 /**
  * One lesson of the path. [introducedBy] lists the words whose base form brings a grammar lesson
@@ -176,6 +200,12 @@ object CourseContentReader {
                 LessonBlock.Equation(
                     parts = block.getJSONArray("parts").objects().map(::parseTerm),
                     result = parseTerm(block.getJSONObject("result")),
+                )
+            "letters" ->
+                LessonBlock.Letters(
+                    block.getJSONArray("items").objects().map {
+                        LessonBlock.LetterName(it.getString("letter"), it.getString("name"))
+                    },
                 )
             else -> error("Unknown lesson block type $type.")
         }

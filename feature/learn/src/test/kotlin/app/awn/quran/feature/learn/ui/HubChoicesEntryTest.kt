@@ -29,7 +29,7 @@ class HubChoicesEntryTest {
                 onProgress = {},
                 onWordList = {},
                 onQuiz = {},
-                onTajweed = {},
+                onTrack = {},
                 onReadingProgress = {},
                 onReviseAyahs = {},
                 onSessionMinutes = {},
@@ -50,6 +50,7 @@ class HubChoicesEntryTest {
                 coverage = 0.0,
                 dueAyahs = 0,
                 meanings = MeaningsState.Ready,
+                tracks = emptyList(),
             )
         composeRule.setContent { AwnTheme { CourseHub(state, actions) } }
         composeRule.waitForIdle()

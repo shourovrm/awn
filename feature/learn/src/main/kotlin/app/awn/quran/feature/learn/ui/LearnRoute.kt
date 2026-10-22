@@ -1,5 +1,7 @@
 package app.awn.quran.feature.learn.ui
 
+import app.awn.quran.feature.learn.course.LearnTrack
+
 /** Where the user is inside the Learn tab. */
 internal sealed interface LearnRoute {
     data object FirstOpen : LearnRoute
@@ -31,7 +33,14 @@ internal sealed interface LearnRoute {
 
     data object Revision : LearnRoute
 
-    data class OneLesson(val id: String) : LearnRoute
+    /** An older tajweed lesson; [track] is set when it was opened from a track page. */
+    data class OneLesson(val id: String, val track: LearnTrack? = null) : LearnRoute
+
+    /** The numbered units of one track. */
+    data class Track(val track: LearnTrack) : LearnRoute
+
+    /** A course unit, page by page; [track] is the track it was opened from, if any. */
+    data class CourseUnit(val id: String, val track: LearnTrack?) : LearnRoute
 }
 
 /** The tab opens on the first-open choices until the course has started, then on the hub. */
@@ -44,5 +53,7 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
         LearnRoute.Hub,
         LearnRoute.FirstOpen -> null
         is LearnRoute.WordPage -> LearnRoute.WordList
+        is LearnRoute.CourseUnit -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
+        is LearnRoute.OneLesson -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
         else -> LearnRoute.Hub
     }

@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn.ui
 
+import app.awn.quran.feature.learn.course.LearnTrack
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -44,10 +45,24 @@ class LearnNavigationTest {
                 LearnRoute.Progress,
                 LearnRoute.Revision,
                 LearnRoute.OneLesson("basics-01"),
+                LearnRoute.Track(LearnTrack.Reading),
+                LearnRoute.CourseUnit("letters-01", track = null),
             )
 
         others.forEach { route ->
             assertEquals(route.toString(), LearnRoute.Hub, learnBackFrom(route))
         }
+    }
+
+    @Test
+    fun backFromAUnitOpenedFromATrackReturnsToThatTrack() {
+        assertEquals(
+            LearnRoute.Track(LearnTrack.Reading),
+            learnBackFrom(LearnRoute.CourseUnit("letters-02", LearnTrack.Reading)),
+        )
+        assertEquals(
+            LearnRoute.Track(LearnTrack.Tajweed),
+            learnBackFrom(LearnRoute.OneLesson("makharij", LearnTrack.Tajweed)),
+        )
     }
 }

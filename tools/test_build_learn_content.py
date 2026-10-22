@@ -113,6 +113,32 @@ class ParsingTest(unittest.TestCase):
         self.assertEqual(1, check["answer"])
         self.assertEqual("1:1:1", check["highlight"])
 
+    def test_a_lesson_may_end_with_several_checks(self):
+        fixture = LessonFixture(self)
+        second = "\n## Check: Again\n\nquestion: Which letter?\n- [[ا]]\n- [[ب]]\nanswer: 2\n\n## Answer: Baa\n\nIt is baa.\n"
+        fixture.write("en", "basics", "01-first.md", ENGLISH_LESSON + second)
+
+        screens = fixture.build()["lessons"][0]["languages"]["en"]["screens"]
+
+        self.assertEqual(
+            ["screen", "check", "answer", "check", "answer"], [screen["kind"] for screen in screens]
+        )
+        self.assertEqual(1, screens[3]["check"]["answer"])
+
+    def test_a_letters_line_becomes_a_grid_of_letters_and_names(self):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace(
+            "- first {{1:1:1}}", "letters: [[ا]] alif; [[ب]] baa\n\n- first {{1:1:1}}"
+        )
+        fixture.write("en", "basics", "01-first.md", text)
+
+        blocks = fixture.build()["lessons"][0]["languages"]["en"]["screens"][0]["blocks"]
+
+        letters = next(block for block in blocks if block["type"] == "letters")
+        self.assertEqual(
+            [{"letter": "ا", "name": "alif"}, {"letter": "ب", "name": "baa"}], letters["items"]
+        )
+
     def test_a_sum_of_parts_becomes_an_equation_block(self):
         fixture = LessonFixture(self)
         text = ENGLISH_LESSON.replace(
@@ -183,7 +209,14 @@ class ValidationTest(unittest.TestCase):
 
     def test_a_check_needs_its_answer_screen(self):
         text = ENGLISH_LESSON.split("## Answer")[0]
-        self.assert_build_fails(text, "one Check screen and one Answer screen")
+        self.assert_build_fails(text, "each followed by its Answer screen")
+
+    def test_a_reading_screen_after_the_checks_is_refused(self):
+        self.assert_build_fails(ENGLISH_LESSON + "\n## Screen 2: Late\n\nText.\n", "each followed by its Answer")
+
+    def test_a_letters_entry_needs_a_letter_and_a_name(self):
+        text = ENGLISH_LESSON.replace("- first {{1:1:1}}", "letters: [[ا]]\n\n- first {{1:1:1}}")
+        self.assert_build_fails(text, "a letters entry looks like")
 
     def test_a_heading_must_use_the_known_forms(self):
         self.assert_build_fails(ENGLISH_LESSON.replace("## Screen 1:", "## Example:"), "heading must be")

@@ -73,7 +73,6 @@
     <item quantity="other">%dটি নতুন</item>
   </plurals>
   <string name="course_today_lesson">একটি ছোট পাঠ</string>
-  <string name="course_heading">পাঠক্রম</string>
   <string name="course_progress_heading">অগ্রগতি</string>
   <string name="course_more_heading">আরও</string>
   <string name="course_today_tag">আজ</string>
@@ -111,7 +110,6 @@
     <item quantity="other">দেখা %1$d · জানা %2$d</item>
   </plurals>
   <string name="course_quiz">নিজে কুইজ</string>
-  <string name="course_tajweed">তাজবীদ পাঠ</string>
   <string name="course_reading_progress">পড়ার অগ্রগতি</string>
   <string name="course_revise_ayahs">আয়াত ঝালাই</string>
   <plurals name="course_ayahs_due">
@@ -275,4 +273,24 @@
   <string name="sources_wright_note">পাবলিক ডোমেইন।</string>
   <string name="sources_wikibooks_note">ক্রিয়েটিভ কমন্স অ্যাট্রিবিউশন-শেয়ারঅ্যালাইক ৪.০।</string>
   <string name="sources_open_link">%s খুলুন</string>
+  <string name="track_heading">বিভাগ</string>
+  <string name="track_reading">পড়া</string>
+  <string name="track_tajweed">তাজবীদ</string>
+  <string name="track_grammar">ব্যাকরণ</string>
+  <string name="track_words">কুরআনের শব্দ</string>
+  <string name="track_opens_after">পড়ার %d নম্বর পাঠের পর খুলবে</string>
+  <string name="track_next_unit">পাঠ %1$d / %2$d · %3$s</string>
+  <plurals name="track_all_done">
+    <item quantity="one">%dটি পাঠ শেষ</item>
+    <item quantity="other">%dটি পাঠই শেষ</item>
+  </plurals>
+  <string name="unit_page_count">%1$d / %2$d</string>
+  <string name="unit_go_to_page">পৃষ্ঠা %d</string>
+  <string name="unit_done">শেষ</string>
+  <string name="unit_done_numbered">পাঠ %d শেষ</string>
+  <string name="unit_checks_right">%2$dটির মধ্যে %1$dটি ঠিক</string>
+  <string name="unit_next_in">%s-এ এরপর</string>
+  <string name="unit_numbered_title">%1$d · %2$s</string>
+  <string name="unit_next">পরের পাঠ</string>
+  <string name="unit_back_to_track">%s-এ ফিরুন</string>
 </resources>

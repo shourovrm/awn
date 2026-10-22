@@ -5,8 +5,12 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CourseContent
 import app.awn.quran.feature.learn.course.CoursePath
+import app.awn.quran.feature.learn.course.LearnTrack
+import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.PathInput
 import app.awn.quran.feature.learn.course.PathRow
+import app.awn.quran.feature.learn.course.TajweedLessonTitle
+import app.awn.quran.feature.learn.course.TrackInput
 import app.awn.quran.feature.learn.session.TodayPlan
 import app.awn.quran.feature.learn.session.WordInfoSource
 import app.awn.quran.feature.learn.words.CourseSnapshot
@@ -32,6 +36,7 @@ internal suspend fun buildHubState(
     choices: CourseChoices,
     dueAyahs: Int,
     meanings: MeaningsState,
+    tajweedLessons: List<TajweedLessonTitle>,
 ): HubState {
     val path =
         CoursePath.build(
@@ -56,8 +61,26 @@ internal suspend fun buildHubState(
         coverage = WordProgress.coverage(snapshot.knownRanks, lookups.frequency),
         dueAyahs = dueAyahs,
         meanings = meanings,
+        tracks =
+            listOf(LearnTrack.Reading, LearnTrack.Tajweed, LearnTrack.Grammar).map {
+                LearnTracks.summary(it, trackInput(lookups, snapshot, choices, tajweedLessons))
+            },
     )
 }
+
+internal fun trackInput(
+    lookups: CourseLookups,
+    snapshot: CourseSnapshot,
+    choices: CourseChoices,
+    tajweedLessons: List<TajweedLessonTitle>,
+): TrackInput =
+    TrackInput(
+        content = lookups.content,
+        languageCode = lookups.languageCode,
+        tajweedLessons = tajweedLessons,
+        doneLessonIds = snapshot.doneLessonIds,
+        includeLetters = choices.includeLetters,
+    )
 
 private fun lessonTitles(lookups: CourseLookups): Map<String, String> =
     lookups.content.lessons.associate { it.id to it.text(lookups.languageCode).title }

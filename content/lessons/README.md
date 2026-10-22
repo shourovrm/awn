@@ -13,7 +13,7 @@ content/lessons/<language>/<course>/NN-slug.md
 ```
 
 - `<language>`: `en`, `bn`. A lesson has the same file name and the same `id` in every language.
-- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (for readers who cannot read the letters yet).
+- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (the Reading track: from the letters to a whole ayah, in Qaida order).
 - `NN`: the order in the course. A gap is allowed; the course runs in `order`.
 
 ## File format
@@ -37,7 +37,8 @@ A file starts with YAML front matter between `---` lines, then the body.
 The body is a list of screens. Each screen starts with a heading and holds paragraphs separated by blank lines.
 
 - `## Screen N: Title` is a reading screen.
-- `## Check: Title` is the question after the reading screens, and `## Answer: Title` is the screen after the user has answered. A check has `question:`, an optional `ayah:` (shown with the words around it), an optional `highlight:` (a word key marked in the ayah), a bullet list of options and `answer:` (the option number, from 1). Options appear in the order written.
+- `## Check: Title` is a question after the reading screens, and `## Answer: Title` is the explanation shown once the user has answered. A lesson may end with several Check and Answer pairs; nothing else may follow them. A check has `question:`, an optional `ayah:` (shown with the words around it), an optional `highlight:` (a word key marked in the ayah), a bullet list of options and `answer:` (the option number, from 1). Options appear in the order written.
+- `letters: [[ا]] alif; [[ب]] baa` is a grid of letters, five to a row from the right, each with its name under it.
 - `- item` is a bullet; `| a | b |` rows are a table (header row, then `|---|`).
 - `{{2:3:7}}` stands for the Quran word 2:3:7, drawn in the reader's script. `{{2:3}}` alone in a paragraph stands for the ayah, drawn with the reader's translation.
 - `[[هُمْ]]` is a typed Arabic fragment that is not a Quran word: one letter, an ending, a root, a letter shape. Arabic outside `{{ }}` and `[[ ]]` is an error.
