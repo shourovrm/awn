@@ -50,10 +50,12 @@
   <string name="word_problem_skipped">Missed</string>
   <string name="word_problem_mispronounced">Mispronounced</string>
   <string name="word_problem_different">Another word</string>
-  <string name="word_add_to_my_words">Add to my words</string>
-  <string name="word_added_to_my_words">Added to my words</string>
-  <string name="word_play">Play this word</string>
-  <string name="word_stop">Stop this word</string>
+  <string name="word_save">Save word</string>
+  <string name="word_saved">Saved</string>
+  <string name="word_play">Play</string>
+  <string name="word_stop">Stop</string>
+  <string name="word_removed">Removed from my words</string>
+  <string name="word_undo">Undo</string>
   <string name="word_audio_download">Download word audio</string>
 
   <string name="panel_translation">Translation</string>

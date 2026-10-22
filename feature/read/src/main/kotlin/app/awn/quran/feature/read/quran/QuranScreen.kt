@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,8 +71,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.MyWords
+import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.ui.components.UndoMessage
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -562,6 +565,8 @@ private fun QuranContent(
             )
         }
 
+        // Held only until the message goes away: it is what Undo puts back.
+        var removedWord by remember { mutableStateOf<RemovedMyWord?>(null) }
         state.wordPopup?.let { popup ->
             WordPopupCard(
                 popup = popup,
@@ -580,11 +585,28 @@ private fun QuranContent(
                 },
                 onRemoveFromMyWords = {
                     dependencies.myWords?.let { myWords ->
-                        scope.launch { myWords.remove(popup.word.key) }
+                        scope.launch { removedWord = myWords.remove(popup.word.key) }
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
             )
+        }
+        removedWord?.let { removed ->
+            key(removed) {
+                UndoMessage(
+                    message = stringResource(R.string.word_removed),
+                    actionLabel = stringResource(R.string.word_undo),
+                    onAction = {
+                        scope.launch { removed.restore() }
+                        removedWord = null
+                    },
+                    onTimeout = { removedWord = null },
+                    modifier =
+                        Modifier.align(Alignment.BottomCenter)
+                            .padding(horizontal = AwnSpacing.screenMargin)
+                            .padding(bottom = AwnSpacing.dockHeight + AwnSpacing.medium),
+                )
+            }
         }
 
         if (state.printOffer.isOpen) {

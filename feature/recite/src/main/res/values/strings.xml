@@ -23,6 +23,8 @@
   <string name="recite_word_stop">Stop this word</string>
   <string name="recite_word_save">Add to my words</string>
   <string name="recite_word_saved">Added to my words</string>
+  <string name="recite_word_removed">Removed from my words</string>
+  <string name="recite_word_undo">Undo</string>
   <string name="recite_previous">Previous</string>
   <string name="recite_next">Next</string>
   <string name="recite_finding_madd">Madd</string>

@@ -2,7 +2,6 @@ package app.awn.quran.feature.read
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
@@ -18,9 +17,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * The user (2026-10-22): "Add to my words is too big of a text" (chose an icon only), and
- * "previously the word card had play icon, which currently is not available". The card carries two
- * icon buttons around the word, play and add, and no long text label.
+ * The user chose layout D (2026-10-22): the Arabic word alone on top, then two labelled buttons
+ * under the meaning, Play and Save word, which reads Saved once the word is in the list.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -54,26 +52,26 @@ class WordCardIconsTest {
     }
 
     @Test
-    fun addingIsAnIconWithoutTheLongLabel() {
+    fun withoutWordTimingsThereIsNoPlayButton() {
         show(canPlay = false, state = MyWordState.NotAdded)
 
-        composeRule.onNodeWithContentDescription("Add to my words").assertIsDisplayed()
-        composeRule.onNodeWithText("Add to my words").assertDoesNotExist()
+        composeRule.onNodeWithText("Save word").assertIsDisplayed()
+        composeRule.onNodeWithText("Play").assertDoesNotExist()
     }
 
     @Test
     fun theCardShowsPlayAndAddTogether() {
         show(canPlay = true, state = MyWordState.NotAdded)
 
-        composeRule.onNodeWithContentDescription("Play this word").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Add to my words").assertIsDisplayed()
+        composeRule.onNodeWithText("Play").assertIsDisplayed()
+        composeRule.onNodeWithText("Save word").assertIsDisplayed()
     }
 
     @Test
-    fun anAddedWordShowsTheFilledIcon() {
+    fun anAddedWordReadsSaved() {
         show(canPlay = true, state = MyWordState.Added)
 
-        composeRule.onNodeWithContentDescription("Added to my words").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Play this word").assertIsDisplayed()
+        composeRule.onNodeWithText("Saved").assertIsDisplayed()
+        composeRule.onNodeWithText("Play").assertIsDisplayed()
     }
 }

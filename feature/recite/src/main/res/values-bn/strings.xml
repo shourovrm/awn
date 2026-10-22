@@ -23,6 +23,8 @@
   <string name="recite_word_stop">শব্দটি থামান</string>
   <string name="recite_word_save">আমার শব্দে যোগ করুন</string>
   <string name="recite_word_saved">আমার শব্দে যোগ হয়েছে</string>
+  <string name="recite_word_removed">আমার শব্দ থেকে সরানো হয়েছে</string>
+  <string name="recite_word_undo">ফিরিয়ে আনুন</string>
   <string name="recite_previous">আগের</string>
   <string name="recite_next">পরের</string>
   <string name="recite_finding_madd">মাদ্দ</string>
