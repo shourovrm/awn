@@ -29,8 +29,9 @@ class KeepRecitedProgressGateTest {
 
     @Test
     fun neitherBarStopsTheMicrophoneInAWayThatLosesProgress() {
-        val offenders =
-            bars.filter { path -> File(repositoryRoot, path).readText().contains("session.stop()") }
+        val offenders = bars.filter { path ->
+            File(repositoryRoot, path).readText().contains("session.stop()")
+        }
 
         assertTrue("These bars still call session.stop(): $offenders", offenders.isEmpty())
     }

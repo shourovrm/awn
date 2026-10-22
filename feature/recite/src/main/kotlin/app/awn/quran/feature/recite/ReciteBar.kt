@@ -111,7 +111,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
 
     DisposableEffect(controller) { onDispose { controller.exit() } }
     // The microphone is not available to an app in the background.
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { session.stop() }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { controller.stopMicrophone() }
 
     val permission = rememberMicrophonePermission()
     val access = permission.access

@@ -177,3 +177,4 @@
 2026-10-22 | Green by weighted WordScore (near sounds cheaper, length budget); passed words end green or red | Awn said unknown; see tracker.md
 2026-10-22 | Yellow Mispronounced = sound or madd finding on a green word; no Tentative fill; not a Hifz mistake | name the problem, not unclear
 2026-10-22 | Microphone stop keeps marks; corner button acts; Listen after the last word goes to the next ayah | phone bugs, build 227 (recite.md, read.md)
+2026-10-22 | Leaving the app and Hifz Play stop the microphone with stopMicrophone() | plain session.stop() cleared the marks on next start

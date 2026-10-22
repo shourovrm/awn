@@ -50,6 +50,26 @@ class MicrophonePauseAndListenAgainTest {
     }
 
     @Test
+    fun leavingTheAppAfterTheMicrophoneStopStillKeepsTheMarks() = runTest {
+        val fixture = ControllerFixture(folder.root)
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(confirmed(0), confirmed(1))
+        fixture.controller.session.start()
+        fixture.controller.stopMicrophone()
+
+        // The bars stop the microphone again when the app goes to the background.
+        fixture.controller.stopMicrophone()
+        fixture.script(confirmed(2))
+        fixture.controller.session.start()
+
+        val states = fixture.controller.session.wordStates.value
+        assertEquals(WordState.Confirmed, states[fixture.first])
+        assertEquals(WordState.Confirmed, states[fixture.second])
+        assertEquals(2, fixture.tracker.continuedFrom.last())
+    }
+
+    @Test
     fun theBarsMicrophoneStopKeepsProgress() {
         val bar = File("src/main/kotlin/app/awn/quran/feature/recite/ReciteBar.kt").readText()
 

@@ -151,7 +151,7 @@ fun HifzBar(
 
     fun playWindow(window: ListenWindow) {
         // The microphone would hear the reciter.
-        session.stop()
+        recite.stopMicrophone()
         recite.audioPlayer.setOptions(
             recite.audioPlayer.options.value.copy(repeatEachAyah = repeatCount),
         )
@@ -179,7 +179,7 @@ fun HifzBar(
         }
     }
     // The microphone is not available to an app in the background.
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { session.stop() }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { recite.stopMicrophone() }
     // A stopped recitation leaves its mistakes behind for the Weak spots list.
     LaunchedEffect(phase) {
         if (phase == RecitationPhase.Stopped) {
