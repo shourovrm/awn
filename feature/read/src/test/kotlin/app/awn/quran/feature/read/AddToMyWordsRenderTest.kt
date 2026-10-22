@@ -2,6 +2,7 @@ package app.awn.quran.feature.read
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import app.awn.quran.core.data.AyahRef
@@ -19,7 +20,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * The word card on the Quran page offers "Add to my words", which queues the word for the Learn
+ * The word card on the Quran page offers "Add to my words" as an icon button (the user chose an icon
+ * over the long text label, 2026-10-22), which queues the word for the Learn
  * course. :feature:read does not know the course: :app passes the state and the action in, and a
  * screen without the course (null state) shows no button.
  */
@@ -59,7 +61,7 @@ class AddToMyWordsRenderTest {
     fun aWordNotYetAddedOffersTheButton() {
         show(MyWordState.NotAdded)
 
-        composeRule.onNodeWithText("Add to my words").performClick()
+        composeRule.onNodeWithContentDescription("Add to my words").performClick()
 
         assertEquals(1, adds)
     }
@@ -68,15 +70,15 @@ class AddToMyWordsRenderTest {
     fun anAddedWordSaysSoAndOffersNothingMore() {
         show(MyWordState.Added)
 
-        composeRule.onNodeWithText("Added to my words").assertIsDisplayed()
-        composeRule.onNodeWithText("Add to my words").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Added to my words").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Add to my words").assertDoesNotExist()
     }
 
     @Test
     fun withoutTheCourseThereIsNoButton() {
         show(null)
 
-        composeRule.onNodeWithText("Add to my words").assertDoesNotExist()
-        composeRule.onNodeWithText("Added to my words").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Add to my words").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Added to my words").assertDoesNotExist()
     }
 }
