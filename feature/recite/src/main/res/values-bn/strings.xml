@@ -65,7 +65,7 @@
     <item quantity="one">%1$d টি আয়াত বাকি</item>
     <item quantity="other">%1$d টি আয়াত বাকি</item>
   </plurals>
-  <string name="recite_listen_ayah">এই আয়াতটি শুনুন</string>
+  <string name="recite_listen_ayah">শুনুন</string>
   <string name="recite_listen_pause">অডিও বিরতি</string>
   <string name="recite_listen_resume">অডিও চালু করুন</string>
   <string name="recite_listen_stop">অডিও থামান</string>

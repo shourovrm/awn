@@ -311,6 +311,8 @@ class ReciteController(
     // past the loaded words) is loaded fresh, which also ends the old marks: the page has moved on.
     private suspend fun settleContinuationPoint() {
         val ayah = continuationAyah() ?: return
+        // Used once: a later listening of another kind must not go back to this ayah.
+        lastListenedAyah = null
         val isLoaded = session.words.value.any { it.key.surah == ayah.surah && it.key.ayah == ayah.ayah }
         if (isLoaded) {
             session.continueAt(ayah)
@@ -392,6 +394,7 @@ class ReciteController(
     /** Stops the microphone, forgets the loaded words and leaves recite mode. */
     fun exit() {
         mutableListeningOnward.value = false
+        lastListenedAyah = null
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
