@@ -39,6 +39,8 @@ import app.awn.quran.feature.read.ReadField
 import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
 import app.awn.quran.feature.read.quran.QuranTarget
+import app.awn.quran.feature.recite.MicrophoneAccess
+import app.awn.quran.feature.recite.rememberMicrophonePermission
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteCurrentWord
 import app.awn.quran.feature.recite.rememberReciteFocusedWord
@@ -383,9 +385,22 @@ private fun QuranRoute(
  */
 @Composable
 private fun QuranAudioBar(services: AwnServices, currentPage: Int) {
+    val microphone = rememberMicrophonePermission()
     AudioBar(
         services.audio,
         currentPage,
-        onRecite = { ayah -> services.recite.reciteFrom(ayah) },
+        onRecite = { ayah ->
+            // Shown while reciting too: the microphone then goes back to the recitation where the
+            // listening left off instead of loading it again.
+            if (!services.recite.isActive.value) {
+                services.recite.reciteFrom(ayah)
+            } else {
+                when (microphone.access) {
+                    MicrophoneAccess.Granted -> services.recite.resumeReciting()
+                    MicrophoneAccess.CanAsk -> microphone.requestAccess()
+                    else -> microphone.openAppSettings()
+                }
+            }
+        },
     )
 }

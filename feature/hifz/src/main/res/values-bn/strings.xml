@@ -115,8 +115,8 @@
   <string name="bar_repeat_value">×%d</string>
   <string name="bar_recite">তিলাওয়াত</string>
   <string name="bar_stop_reciting">তিলাওয়াত থামান</string>
-  <string name="bar_finish">শেষ করুন</string>
   <string name="bar_close">বন্ধ করুন</string>
+  <string name="bar_finish_part">অংশ শেষ করুন</string>
   <string name="bar_getting_ready">প্রস্তুত হচ্ছে</string>
   <string name="bar_ayah">আয়াত %d</string>
   <string name="bar_page">পৃষ্ঠা %d</string>

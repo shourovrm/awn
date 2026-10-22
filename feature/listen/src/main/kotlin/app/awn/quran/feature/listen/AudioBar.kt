@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -215,17 +217,35 @@ private fun RowScope.IdleBar(
     ReciteAction(actions)
 }
 
-/** The microphone at the end of the bar; absent when the screen gives no recite action. */
+/**
+ * The microphone at the end of the bar; absent when the screen gives no recite action. The touch
+ * target is a full cell like the other buttons; the ochre square inside is smaller, so it sits in
+ * the bar with the same room around it as the other buttons' icons and is not cut by its edge.
+ */
 @Composable
 private fun ReciteAction(actions: AudioBarActions, modifier: Modifier = Modifier) {
     val onRecite = actions.onRecite ?: return
-    IconAction(
-        icon = R.drawable.ic_listen_mic,
-        description = stringResource(R.string.audio_recite),
-        onClick = onRecite,
-        modifier = modifier.clip(AwnShapes.control).background(AwnColors.ochre),
-        tint = AwnColors.ink,
-    )
+    Box(
+        modifier =
+            modifier
+                .defaultMinSize(AwnSpacing.touchTarget, AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onRecite),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier =
+                Modifier.size(AwnSpacing.touchTarget - AwnSpacing.small)
+                    .clip(AwnShapes.control)
+                    .background(AwnColors.ochre),
+            contentAlignment = Alignment.Center,
+        ) {
+            ListenIcon(
+                icon = R.drawable.ic_listen_mic,
+                description = stringResource(R.string.audio_recite),
+                tint = AwnColors.ink,
+            )
+        }
+    }
 }
 
 @Composable

@@ -391,11 +391,18 @@ class RecitationSession(
         synchronized(lock) { tracker?.setConfig(TrackerConfig(clamped)) }
     }
 
-    /** Turns hiding on or off; words already confirmed stay visible. */
+    /**
+     * Turns hiding on or off; words already confirmed stay visible. Words shown with "show next
+     * word" or "show ayah", a pending grade and a hint belong to the hiding that was on, so they
+     * are dropped: when hiding comes back the words are hidden again and the buttons start over.
+     */
     fun setHifzEnabled(enabled: Boolean) {
         synchronized(lock) {
+            if (mutableHifz.value == enabled) return
             mutableHifz.value = enabled
-            if (!enabled) mutableHint.value = null
+            revealedIndexes.clear()
+            mutableGradePrompt.value = null
+            mutableHint.value = null
             publishStates()
         }
     }
@@ -443,9 +450,14 @@ class RecitationSession(
         runNotifications(notifications)
     }
 
+    // Revealing words never passes through the microphone loop, which is what loads the next page,
+    // so once the reveal buttons have shown every loaded word they would stop working. Loading
+    // only then keeps a revision run, which jumps to the next due ayah, from finding it loaded.
     private fun runNotifications(notifications: List<suspend () -> Unit>) {
-        if (notifications.isEmpty()) return
-        scope.launch { notifications.forEach { notification -> notification() } }
+        scope.launch {
+            notifications.forEach { notification -> notification() }
+            if (synchronized(lock) { firstOpenIndex() == null }) extendWhenNearTheEnd()
+        }
     }
 
     /**
@@ -528,8 +540,7 @@ class RecitationSession(
         extendWhenNearTheEnd()
     }
 
-    // Reading the next ayahs happens off the lock, because it can touch the database; nothing else
-    // changes the loaded words meanwhile, since load and unload wait for this loop to end.
+    // Reading the next ayahs happens off the lock, because it can touch the database.
     private suspend fun extendWhenNearTheEnd() {
         val lastLoaded = synchronized(lock) { if (isNearTheEnd()) wordKeys.lastOrNull() else null }
         if (lastLoaded == null) return
@@ -542,6 +553,10 @@ class RecitationSession(
                 null
             }
         synchronized(lock) {
+            // A reveal button can ask for more words while the microphone loop does too, and a new
+            // load can replace the words meanwhile: only the call that still sees the same last
+            // word may append.
+            if (wordKeys.lastOrNull() != lastLoaded) return
             if (loaded == null || loaded.first.isEmpty()) {
                 nothingToAppend = true
             } else {
