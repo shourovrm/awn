@@ -145,7 +145,14 @@ private fun LetterTile(item: LessonBlock.LetterName, modifier: Modifier) {
                 .padding(vertical = AwnSpacing.small),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        RichText("[[${item.letter}]]", style = AwnTypography.title, textAlign = TextAlign.Center)
+        // The Quran font draws a lone yaa without its dots, as the Mushaf writes a final yaa; the
+        // alphabet grid uses the phone's own Arabic font so every letter shows its dots.
+        Text(
+            text = item.letter,
+            style = AwnTypography.title,
+            color = Awn.field.content,
+            textAlign = TextAlign.Center,
+        )
         // The name is Latin text; it keeps left-to-right order inside the right-to-left grid.
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Text(
