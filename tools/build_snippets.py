@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 """Build feature/learn/src/main/assets/snippets.json.
 
-Ayah text comes from the Quran database ($AWN_DATA_DIR/quran/quran.sqlite). Hadith text is the
+Ayah text comes from the Quran database (awn-data/published/quran/quran.sqlite). Hadith text is the
 saying itself, cut out of the full Arabic report from the fawazahmed0/hadith-api edition
 (ara-bukhari, ara-muslim) by a start phrase and an end phrase; the script fails when either phrase
 is missing or the report number does not match. The English and Bangla renderings below are the
 project's own short renderings and are drafts that need a reviewer.
 
-Usage: AWN_DATA_DIR=/path/to/awn-data python3 -I tools/build_snippets.py
+Usage: AWN_DATA_ROOT=/path/to/awn-data python3 -I tools/build_snippets.py
 """
 
 import json
 import os
 import re
 import sqlite3
+import sys
 import urllib.request
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 OUTPUT = REPOSITORY / "feature/learn/src/main/assets/snippets.json"
@@ -131,7 +135,7 @@ def load_editions():
 
 
 def main():
-    data_directory = Path(os.environ.get("AWN_DATA_DIR", REPOSITORY / "awn-data"))
+    data_directory = data_paths.published()
     database = sqlite3.connect(f"file:{data_directory / 'quran' / 'quran.sqlite'}?mode=ro", uri=True)
     editions = load_editions()
 

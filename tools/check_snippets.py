@@ -6,7 +6,7 @@ the hadith number. sunnah.com sits behind a Cloudflare challenge and answers aut
 with HTTP 403; such URLs are listed as unverified, never as passed. As a second, independent check
 the script asserts that the Arabic text of every hadith is a passage of the report with the same
 number in the fawazahmed0/hadith-api editions (ara-bukhari, ara-muslim). Ayah entries are compared
-with the Quran database ($AWN_DATA_DIR/quran/quran.sqlite).
+with the Quran database (awn-data/published/quran/quran.sqlite).
 
 Exit code: 0 all checks passed, 1 a check failed, 2 no failure but some URL is unverified.
 Run with `python3 -I tools/check_snippets.py`.
@@ -20,6 +20,9 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 SNIPPETS = REPOSITORY / "feature/learn/src/main/assets/snippets.json"
@@ -81,7 +84,7 @@ def main():
     if len({s["id"] for s in snippets}) != len(snippets):
         failures.append("duplicate ids")
 
-    data_directory = Path(os.environ.get("AWN_DATA_DIR", REPOSITORY / "awn-data"))
+    data_directory = data_paths.published()
     database = sqlite3.connect(f"file:{data_directory / 'quran' / 'quran.sqlite'}?mode=ro", uri=True)
     editions = load_editions()
     counts = {"ayah": 0, "hadith": 0, "url verified": 0, "url unverified": 0, "text matched": 0}
