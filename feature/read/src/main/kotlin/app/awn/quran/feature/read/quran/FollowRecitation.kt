@@ -2,6 +2,8 @@ package app.awn.quran.feature.read.quran
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import app.awn.quran.core.data.WordKey
 
 /**
@@ -21,9 +23,12 @@ internal fun FollowRecitation(
     }
     val expectedWord: WordKey? = slots.reciteCurrentWord()
     val focusedWord: WordKey? = slots.reciteFocusedWord()
-    LaunchedEffect(expectedWord, isReciting, focusedWord) {
+    // Closing the card clears the focus. The focus must not be a key of this effect: it would then
+    // run again at once and turn the page to the next word to recite, away from the mistake.
+    val focusedWordNow by rememberUpdatedState(focusedWord)
+    LaunchedEffect(expectedWord, isReciting) {
         // While a mistake is under review the page stays on it, not on the next word to recite.
-        if (isReciting && focusedWord == null && expectedWord != null) {
+        if (isReciting && focusedWordNow == null && expectedWord != null) {
             viewModel.followRecitation(expectedWord)
         }
     }
