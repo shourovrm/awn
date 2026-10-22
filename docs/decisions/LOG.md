@@ -171,3 +171,4 @@
 2026-10-22 | Audio bar ends with a Recite microphone; the playing bar drops the speed button | combined bar needs room for it (player.md)
 2026-10-22 | A page tap shrinks a busy bottom bar to a corner button instead of hiding or ending it | combined bar (read.md)
 2026-10-22 | :app gives the audio bar onRecite and the screen isAudioActive | the combined bar needs both (player.md, read.md)
+2026-10-22 | Listen-onward end and resume ayah are read from the player before our own stop, not only from observed states | conflated StateFlow made a test fail (recite.md)
