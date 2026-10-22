@@ -70,8 +70,8 @@ class UnitScreenTest {
         composeRule.onNodeWithText("The right edge").assertIsDisplayed()
 
         composeRule.onNodeWithContentDescription("Page 3").performClick()
-        composeRule.onNodeWithText("Unit 1 done").assertIsDisplayed()
-        composeRule.onNodeWithText("1 of 1 right").assertIsDisplayed()
+        composeRule.onNodeWithText("Finished unit 1").assertIsDisplayed()
+        composeRule.onNodeWithText("Right: 1 of 1").assertIsDisplayed()
         composeRule.onNodeWithTag(UNIT_NEXT_TAG).performClick()
 
         assertEquals(listOf(1), finished)

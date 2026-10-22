@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -30,13 +29,9 @@ import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Lesson
-import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.course.TajweedLessonTitle
-import app.awn.quran.feature.learn.data.StepItemKind
-import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
-import app.awn.quran.feature.learn.session.StepKind
 import app.awn.quran.feature.learn.ui.CourseDependencies
 import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
@@ -45,7 +40,6 @@ import app.awn.quran.feature.learn.ui.LearnRoute
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
-import app.awn.quran.feature.learn.words.FinishedStep
 import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -143,7 +137,7 @@ fun LearnScreen(
 }
 
 /** What the screens of the Learn tab read; loaded once by [LearnScreen]. */
-private class LearnRouteContent(
+internal class LearnRouteContent(
     val snapshot: ProgressSnapshot,
     val lessons: List<Lesson>,
     val locale: Locale,
@@ -153,45 +147,6 @@ private class LearnRouteContent(
     val language: LearnLanguage
         get() = LearnLanguage.of(locale)
 }
-
-/**
- * An older tajweed lesson. Opened from the Tajweed track, leaving it marks it read and returns to
- * the track; a course lesson id is sent on to the paged unit.
- */
-@Composable
-private fun OneLessonRoute(
-    route: LearnRoute.OneLesson,
-    content: LearnRouteContent,
-    course: CourseRouteContext,
-    onRouteChange: (LearnRoute) -> Unit,
-    modifier: Modifier,
-) {
-    val courseContent = course.runtime?.assets?.content
-    if (courseContent?.lesson(route.id) != null) {
-        LaunchedEffect(route.id) {
-            onRouteChange(
-                LearnRoute.CourseUnit(route.id, LearnTracks.trackOf(route.id, courseContent)),
-            )
-        }
-        return
-    }
-    val scope = rememberCoroutineScope()
-    val repository = course.dependencies.services.courseRepository
-    val track = route.track
-    val onBack = {
-        if (track != null) {
-            scope.launch { repository.finishLesson(route.id, lessonReadStep(route.id)) }
-            onRouteChange(LearnRoute.Track(track))
-        } else {
-            onRouteChange(LearnRoute.Hub)
-        }
-    }
-    LessonRoute(content.lessons.firstOrNull { it.id == route.id }, content, onBack, modifier)
-}
-
-// An older lesson has no check, so reading it to the end is its whole outcome.
-private fun lessonReadStep(lessonId: String) =
-    FinishedStep(StepKind.Lesson, StepItemKind.LESSON, lessonId, null, StepOutcome.SEEN, 0L)
 
 /**
  * The route on screen, null until the setting that says whether the course started is read. Back
@@ -246,7 +201,7 @@ private fun rememberCourseDependencies(
         CourseDependencies(services, translations, packs, downloads, arabic, languageCode)
     }
 
-private class CourseRouteContext(val dependencies: CourseDependencies, val runtime: CourseRuntime?)
+internal class CourseRouteContext(val dependencies: CourseDependencies, val runtime: CourseRuntime?)
 
 @Composable
 private fun LearnRoutes(
@@ -319,24 +274,6 @@ private fun CoursePage(content: @Composable () -> Unit) {
     AwnTheme(field = AwnField.Paper, content = content)
 }
 
-@Composable
-private fun LessonRoute(
-    lesson: Lesson?,
-    content: LearnRouteContent,
-    onBackClick: () -> Unit,
-    modifier: Modifier,
-) {
-    if (lesson == null) return
-    val examples by exampleLines(lesson, content.language, content.quranText, content.surahName)
-    LessonScreen(
-        lesson = lesson,
-        language = content.language,
-        examples = examples,
-        onBackClick = onBackClick,
-        modifier = modifier,
-    )
-}
-
 /** Walks through the ayahs that were due when the user pressed Revise, one at a time. */
 @Composable
 private fun RevisionHost(
@@ -372,21 +309,6 @@ private fun RevisionHost(
         modifier = modifier,
     )
 }
-
-@Composable
-private fun exampleLines(
-    lesson: Lesson,
-    language: LearnLanguage,
-    quranText: QuranTextRepository?,
-    surahName: (Int) -> String,
-): State<List<ExampleLine>> =
-    produceState(emptyList(), lesson, language, quranText) {
-        value =
-            lesson.examples.map { example ->
-                val words = quranText?.wordsOfAyah(AyahRef(example.surah, example.ayah)).orEmpty()
-                LearnUiMapper.exampleLine(example, language, surahName(example.surah), words)
-            }
-    }
 
 private fun surahNameOf(
     chapters: List<Chapter>,

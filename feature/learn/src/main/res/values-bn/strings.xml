@@ -287,8 +287,8 @@
   <string name="unit_page_count">%1$d / %2$d</string>
   <string name="unit_go_to_page">পৃষ্ঠা %d</string>
   <string name="unit_done">শেষ</string>
-  <string name="unit_done_numbered">পাঠ %d শেষ</string>
-  <string name="unit_checks_right">%2$dটির মধ্যে %1$dটি ঠিক</string>
+  <string name="unit_done_numbered">শেষ হলো পাঠ %d</string>
+  <string name="unit_checks_right">ঠিক: %2$dটির মধ্যে %1$dটি</string>
   <string name="unit_next_in">%s-এ এরপর</string>
   <string name="unit_numbered_title">%1$d · %2$s</string>
   <string name="unit_next">পরের পাঠ</string>
