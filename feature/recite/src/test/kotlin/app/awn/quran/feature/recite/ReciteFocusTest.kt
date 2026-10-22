@@ -123,17 +123,17 @@ class ReciteFocusTest {
     }
 
     @Test
-    fun anUnclearWordWithoutFindingsStillGetsAReviewEntry() {
+    fun aMissedWordWithoutFindingsStillGetsAReviewEntry() {
         val reviewed = WordReview(WordKey(1, 1, 2), listOf(ReviewFinding.WrongWord))
         val reviews = mapOf(AyahRef(1, 1) to listOf(reviewed))
         val problems =
             mapOf(
-                WordKey(1, 2, 1) to WordProblem.NotClear,
+                WordKey(1, 2, 1) to WordProblem.Skipped,
                 WordKey(1, 1, 2) to WordProblem.DifferentWord,
             )
 
         assertEquals(
-            listOf(reviewed, WordReview(WordKey(1, 2, 1), listOf(ReviewFinding.NotClear))),
+            listOf(reviewed, WordReview(WordKey(1, 2, 1), listOf(ReviewFinding.Skipped))),
             flaggedReviews(reviews, problems),
         )
     }

@@ -174,3 +174,5 @@
 2026-10-22 | Hub row "Letters and daily time" reopens the first-open choices; saving keeps cards and progress | users could not undo "I cannot read letters" (learn.md)
 2026-10-22 | Counted Learn strings are plurals; PluralsCandidate ignores removed | English read "1 words" (learn.md)
 2026-10-22 | Listen-onward end and resume ayah are read from the player before our own stop, not only from observed states | conflated StateFlow made a test fail (recite.md)
+2026-10-22 | Green by weighted WordScore (near sounds cheaper, length budget); passed words end green or red | Awn said unknown; see tracker.md
+2026-10-22 | Yellow Mispronounced = sound or madd finding on a green word; no Tentative fill; not a Hifz mistake | name the problem, not unclear

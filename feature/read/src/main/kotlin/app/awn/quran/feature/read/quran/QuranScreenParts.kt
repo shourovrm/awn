@@ -204,7 +204,7 @@ internal fun WordPopupCard(
 private fun WordProblem.messageRes(): Int =
     when (this) {
         WordProblem.Skipped -> R.string.word_problem_skipped
-        WordProblem.NotClear -> R.string.word_problem_not_clear
+        WordProblem.Mispronounced -> R.string.word_problem_mispronounced
         WordProblem.DifferentWord -> R.string.word_problem_different
     }
 

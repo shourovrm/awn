@@ -60,7 +60,7 @@ class ReciteWordCardTest {
         reciterHasWordTimings()
         viewModel.open(QuranTarget.Page(1))
 
-        viewModel.onWordTapped(firstAyah, aWord(), WordProblem.NotClear)
+        viewModel.onWordTapped(firstAyah, aWord(), WordProblem.Mispronounced)
 
         assertTrue(checkNotNull(viewModel.state.value.wordPopup).canPlay)
     }
@@ -69,7 +69,7 @@ class ReciteWordCardTest {
     fun theCardOffersNoPlayWithoutWordTimings() = runTest {
         viewModel.open(QuranTarget.Page(1))
 
-        viewModel.onWordTapped(firstAyah, aWord(), WordProblem.NotClear)
+        viewModel.onWordTapped(firstAyah, aWord(), WordProblem.Mispronounced)
 
         assertFalse(checkNotNull(viewModel.state.value.wordPopup).canPlay)
     }

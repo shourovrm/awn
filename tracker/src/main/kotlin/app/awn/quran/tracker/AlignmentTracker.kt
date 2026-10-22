@@ -11,13 +11,18 @@ package app.awn.quran.tracker
  * ([PhonemeAligner]) to the expected phonemes from the first unsettled word to the end of the ayah
  * two after the one it lies in. The alignment decides, for every expected word, how many of its
  * phonemes were matched, substituted or left out:
- * - green ([WordState.Confirmed]) when the aligned share reaches the green coverage with at most
- *   one substitution; the first verdict of green is kept;
+ * - green ([WordState.Confirmed]) when the word's [WordScore] passes: its substitutions, missing
+ *   and extra sounds, weighed by how near the sounds are, stay within the budget of its length; the
+ *   first verdict of green is kept;
  * - red ([WordState.Wrong]) when a word the user has moved past has two or more substitutions, or
  *   when it was left out entirely (together with a [TrackerEvent.Skipped]);
- * - yellow ([WordState.Tentative]) for a partly covered word. A word is settled once the user is
- *   heard in a later word. Settled words leave the front of the heard sequence, so the table stays
- *   small however long the recitation is.
+ * - [WordState.Tentative] for a partly covered word the user may still be saying. A word is settled
+ *   once the user is heard in a later word, and then it is green or red, never tentative. Settled
+ *   words leave the front of the heard sequence, so the table stays small however long the
+ *   recitation is.
+ *
+ * Whether a green word was also pronounced well is not decided here: substitutions and held vowels
+ * are reported as events, and the recite session shows the word as mispronounced.
  */
 // The class is one state machine over one set of tables; splitting it would only pass those
 // tables around. Early returns and continues keep each step flat instead of nested.
@@ -254,6 +259,8 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
     private class WordStatistics {
         var matches = 0
         var substitutions = 0
+        var extra = 0
+        val substitutionCosts = mutableListOf<Double>()
         val aligned: Int
             get() = matches + substitutions
     }
@@ -264,18 +271,31 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         windowEnd: Int,
     ): Array<WordStatistics> {
         val statistics = Array(windowEnd) { WordStatistics() }
+        var wordOfLastAlignedOperation = -1
+        var insertionsSinceLastAlignedOperation = 0
         for (operation in operations) {
-            if (
-                operation.step == AlignmentStep.Insertion ||
-                    operation.step == AlignmentStep.Deletion
-            ) {
+            if (operation.step == AlignmentStep.Insertion) {
+                insertionsSinceLastAlignedOperation++
                 continue
             }
+            if (operation.step == AlignmentStep.Deletion) continue
             val word = wordAtExpectedOffset(expectedStart + operation.expectedIndex)
+            // Heard sounds between two aligned sounds of one word are extra sounds inside it.
+            if (word == wordOfLastAlignedOperation) {
+                statistics[word].extra += insertionsSinceLastAlignedOperation
+            }
+            insertionsSinceLastAlignedOperation = 0
+            wordOfLastAlignedOperation = word
             if (operation.step == AlignmentStep.Match) {
                 statistics[word].matches++
             } else {
                 statistics[word].substitutions++
+                statistics[word].substitutionCosts +=
+                    WordScore.substitutionCost(
+                        heard = symbolsById[heardIds[operation.heardIndex]],
+                        expected =
+                            symbolsById[expectedIds[expectedStart + operation.expectedIndex]],
+                    )
             }
         }
         return statistics
@@ -325,26 +345,30 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
             if (!isPassed) continue
             val matchShare = wordStatistics.matches.toFloat() / wordLengths[word]
             if (waitingWords.isEmpty() && (isGood || matchShare >= MINIMUM_MATCH_SHARE_TO_SETTLE)) {
-                settled[word] = true
+                settleWithFinalVerdict(word, events)
             } else {
                 waitingWords += word
             }
         }
     }
 
-    // A waiting word with no aligned phoneme was left out; the others keep their displayed verdict.
+    // A waiting word with no aligned phoneme was left out; the others were heard but did not pass.
     private fun settleWaitingWords(
         words: List<Int>,
         statistics: Array<WordStatistics>,
         events: MutableList<TrackerEvent>,
     ) {
         for (word in words) {
-            if (statistics[word].aligned == 0) {
-                changeState(word, WordState.Wrong, events)
-                events += TrackerEvent.Skipped(word)
-            }
-            settled[word] = true
+            settleWithFinalVerdict(word, events)
+            if (statistics[word].aligned == 0) events += TrackerEvent.Skipped(word)
         }
+    }
+
+    // A word the user has moved past is either said or not: only the word being recited may stay
+    // tentative. A word that was not confirmed by the time it settles is red.
+    private fun settleWithFinalVerdict(word: Int, events: MutableList<TrackerEvent>) {
+        if (states[word] != WordState.Confirmed) changeState(word, WordState.Wrong, events)
+        settled[word] = true
     }
 
     // Substitutions are reported for words the user has moved past, once each.
@@ -435,22 +459,32 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
             .map { heardOnsets[it] }
             .firstOrNull { it > vowelOnset + MINIMUM_ONSET_STEP_SECONDS }
 
-    // A deviation of more than one haraka is a deviation; anything closer is fine.
+    // A deviation of more than one haraka is a deviation; anything closer is fine. A vowel is
+    // called too short only when it is also under UNDERHELD_MAXIMUM_SHARE of the expected time:
+    // Husary's clean recitation measures at about half the time the rules ask for on long madds,
+    // and
+    // flagging those made one word in nine look mispronounced.
     private fun judgeDuration(
         measured: Float,
         expected: Float,
         harakaSeconds: Float,
     ): DurationVerdict =
         when {
-            measured < expected - harakaSeconds -> DurationVerdict.Underheld
+            measured < expected - harakaSeconds && measured < expected * UNDERHELD_MAXIMUM_SHARE ->
+                DurationVerdict.Underheld
             measured > expected + harakaSeconds -> DurationVerdict.Overheld
             else -> DurationVerdict.Ok
         }
 
     private fun isGreen(wordStatistics: WordStatistics, word: Int): Boolean {
-        val coverage = wordStatistics.aligned.toFloat() / wordLengths[word]
-        return coverage >= thresholds.greenCoverage &&
-            wordStatistics.substitutions <= thresholds.maximumGreenSubstitutions
+        val cost =
+            WordScore.cost(
+                substitutionCosts = wordStatistics.substitutionCosts,
+                missing = wordLengths[word] - wordStatistics.aligned,
+                extra = wordStatistics.extra,
+                referenceLength = wordLengths[word],
+            )
+        return WordScore.passes(cost, wordLengths[word])
     }
 
     // A green word stays green and a red word stays red: the first clear verdict is final.
@@ -605,6 +639,10 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
 
         // A held vowel ends at the first matched token among this many expected phonemes after it.
         const val MADD_END_LOOKAHEAD_PHONEMES = 2
+
+        // A vowel shorter than this share of the expected time (and more than a haraka short) is
+        // too short.
+        const val UNDERHELD_MAXIMUM_SHARE = 0.4f
 
         // Onsets lie on a 0.04 s grid; a later onset by less than this is the same token.
         const val MINIMUM_ONSET_STEP_SECONDS = 0.001f

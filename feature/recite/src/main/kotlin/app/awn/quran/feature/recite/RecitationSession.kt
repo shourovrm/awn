@@ -653,10 +653,24 @@ class RecitationSession(
     /** Must be called with [lock] held. */
     private fun publishStates() {
         val hifz = mutableHifz.value
+        val problems =
+            ReviewRules.problemsByWord(
+                wordKeys,
+                trackerStates.toList(),
+                skippedIndexes,
+                substitutionFindings,
+                durationFindings,
+            )
         val states = LinkedHashMap<WordKey, WordState>()
         wordKeys.forEachIndexed { index, key ->
             val isShown = index in revealedIndexes || index in listenedIndexes
-            states[key] = HifzRules.displayState(trackerStates[index], hifz, isShown)
+            val drawnState =
+                if (problems[key] == WordProblem.Mispronounced) {
+                    WordState.Mispronounced
+                } else {
+                    trackerStates[index]
+                }
+            states[key] = HifzRules.displayState(drawnState, hifz, isShown)
         }
         mutableWordStates.value = states
         val current = firstOpenIndex()?.let { wordKeys[it] }
@@ -664,8 +678,7 @@ class RecitationSession(
         val hintedKey = mutableHint.value?.key
         if (hintedKey != null && hintedKey != current) mutableHint.value = null
         mutableSkippedWords.value = skippedIndexes.map { wordKeys[it] }.toSet()
-        mutableWordProblems.value =
-            ReviewRules.problemsByWord(wordKeys, trackerStates.toList(), skippedIndexes)
+        mutableWordProblems.value = problems
         mutableReviews.value =
             ReviewRules.reviewsByAyah(
                 wordKeys,

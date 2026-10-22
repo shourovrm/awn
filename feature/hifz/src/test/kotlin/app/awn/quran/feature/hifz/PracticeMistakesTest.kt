@@ -5,6 +5,7 @@ import app.awn.quran.feature.hifz.method.MistakeRecord
 import app.awn.quran.feature.hifz.method.MistakeType
 import app.awn.quran.feature.recite.ReviewFinding
 import app.awn.quran.feature.recite.WordReview
+import app.awn.quran.tracker.TrackerEvent
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -41,8 +42,11 @@ class PracticeMistakesTest {
     }
 
     @Test
-    fun unclearWordsAreNotMistakes() {
-        val reviews = mapOf(ayah(1) to listOf(review(1, 1, ReviewFinding.NotClear)))
+    fun mispronouncedWordsAreNotMistakes() {
+        val substitution =
+            TrackerEvent.Substitution(wordIndex = 0, phonemeIndex = 0, heard = "س", expected = "ص")
+        val reviews =
+            mapOf(ayah(1) to listOf(review(1, 1, ReviewFinding.Pronunciation(substitution))))
 
         assertEquals(emptyList<MistakeRecord>(), PracticeMistakes.recordsOf(reviews, 1))
     }

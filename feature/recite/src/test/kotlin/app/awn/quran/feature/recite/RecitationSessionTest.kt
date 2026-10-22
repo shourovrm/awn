@@ -383,7 +383,7 @@ class RecitationSessionTest {
     }
 
     @Test
-    fun aSkippedWordAndAnUnclearWordAreListedAsProblemsForTheCard() = runTest {
+    fun aSkippedWordIsListedAsAProblemAndAWordBeingRecitedIsNot() = runTest {
         val fixture = SessionFixture(inputBlocks = 2)
         fixture.session.load(fixture.range)
         fixture.script(TrackerEvent.Skipped(0))
@@ -391,10 +391,24 @@ class RecitationSessionTest {
         fixture.session.start()
 
         assertEquals(
-            mapOf(
-                fixture.first to WordProblem.Skipped,
-                fixture.second to WordProblem.NotClear,
-            ),
+            mapOf(fixture.first to WordProblem.Skipped),
+            fixture.session.wordProblems.value,
+        )
+    }
+
+    @Test
+    fun aConfirmedWordWithASubstitutionIsShownAsMispronounced() = runTest {
+        val fixture = SessionFixture(inputBlocks = 1)
+        fixture.session.load(fixture.range)
+        fixture.script(
+            fixture.confirmed(0),
+            TrackerEvent.Substitution(wordIndex = 0, phonemeIndex = 0, heard = "س", expected = "ص"),
+        )
+        fixture.session.start()
+
+        assertEquals(WordState.Mispronounced, fixture.session.wordStates.value[fixture.first])
+        assertEquals(
+            mapOf(fixture.first to WordProblem.Mispronounced),
             fixture.session.wordProblems.value,
         )
     }

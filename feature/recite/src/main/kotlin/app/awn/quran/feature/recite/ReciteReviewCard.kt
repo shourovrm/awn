@@ -213,10 +213,6 @@ private fun FindingBlock(finding: ReviewFinding) {
                 FindingTitle(stringResource(R.string.recite_finding_wrong_word))
                 FindingHint(stringResource(R.string.recite_hint_say_again))
             }
-            ReviewFinding.NotClear -> {
-                FindingTitle(stringResource(R.string.recite_finding_not_clear))
-                FindingHint(stringResource(R.string.recite_hint_say_again))
-            }
             is ReviewFinding.Pronunciation -> PronunciationBlock(finding.substitution)
             is ReviewFinding.Duration -> DurationBlock(finding.check)
         }

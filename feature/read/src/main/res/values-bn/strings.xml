@@ -44,7 +44,7 @@
   <string name="ayah_select_action">আয়াত বাছুন</string>
   <string name="word_meaning_action">অর্থ দেখান</string>
   <string name="word_problem_skipped">বাদ পড়েছে</string>
-  <string name="word_problem_not_clear">স্পষ্ট নয়</string>
+  <string name="word_problem_mispronounced">ভুল উচ্চারণ</string>
   <string name="word_problem_different">অন্য শব্দ</string>
   <string name="word_add_to_my_words">আমার শব্দে যোগ করুন</string>
   <string name="word_added_to_my_words">আমার শব্দে যোগ হয়েছে</string>

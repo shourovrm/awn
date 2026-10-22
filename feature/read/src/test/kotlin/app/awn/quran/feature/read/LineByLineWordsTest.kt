@@ -197,7 +197,7 @@ class LineByLineWordsTest {
         val night = awnFieldColors(AwnField.Paper, ColourMode.Dark)
 
         assertEquals(AwnReciteFills.dayConfirmed, wordCellFill(WordState.Confirmed, day))
-        assertEquals(AwnReciteFills.dayTentative, wordCellFill(WordState.Tentative, day))
+        assertEquals(AwnReciteFills.dayTentative, wordCellFill(WordState.Mispronounced, day))
         assertEquals(AwnReciteFills.nightWrong, wordCellFill(WordState.Wrong, night))
         assertNull(wordCellFill(WordState.Neutral, day))
     }
