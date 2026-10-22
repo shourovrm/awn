@@ -19,7 +19,7 @@
 
 - Tracks (`course/LearnTracks.kt`): the hub lists Reading (`letters` lessons), Tajweed (the older lesson JSON, in `TAJWEED_ORDER`), Grammar (`basics` then `grammar`) and Quran words (the set path, now on its own page, `WordsTrackScreen`). A track page numbers its units; the first not done is next. Tajweed opens after Reading unit 7 (shaddah) for a user who chose the letters, else at once. Plan and mockups: `sessions/round7-mocks/l5-*.html`.
 - A unit opened from a track or the path (`LearnRoute.CourseUnit`, `ui/UnitScreen.kt`) is a `HorizontalPager`: reading screens, every Check (the explanation shows after the first pick, which is the one that counts), then a closing page with "Next unit". Reaching the closing page marks the lesson done through `finishLesson`. An older tajweed lesson opened from its track is marked read when the user leaves it with the back link.
-- Reading units 1 to 8 (English only; Bangla waits until the English is final, the old Bangla letters lesson is parked in `sessions/round7-bangla-pending/`): all 29 letters, letter shapes, short vowels, tanween, long vowels, sukoon, shaddah, a whole ayah (112:1).
+- Reading units 1 to 9 (English only; Bangla waits until the English is final, the old Bangla letters lesson is parked in `sessions/round7-bangla-pending/`) follow the Noorani Qaida's order with the drill lessons folded into 3 to 5 checks per unit: all 29 letters, letter shapes, short vowels, tanween, long vowels with the small alif, sukoon with aw and ay, shaddah, letters read by name (الم، كهيعص), a whole ayah (112:1).
 
 ## Open items
 - The course progress page has no "last page read" panel (words you know on your last page); the learn module has no last-read page.

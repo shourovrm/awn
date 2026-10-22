@@ -3,11 +3,11 @@ id: letters-07-shaddah
 title: Shaddah
 order: 7
 appears_after: "Reading unit 6, sukoon"
-reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [1:2:3, 1:5:1, 108:1:1, 2:28:7]
+examples: [1:2:3, 1:5:1, 108:1:1, 2:28:7, 108:2:1]
 reviewed_by: ""
-version: 2026-10-22
+version: 2026-10-23
 ---
 
 ## Screen 1: A doubled letter
@@ -46,3 +46,15 @@ answer: 2
 ## Answer: The letter [[م]]
 
 The [[م]] carries the shaddah: thum-ma.
+
+## Check: Reading {{108:2:1}}
+
+question: How is {{108:2:1}} read?
+- fa-ṣa-li
+- fa-ṣal-li
+- fa-ṣā-lī
+answer: 2
+
+## Answer: fa-ṣal-li
+
+The shaddah on [[ل]] doubles it: fa-ṣal-li, so pray.

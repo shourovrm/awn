@@ -3,7 +3,7 @@ id: letters-01-all-letters
 title: All 29 letters
 order: 1
 appears_after: "the start of the Reading track; the first unit for a reader who cannot read the letters yet"
-reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [1:1:1, 2:10:1]
 reviewed_by: ""

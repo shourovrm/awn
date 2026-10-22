@@ -3,11 +3,11 @@ id: letters-05-long-vowels
 title: Long vowels
 order: 5
 appears_after: "Reading unit 4, tanween"
-reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [2:30:2, 2:11:2, 2:8:4, 2:5:2]
+examples: [2:30:2, 2:11:2, 2:8:4, 2:5:2, 1:4:1, 2:7:9, 106:4:4]
 reviewed_by: ""
-version: 2026-10-22
+version: 2026-10-23
 ---
 
 ## Screen 1: Alif makes a long a
@@ -30,6 +30,12 @@ These three letters, [[ا]], [[و]] and [[ي]], are the long-vowel letters.
 At the end of some words the long ā is written with a yaa shape without dots, [[ى]].
 
 {{2:5:2}} is read ʿalā, on. The [[ى]] at the end is read as alif.
+
+## Screen 4: A small alif above the letter
+
+Some words write the long ā as a small upright alif above the letter instead of a full [[ا]]. It is read the same way and held for two counts.
+
+{{1:4:1}} is read māliki, Master: the small alif above [[م]] makes mā. In {{2:7:9}}, ghishāwatun, a covering, it sits above [[ش]].
 
 ## Check: Long or short
 
@@ -54,3 +60,27 @@ answer: 3
 ## Answer: Damma then waaw
 
 {{2:8:4}}, yaqūlu, has a damma on [[ق]] followed by [[و]].
+
+## Check: Reading {{1:4:1}}
+
+question: How does {{1:4:1}} start?
+- ma
+- mā
+- mi
+answer: 2
+
+## Answer: mā
+
+The small alif above [[م]] makes a long ā: mā-li-ki.
+
+## Check: Reading {{106:4:4}}
+
+question: How is {{106:4:4}} read?
+- ja-ʿin
+- jū-ʿin
+- ji-ʿan
+answer: 2
+
+## Answer: jū-ʿin
+
+Damma then [[و]] makes a long ū, and two kasras end the word in in: jū-ʿin, hunger.

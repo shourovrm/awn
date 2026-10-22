@@ -61,6 +61,7 @@ The build fails when a key does not exist in the Quran text, when `examples` and
 |---|---|---|---|
 | Grammar | William Wright, *A Grammar of the Arabic Language*, 1859 (translated from Caspari). Scan: https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf | Public domain. The Commons file page carries the tag `PD-old-100-expired`. | Order, facts and examples |
 | Grammar, letters, basics | Wikibooks, *Arabic*. https://en.wikibooks.org/wiki/Arabic | CC BY-SA 4.0 | Order, facts and examples |
+| Letters | Qari Noor Muhammad, *Al-Qaida An-Nooraniyya* (Noorani Qaida). Copy: https://archive.org/details/noorani-qaida_202011 | Used for non-commercial purposes (maintainer's decision, 2026-10-23); no text, page or drill is copied | Order of the units |
 
 The references are credited in each file's front matter, here and on the app's Sources page, and nowhere on a lesson screen. A file whose wording stays close to a Wikibooks page stays under CC BY-SA 4.0, as this whole folder does.
 

@@ -3,11 +3,11 @@ id: letters-06-sukoon
 title: Sukoon
 order: 6
 appears_after: "Reading unit 5, long vowels"
-reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [2:80:8, 2:74:30, 2:6:8, 1:4:2]
+examples: [2:80:8, 2:74:30, 2:6:8, 1:4:2, 106:1:2, 2:6:5]
 reviewed_by: ""
-version: 2026-10-22
+version: 2026-10-23
 ---
 
 ## Screen 1: A letter with no vowel
@@ -29,6 +29,8 @@ Many short words end in a sukoon.
 A [[و]] or [[ي]] with a sukoon after a fatha makes a glide, not a long vowel.
 
 {{1:4:2}} is read yawmi, day: the [[و]] has a sukoon after a fatha, so ya and w join into yaw.
+
+With [[ي]] the glide is ay: {{106:1:2}} is read qurayshin, Quraysh.
 
 ## Check: The sukoon
 
@@ -53,3 +55,27 @@ answer: 1
 ## Answer: yaw
 
 The [[و]] has a sukoon after a fatha, so it glides: yaw-mi.
+
+## Check: Reading {{106:1:2}}
+
+question: How is {{106:1:2}} read?
+- qu-rī-shin
+- qu-ray-shin
+- qa-ra-ya-shin
+answer: 2
+
+## Answer: qu-ray-shin
+
+The [[ي]] has a sukoon after a fatha, so it glides: ray.
+
+## Check: Reading {{2:6:5}}
+
+question: How is {{2:6:5}} read?
+- ʿa-lay-him
+- ʿa-lī-hi-mi
+- ʿa-la-ya-him
+answer: 1
+
+## Answer: ʿa-lay-him
+
+Two letters carry a sukoon: [[ي]] glides after the fatha, and [[م]] ends the word.
