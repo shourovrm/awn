@@ -204,7 +204,7 @@ private fun OptionTile(
     Box(
         modifier =
             modifier
-                .heightIn(min = TILE_MINIMUM_HEIGHT)
+                .heightIn(min = AwnSpacing.practiceTileHeight)
                 .clip(AwnShapes.control)
                 .background(if (isRight) field.buttonFill else field.softFill)
                 .then(
@@ -242,7 +242,6 @@ internal fun isTileOption(markup: String): Boolean = TILE_OPTION.matches(markup.
 private val TILE_OPTION = Regex("""^\[\[[^\]]+]]$""")
 private const val TILES_PER_ROW = 2
 private const val SLOW_SPEED = 0.75f
-private val TILE_MINIMUM_HEIGHT = 88.dp
 
 internal const val PRACTICE_PROGRESS_TAG = "practice-progress"
 internal const val PRACTICE_NEXT_TAG = "practice-next"

@@ -58,6 +58,9 @@ object AwnSpacing {
     val dockHeight: Dp = 72.dp
     val dockFloatGap: Dp = 12.dp
 
+    // Learn practice: an answer tile holds one large Arabic cell (mock A, 88 dp).
+    val practiceTileHeight: Dp = 88.dp
+
     // Six buttons and a part pill share a 360 dp bar, which 48 dp buttons would not fit.
     val compactButton: Dp = 44.dp
 
