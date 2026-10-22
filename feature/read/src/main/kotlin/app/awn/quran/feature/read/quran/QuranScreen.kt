@@ -151,6 +151,11 @@ data class QuranScreenSlots(
      * and following, is started by the host through [isReciteActive].
      */
     val hifzBar: (@Composable (onExit: () -> Unit) -> Unit)? = null,
+    /**
+     * Optional. True while audio plays or is paused. A tap on the page then shrinks the audio bar
+     * to a corner button instead of hiding it.
+     */
+    val isAudioActive: Boolean = false,
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -428,6 +433,11 @@ private fun QuranContent(
                 actions = topBarActions(viewModel, slots),
             )
         }
+        val bottomBar =
+            bottomBarDisplay(
+                isBusy = state.isReciting || slots.isAudioActive,
+                areBarsVisible = state.areBarsVisible,
+            )
         if (!state.isPanelOpen) {
             BottomBarStack(
                 onHeightChanged = { bottomStackHeightPx = it },
@@ -451,20 +461,36 @@ private fun QuranContent(
                     }
                 }
                 val hifzBar = slots.hifzBar
-                if (state.isReciting && hifzBar != null) {
-                    hifzBar(viewModel::exitReciteMode)
-                } else if (state.isReciting) {
-                    slots.reciteBar(viewModel::exitReciteMode)
+                if (state.isReciting) {
+                    TuckedAwayWhenHidden(isShown = bottomBar == BottomBarDisplay.Full) {
+                        if (hifzBar != null) {
+                            hifzBar(viewModel::exitReciteMode)
+                        } else {
+                            slots.reciteBar(viewModel::exitReciteMode)
+                        }
+                    }
                 } else {
                     AnimatedVisibility(
-                        visible = state.areBarsVisible,
+                        visible = bottomBar != BottomBarDisplay.None,
                         enter = fadeIn(tween(BAR_FADE_MS)),
                         exit = fadeOut(tween(BAR_FADE_MS)),
                     ) {
-                        slots.audioBar(state.currentPage)
+                        TuckedAwayWhenHidden(isShown = bottomBar == BottomBarDisplay.Full) {
+                            slots.audioBar(state.currentPage)
+                        }
                     }
                 }
             }
+        }
+        if (!state.isPanelOpen && bottomBar == BottomBarDisplay.Mini) {
+            BusyBarButton(
+                isReciting = state.isReciting,
+                onClick = viewModel::showBars,
+                modifier =
+                    Modifier.align(Alignment.BottomStart)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(AwnSpacing.screenMargin),
+            )
         }
 
         val range = state.selectedRange
