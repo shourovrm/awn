@@ -29,7 +29,8 @@ class LearnEnvironment(
 ) {
     fun surahName(surah: Int): String {
         val chapter = chapters.firstOrNull { it.number == surah } ?: return fallbackSurahName(surah)
-        return if (languageCode == "bn") chapter.nameBangla ?: chapter.nameSimple else chapter.nameSimple
+        return if (languageCode == "bn") chapter.nameBangla ?: chapter.nameSimple
+        else chapter.nameSimple
     }
 
     /** "Al-Baqarah 2:7". */

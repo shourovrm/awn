@@ -2,8 +2,8 @@ package app.awn.quran.feature.learn.session
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.CourseContentReader
+import app.awn.quran.feature.learn.course.CourseLesson
 import kotlin.random.Random
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,7 +26,8 @@ class QuestionFactoryTest {
     @Test
     fun aWordQuestionHasFourDistinctOptionsAndOneRightAnswer() = runTest {
         repeat(40) { seed ->
-            val question = checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
+            val question =
+                checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
 
             assertEquals(4, question.options.size)
             assertEquals(4, question.options.toSet().size)
@@ -37,7 +38,8 @@ class QuestionFactoryTest {
     @Test
     fun theRightOptionIsTheWordsOwnMeaningOrWordInMeaningQuestions() = runTest {
         repeat(40) { seed ->
-            val question = checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
+            val question =
+                checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
 
             val right = question.options[question.correctIndex]
             when (question.type) {
@@ -53,11 +55,15 @@ class QuestionFactoryTest {
     fun reverseQuestionsShowTheMeaningAndFillQuestionsBlankTheWord() = runTest {
         val seen = mutableMapOf<QuestionType, Question>()
         repeat(80) { seed ->
-            val question = checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
+            val question =
+                checkNotNull(factory(seed = seed).forWord(50, last = null, isWeak = false))
             seen[question.type] = question
         }
 
-        assertEquals(QuestionPrompt.Markup("meaning 50"), seen.getValue(QuestionType.Reverse).prompt)
+        assertEquals(
+            QuestionPrompt.Markup("meaning 50"),
+            seen.getValue(QuestionType.Reverse).prompt,
+        )
         assertEquals(
             QuestionPrompt.Markup("{{2:50:1}}"),
             seen.getValue(QuestionType.Meaning).prompt,
@@ -80,8 +86,7 @@ class QuestionFactoryTest {
 
     @Test
     fun allTypesAppearOverManyQuestions() = runTest {
-        val types =
-            (0 until 100).map { factory(seed = it).forWord(50, null, false)!!.type }.toSet()
+        val types = (0 until 100).map { factory(seed = it).forWord(50, null, false)!!.type }.toSet()
 
         assertEquals(
             setOf(QuestionType.Meaning, QuestionType.Reverse, QuestionType.FillAyah),
@@ -128,7 +133,7 @@ class QuestionFactoryTest {
             val question =
                 checkNotNull(
                     QuestionFactory(FakeFrequency(), FakeInfoSource(), Random(seed))
-                        .forWord(100, null, false)
+                        .forWord(100, null, false),
                 )
             val ranks =
                 question.options.map { option ->
@@ -149,8 +154,7 @@ class QuestionFactoryTest {
 
         val answers =
             (0 until 30).map { seed ->
-                val question =
-                    checkNotNull(factory(seed = seed).forGrammar(lesson, "en"))
+                val question = checkNotNull(factory(seed = seed).forGrammar(lesson, "en"))
                 question.options[question.correctIndex]
             }
 

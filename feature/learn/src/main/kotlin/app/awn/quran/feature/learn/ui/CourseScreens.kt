@@ -1,7 +1,6 @@
 package app.awn.quran.feature.learn.ui
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,25 +23,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.core.net.toUri
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.LessonReference
-import app.awn.quran.core.ui.theme.mutedContent
 
 /** The choices the first screen of the course collects. */
 internal data class FirstChoices(val includeLetters: Boolean, val minutes: Int)
 
+private const val SHORT_DAY_MINUTES = 5
+private const val MEDIUM_DAY_MINUTES = 10
+private const val SHORT_QUIZ_QUESTIONS = 10
+private const val LONG_QUIZ_QUESTIONS = 20
+
 private val TIME_CHOICES = listOf(5, 10, 15)
 
-/** The first screen of the word course: whether the user reads Arabic yet, and the time each day. */
+/**
+ * The first screen of the word course: whether the user reads Arabic yet, and the time each day.
+ */
 @Composable
 internal fun FirstOpenScreen(onContinue: (FirstChoices) -> Unit, modifier: Modifier = Modifier) {
     var includeLetters by remember { mutableStateOf(false) }
-    var minutes by remember { mutableStateOf(10) }
+    var minutes by remember { mutableStateOf(MEDIUM_DAY_MINUTES) }
     Column(modifier = modifier.fillMaxSize()) {
         Column(
             modifier =
@@ -51,8 +58,16 @@ internal fun FirstOpenScreen(onContinue: (FirstChoices) -> Unit, modifier: Modif
                     .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.large),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            Text(text = stringResource(R.string.first_title), style = AwnTypography.title, color = Awn.field.content)
-            Text(text = stringResource(R.string.first_intro), style = AwnTypography.body, color = Awn.field.content)
+            Text(
+                text = stringResource(R.string.first_title),
+                style = AwnTypography.title,
+                color = Awn.field.content,
+            )
+            Text(
+                text = stringResource(R.string.first_intro),
+                style = AwnTypography.body,
+                color = Awn.field.content,
+            )
             GroupHeading(stringResource(R.string.first_letters_heading))
             RadioChoiceRow(
                 title = stringResource(R.string.first_letters_yes),
@@ -88,8 +103,8 @@ internal fun FirstOpenScreen(onContinue: (FirstChoices) -> Unit, modifier: Modif
 private fun timeDetail(minutes: Int): String =
     stringResource(
         when (minutes) {
-            5 -> R.string.first_time_5_detail
-            10 -> R.string.first_time_10_detail
+            SHORT_DAY_MINUTES -> R.string.first_time_5_detail
+            MEDIUM_DAY_MINUTES -> R.string.first_time_10_detail
             else -> R.string.first_time_15_detail
         },
     )
@@ -139,13 +154,15 @@ internal enum class QuizScope {
 
 /** How many questions a self-started quiz asks; [Int.MAX_VALUE] means until the user stops. */
 internal enum class QuizLength(val questions: Int) {
-    Ten(10),
-    Twenty(20),
+    Ten(SHORT_QUIZ_QUESTIONS),
+    Twenty(LONG_QUIZ_QUESTIONS),
     UntilStop(Int.MAX_VALUE),
 }
 
 internal data class QuizCounts(val all: Int, val thisWeek: Int, val weak: Int)
 
+// Three groups of choices and the start button.
+@Suppress("LongMethod")
 @Composable
 internal fun QuizStartScreen(
     counts: QuizCounts,
@@ -163,7 +180,9 @@ internal fun QuizStartScreen(
         )
         Column(
             modifier =
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = AwnSpacing.screenMargin),
+                Modifier.weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = AwnSpacing.screenMargin),
         ) {
             GroupHeading(stringResource(R.string.quiz_practise))
             RadioChoiceRow(
@@ -185,8 +204,18 @@ internal fun QuizStartScreen(
                 { scope = QuizScope.Weak },
             )
             GroupHeading(stringResource(R.string.quiz_length))
-            RadioChoiceRow(stringResource(R.string.quiz_10), null, length == QuizLength.Ten, { length = QuizLength.Ten })
-            RadioChoiceRow(stringResource(R.string.quiz_20), null, length == QuizLength.Twenty, { length = QuizLength.Twenty })
+            RadioChoiceRow(
+                stringResource(R.string.quiz_10),
+                null,
+                length == QuizLength.Ten,
+                { length = QuizLength.Ten },
+            )
+            RadioChoiceRow(
+                stringResource(R.string.quiz_20),
+                null,
+                length == QuizLength.Twenty,
+                { length = QuizLength.Twenty },
+            )
             RadioChoiceRow(
                 stringResource(R.string.quiz_until_stop),
                 null,
@@ -205,7 +234,11 @@ internal fun QuizStartScreen(
 
 /** Where the lessons and the word meanings come from, with the licence of the lesson text. */
 @Composable
-internal fun SourcesScreen(references: List<LessonReference>, onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SourcesScreen(
+    references: List<LessonReference>,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
@@ -215,7 +248,8 @@ internal fun SourcesScreen(references: List<LessonReference>, onBack: () -> Unit
         )
         Column(
             modifier =
-                Modifier.verticalScroll(rememberScrollState()).padding(horizontal = AwnSpacing.screenMargin),
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             GroupHeading(stringResource(R.string.sources_lessons))
@@ -234,13 +268,23 @@ internal fun SourcesScreen(references: List<LessonReference>, onBack: () -> Unit
                         ),
                     linkLabel = stringResource(R.string.sources_open_link, reference.label),
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(reference.url)))
+                        context.startActivity(Intent(Intent.ACTION_VIEW, reference.url.toUri()))
                     },
                 )
             }
             GroupHeading(stringResource(R.string.sources_words))
-            SourceItem(stringResource(R.string.sources_quran_com), stringResource(R.string.sources_quran_com_detail), null, null)
-            SourceItem(stringResource(R.string.sources_font), stringResource(R.string.sources_font_detail), null, null)
+            SourceItem(
+                stringResource(R.string.sources_quran_com),
+                stringResource(R.string.sources_quran_com_detail),
+                null,
+                null,
+            )
+            SourceItem(
+                stringResource(R.string.sources_font),
+                stringResource(R.string.sources_font_detail),
+                null,
+                null,
+            )
         }
     }
 }
@@ -254,10 +298,15 @@ private fun SourceItem(title: String, detail: String, linkLabel: String?, onClic
             Modifier.fillMaxWidth()
                 .heightIn(min = AwnSpacing.touchTarget)
                 .then(
-                    if (onClick != null) Modifier.clickable(role = Role.Button, onClickLabel = linkLabel, onClick = onClick)
-                    else Modifier
+                    if (onClick != null)
+                        Modifier.clickable(
+                            role = Role.Button,
+                            onClickLabel = linkLabel,
+                            onClick = onClick,
+                        )
+                    else Modifier,
                 )
-                .padding(vertical = AwnSpacing.small)
+                .padding(vertical = AwnSpacing.small),
     ) {
         Text(text = title, style = AwnTypography.bodyStrong, color = Awn.field.content)
         Text(text = detail, style = AwnTypography.small, color = Awn.field.mutedContent)

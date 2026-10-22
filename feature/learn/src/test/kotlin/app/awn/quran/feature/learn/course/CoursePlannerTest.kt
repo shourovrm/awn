@@ -29,7 +29,10 @@ class CoursePlannerTest {
         val plan = plan(snapshotOf())
 
         assertEquals(PlanStep.Lesson("basics-01"), plan.steps.first())
-        assertEquals(listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), plan.steps.filterIsInstance<PlanStep.NewWord>().map { it.rank })
+        assertEquals(
+            listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+            plan.steps.filterIsInstance<PlanStep.NewWord>().map { it.rank },
+        )
     }
 
     @Test
@@ -43,7 +46,10 @@ class CoursePlannerTest {
     fun wordsTheUserAddedAreTaughtBeforeTheNextRanks() {
         val plan = plan(snapshotOf(queued = listOf(50, 60), doneLessons = setOf("basics-01")))
 
-        assertEquals(listOf(50, 60, 1), plan.steps.filterIsInstance<PlanStep.NewWord>().map { it.rank }.take(3))
+        assertEquals(
+            listOf(50, 60, 1),
+            plan.steps.filterIsInstance<PlanStep.NewWord>().map { it.rank }.take(3),
+        )
     }
 
     @Test
@@ -75,7 +81,10 @@ class CoursePlannerTest {
         val plan = plan(snapshotOf(cards, doneLessons = setOf("basics-01")))
 
         assertTrue(PlanStep.Lesson("grammar-03") in plan.steps)
-        assertTrue(plan.steps.indexOf(PlanStep.Lesson("grammar-03")) > plan.steps.indexOfLast { it is PlanStep.NewWord })
+        assertTrue(
+            plan.steps.indexOf(PlanStep.Lesson("grammar-03")) >
+                plan.steps.indexOfLast { it is PlanStep.NewWord },
+        )
     }
 
     @Test

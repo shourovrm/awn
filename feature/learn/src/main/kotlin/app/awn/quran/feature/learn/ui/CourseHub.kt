@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // One small composable per part of the hub.
+
 package app.awn.quran.feature.learn.ui
 
 import androidx.compose.foundation.background
@@ -21,8 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import app.awn.quran.core.data.WordKey
@@ -66,6 +68,8 @@ internal enum class MeaningsState {
     Downloading,
 }
 
+// One callback per row of the hub.
+@Suppress("LongParameterList")
 internal class HubActions(
     val onStart: () -> Unit,
     val onProgress: () -> Unit,
@@ -95,7 +99,8 @@ internal fun CourseHub(
         LearnBar(title = stringResource(R.string.learn_title), actions = barActions)
         Column(
             modifier =
-                Modifier.verticalScroll(rememberScrollState()).padding(horizontal = AwnSpacing.screenMargin),
+                Modifier.verticalScroll(rememberScrollState())
+                    .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             TodayCard(state, actions)
@@ -104,7 +109,11 @@ internal fun CourseHub(
             Heading(stringResource(R.string.course_progress_heading))
             ProgressCard(state)
             SettingsLinkRow(
-                label = stringResource(R.string.course_coverage_title, (state.coverage * PERCENT).roundToInt()),
+                label =
+                    stringResource(
+                        R.string.course_coverage_title,
+                        (state.coverage * PERCENT).roundToInt(),
+                    ),
                 value = stringResource(R.string.course_coverage_detail),
                 icon = R.drawable.ic_learn_trend,
                 onClick = actions.onProgress,
@@ -148,8 +157,16 @@ private fun TodayReady(state: HubState, actions: HubActions) {
     val field = Awn.field
     val plan = state.plan
     if (plan.isEmpty) {
-        Text(text = stringResource(R.string.course_today_done_heading), style = AwnTypography.lead, color = field.onBar)
-        Text(text = stringResource(R.string.course_today_done), style = AwnTypography.body, color = field.onBar)
+        Text(
+            text = stringResource(R.string.course_today_done_heading),
+            style = AwnTypography.lead,
+            color = field.onBar,
+        )
+        Text(
+            text = stringResource(R.string.course_today_done),
+            style = AwnTypography.body,
+            color = field.onBar,
+        )
         return
     }
     Text(
@@ -170,9 +187,17 @@ private fun TodayReady(state: HubState, actions: HubActions) {
 @Composable
 private fun MeaningsNeeded(meanings: MeaningsState, onDownload: () -> Unit) {
     val field = Awn.field
-    Text(text = stringResource(R.string.course_meanings_title), style = AwnTypography.lead, color = field.onBar)
+    Text(
+        text = stringResource(R.string.course_meanings_title),
+        style = AwnTypography.lead,
+        color = field.onBar,
+    )
     if (meanings == MeaningsState.Downloading) {
-        Text(text = stringResource(R.string.course_meanings_waiting), style = AwnTypography.body, color = field.onBar)
+        Text(
+            text = stringResource(R.string.course_meanings_waiting),
+            style = AwnTypography.body,
+            color = field.onBar,
+        )
     } else {
         AwnButton(
             label = stringResource(R.string.course_meanings_download),
@@ -188,7 +213,8 @@ private fun MeaningsNeeded(meanings: MeaningsState, onDownload: () -> Unit) {
 private fun planSummary(plan: TodayPlan): String {
     val parts = mutableListOf<String>()
     if (plan.reviewCount > 0) {
-        parts += pluralStringResource(R.plurals.course_today_reviews, plan.reviewCount, plan.reviewCount)
+        parts +=
+            pluralStringResource(R.plurals.course_today_reviews, plan.reviewCount, plan.reviewCount)
     }
     if (plan.newWordCount > 0) parts += stringResource(R.string.course_today_new, plan.newWordCount)
     if (plan.lessonIds.isNotEmpty()) parts += stringResource(R.string.course_today_lesson)
@@ -201,7 +227,14 @@ private fun PathRowView(row: PathRow, state: HubState, actions: HubActions) {
         is PathRow.Folded -> FoldedRow(row, state)
         is PathRow.SetStep -> SetRow(row)
         is PathRow.LessonStep -> LessonRow(row, state, actions)
-        is PathRow.Later -> StepRow(PathState.Upcoming, stringResource(R.string.course_later), stringResource(R.string.course_later_from, row.fromSet), false, null)
+        is PathRow.Later ->
+            StepRow(
+                PathState.Upcoming,
+                stringResource(R.string.course_later),
+                stringResource(R.string.course_later_from, row.fromSet),
+                false,
+                null,
+            )
     }
 }
 
@@ -214,7 +247,13 @@ private fun FoldedRow(row: PathRow.Folded, state: HubState) {
         }
     val lessons = row.lessonIds.map { state.lessonTitles[it].orEmpty() }
     val title = (listOfNotNull(sets) + lessons).joinToString(", ")
-    StepRow(PathState.Done, title, pluralStringResource(R.plurals.course_folded_detail, row.stepCount, row.stepCount), false, null)
+    StepRow(
+        PathState.Done,
+        title,
+        pluralStringResource(R.plurals.course_folded_detail, row.stepCount, row.stepCount),
+        false,
+        null,
+    )
 }
 
 @Composable
@@ -222,19 +261,32 @@ private fun SetRow(row: PathRow.SetStep) {
     val detail =
         when {
             row.state == PathState.Done -> stringResource(R.string.course_set_known, row.knownCount)
-            row.metCount > 0 -> stringResource(R.string.course_set_left, LEARN_SET_SIZE - row.metCount)
+            row.metCount > 0 ->
+                stringResource(R.string.course_set_left, LEARN_SET_SIZE - row.metCount)
             else -> null
         }
-    StepRow(row.state, stringResource(R.string.course_set_title, row.number), detail, row.isToday, null)
+    StepRow(
+        row.state,
+        stringResource(R.string.course_set_title, row.number),
+        detail,
+        row.isToday,
+        null,
+    )
 }
 
 @Composable
 private fun LessonRow(row: PathRow.LessonStep, state: HubState, actions: HubActions) {
-    val title = stringResource(R.string.course_lesson_title, state.lessonTitles[row.lessonId].orEmpty())
+    val title =
+        stringResource(R.string.course_lesson_title, state.lessonTitles[row.lessonId].orEmpty())
     val trigger = state.triggerMeanings[row.lessonId]
     val detail =
         if (trigger != null && row.triggerSet != null) {
-            stringResource(R.string.course_lesson_reason, row.triggerSet, "{{${trigger.first}}}", trigger.second)
+            stringResource(
+                R.string.course_lesson_reason,
+                row.triggerSet,
+                "{{${trigger.first}}}",
+                trigger.second,
+            )
         } else {
             stringResource(R.string.course_basics)
         }
@@ -243,7 +295,9 @@ private fun LessonRow(row: PathRow.LessonStep, state: HubState, actions: HubActi
 
 private const val LEARN_SET_SIZE = 10
 
-/** One step of the path: a marker, the title with a detail, and "Today" when it is in today's plan. */
+/**
+ * One step of the path: a marker, the title with a detail, and "Today" when it is in today's plan.
+ */
 @Composable
 private fun StepRow(
     state: PathState,
@@ -258,8 +312,13 @@ private fun StepRow(
             Modifier.fillMaxWidth()
                 .heightIn(min = AwnSpacing.settingsRowTall)
                 .clip(AwnShapes.control)
-                .then(if (state == PathState.Next) Modifier.background(field.softFill) else Modifier)
-                .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+                .then(
+                    if (state == PathState.Next) Modifier.background(field.softFill) else Modifier,
+                )
+                .then(
+                    if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)
+                    else Modifier,
+                )
                 .padding(horizontal = AwnSpacing.small, vertical = AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
@@ -270,7 +329,11 @@ private fun StepRow(
             detail?.let { RichText(it, style = AwnTypography.small, color = field.mutedContent) }
         }
         if (isToday) {
-            Text(text = stringResource(R.string.course_today_tag), style = AwnTypography.bodyStrong, color = field.content)
+            Text(
+                text = stringResource(R.string.course_today_tag),
+                style = AwnTypography.bodyStrong,
+                color = field.content,
+            )
         }
     }
 }
@@ -284,7 +347,10 @@ private fun StepMarker(state: PathState) {
             PathState.Next -> field.content
             PathState.Upcoming -> field.softFill
         }
-    Box(modifier = Modifier.size(AwnSpacing.iconSize).clip(CircleShape).background(fill), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.size(AwnSpacing.iconSize).clip(CircleShape).background(fill),
+        contentAlignment = Alignment.Center,
+    ) {
         if (state == PathState.Done) {
             Icon(
                 painter = painterResource(UiR.drawable.ic_ui_check),
@@ -308,21 +374,36 @@ private fun ProgressCard(state: HubState) {
                 .padding(AwnSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
-        Text(text = formatCount(state.wordsKnown), style = AwnTypography.title, color = colors.content)
         Text(
-            text = pluralStringResource(R.plurals.course_words_known, state.wordsMet, state.wordsMet),
+            text = formatCount(state.wordsKnown),
+            style = AwnTypography.title,
+            color = colors.content,
+        )
+        Text(
+            text =
+                pluralStringResource(R.plurals.course_words_known, state.wordsMet, state.wordsMet),
             style = AwnTypography.body,
             color = colors.content,
         )
-        Box(modifier = Modifier.fillMaxWidth().heightIn(min = AwnSpacing.small).clip(AwnShapes.wordBlock).background(colors.softFill)) {
+        Box(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .heightIn(min = AwnSpacing.small)
+                    .clip(AwnShapes.wordBlock)
+                    .background(colors.softFill),
+        ) {
             Box(
                 modifier =
                     Modifier.fillMaxWidth(knownFraction)
                         .heightIn(min = AwnSpacing.small)
-                        .background(colors.buttonFill)
+                        .background(colors.buttonFill),
             )
         }
-        Text(text = stringResource(R.string.course_legend_known, state.wordsKnown), style = AwnTypography.small, color = colors.content)
+        Text(
+            text = stringResource(R.string.course_legend_known, state.wordsKnown),
+            style = AwnTypography.small,
+            color = colors.content,
+        )
         Text(
             text = stringResource(R.string.course_legend_met, state.wordsMet - state.wordsKnown),
             style = AwnTypography.small,

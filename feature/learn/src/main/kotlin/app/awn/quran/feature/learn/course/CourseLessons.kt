@@ -102,6 +102,8 @@ data class CourseContent(val lessons: List<CourseLesson>, val references: List<L
 }
 
 /** Reads `assets/learn/lessons.json`, which `tools/build_learn_content.py` writes at build time. */
+// One small parser per lesson part.
+@Suppress("TooManyFunctions")
 object CourseContentReader {
     const val ASSET_PATH = "learn/lessons.json"
     private const val SUPPORTED_FORMAT = 1
@@ -178,13 +180,15 @@ object CourseContentReader {
             else -> error("Unknown lesson block type $type.")
         }
 
-    private fun parseTerm(term: JSONObject) = LessonBlock.Term(term.getString("text"), term.getString("gloss"))
+    private fun parseTerm(term: JSONObject) =
+        LessonBlock.Term(term.getString("text"), term.getString("gloss"))
 
     private fun parseCheck(check: JSONObject) =
         LessonCheck(
             question = check.getString("question"),
             ayah = check.optString("ayah").takeIf { it.isNotEmpty() }?.let(::parseAyah),
-            highlight = check.optString("highlight").takeIf { it.isNotEmpty() }?.let(WordKey::parse),
+            highlight =
+                check.optString("highlight").takeIf { it.isNotEmpty() }?.let(WordKey::parse),
             options = check.getJSONArray("options").strings(),
             correctIndex = check.getInt("answer"),
         )

@@ -1,9 +1,9 @@
 package app.awn.quran.feature.learn.words
 
-import app.awn.quran.feature.learn.data.GrammarCardEntity
-import app.awn.quran.feature.learn.data.WordCardEntity
 import app.awn.quran.core.data.fsrs.FsrsCard
 import app.awn.quran.core.data.fsrs.FsrsState
+import app.awn.quran.feature.learn.data.GrammarCardEntity
+import app.awn.quran.feature.learn.data.WordCardEntity
 
 /** What the word list says about a word. */
 enum class WordStatus {
@@ -41,8 +41,7 @@ object WordProgress {
         }
 
     fun isKnown(card: WordCardEntity): Boolean =
-        card.state == FsrsState.Review.value &&
-            (card.stability ?: 0.0) >= KNOWN_STABILITY_DAYS
+        card.state == FsrsState.Review.value && (card.stability ?: 0.0) >= KNOWN_STABILITY_DAYS
 
     fun isWeak(card: WordCardEntity): Boolean = card.lapses >= WEAK_LAPSES
 

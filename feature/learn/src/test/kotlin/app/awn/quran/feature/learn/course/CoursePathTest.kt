@@ -65,14 +65,22 @@ class CoursePathTest {
     fun exactlyOneStepIsMarkedNext() {
         val rows = path(met = (1..12).toSet(), done = setOf("basics-01", "basics-02"))
 
-        val next = rows.filter { (it as? PathRow.SetStep)?.state == PathState.Next || (it as? PathRow.LessonStep)?.state == PathState.Next }
+        val next = rows.filter {
+            (it as? PathRow.SetStep)?.state == PathState.Next ||
+                (it as? PathRow.LessonStep)?.state == PathState.Next
+        }
         assertEquals(1, next.size)
         assertEquals(2, (next.single() as PathRow.SetStep).number)
     }
 
     @Test
     fun aSetShowsHowManyOfItsMetWordsAreKnown() {
-        val rows = path(met = (1..10).toSet(), known = (1..7).toSet(), done = setOf("basics-01", "basics-02"))
+        val rows =
+            path(
+                met = (1..10).toSet(),
+                known = (1..7).toSet(),
+                done = setOf("basics-01", "basics-02"),
+            )
 
         val setOne = rows.filterIsInstance<PathRow.SetStep>().first { it.number == 1 }
         assertEquals(10, setOne.metCount)

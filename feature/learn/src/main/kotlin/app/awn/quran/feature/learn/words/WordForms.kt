@@ -1,7 +1,7 @@
 package app.awn.quran.feature.learn.words
 
-import app.awn.quran.core.data.WordKey
 import android.content.res.AssetManager
+import app.awn.quran.core.data.WordKey
 import java.io.DataInputStream
 import java.io.InputStream
 
@@ -44,7 +44,8 @@ interface WordFrequency {
  * [WordFrequency] read from the build's `word_forms.bin` (format in the script). All words are held
  * in two arrays, so loading takes a few milliseconds and about 0.6 MB.
  */
-class WordForms private constructor(
+class WordForms
+private constructor(
     private val surahAyahCounts: IntArray,
     private val ayahStartIndexes: IntArray,
     private val formRanks: ShortArray,
@@ -66,7 +67,8 @@ class WordForms private constructor(
         val counts = IntArray(formCount + 2)
         for (storedRank in formRanks) counts[rankOfStored(storedRank) + 1]++
         occurrenceStarts = IntArray(formCount + 2)
-        for (rank in 1..formCount) occurrenceStarts[rank + 1] = occurrenceStarts[rank] + counts[rank + 1]
+        for (rank in 1..formCount) occurrenceStarts[rank + 1] =
+            occurrenceStarts[rank] + counts[rank + 1]
         val cursor = occurrenceStarts.copyOf()
         occurrenceIndexes = IntArray(wordCount)
         for (index in 0 until wordCount) {

@@ -45,9 +45,12 @@ private const val SECONDS_PER_MINUTE = 60
 internal fun frameLabelText(label: FrameLabel): String =
     when (label) {
         FrameLabel.None -> ""
-        is FrameLabel.NewWord -> stringResource(R.string.session_label_new_word, label.number, label.total)
-        is FrameLabel.Check -> stringResource(R.string.session_label_check, label.number, label.total)
-        is FrameLabel.LessonScreen -> stringResource(R.string.session_label_lesson, label.number, label.total)
+        is FrameLabel.NewWord ->
+            stringResource(R.string.session_label_new_word, label.number, label.total)
+        is FrameLabel.Check ->
+            stringResource(R.string.session_label_check, label.number, label.total)
+        is FrameLabel.LessonScreen ->
+            stringResource(R.string.session_label_lesson, label.number, label.total)
     }
 
 /** The close button, the step name, the time left and a thin bar for the progress. */
@@ -66,7 +69,11 @@ internal fun SessionBar(state: SessionState, onClose: () -> Unit, modifier: Modi
                 color = Awn.field.content,
                 modifier = Modifier.weight(1f).padding(horizontal = AwnSpacing.small),
             )
-            Text(text = timeLeftText(state.secondsLeft), style = AwnTypography.small, color = Awn.field.content)
+            Text(
+                text = timeLeftText(state.secondsLeft),
+                style = AwnTypography.small,
+                color = Awn.field.content,
+            )
         }
         ProgressTrack(state.progress)
     }
@@ -77,7 +84,10 @@ private fun timeLeftText(secondsLeft: Int): String =
     if (secondsLeft < SECONDS_PER_MINUTE) {
         stringResource(R.string.session_under_a_minute)
     } else {
-        stringResource(R.string.session_minutes_left, (secondsLeft + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE)
+        stringResource(
+            R.string.session_minutes_left,
+            (secondsLeft + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE,
+        )
     }
 
 /** A thin track in the soft fill with the done part in the accent. */
@@ -88,13 +98,13 @@ internal fun ProgressTrack(progress: Float, modifier: Modifier = Modifier) {
             modifier
                 .fillMaxWidth()
                 .height(AwnSpacing.tabIndicatorHeight)
-                .background(Awn.field.softFill)
+                .background(Awn.field.softFill),
     ) {
         Box(
             modifier =
                 Modifier.fillMaxWidth(progress.coerceIn(0f, 1f))
                     .fillMaxHeight()
-                    .background(Awn.field.buttonFill)
+                    .background(Awn.field.buttonFill),
         )
     }
 }
@@ -130,8 +140,15 @@ internal fun AnswerRow(
                 .heightIn(min = AwnSpacing.giant + AwnSpacing.small)
                 .clip(AwnShapes.control)
                 .background(background)
-                .then(if (state == AnswerRowState.Wrong) Modifier.border(BorderStroke(2.dp, field.wrongWord), AwnShapes.control) else Modifier)
-                .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+                .then(
+                    if (state == AnswerRowState.Wrong)
+                        Modifier.border(BorderStroke(2.dp, field.wrongWord), AwnShapes.control)
+                    else Modifier,
+                )
+                .then(
+                    if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)
+                    else Modifier,
+                )
                 .padding(horizontal = AwnSpacing.medium),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
@@ -163,7 +180,7 @@ internal fun RadioMark(isSelected: Boolean) {
             Modifier.size(AwnSpacing.iconSize)
                 .clip(CircleShape)
                 .border(BorderStroke(2.dp, field.content), CircleShape)
-                .then(if (isSelected) Modifier.background(field.buttonFill) else Modifier)
+                .then(if (isSelected) Modifier.background(field.buttonFill) else Modifier),
     )
 }
 

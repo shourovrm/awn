@@ -33,8 +33,8 @@ sealed interface PathRow {
     ) : PathRow
 
     /**
-     * A lesson. A grammar lesson sits after the set that brought it: [triggerRank] is the
-     * most frequent word that brings it and [triggerSet] the set that holds that word.
+     * A lesson. A grammar lesson sits after the set that brought it: [triggerRank] is the most
+     * frequent word that brings it and [triggerSet] the set that holds that word.
      */
     data class LessonStep(
         val lessonId: String,
@@ -67,6 +67,8 @@ data class PathInput(
  * grammar lesson right after the set that brings it. Steps done long ago fold into one row, and the
  * rows after the next sets collapse into "Later", so the path stays short however far the user is.
  */
+// One small function per kind of row.
+@Suppress("TooManyFunctions")
 object CoursePath {
 
     /** How many done steps stay visible above the next step. */
@@ -79,7 +81,9 @@ object CoursePath {
         val steps = orderedSteps(input)
         val firstNotDone = steps.indexOfFirst { it.stateOrNull() != PathState.Done }
         val nextIndex = if (firstNotDone == -1) steps.size else firstNotDone
-        val marked = steps.mapIndexed { index, step -> if (index == nextIndex) step.asNext() else step }
+        val marked = steps.mapIndexed { index, step ->
+            if (index == nextIndex) step.asNext() else step
+        }
         val foldedCount = (nextIndex - VISIBLE_DONE_STEPS).coerceAtLeast(0)
         val rows = mutableListOf<PathRow>()
         if (foldedCount > 0) rows += folded(marked.take(foldedCount))
@@ -90,7 +94,12 @@ object CoursePath {
 
     private fun orderedSteps(input: PathInput): List<PathRow> {
         val todaySets =
-            input.plan?.steps?.filterIsInstance<PlanStep.NewWord>()?.map { LearnSets.numberOf(it.rank) }.orEmpty().toSet()
+            input.plan
+                ?.steps
+                ?.filterIsInstance<PlanStep.NewWord>()
+                ?.map { LearnSets.numberOf(it.rank) }
+                .orEmpty()
+                .toSet()
         val todayLessons = input.plan?.lessonIds.orEmpty().toSet()
         val steps = mutableListOf<PathRow>()
         startLessons(input).forEach { steps += lessonStep(it, input, todayLessons, null, null) }
@@ -100,13 +109,16 @@ object CoursePath {
             steps += setStep(number, input, number in todaySets)
             grammar
                 .filter { triggerSetOf(it, input) == number }
-                .forEach { steps += lessonStep(it, input, todayLessons, number, triggerRankOf(it, input)) }
+                .forEach {
+                    steps += lessonStep(it, input, todayLessons, number, triggerRankOf(it, input))
+                }
         }
         return steps
     }
 
     private fun startLessons(input: PathInput): List<CourseLesson> {
-        val letters = if (input.includeLetters) input.content.inCourse(LessonCourse.Letters) else emptyList()
+        val letters =
+            if (input.includeLetters) input.content.inCourse(LessonCourse.Letters) else emptyList()
         return letters + input.content.inCourse(LessonCourse.Basics)
     }
 
@@ -135,7 +147,9 @@ object CoursePath {
 
     private fun currentSetNumber(input: PathInput): Int {
         var number = 1
-        while (LearnSets.ranksOf(number).all { it in input.metRanks || it > input.frequency.formCount }) number++
+        while (
+            LearnSets.ranksOf(number).all { it in input.metRanks || it > input.frequency.formCount }
+        ) number++
         return number
     }
 

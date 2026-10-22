@@ -6,13 +6,15 @@ import org.junit.Test
 
 class SessionPlannerTest {
 
-    private val pace = Pace(secondsPerReview = 10.0, secondsPerNewWord = 30.0, secondsPerLesson = 150.0)
+    private val pace =
+        Pace(secondsPerReview = 10.0, secondsPerNewWord = 30.0, secondsPerLesson = 150.0)
     private val fullLesson = LessonSlot("grammar-03-pronoun-endings", weight = 1.0)
     private val shortLesson = LessonSlot("basics-01-reading-direction", weight = 0.4)
 
     private fun wordItems(count: Int): List<DueItem> =
         (1..count).map { DueItem(ItemRef.Word(it), dueMillis = it.toLong()) }
 
+    @Suppress("LongParameterList") // One argument per planner input, with defaults.
     private fun input(
         budgetSeconds: Int = 600,
         dueItems: List<DueItem> = emptyList(),

@@ -12,8 +12,8 @@ import org.junit.Test
  * Compares desired retentions of the word scheduler over 90 days of 10-minute sessions, to choose
  * the number recorded in docs/decisions/learn.md. A simulated user answers a review correctly with
  * the probability FSRS predicts (retrievability) and a first check of a new word with probability
- * [FIRST_CHECK_SUCCESS]. Each day the real [SessionPlanner] fills the budget, so the review cap, the
- * new-word limit and the backlog behave as in the app.
+ * [FIRST_CHECK_SUCCESS]. Each day the real [SessionPlanner] fills the budget, so the review cap,
+ * the new-word limit and the backlog behave as in the app.
  */
 class RetentionSimulationTest {
 
@@ -30,6 +30,7 @@ class RetentionSimulationTest {
             get() = if (reviewsDone == 0) 1.0 else 1.0 - lapses.toDouble() / reviewsDone
     }
 
+    @Suppress("LongMethod", "NestedBlockDepth") // One loop over days that mirrors a user.
     private fun simulate(desiredRetention: Double, days: Int, seed: Int): Outcome {
         val scheduler =
             FsrsScheduler(
@@ -45,7 +46,10 @@ class RetentionSimulationTest {
         var seconds = 0
         for (day in 0 until days) {
             val now = day * DAY_MILLIS + MORNING_MILLIS
-            val due = cards.filter { it.value.dueMillis <= now }.map { DueItem(ItemRef.Word(it.key), it.value.dueMillis) }
+            val due =
+                cards
+                    .filter { it.value.dueMillis <= now }
+                    .map { DueItem(ItemRef.Word(it.key), it.value.dueMillis) }
             val plan =
                 SessionPlanner.plan(
                     PlannerInput(
@@ -66,7 +70,8 @@ class RetentionSimulationTest {
                     is PlanStep.Review -> {
                         val rank = (step.item as ItemRef.Word).rank
                         val card = cards.getValue(rank)
-                        val recalled = random.nextDouble() < scheduler.getCardRetrievability(card, now)
+                        val recalled =
+                            random.nextDouble() < scheduler.getCardRetrievability(card, now)
                         reviewsDone++
                         if (!recalled) lapses++
                         cards[rank] = scheduler.reviewCard(card, rating(recalled), now)
@@ -74,7 +79,8 @@ class RetentionSimulationTest {
                     is PlanStep.SetCheck ->
                         step.ranks.forEach { rank ->
                             val recalled = random.nextDouble() < FIRST_CHECK_SUCCESS
-                            cards[rank] = scheduler.reviewCard(scheduler.newCard(now), rating(recalled), now)
+                            cards[rank] =
+                                scheduler.reviewCard(scheduler.newCard(now), rating(recalled), now)
                             nextRank = maxOf(nextRank, rank + 1)
                         }
                     is PlanStep.NewWord,
@@ -99,21 +105,23 @@ class RetentionSimulationTest {
     @Test
     fun theChosenRetentionKeepsAnswersReliableWithLessWorkThanTheDefault() {
         val retentions = listOf(0.80, 0.85, 0.90, 0.95)
-        val outcomes =
-            retentions.associateWith { retention ->
-                (1..SEEDS).map { simulate(retention, DAYS, seed = it) }
-            }
-        println("desired  met  known  reviews  correct  due-at-end  (mean of $SEEDS runs, $DAYS days)")
+        val outcomes = retentions.associateWith { retention ->
+            (1..SEEDS).map { simulate(retention, DAYS, seed = it) }
+        }
+        println(
+            "desired  met  known  reviews  correct  due-at-end  (mean of $SEEDS runs, $DAYS days)",
+        )
         outcomes.forEach { (retention, runs) ->
             println(
-                "%.2f  %5.0f  %5.0f  %7.0f  %6.1f%%  %9.0f".format(
-                    retention,
-                    runs.map { it.wordsMet }.average(),
-                    runs.map { it.wordsKnown }.average(),
-                    runs.map { it.reviewsDone }.average(),
-                    runs.map { it.answeredCorrectly }.average() * 100,
-                    runs.map { it.dueAtEnd }.average(),
-                ),
+                "%.2f  %5.0f  %5.0f  %7.0f  %6.1f%%  %9.0f"
+                    .format(
+                        retention,
+                        runs.map { it.wordsMet }.average(),
+                        runs.map { it.wordsKnown }.average(),
+                        runs.map { it.reviewsDone }.average(),
+                        runs.map { it.answeredCorrectly }.average() * 100,
+                        runs.map { it.dueAtEnd }.average(),
+                    ),
             )
         }
 

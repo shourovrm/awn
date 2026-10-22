@@ -46,6 +46,8 @@ class LearnNavigationTest {
                 LearnRoute.OneLesson("basics-01"),
             )
 
-        others.forEach { route -> assertEquals(route.toString(), LearnRoute.Hub, learnBackFrom(route)) }
+        others.forEach { route ->
+            assertEquals(route.toString(), LearnRoute.Hub, learnBackFrom(route))
+        }
     }
 }

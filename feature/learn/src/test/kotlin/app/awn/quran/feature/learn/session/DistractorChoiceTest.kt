@@ -57,7 +57,12 @@ class DistractorChoiceTest {
     @Test
     fun aCandidateWithoutAMeaningIsSkipped() {
         val chosen =
-            DistractorChoice.choose(info(10), listOf(info(11, meaning = " "), info(12)), 3, Random(1))
+            DistractorChoice.choose(
+                info(10),
+                listOf(info(11, meaning = " "), info(12)),
+                3,
+                Random(1),
+            )
 
         assertEquals(listOf(12), chosen.map { it.rank })
     }

@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.AwnSearchField
 import app.awn.quran.core.ui.theme.Awn
@@ -37,7 +36,12 @@ import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.words.WordStatus
 
 /** One row of the word list. */
-internal data class WordListRow(val rank: Int, val key: WordKey, val meaning: String, val status: WordStatus)
+internal data class WordListRow(
+    val rank: Int,
+    val key: WordKey,
+    val meaning: String,
+    val status: WordStatus,
+)
 
 /** What the list shows. */
 internal enum class WordFilter {
@@ -89,7 +93,10 @@ internal fun WordListScreen(
     val shown =
         remember(rows, query, filter) {
             val needle = query.trim().lowercase()
-            rows.filter { filter.matches(it.status) && (needle.isEmpty() || it.meaning.lowercase().contains(needle)) }
+            rows.filter {
+                filter.matches(it.status) &&
+                    (needle.isEmpty() || it.meaning.lowercase().contains(needle))
+            }
         }
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
@@ -142,7 +149,8 @@ private fun WordRow(row: WordListRow, onClick: () -> Unit) {
                 color = if (muted) Awn.field.mutedContent else Awn.field.content,
             )
             Text(
-                text = stringResource(R.string.words_status_rank, statusLabel(row.status), row.rank),
+                text =
+                    stringResource(R.string.words_status_rank, statusLabel(row.status), row.rank),
                 style = AwnTypography.small,
                 color = Awn.field.mutedContent,
             )
@@ -205,11 +213,21 @@ internal fun WordPageScreen(
             )
             InfoLine(
                 stringResource(R.string.word_appears),
-                pluralStringResource(R.plurals.word_appears_times, details.occurrences, details.occurrences),
+                pluralStringResource(
+                    R.plurals.word_appears_times,
+                    details.occurrences,
+                    details.occurrences,
+                ),
             )
             InfoLine(stringResource(R.string.word_rank), details.rank.toString())
             InfoLine(stringResource(R.string.word_state), stateText(details))
-            details.ayahs.forEach { AyahCard(it, highlight = details.key.takeIf { key -> key.ayah == it.ayah && key.surah == it.surah }) }
+            details.ayahs.forEach {
+                AyahCard(
+                    it,
+                    highlight =
+                        details.key.takeIf { key -> key.ayah == it.ayah && key.surah == it.surah },
+                )
+            }
         }
     }
 }

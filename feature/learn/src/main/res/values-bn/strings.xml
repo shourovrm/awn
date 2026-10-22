@@ -220,10 +220,7 @@
   <string name="progress_chart_title">কুরআনের যতটা ঢাকা পড়েছে</string>
   <string name="progress_chart_axis">জানা শব্দ, সবচেয়ে বেশি আসা আগে</string>
   <string name="progress_chart_you">আপনি: %1$dটি শব্দ, %2$d%%</string>
-  <string name="progress_last_page">আপনার শেষ পৃষ্ঠায়</string>
-  <string name="progress_last_page_detail">পৃষ্ঠা %1$d, %2$s। %4$dটির মধ্যে %3$dটি শব্দ আপনার জানা।</string>
-  <string name="progress_legend_known">জানা</string>
-  <string name="progress_legend_not_yet">এখনো না</string>
+  <string name="progress_known_caption">জানা শব্দ</string>
 
   <!-- Sources -->
   <string name="sources_title">সূত্র</string>

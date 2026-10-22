@@ -17,7 +17,8 @@ data class WordOutcomeRow(val item: String, val outcome: String)
 @Dao
 interface WordDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsertWordCard(card: WordCardEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertWordCard(card: WordCardEntity)
 
     @Query("SELECT * FROM word_card WHERE rank = :rank")
     suspend fun findWordCard(rank: Int): WordCardEntity?
@@ -41,7 +42,8 @@ interface WordDao {
     @Query("SELECT * FROM queued_word ORDER BY added_at ASC, rank ASC")
     fun observeQueuedWords(): Flow<List<QueuedWordEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun markLessonDone(done: LessonDoneEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun markLessonDone(done: LessonDoneEntity)
 
     @Query("SELECT * FROM lesson_done") fun observeDoneLessons(): Flow<List<LessonDoneEntity>>
 
@@ -74,5 +76,6 @@ interface WordDao {
     @Query("SELECT * FROM session_log ORDER BY id DESC LIMIT 1")
     suspend fun latestSessionLog(): SessionLogEntity?
 
-    @Query("SELECT * FROM session_log ORDER BY id DESC") fun observeSessionLogs(): Flow<List<SessionLogEntity>>
+    @Query("SELECT * FROM session_log ORDER BY id DESC")
+    fun observeSessionLogs(): Flow<List<SessionLogEntity>>
 }

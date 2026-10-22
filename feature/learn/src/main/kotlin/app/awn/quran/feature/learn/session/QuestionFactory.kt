@@ -22,6 +22,7 @@ class QuestionFactory(
      * for any similar form. [last] is the type this word was asked in last time. A word the user
      * often forgets ([isWeak]) is asked only in the two recognition types, which are the easiest.
      */
+    @Suppress("ReturnCount") // A word without a meaning or distractors has no question.
     suspend fun forWord(rank: Int, last: QuestionType?, isWeak: Boolean): Question? {
         val target = infoSource.info(rank) ?: return null
         val distractors = distractorsFor(target)
@@ -39,10 +40,9 @@ class QuestionFactory(
                     )
                 QuestionType.Grammar -> error("A word is never asked as a grammar question.")
             }
-        val options =
-            optionInfos.map {
-                if (type == QuestionType.Meaning) it.meaning else wordMarkup(it.representative)
-            }
+        val options = optionInfos.map {
+            if (type == QuestionType.Meaning) it.meaning else wordMarkup(it.representative)
+        }
         return Question(
             type = type,
             subject = ItemRef.Word(rank),

@@ -18,7 +18,10 @@ import app.awn.quran.feature.learn.course.LessonBlock
 /** The blocks of one lesson screen, one under the other. */
 @Composable
 internal fun LessonBlocks(blocks: List<LessonBlock>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+    ) {
         blocks.forEach { block ->
             when (block) {
                 is LessonBlock.Paragraph -> RichText(block.text)
@@ -36,7 +39,7 @@ private fun BulletList(items: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
         items.forEach { item ->
             Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-                Text(text = "•", style = AwnTypography.body, color = Awn.field.content)
+                Text(text = BULLET, style = AwnTypography.body, color = Awn.field.content)
                 RichText(item, modifier = Modifier.weight(1f))
             }
         }
@@ -77,7 +80,8 @@ private fun EquationView(equation: LessonBlock.Equation) {
             verticalAlignment = Alignment.Top,
         ) {
             equation.parts.forEachIndexed { index, part ->
-                if (index > 0) Text(text = PLUS, style = AwnTypography.lead, color = Awn.field.content)
+                if (index > 0)
+                    Text(text = PLUS, style = AwnTypography.lead, color = Awn.field.content)
                 TermView(part)
             }
         }
@@ -104,7 +108,8 @@ private fun TermView(term: LessonBlock.Term) {
     }
 }
 
-// Signs are constants, not quoted text in a Text call, so the copy gate keeps its meaning.
-private const val BULLET = "\u2022"
 private const val PLUS = "+"
 private const val EQUALS = "="
+
+// A sign is a constant, not quoted text in a Text call, so the copy gate keeps its meaning.
+private const val BULLET = "\u2022"

@@ -40,7 +40,11 @@ internal class SessionActions(
 
 /** One screen of a session or quiz: the bar above and the frame under it. */
 @Composable
-internal fun SessionScreen(state: SessionState, actions: SessionActions, modifier: Modifier = Modifier) {
+internal fun SessionScreen(
+    state: SessionState,
+    actions: SessionActions,
+    modifier: Modifier = Modifier,
+) {
     Column(modifier = modifier.fillMaxSize()) {
         SessionBar(state, onClose = actions.onClose)
         when (val frame = state.frame) {
@@ -130,7 +134,9 @@ private fun AskFrame(frame: SessionFrame.Ask, onAnswer: (Int?) -> Unit) {
                     markup = markup,
                     state = if (selected == index) AnswerRowState.Selected else AnswerRowState.Open,
                     showRadio = frame.confirmWithButton,
-                    onClick = { if (frame.confirmWithButton) selected = index else onAnswer(index) },
+                    onClick = {
+                        if (frame.confirmWithButton) selected = index else onAnswer(index)
+                    },
                 )
             }
             if (frame.confirmWithButton) {
@@ -155,7 +161,9 @@ private fun QuestionHeading(question: Question) {
             QuestionType.FillAyah -> R.string.question_fill
             QuestionType.Grammar -> null
         }
-    val text = resource?.let { stringResource(it) } ?: (question.prompt as? QuestionPrompt.LessonCheck)?.question.orEmpty()
+    val text =
+        resource?.let { stringResource(it) }
+            ?: (question.prompt as? QuestionPrompt.LessonCheck)?.question.orEmpty()
     RichText(
         text = text,
         style = AwnTypography.small,
@@ -170,12 +178,15 @@ private fun QuestionPromptView(prompt: QuestionPrompt) {
         is QuestionPrompt.Markup ->
             RichText(
                 text = prompt.text,
-                style = if (prompt.text.contains("{{")) AwnTypography.poster else AwnTypography.lead,
+                style =
+                    if (prompt.text.contains("{{")) AwnTypography.poster else AwnTypography.lead,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(vertical = AwnSpacing.large),
             )
-        is QuestionPrompt.AyahWithBlank -> AyahCard(prompt.ayah, blankPosition = prompt.blankPosition, showTranslation = true)
-        is QuestionPrompt.LessonCheck -> prompt.ayah?.let { AyahCard(it, highlight = prompt.highlight, showTranslation = false) }
+        is QuestionPrompt.AyahWithBlank ->
+            AyahCard(prompt.ayah, blankPosition = prompt.blankPosition, showTranslation = true)
+        is QuestionPrompt.LessonCheck ->
+            prompt.ayah?.let { AyahCard(it, highlight = prompt.highlight, showTranslation = false) }
     }
 }
 
@@ -184,11 +195,19 @@ private fun AnswerFrame(frame: SessionFrame.Answer, onNext: () -> Unit) {
     val question = frame.question
     BodyWithButton(stringResource(R.string.answer_next), onNext) {
         question.answerWord?.let { ArabicWord(it, style = AwnTypography.title) }
-        AnswerRow(markup = question.options[question.correctIndex], state = AnswerRowState.Right, onClick = null)
+        AnswerRow(
+            markup = question.options[question.correctIndex],
+            state = AnswerRowState.Right,
+            onClick = null,
+        )
         val chosen = frame.chosenIndex
         if (chosen != null && !frame.isCorrect) {
             MutedLine(stringResource(R.string.answer_your_choice))
-            AnswerRow(markup = question.options[chosen], state = AnswerRowState.Wrong, onClick = null)
+            AnswerRow(
+                markup = question.options[chosen],
+                state = AnswerRowState.Wrong,
+                onClick = null,
+            )
         }
         if (question.explanation.isNotEmpty()) LessonBlocks(question.explanation)
         question.answerWord?.let { word ->

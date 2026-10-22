@@ -29,8 +29,9 @@ androidComponents {
 
 // The lesson data and the word ranking are built from files in the repository and from the bundled
 // Quran text pack by two scripts in tools/, so neither output is committed.
-abstract class GenerateLearnContent @Inject constructor(private val execOperations: ExecOperations) :
-    DefaultTask() {
+abstract class GenerateLearnContent
+@Inject
+constructor(private val execOperations: ExecOperations) : DefaultTask() {
     @get:InputDirectory abstract val lessonDirectory: DirectoryProperty
 
     @get:InputFile abstract val quranDatabase: RegularFileProperty

@@ -52,7 +52,9 @@ data class Question(
 ) {
     init {
         require(options.size >= 2) { "A question needs at least two options." }
-        require(correctIndex in options.indices) { "The correct option $correctIndex does not exist." }
+        require(correctIndex in options.indices) {
+            "The correct option $correctIndex does not exist."
+        }
     }
 }
 
@@ -76,8 +78,8 @@ interface WordInfoSource {
 object QuestionTypeChoice {
 
     /**
-     * Returns a random type from [available]. The type used the last time for this item is left
-     * out when another is available, so the same word is not asked the same way twice in a row.
+     * Returns a random type from [available]. The type used the last time for this item is left out
+     * when another is available, so the same word is not asked the same way twice in a row.
      */
     fun choose(available: List<QuestionType>, last: QuestionType?, random: Random): QuestionType {
         require(available.isNotEmpty()) { "No question type is available." }

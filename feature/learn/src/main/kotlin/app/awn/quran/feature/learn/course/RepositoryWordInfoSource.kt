@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Looks up the meaning of a form in the installed word-by-word pack: the meaning of its
- * representative word, in [language], or in English when the pack of [language] is missing or
- * has no text for the word (as the Quran screen does).
+ * representative word, in [language], or in English when the pack of [language] is missing or has
+ * no text for the word (as the Quran screen does).
  */
 class RepositoryWordMeanings(
     private val translations: TranslationRepository,
@@ -22,7 +22,9 @@ class RepositoryWordMeanings(
     suspend fun meaning(ayah: AyahRef, position: Int): String? {
         val wanted = glossesOf(language, ayah).getOrNull(position - 1)?.takeIf { it.isNotBlank() }
         if (wanted != null || language == FALLBACK_LANGUAGE) return wanted
-        return glossesOf(FALLBACK_LANGUAGE, ayah).getOrNull(position - 1)?.takeIf { it.isNotBlank() }
+        return glossesOf(FALLBACK_LANGUAGE, ayah).getOrNull(position - 1)?.takeIf {
+            it.isNotBlank()
+        }
     }
 
     private suspend fun glossesOf(language: String, ayah: AyahRef): List<String> =
@@ -42,6 +44,7 @@ class RepositoryWordInfoSource(
 ) : WordInfoSource {
     private val cache = ConcurrentHashMap<Int, WordInfo>()
 
+    @Suppress("ReturnCount") // Each missing piece means the word has no usable meaning.
     override suspend fun info(rank: Int): WordInfo? {
         cache[rank]?.let {
             return it

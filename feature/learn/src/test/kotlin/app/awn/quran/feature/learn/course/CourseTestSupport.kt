@@ -5,7 +5,13 @@ import app.awn.quran.feature.learn.words.CourseSnapshot
 
 /** A course with basics 1 and 2, letters 2 and a grammar lesson brought by form 25 (set 3). */
 fun fixtureContent(): CourseContent {
-    fun lesson(id: String, course: String, order: Int, introducedBy: String, check: Boolean): String {
+    fun lesson(
+        id: String,
+        course: String,
+        order: Int,
+        introducedBy: String,
+        check: Boolean,
+    ): String {
         val reading = """{"kind":"screen","title":"T","blocks":[{"type":"paragraph","text":"x"}]}"""
         val checkScreens =
             """{"kind":"check","title":"C","check":{"question":"q","options":["a","b"],"answer":0}},""" +

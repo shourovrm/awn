@@ -70,6 +70,9 @@ object PaceMeasurement {
             } else {
                 (sorted[middle - 1] + sorted[middle]) / 2.0
             }
-        return (medianMillis / MILLIS_PER_SECOND).coerceIn(default / LIMIT_FACTOR, default * LIMIT_FACTOR)
+        return (medianMillis / MILLIS_PER_SECOND).coerceIn(
+            default / LIMIT_FACTOR,
+            default * LIMIT_FACTOR,
+        )
     }
 }

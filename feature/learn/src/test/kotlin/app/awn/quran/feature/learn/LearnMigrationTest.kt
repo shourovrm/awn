@@ -57,15 +57,13 @@ class LearnMigrationTest {
     @Test
     fun versionTwoKeepsTheAyahCardsAndAddsEmptyWordTables() {
         val databaseName = "migration-keeps-cards"
-        migrationHelper
-            .createDatabase(databaseName, 1)
-            .apply {
-                execSQL(
-                    "INSERT INTO card (surah, ayah, stability, difficulty, due, last_review, " +
-                        "reps, lapses, state, step) VALUES (2, 255, 3.5, 5.0, 1000, 500, 4, 1, 2, 0)",
-                )
-                close()
-            }
+        migrationHelper.createDatabase(databaseName, 1).apply {
+            execSQL(
+                "INSERT INTO card (surah, ayah, stability, difficulty, due, last_review, " +
+                    "reps, lapses, state, step) VALUES (2, 255, 3.5, 5.0, 1000, 500, 4, 1, 2, 0)",
+            )
+            close()
+        }
 
         val migrated =
             migrationHelper.runMigrationsAndValidate(

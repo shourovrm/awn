@@ -5,8 +5,8 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CourseContent
-import app.awn.quran.feature.learn.course.CoursePlanner
 import app.awn.quran.feature.learn.course.CourseLesson
+import app.awn.quran.feature.learn.course.CoursePlanner
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.course.ScreenKind
 import app.awn.quran.feature.learn.data.SessionLogEntity
@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /** Everything a session reads and writes; built once by the Learn host. */
+// One field per service the session reads; a smaller bundle would only hide them.
+@Suppress("LongParameterList")
 class SessionDependencies(
     val repository: WordCourseRepository,
     val factory: QuestionFactory,
@@ -41,8 +43,8 @@ class SessionDependencies(
  * screen to draw; the user's presses call [next], [answer] and [close].
  *
  * Each answer is rated and stored at once, so a user who leaves halfway keeps what was done. In a
- * quiz the user started ([isOwnQuiz]) answers are only logged: no card and no date changes.
- * Reviews rate Good for a right answer and Again for a wrong one or "I don't know".
+ * quiz the user started ([isOwnQuiz]) answers are only logged: no card and no date changes. Reviews
+ * rate Good for a right answer and Again for a wrong one or "I don't know".
  */
 // One method per button on a session screen, plus the steps that build the next screen.
 @Suppress("TooManyFunctions")
@@ -52,7 +54,8 @@ class SessionController(
     private val isOwnQuiz: Boolean,
     private val plannedSeconds: Int,
 ) {
-    private val mutableState = MutableStateFlow(SessionState(frame = null, progress = 0f, secondsLeft = plannedSeconds))
+    private val mutableState =
+        MutableStateFlow(SessionState(frame = null, progress = 0f, secondsLeft = plannedSeconds))
     val state: StateFlow<SessionState> = mutableState
 
     private val repository = dependencies.repository
@@ -105,7 +108,9 @@ class SessionController(
         publish(SessionFrame.Answer(question, optionIndex, backInDays, frame.label))
     }
 
-    /** Writes the session log when the user leaves before the end; a finished one is logged already. */
+    /**
+     * Writes the session log when the user leaves before the end; a finished one is logged already.
+     */
     suspend fun close() {
         if (mutableState.value.frame !is SessionFrame.Finished) logSession()
     }
@@ -127,7 +132,9 @@ class SessionController(
         }
     }
 
-    /** The screen for [step] at the current [subIndex], or null when the step has no more screens. */
+    /**
+     * The screen for [step] at the current [subIndex], or null when the step has no more screens.
+     */
     private suspend fun frameFor(step: PlanStep): SessionFrame? =
         when (step) {
             is PlanStep.NewWord -> newWordFrame(step)
@@ -136,13 +143,17 @@ class SessionController(
             is PlanStep.Lesson -> lessonFrame(step)
         }
 
+    @Suppress("ReturnCount") // Guards that skip a step with nothing to show.
     private suspend fun newWordFrame(step: PlanStep.NewWord): SessionFrame? {
         if (subIndex > 0) return null
         val info = dependencies.infoSource.info(step.rank) ?: return null
         val ordinal = steps.filterIsInstance<PlanStep.NewWord>().indexOf(step) + 1
         val total = steps.count { it is PlanStep.NewWord }
         val candidates =
-            dependencies.frequency.occurrences(step.rank).map { AyahRef(it.surah, it.ayah) }.distinct()
+            dependencies.frequency
+                .occurrences(step.rank)
+                .map { AyahRef(it.surah, it.ayah) }
+                .distinct()
         val ayahs =
             candidates
                 .map { it to dependencies.arabic.ayah(it).words.size }
@@ -157,6 +168,7 @@ class SessionController(
         return SessionFrame.Ask(question, confirmWithButton = false, label = FrameLabel.None)
     }
 
+    @Suppress("ReturnCount") // Guards that skip a step with nothing to show.
     private suspend fun setCheckFrame(step: PlanStep.SetCheck): SessionFrame? {
         val rank = step.ranks.getOrNull(subIndex) ?: return null
         val question = questionFor(ItemRef.Word(rank)) ?: return null
@@ -167,16 +179,22 @@ class SessionController(
         )
     }
 
+    @Suppress("ReturnCount") // Guards that skip a step with nothing to show.
     private suspend fun lessonFrame(step: PlanStep.Lesson): SessionFrame? {
         val lesson = dependencies.content.lesson(step.lessonId) ?: return null
         val text = lesson.text(dependencies.languageCode)
         val readings = text.screens.filter { it.kind == ScreenKind.Reading }
         if (subIndex == 0) lessonStartedAtMillis = nowMillis()
         if (subIndex < readings.size) {
-            return SessionFrame.Reading(lesson, readings[subIndex], FrameLabel.LessonScreen(subIndex + 1, readings.size))
+            return SessionFrame.Reading(
+                lesson,
+                readings[subIndex],
+                FrameLabel.LessonScreen(subIndex + 1, readings.size),
+            )
         }
         if (subIndex == readings.size && lesson.hasCheck) {
-            val question = dependencies.factory.forGrammar(lesson, dependencies.languageCode) ?: return null
+            val question =
+                dependencies.factory.forGrammar(lesson, dependencies.languageCode) ?: return null
             return SessionFrame.Ask(question, confirmWithButton = true, label = FrameLabel.None)
         }
         finishLesson(lesson, outcome = null)
@@ -188,7 +206,11 @@ class SessionController(
             is ItemRef.Word -> {
                 val card = snapshotAtStart.wordCards[item.rank]
                 val last = card?.lastQuestionType?.let(QuestionType::fromStored)
-                dependencies.factory.forWord(item.rank, last, isWeak = card != null && WordProgress.isWeak(card))
+                dependencies.factory.forWord(
+                    item.rank,
+                    last,
+                    isWeak = card != null && WordProgress.isWeak(card),
+                )
             }
             is ItemRef.Grammar ->
                 dependencies.content.lesson(item.lessonId)?.let {
@@ -202,9 +224,13 @@ class SessionController(
         val subject = question.subject
         val step =
             FinishedStep(
-                kind = if (steps.getOrNull(stepIndex) is PlanStep.SetCheck) StepKind.NewWord else StepKind.Review,
+                kind =
+                    if (steps.getOrNull(stepIndex) is PlanStep.SetCheck) StepKind.NewWord
+                    else StepKind.Review,
                 itemKind = if (subject is ItemRef.Word) StepItemKind.WORD else StepItemKind.LESSON,
-                item = if (subject is ItemRef.Word) subject.rank.toString() else (subject as ItemRef.Grammar).lessonId,
+                item =
+                    if (subject is ItemRef.Word) subject.rank.toString()
+                    else (subject as ItemRef.Grammar).lessonId,
                 questionType = question.type,
                 outcome = outcome,
                 millis = elapsed,
@@ -226,7 +252,9 @@ class SessionController(
     private suspend fun finishNewWord(frame: SessionFrame.NewWord) {
         val elapsed = nowMillis() - shownAtMillis
         repository.meet(frame.info.rank)
-        repository.logStep(WordCourseRepository.seenStep(StepKind.NewWord, frame.info.rank, elapsed))
+        repository.logStep(
+            WordCourseRepository.seenStep(StepKind.NewWord, frame.info.rank, elapsed),
+        )
         introduced++
         lastAyahWord = frame.info.representative
         advanceStep()
@@ -266,7 +294,8 @@ class SessionController(
     private suspend fun finish() {
         val summary = summary()
         logSession()
-        mutableState.value = SessionState(SessionFrame.Finished(summary), progress = 1f, secondsLeft = 0)
+        mutableState.value =
+            SessionState(SessionFrame.Finished(summary), progress = 1f, secondsLeft = 0)
     }
 
     private suspend fun logSession() {
@@ -334,7 +363,9 @@ class SessionController(
 
     private fun totalUnits(): Int = steps.sumOf(::unitsIn)
 
-    private fun unitsDone(): Int = steps.take(stepIndex).sumOf(::unitsIn) + subIndex.coerceAtMost(unitsIn(steps.getOrNull(stepIndex)))
+    private fun unitsDone(): Int =
+        steps.take(stepIndex).sumOf(::unitsIn) +
+            subIndex.coerceAtMost(unitsIn(steps.getOrNull(stepIndex)))
 
     private fun unitsIn(step: PlanStep?): Int =
         when (step) {
@@ -345,15 +376,14 @@ class SessionController(
 
     private fun secondsLeft(): Int {
         val remaining = steps.drop(stepIndex)
-        val seconds =
-            remaining.sumOf { step ->
-                when (step) {
-                    is PlanStep.Review -> pace.secondsPerReview
-                    is PlanStep.NewWord -> pace.secondsPerNewWord
-                    is PlanStep.SetCheck -> 0.0
-                    is PlanStep.Lesson -> pace.secondsPerLesson
-                }
+        val seconds = remaining.sumOf { step ->
+            when (step) {
+                is PlanStep.Review -> pace.secondsPerReview
+                is PlanStep.NewWord -> pace.secondsPerNewWord
+                is PlanStep.SetCheck -> 0.0
+                is PlanStep.Lesson -> pace.secondsPerLesson
             }
+        }
         return seconds.toInt()
     }
 
@@ -361,7 +391,10 @@ class SessionController(
         val zone = dependencies.clock.zone()
         val today = dependencies.clock.now().atZone(zone).toLocalDate()
         val due = java.time.Instant.ofEpochMilli(dueMillis).atZone(zone).toLocalDate()
-        return Duration.between(today.atStartOfDay(), due.atStartOfDay()).toDays().toInt().coerceAtLeast(1)
+        return Duration.between(today.atStartOfDay(), due.atStartOfDay())
+            .toDays()
+            .toInt()
+            .coerceAtLeast(1)
     }
 
     private fun nowMillis(): Long = dependencies.clock.now().toEpochMilli()

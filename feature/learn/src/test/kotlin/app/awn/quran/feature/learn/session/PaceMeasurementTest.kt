@@ -5,8 +5,9 @@ import org.junit.Test
 
 class PaceMeasurementTest {
 
-    private fun timings(kind: StepKind, vararg seconds: Int) =
-        seconds.map { StepTiming(kind, it * 1000L) }
+    private fun timings(kind: StepKind, vararg seconds: Int) = seconds.map {
+        StepTiming(kind, it * 1000L)
+    }
 
     @Test
     fun withoutTimingsTheDefaultsStand() {

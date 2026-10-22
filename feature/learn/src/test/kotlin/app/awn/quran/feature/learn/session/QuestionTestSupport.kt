@@ -18,8 +18,7 @@ class FakeFrequency(override val formCount: Int = 200) : WordFrequency {
 
 /** Meanings come from [meanings] by rank; a rank without an entry has no meaning installed. */
 class FakeInfoSource(
-    private val meanings: Map<Int, String> =
-        (1..200).associateWith { "meaning $it" },
+    private val meanings: Map<Int, String> = (1..200).associateWith { "meaning $it" },
     private val letterCounts: (Int) -> Int = { 4 },
     private val ayahWordCounts: (Int) -> Int = { 10 },
 ) : WordInfoSource {

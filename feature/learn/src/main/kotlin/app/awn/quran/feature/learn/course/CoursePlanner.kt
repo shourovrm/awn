@@ -16,8 +16,8 @@ import java.time.ZoneId
 data class CourseChoices(val sessionMinutes: Int, val includeLetters: Boolean)
 
 /**
- * Connects what the user has done ([CourseSnapshot]) to the planner: what is due today, which
- * words come next, which lessons are waiting and which lesson a set of new words brings up.
+ * Connects what the user has done ([CourseSnapshot]) to the planner: what is due today, which words
+ * come next, which lessons are waiting and which lesson a set of new words brings up.
  */
 class CoursePlanner(private val content: CourseContent, private val frequency: WordFrequency) {
 
@@ -47,7 +47,9 @@ class CoursePlanner(private val content: CourseContent, private val frequency: W
                 grammarBroughtBy = { ranks ->
                     grammarLessons(snapshot)
                         .filter { it !in pendingGrammar }
-                        .filter { lesson -> lesson.introducedBy.any { frequency.rankOf(it) in ranks } }
+                        .filter { lesson ->
+                            lesson.introducedBy.any { frequency.rankOf(it) in ranks }
+                        }
                         .map(::slotOf)
                 },
             ),
@@ -56,15 +58,17 @@ class CoursePlanner(private val content: CourseContent, private val frequency: W
 
     /** The start lessons not done, in order: letters first when chosen, then basics. */
     fun startLessons(snapshot: CourseSnapshot, choices: CourseChoices): List<CourseLesson> {
-        val letters = if (choices.includeLetters) content.inCourse(LessonCourse.Letters) else emptyList()
+        val letters =
+            if (choices.includeLetters) content.inCourse(LessonCourse.Letters) else emptyList()
         return (letters + content.inCourse(LessonCourse.Basics)).filter {
             it.id !in snapshot.doneLessonIds
         }
     }
 
     private fun hasFinishedStartLesson(snapshot: CourseSnapshot, choices: CourseChoices): Boolean {
-        val all = content.inCourse(LessonCourse.Basics) +
-            if (choices.includeLetters) content.inCourse(LessonCourse.Letters) else emptyList()
+        val all =
+            content.inCourse(LessonCourse.Basics) +
+                if (choices.includeLetters) content.inCourse(LessonCourse.Letters) else emptyList()
         return all.any { it.id in snapshot.doneLessonIds }
     }
 

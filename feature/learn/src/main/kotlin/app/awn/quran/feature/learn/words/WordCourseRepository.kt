@@ -1,6 +1,9 @@
 package app.awn.quran.feature.learn.words
 
 import androidx.room.withTransaction
+import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.data.fsrs.FsrsScheduler
+import app.awn.quran.core.data.fsrs.FsrsState
 import app.awn.quran.feature.learn.data.GrammarCardEntity
 import app.awn.quran.feature.learn.data.LearnDatabase
 import app.awn.quran.feature.learn.data.LearnSetEntity
@@ -11,9 +14,6 @@ import app.awn.quran.feature.learn.data.SessionLogEntity
 import app.awn.quran.feature.learn.data.StepItemKind
 import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.data.WordCardEntity
-import app.awn.quran.core.data.fsrs.FsrsRating
-import app.awn.quran.core.data.fsrs.FsrsScheduler
-import app.awn.quran.core.data.fsrs.FsrsState
 import app.awn.quran.feature.learn.progress.LearnClock
 import app.awn.quran.feature.learn.session.Pace
 import app.awn.quran.feature.learn.session.PaceMeasurement
@@ -62,10 +62,10 @@ data class FinishedStep(
  * remembered, the grammar points, the finished lessons, the sets and the timing of every step.
  *
  * A word is first rated in the set check at the end of the new words, so a user who leaves before
- * it leaves the card due at once and the word comes back as the first review of the next day.
- * Words and grammar points use FSRS with a desired retention of [DESIRED_RETENTION] and no
- * minute-long learning steps: revision happens once a day, so steps would only list a word as due
- * again within the hour.
+ * it leaves the card due at once and the word comes back as the first review of the next day. Words
+ * and grammar points use FSRS with a desired retention of [DESIRED_RETENTION] and no minute-long
+ * learning steps: revision happens once a day, so steps would only list a word as due again within
+ * the hour.
  */
 // One entry point per thing a session or a screen records or reads.
 @Suppress("TooManyFunctions")
@@ -149,7 +149,8 @@ class WordCourseRepository(
                     due = after.dueMillis,
                     lastReview = nowMillis,
                     reps = existing.reps + 1,
-                    lapses = existing.lapses + if (wasReview && rating == FsrsRating.Again) 1 else 0,
+                    lapses =
+                        existing.lapses + if (wasReview && rating == FsrsRating.Again) 1 else 0,
                     state = after.state.value,
                     step = after.step,
                     lastQuestionType = step.questionType?.stored ?: existing.lastQuestionType,
@@ -179,7 +180,9 @@ class WordCourseRepository(
                     due = after.dueMillis,
                     lastReview = nowMillis,
                     reps = (existing?.reps ?: 0) + 1,
-                    lapses = (existing?.lapses ?: 0) + if (wasReview && rating == FsrsRating.Again) 1 else 0,
+                    lapses =
+                        (existing?.lapses ?: 0) +
+                            if (wasReview && rating == FsrsRating.Again) 1 else 0,
                     state = after.state.value,
                     step = after.step,
                 ),
@@ -206,7 +209,9 @@ class WordCourseRepository(
 
     suspend fun latestSession(): SessionLogEntity? = dao.latestSessionLog()
 
-    /** The user's pace from the timings of their latest steps, or the defaults when there are none. */
+    /**
+     * The user's pace from the timings of their latest steps, or the defaults when there are none.
+     */
     suspend fun pace(): Pace =
         PaceMeasurement.estimate(
             dao.recentTimings(PACE_STEP_WINDOW).map {

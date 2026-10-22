@@ -127,7 +127,7 @@ internal fun AyahCard(
                 .fillMaxWidth()
                 .clip(AwnShapes.control)
                 .background(colors.background)
-                .padding(AwnSpacing.medium)
+                .padding(AwnSpacing.medium),
     ) {
         Text(
             text = line,

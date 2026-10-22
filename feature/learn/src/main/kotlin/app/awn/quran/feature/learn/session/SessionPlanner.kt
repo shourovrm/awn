@@ -28,7 +28,10 @@ sealed interface PlanStep {
 
     data class NewWord(val rank: Int) : PlanStep
 
-    /** The questions that end the new words of this session; they give each new word its first rating. */
+    /**
+     * The questions that end the new words of this session; they give each new word its first
+     * rating.
+     */
     data class SetCheck(val ranks: List<Int>) : PlanStep
 }
 
@@ -64,8 +67,8 @@ data class TodayPlan(val steps: List<PlanStep>, val plannedSeconds: Int) {
  * day), reviews, new words, a grammar lesson when it fits, and the set check.
  *
  * Reviews come first, but they may use only [REVIEW_SHARE] of the budget while there is anything
- * else to do, so a long list of due words never keeps the user from new words. When nothing else
- * is left, reviews fill the rest of the time. How well the user answers never decides whether new
+ * else to do, so a long list of due words never keeps the user from new words. When nothing else is
+ * left, reviews fill the rest of the time. How well the user answers never decides whether new
  * words appear: the planner sees no accuracy, only what is due.
  */
 object SessionPlanner {
@@ -76,8 +79,7 @@ object SessionPlanner {
     fun plan(input: PlannerInput): TodayPlan {
         var secondsLeft = input.budgetSeconds.toDouble()
 
-        val startLesson =
-            input.startLessons.firstOrNull { it.seconds(input.pace) <= secondsLeft }
+        val startLesson = input.startLessons.firstOrNull { it.seconds(input.pace) <= secondsLeft }
         if (startLesson != null) secondsLeft -= startLesson.seconds(input.pace)
 
         val dueInOrder = input.dueItems.sortedBy { it.dueMillis }.map { it.item }
@@ -88,7 +90,8 @@ object SessionPlanner {
 
         val wordsAllowed =
             input.hasFinishedStartLesson || startLesson != null || input.startLessons.isEmpty()
-        val pendingLesson = input.pendingGrammar.firstOrNull { it.seconds(input.pace) <= secondsLeft }
+        val pendingLesson =
+            input.pendingGrammar.firstOrNull { it.seconds(input.pace) <= secondsLeft }
         val secondsForWords = secondsLeft - (pendingLesson?.seconds(input.pace) ?: 0.0)
         val newRanks = if (wordsAllowed) newWords(input, secondsForWords) else emptyList()
         secondsLeft -= newRanks.size * input.pace.secondsPerNewWord
@@ -115,9 +118,15 @@ object SessionPlanner {
         return input.newWordRanks.take(min(affordable, input.maximumNewWords))
     }
 
-    private fun broughtLesson(input: PlannerInput, newRanks: List<Int>, secondsLeft: Double): LessonSlot? {
+    private fun broughtLesson(
+        input: PlannerInput,
+        newRanks: List<Int>,
+        secondsLeft: Double,
+    ): LessonSlot? {
         if (newRanks.isEmpty()) return null
-        return input.grammarBroughtBy(newRanks).firstOrNull { it.seconds(input.pace) <= secondsLeft }
+        return input.grammarBroughtBy(newRanks).firstOrNull {
+            it.seconds(input.pace) <= secondsLeft
+        }
     }
 
     private fun extraReviews(

@@ -156,3 +156,4 @@
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
+2026-10-22 | Word course reachable: tab opens on first-open choices then the hub; Today row and word card use ports | the course screens had no route (learn.md)

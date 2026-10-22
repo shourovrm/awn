@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.runtime.CompositionLocalProvider
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -36,9 +35,18 @@ internal fun EndFrame(summary: SessionSummary, onDone: () -> Unit) {
 
 @Composable
 private fun QuizEnd(summary: SessionSummary) {
-    Text(text = stringResource(R.string.end_quiz_title), style = AwnTypography.title, color = Awn.field.content)
     Text(
-        text = stringResource(R.string.end_quiz_summary, summary.answeredCorrectly, summary.wordsRevised),
+        text = stringResource(R.string.end_quiz_title),
+        style = AwnTypography.title,
+        color = Awn.field.content,
+    )
+    Text(
+        text =
+            stringResource(
+                R.string.end_quiz_summary,
+                summary.answeredCorrectly,
+                summary.wordsRevised,
+            ),
         style = AwnTypography.body,
         color = Awn.field.content,
     )
@@ -46,7 +54,11 @@ private fun QuizEnd(summary: SessionSummary) {
 
 @Composable
 private fun DayEnd(summary: SessionSummary) {
-    Text(text = stringResource(R.string.end_title), style = AwnTypography.title, color = Awn.field.content)
+    Text(
+        text = stringResource(R.string.end_title),
+        style = AwnTypography.title,
+        color = Awn.field.content,
+    )
     Text(
         text = stringResource(R.string.end_summary, summary.wordsRevised, summary.newWords),
         style = AwnTypography.body,
@@ -55,10 +67,23 @@ private fun DayEnd(summary: SessionSummary) {
     KnownCard(summary)
     summary.lastAyah?.let { LastAyahCard(it) }
     CountRow(stringResource(R.string.end_words_met), summary.wordsMetBefore, summary.wordsMetAfter)
-    CountRow(stringResource(R.string.end_words_known), summary.wordsKnownBefore, summary.wordsKnownAfter)
-    Text(text = stringResource(R.string.end_tomorrow), style = AwnTypography.bodyStrong, color = Awn.field.content)
+    CountRow(
+        stringResource(R.string.end_words_known),
+        summary.wordsKnownBefore,
+        summary.wordsKnownAfter,
+    )
     Text(
-        text = stringResource(R.string.end_tomorrow_detail, summary.tomorrowReviews, summary.tomorrowNewWords),
+        text = stringResource(R.string.end_tomorrow),
+        style = AwnTypography.bodyStrong,
+        color = Awn.field.content,
+    )
+    Text(
+        text =
+            stringResource(
+                R.string.end_tomorrow_detail,
+                summary.tomorrowReviews,
+                summary.tomorrowNewWords,
+            ),
         style = AwnTypography.body,
         color = Awn.field.content,
     )
@@ -72,9 +97,13 @@ private fun KnownCard(summary: SessionSummary) {
             Modifier.fillMaxWidth()
                 .clip(AwnShapes.control)
                 .background(Awn.field.buttonFill)
-                .padding(AwnSpacing.medium)
+                .padding(AwnSpacing.medium),
     ) {
-        Text(text = formatCount(summary.wordsKnownAfter), style = AwnTypography.poster, color = Awn.field.onButton)
+        Text(
+            text = formatCount(summary.wordsKnownAfter),
+            style = AwnTypography.poster,
+            color = Awn.field.onButton,
+        )
         Text(
             text = stringResource(R.string.end_known, (summary.coverage * PERCENT).roundToInt()),
             style = AwnTypography.body,
@@ -111,19 +140,31 @@ private fun LastAyahCard(lastAyah: LastAyah) {
                         text = word.text,
                         style =
                             AwnTypography.lead.copy(
-                                fontFamily = environment?.arabic?.fontFamily ?: AwnTypography.lead.fontFamily
+                                fontFamily =
+                                    environment?.arabic?.fontFamily
+                                        ?: AwnTypography.lead.fontFamily,
                             ),
                         color = if (word.isKnown) colors.onButton else colors.content,
                         modifier =
                             Modifier.clip(AwnShapes.wordBlock)
-                                .background(if (word.isKnown) colors.buttonFill else colors.hiddenWordBlock)
-                                .padding(horizontal = AwnSpacing.small, vertical = AwnSpacing.small),
+                                .background(
+                                    if (word.isKnown) colors.buttonFill else colors.hiddenWordBlock,
+                                )
+                                .padding(
+                                    horizontal = AwnSpacing.small,
+                                    vertical = AwnSpacing.small,
+                                ),
                     )
                 }
             }
         }
         Text(
-            text = stringResource(R.string.end_last_ayah_known, lastAyah.knownCount, lastAyah.words.size),
+            text =
+                stringResource(
+                    R.string.end_last_ayah_known,
+                    lastAyah.knownCount,
+                    lastAyah.words.size,
+                ),
             style = AwnTypography.small,
             color = colors.content,
         )

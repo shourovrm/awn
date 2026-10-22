@@ -23,6 +23,7 @@ object LessonMarkup {
         TOKEN.findAll(text).map { WordKey.parse(it.groupValues[1]) }.toSet()
 
     /** [text] with every word key and fragment replaced and the Arabic runs styled. */
+    @Suppress("LongParameterList") // Each argument is a different input of the styled string.
     fun build(
         text: String,
         wordTexts: Map<WordKey, String>,
@@ -63,7 +64,9 @@ object LessonMarkup {
     }
 
     private fun isArabic(char: Char): Boolean =
-        char.code in ARABIC_RANGE || char.code in ARABIC_SUPPLEMENT || char.code in PRESENTATION_FORMS
+        char.code in ARABIC_RANGE ||
+            char.code in ARABIC_SUPPLEMENT ||
+            char.code in PRESENTATION_FORMS
 
     private val ARABIC_RANGE = 0x0600..0x06FF
     private val ARABIC_SUPPLEMENT = 0x0750..0x077F

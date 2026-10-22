@@ -6,8 +6,8 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * The memory state of one word form, keyed by its rank in the frequency list. A row exists once
- * the user has met the word. [stability], [difficulty] and [lastReview] are null until the first
+ * The memory state of one word form, keyed by its rank in the frequency list. A row exists once the
+ * user has met the word. [stability], [difficulty] and [lastReview] are null until the first
  * rating. [state] holds `FsrsState.value`; [step] is the learning step the scheduler needs.
  * [lastQuestionType] is the type the word was last asked in, so the next question differs.
  */

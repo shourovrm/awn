@@ -48,7 +48,9 @@ class LearnSettings(private val dataStore: DataStore<Preferences>) {
         dataStore.data.map { it[SESSION_MINUTES_KEY] ?: DEFAULT_SESSION_MINUTES }
 
     suspend fun setSessionMinutes(minutes: Int) {
-        require(minutes in SESSION_MINUTE_CHOICES) { "Session length must be one of $SESSION_MINUTE_CHOICES." }
+        require(minutes in SESSION_MINUTE_CHOICES) {
+            "Session length must be one of $SESSION_MINUTE_CHOICES."
+        }
         dataStore.edit { it[SESSION_MINUTES_KEY] = minutes }
     }
 

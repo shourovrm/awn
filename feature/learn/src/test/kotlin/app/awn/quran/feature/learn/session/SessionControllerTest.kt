@@ -93,13 +93,17 @@ class SessionControllerTest {
 
     @Test
     fun newWordsAreMetThenCheckedAndEachCheckGivesTheFirstRating() = runBlocking {
-        val session = controller(listOf(PlanStep.NewWord(1), PlanStep.NewWord(2), PlanStep.SetCheck(listOf(1, 2))))
+        val session =
+            controller(
+                listOf(PlanStep.NewWord(1), PlanStep.NewWord(2), PlanStep.SetCheck(listOf(1, 2))),
+            )
         session.start()
         assertTrue(session.frame() is SessionFrame.NewWord)
         session.next()
         session.next()
 
-        // The set check asks about both words, the user is right on the first and not sure on the second.
+        // The set check asks about both words, the user is right on the first and not sure on the
+        // second.
         val first = session.frame() as SessionFrame.Ask
         assertEquals(FrameLabel.Check(1, 2), first.label)
         assertTrue(first.confirmWithButton)
@@ -206,7 +210,8 @@ class SessionControllerTest {
     fun progressGrowsAsStepsFinish() = runBlocking {
         repository.meet(1)
         repository.meet(2)
-        val session = controller(listOf(PlanStep.Review(ItemRef.Word(1)), PlanStep.Review(ItemRef.Word(2))))
+        val session =
+            controller(listOf(PlanStep.Review(ItemRef.Word(1)), PlanStep.Review(ItemRef.Word(2))))
         session.start()
         val atStart = session.state.value.progress
 
