@@ -217,7 +217,7 @@ private fun WordProblem.messageRes(): Int =
     }
 
 /**
- * The labelled buttons under the meaning: Play (Stop while the word plays), shown only for a
+ * The round icon buttons under the meaning: Play (Stop while the word plays), shown only for a
  * reciter with word timings, and the save button, shown only when the course can hold words.
  */
 @Composable
@@ -233,16 +233,17 @@ private fun WordActions(
     if (!canPlay && myWordState == null) return
     Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
         if (canPlay) {
-            WordPill(
-                label = stringResource(if (isPlaying) R.string.word_stop else R.string.word_play),
+            WordRoundButton(
+                description =
+                    stringResource(if (isPlaying) R.string.word_stop else R.string.word_play),
                 icon = if (isPlaying) R.drawable.ic_read_stop else R.drawable.ic_read_play,
-                style = WordPillStyle.Soft,
+                style = WordButtonStyle.Soft,
                 onClick = if (isPlaying) onStop else onPlay,
                 modifier = Modifier.testTag(WORD_PLAY_TAG),
             )
         }
         if (myWordState != null) {
-            SaveWordPill(myWordState, onAddToMyWords, onRemoveFromMyWords)
+            SaveWordButton(myWordState, onAddToMyWords, onRemoveFromMyWords)
         }
     }
 }

@@ -2,7 +2,7 @@ package app.awn.quran.feature.read
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
@@ -62,7 +62,7 @@ class AddToMyWordsRenderTest {
     fun aWordNotYetAddedOffersTheButton() {
         show(MyWordState.NotAdded)
 
-        composeRule.onNodeWithText("Save word").performClick()
+        composeRule.onNodeWithContentDescription("Save word").performClick()
 
         assertEquals(1, adds)
     }
@@ -71,10 +71,10 @@ class AddToMyWordsRenderTest {
     fun anAddedWordSaysSoAndATapTakesItOut() {
         show(MyWordState.Added)
 
-        composeRule.onNodeWithText("Saved").assertIsDisplayed()
-        composeRule.onNodeWithText("Save word").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Saved").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Save word").assertDoesNotExist()
 
-        composeRule.onNodeWithText("Saved").performClick()
+        composeRule.onNodeWithContentDescription("Saved").performClick()
 
         assertEquals(1, removes)
         assertEquals(0, adds)
@@ -84,7 +84,7 @@ class AddToMyWordsRenderTest {
     fun withoutTheCourseThereIsNoButton() {
         show(null)
 
-        composeRule.onNodeWithText("Save word").assertDoesNotExist()
-        composeRule.onNodeWithText("Saved").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Save word").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Saved").assertDoesNotExist()
     }
 }
