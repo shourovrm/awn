@@ -69,9 +69,9 @@ internal class AudioBarActions(
  * The audio bar for the `audioBar` slot of the Quran screen: idle (play, reciter, expand), playing
  * (stop, previous, pause, next, repeat, speed) or downloading (cancel, progress, size).
  *
- * [page] is the page on screen; Play starts at its first ayah. The reciter name opens the reciter
- * sheet. Expand calls [onExpand]; when that is null the bar opens the play options itself in a
- * bottom sheet.
+ * [page] is the page on screen; Play starts at its first ayah. The reciter name and the reciter
+ * button open the reciter sheet. Expand calls [onExpand]; when that is null the bar opens the play
+ * options itself in a bottom sheet.
  */
 @Composable
 fun AudioBar(
@@ -175,6 +175,12 @@ private fun RowScope.IdleBar(
                 .clickable(role = Role.Button, onClick = actions.onOpenReciters)
                 .wrapContentHeight(Alignment.CenterVertically)
                 .padding(horizontal = AwnSpacing.small),
+    )
+    IconAction(
+        R.drawable.ic_listen_reciter,
+        stringResource(R.string.audio_choose_reciter),
+        actions.onOpenReciters,
+        tint = tint,
     )
     IconAction(
         R.drawable.ic_listen_expand,
@@ -320,6 +326,13 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         valueDescriptionRes = R.string.audio_speed_value,
         onClick = actions.onSpeed,
         modifier = evenly,
+    )
+    IconAction(
+        R.drawable.ic_listen_reciter,
+        stringResource(R.string.audio_choose_reciter),
+        actions.onOpenReciters,
+        evenly,
+        tint,
     )
     state.step?.let { StepCounter(it, tint) }
 }

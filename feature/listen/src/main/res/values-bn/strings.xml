@@ -12,6 +12,7 @@
   <string name="audio_speed">গতি</string>
   <string name="audio_speed_value">গতি, %1$s</string>
   <string name="audio_expand">চালানোর বিকল্প</string>
+  <string name="audio_choose_reciter">ক্বারী বেছে নিন</string>
   <string name="audio_cancel">বাতিল</string>
   <string name="audio_downloading">ডাউনলোড হচ্ছে</string>
   <string name="audio_start_from">যেখান থেকে শুরু</string>
