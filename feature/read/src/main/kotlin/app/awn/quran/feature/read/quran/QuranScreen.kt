@@ -473,13 +473,21 @@ private fun QuranContent(
                 }
                 val hifzBar = slots.hifzBar
                 if (state.isReciting) {
-                    TuckedAwayWhenHidden(isShown = bottomBar == BottomBarDisplay.Full) {
+                    // While audio plays the reader gets the playing bar (previous, next, reciter,
+                    // repeat) with the microphone at its end. The recite bar stays composed under
+                    // it, because leaving the composition would end the recitation.
+                    val isPlayingBarShown =
+                        slots.isAudioActive && bottomBar == BottomBarDisplay.Full
+                    TuckedAwayWhenHidden(
+                        isShown = bottomBar == BottomBarDisplay.Full && !slots.isAudioActive,
+                    ) {
                         if (hifzBar != null) {
                             hifzBar(viewModel::exitReciteMode)
                         } else {
                             slots.reciteBar(viewModel::exitReciteMode)
                         }
                     }
+                    if (isPlayingBarShown) slots.audioBar(state.currentPage)
                 } else {
                     AnimatedVisibility(
                         visible = bottomBar != BottomBarDisplay.None,
@@ -496,14 +504,18 @@ private fun QuranContent(
         if (!state.isPanelOpen && bottomBar == BottomBarDisplay.Mini) {
             val busyState = slots.busyState()
             if (busyState != null) {
-                BusyBarButton(
-                    state = busyState,
-                    onToggle = { slots.onToggleBusy(viewModel::showBars) },
-                    modifier =
-                        Modifier.align(Alignment.BottomStart)
-                            .windowInsetsPadding(WindowInsets.navigationBars)
-                            .padding(AwnSpacing.screenMargin),
-                )
+                // The tooltip wrapper of the button ignores a placement given to it, so the
+                // placement is on this box; the button once landed at the top of the page.
+                Box(
+                    Modifier.align(Alignment.BottomStart)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(AwnSpacing.screenMargin),
+                ) {
+                    BusyBarButton(
+                        state = busyState,
+                        onToggle = { slots.onToggleBusy(viewModel::showBars) },
+                    )
+                }
             }
         }
 
