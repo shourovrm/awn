@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.core.data.CatalogueGroup
@@ -59,7 +60,7 @@ fun ReadingSettingsPage(
         )
         SettingsLinkRow(
             label = stringResource(R.string.setting_word_by_word),
-            value = layerSummary(catalogue, CatalogueGroup.WordByWord, settings.showWordByWord),
+            value = wordByWordRowSummary(catalogue, settings),
             onClick = { onOpenPackList(PackListKind.WordByWord) },
             rowKey = SettingRowKeys.READING_WORD_BY_WORD,
         )
@@ -187,4 +188,17 @@ private fun layerSummary(
     val names =
         catalogue.rowsIn(group).filter { it.item.isInstalled }.map { catalogueItemName(it.item) }
     return if (names.isEmpty()) stringResource(R.string.value_none) else names.joinToString(", ")
+}
+
+@Composable
+private fun wordByWordRowSummary(catalogue: CatalogueState, settings: ReadSettings): String {
+    if (!settings.showWordByWord) return stringResource(R.string.value_off)
+    val appLocale = LocalConfiguration.current.locales[0]
+    return wordByWordSummary(
+        chosen = settings.wordByWordLanguage,
+        appLanguage = appLocale.language,
+        installedLanguages =
+            installedWordLanguages(catalogue.rowsIn(CatalogueGroup.WordByWord)).toSet(),
+        appLocale = appLocale,
+    )
 }

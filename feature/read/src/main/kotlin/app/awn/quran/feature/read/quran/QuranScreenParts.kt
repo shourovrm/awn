@@ -112,7 +112,10 @@ internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): 
             viewModel.closePopup()
             slots.onOpenLearn()
         },
-        onSettings = slots.onOpenSettings,
+        onSettings = {
+            viewModel.closePopup()
+            slots.onOpenSettings()
+        },
     )
 }
 
@@ -215,7 +218,7 @@ private fun WordHeading(
     Row(verticalAlignment = Alignment.Top) {
         if (popup.canPlay) Spacer(Modifier.size(AwnSpacing.touchTarget))
         Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
-            Text(text = popup.word.arabic, style = AwnTypography.lead, color = Awn.field.onBar)
+            Text(text = popup.word.arabic, style = AwnTypography.quranLead, color = Awn.field.onBar)
         }
         if (popup.canPlay) {
             PlayWordButton(isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)

@@ -156,3 +156,6 @@
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
+2026-10-22 | Print offer allows several ticked prints; Download installs all | the card showed many options but took one
+2026-10-22 | Audio bar gets a reciter button; a reciter change while playing continues from the same ayah | reciter was hard to reach from the page
+2026-10-22 | Arabic text styles use the bundled Hafs font through HafsFont installed by AwnTheme | generic serif drew marks badly (read.md)

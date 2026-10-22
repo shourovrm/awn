@@ -8,7 +8,6 @@ import app.awn.quran.core.data.downloads.CatalogueState
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.SettingRowKeys
 import app.awn.quran.feature.read.R
-import java.util.Locale
 
 /**
  * Chooses the language of the word-by-word meanings: the app language (the default) or one of the
@@ -31,19 +30,10 @@ internal fun WordLanguageRow(
             if (language == null) {
                 stringResource(R.string.word_language_app)
             } else {
-                languageName(language)
+                languageDisplayName(language, LocalConfiguration.current.locales[0])
             }
         },
         onSelect = viewModel::setWordByWordLanguage,
         rowKey = SettingRowKeys.READING_WORD_LANGUAGE,
     )
-}
-
-/** The name of [languageCode] in the app's language, such as "Bangla" or "বাংলা". */
-@Composable
-private fun languageName(languageCode: String): String {
-    val appLocale = LocalConfiguration.current.locales[0]
-    return Locale.forLanguageTag(languageCode).getDisplayLanguage(appLocale).replaceFirstChar {
-        it.titlecase(appLocale)
-    }
 }
