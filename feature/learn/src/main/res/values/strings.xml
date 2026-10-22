@@ -290,4 +290,15 @@
   <string name="unit_numbered_title">%1$d · %2$s</string>
   <string name="unit_next">Next unit</string>
   <string name="unit_back_to_track">Back to %s</string>
+  <string name="unit_sounds_download">Download sounds · %1$s</string>
+  <string name="unit_sounds_downloading">Downloading sounds</string>
+  <string name="unit_grid_play_all">Play all</string>
+  <string name="unit_grid_stop">Stop</string>
+  <string name="unit_grid_progress">%1$s · %2$d of %3$d</string>
+  <string name="practice_progress">%1$d of %2$d</string>
+  <string name="practice_listen">Listen</string>
+  <string name="practice_next">Next</string>
+  <string name="practice_done">Practice finished</string>
+  <string name="practice_read_aloud">Read it aloud, then listen.</string>
+  <string name="practice_listen_slowly">0.75×</string>
 </resources>

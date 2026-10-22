@@ -290,4 +290,15 @@
   <string name="unit_numbered_title">%1$d · %2$s</string>
   <string name="unit_next">পরের পাঠ</string>
   <string name="unit_back_to_track">%s-এ ফিরুন</string>
+  <string name="unit_sounds_download">শব্দ ডাউনলোড করুন · %1$s</string>
+  <string name="unit_sounds_downloading">শব্দ ডাউনলোড হচ্ছে</string>
+  <string name="unit_grid_play_all">সব শুনুন</string>
+  <string name="unit_grid_stop">থামান</string>
+  <string name="unit_grid_progress">%1$s · %2$d / %3$d</string>
+  <string name="practice_progress">%1$d / %2$d</string>
+  <string name="practice_listen">শুনুন</string>
+  <string name="practice_next">পরের</string>
+  <string name="practice_done">অনুশীলন শেষ</string>
+  <string name="practice_read_aloud">জোরে পড়ুন, তারপর শুনুন।</string>
+  <string name="practice_listen_slowly">০.৭৫×</string>
 </resources>

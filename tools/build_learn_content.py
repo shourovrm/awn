@@ -219,6 +219,31 @@ def parse_clip(value, where):
     return value
 
 
+def parse_read_aloud(lines, where, used_keys):
+    """Reads a read-aloud Practice item: a `read:` line with the Arabic and a `clip:` line, nothing else."""
+    item = {}
+    for line in lines:
+        if not line.strip():
+            continue
+        name, _, value = line.partition(":")
+        name = name.strip()
+        value = value.strip()
+        if name == "read":
+            if not FRAGMENT_PATTERN.search(value):
+                raise LessonError(f"{where}: read needs Arabic written as [[...]], not {value!r}.")
+            item["read"] = scan_text(value, where, used_keys)
+        elif name == "clip":
+            item["clip"] = parse_clip(value, where)
+        else:
+            raise LessonError(
+                f"{where}: a read-aloud item has only read and clip lines, not {line!r}; "
+                "a question item has no read line."
+            )
+    if "clip" not in item:
+        raise LessonError(f"{where}: a read-aloud item needs a clip line.")
+    return item
+
+
 def parse_check(lines, where, used_keys, is_practice=False):
     """Reads the question lines of a Check screen, or of a Practice item when [is_practice]."""
     check = {"options": []}
@@ -284,6 +309,10 @@ def parse_grid(lines, where):
     return cells
 
 
+def is_read_aloud(lines):
+    return any(line.startswith("read:") for line in lines)
+
+
 def parse_body(body, name, first_line, used_keys):
     """Returns the screens of a lesson body: reading screens, then check and answer."""
     screens = []
@@ -310,6 +339,8 @@ def parse_body(body, name, first_line, used_keys):
         entry = {"kind": screen["kind"], "title": screen["title"]}
         if screen["kind"] == "check":
             entry["check"] = parse_check(screen["lines"], screen["where"], used_keys)
+        elif screen["kind"] == "practice" and is_read_aloud(screen["lines"]):
+            entry["read_aloud"] = parse_read_aloud(screen["lines"], screen["where"], used_keys)
         elif screen["kind"] == "practice":
             entry["check"] = parse_check(
                 screen["lines"], screen["where"], used_keys, is_practice=True
@@ -386,7 +417,19 @@ def read_lesson_file(path, database):
         missing = sorted(set(used_keys) - set(front["examples"]))
         unused = sorted(set(front["examples"]) - set(used_keys))
         raise LessonError(f"{name}: examples differs from the keys used; missing {missing}, unused {unused}.")
-    return {"language": language, "course": course, "front": front, "screens": screens}
+    return {"language": language, "course": course, "front": front, "screens": screens, "name": name}
+
+
+def check_clips_exist(lesson_file, clips_folder):
+    """Fails when a grid cell or practice item names a clip that is not in [clips_folder]."""
+    for screen in lesson_file["screens"]:
+        for clip_value in clips_of_screen(screen):
+            for clip_id in clip_value.split("+"):
+                if not (Path(clips_folder) / f"{clip_id}.opus").is_file():
+                    raise LessonError(
+                        f"{lesson_file['name']}: the clip {clip_id} is not in {clips_folder} "
+                        f"(screen {screen['title']!r})."
+                    )
 
 
 def shape_of(screens):
@@ -397,7 +440,7 @@ def shape_of(screens):
 def clips_of_screen(screen):
     """The sound ids a screen plays; they are not translated, so both languages must agree."""
     clips = [cell["clip"] for cell in screen.get("cells", [])]
-    clip = screen.get("check", {}).get("clip")
+    clip = screen.get("check", {}).get("clip") or screen.get("read_aloud", {}).get("clip")
     return clips + ([clip] if clip else [])
 
 
@@ -414,7 +457,7 @@ def keys_of_screen(screen):
     return sorted(keys)
 
 
-def build(lesson_directory, quran_database):
+def build(lesson_directory, quran_database, clips_folder=None):
     database = sqlite3.connect(quran_database)
     files = sorted(Path(lesson_directory).glob("*/*/*.md"))
     if not files:
@@ -422,6 +465,8 @@ def build(lesson_directory, quran_database):
     by_id = {}
     for path in files:
         lesson_file = read_lesson_file(path, database)
+        if clips_folder is not None:
+            check_clips_exist(lesson_file, clips_folder)
         by_id.setdefault(lesson_file["front"]["id"], {})[lesson_file["language"]] = lesson_file
     lessons = []
     references = {}
@@ -472,9 +517,14 @@ def main(arguments):
     parser.add_argument("--lessons", required=True, type=Path)
     parser.add_argument("--quran", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument(
+        "--clips",
+        type=Path,
+        help="folder of clips (<prefix>/NNN.opus); every clip id a lesson names must exist in it",
+    )
     options = parser.parse_args(arguments)
     try:
-        content = build(options.lessons, options.quran)
+        content = build(options.lessons, options.quran, options.clips)
     except LessonError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

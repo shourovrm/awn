@@ -53,13 +53,39 @@ data class LessonCheck(
     val correctIndex: Int,
     val clip: String? = null,
     val explanation: String? = null,
-)
+) {
+    /** The sounds of the item, in playing order; empty when it has none. */
+    val clipIds: List<String>
+        get() = clip?.split(CLIP_SEPARATOR).orEmpty()
+}
 
 /**
  * One cell of a grid: the Arabic as written, its transliteration in the lesson's language, and the
  * id of the sound that a tap plays (for example `qaida-04/012`).
  */
-data class GridCell(val arabic: String, val transliteration: String, val clip: String)
+data class GridCell(val arabic: String, val transliteration: String, val clip: String) {
+    /** The sounds of the cell: one id, or several joined by `+` that play one after another. */
+    val clipIds: List<String>
+        get() = clip.split(CLIP_SEPARATOR)
+}
+
+private const val CLIP_SEPARATOR = "+"
+
+/** One item of a unit's practice pool: a question to answer, or a row to read aloud. */
+sealed interface PracticeItem {
+    val clipIds: List<String>
+
+    data class Question(val check: LessonCheck) : PracticeItem {
+        override val clipIds: List<String>
+            get() = check.clipIds
+    }
+
+    /** Arabic [read] in lesson markup to read aloud, then listen to the clip. Nothing is judged. */
+    data class ReadAloud(val read: String, val clip: String) : PracticeItem {
+        override val clipIds: List<String>
+            get() = clip.split(CLIP_SEPARATOR)
+    }
+}
 
 enum class ScreenKind {
     Reading,
@@ -75,6 +101,7 @@ data class LessonScreenData(
     val blocks: List<LessonBlock>,
     val check: LessonCheck?,
     val cells: List<GridCell> = emptyList(),
+    val readAloud: PracticeItem.ReadAloud? = null,
 )
 
 /** One language of a lesson. */
@@ -92,15 +119,20 @@ data class LessonText(val title: String, val screens: List<LessonScreenData>) {
     val teachingScreens: List<LessonScreenData>
         get() = screens.filter { it.kind == ScreenKind.Reading || it.kind == ScreenKind.Grid }
 
-    /** The questions of the unit's practice pool; each practice screen is one item. */
-    val practiceItems: List<LessonCheck>
-        get() = screens.filter { it.kind == ScreenKind.Practice }.mapNotNull { it.check }
+    /** The unit's practice pool; each practice screen is one item. */
+    val practiceItems: List<PracticeItem>
+        get() =
+            screens
+                .filter { it.kind == ScreenKind.Practice }
+                .mapNotNull { screen ->
+                    screen.readAloud ?: screen.check?.let { PracticeItem.Question(it) }
+                }
 
     /** True when any grid cell or practice item has a sound, so the unit offers the download. */
     val hasClips: Boolean
         get() =
             screens.any { screen -> screen.cells.isNotEmpty() } ||
-                practiceItems.any { it.clip != null }
+                practiceItems.any { it.clipIds.isNotEmpty() }
 
     /** Every check of the lesson with the explanation shown after it, in order. */
     val checks: List<CheckWithAnswer>
@@ -217,6 +249,10 @@ object CourseContentReader {
             blocks = screen.optJSONArray("blocks")?.objects()?.map(::parseBlock).orEmpty(),
             check = screen.optJSONObject("check")?.let(::parseCheck),
             cells = screen.optJSONArray("cells")?.objects()?.map(::parseCell).orEmpty(),
+            readAloud =
+                screen.optJSONObject("read_aloud")?.let {
+                    PracticeItem.ReadAloud(it.getString("read"), it.getString("clip"))
+                },
         )
     }
 

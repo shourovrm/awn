@@ -44,10 +44,14 @@ import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.CheckWithAnswer
 import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.LearnTrack
+import app.awn.quran.feature.learn.course.PracticeDraw
+import app.awn.quran.feature.learn.course.PracticeRun
+import app.awn.quran.feature.learn.course.ScreenKind
 import app.awn.quran.feature.learn.course.TrackUnit
 import app.awn.quran.feature.learn.course.UnitAnswers
 import app.awn.quran.feature.learn.course.UnitPage
 import app.awn.quran.feature.learn.course.unitPages
+import kotlin.random.Random
 import kotlinx.coroutines.launch
 
 /** Where a unit sits in its track, for the bar and the closing page. */
@@ -73,11 +77,20 @@ internal fun UnitScreen(
     place: UnitPlace?,
     actions: UnitActions,
     modifier: Modifier = Modifier,
+    soundsOffer: SoundsOfferState = SoundsOfferState.None,
 ) {
     val text = lesson.text(languageCode)
     val pages = remember(text) { unitPages(text) }
     val pagerState = rememberPagerState(pageCount = { pages.size })
     var answers by remember(lesson.id) { mutableStateOf(UnitAnswers()) }
+    // The seed is saved so that a turned screen keeps the same ten items.
+    val practiceSeed = rememberSaveable(lesson.id) { Random.nextLong() }
+    var practiceRun by
+        remember(lesson.id, practiceSeed) {
+            val drawn =
+                PracticeDraw.draw(text.practiceItems, PracticeDraw.ITEMS_PER_VISIT, practiceSeed)
+            mutableStateOf(PracticeRun(drawn))
+        }
     var finishReported by rememberSaveable(lesson.id) { mutableStateOf(false) }
     val checks = text.checks
     LaunchedEffect(pagerState.currentPage) {
@@ -98,6 +111,8 @@ internal fun UnitScreen(
                 answers = answers,
                 onAnswersChange = { answers = it },
                 checks = checks,
+                practice = PracticeState(practiceRun) { practiceRun = it },
+                offer = soundsOffer.takeIf { index == 0 && text.hasClips } ?: SoundsOfferState.None,
                 place = place,
                 actions = actions,
             )
@@ -128,6 +143,8 @@ private fun UnitPageContent(
     answers: UnitAnswers,
     onAnswersChange: (UnitAnswers) -> Unit,
     checks: List<CheckWithAnswer>,
+    practice: PracticeState,
+    offer: SoundsOfferState,
     place: UnitPlace?,
     actions: UnitActions,
 ) {
@@ -136,11 +153,8 @@ private fun UnitPageContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.medium)
     when (page) {
-        is UnitPage.Reading ->
-            Column(pageModifier, verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
-                RichText(page.screen.title, style = AwnTypography.title)
-                LessonBlocks(page.screen.blocks)
-            }
+        is UnitPage.Teaching -> TeachingPage(page, offer, pageModifier)
+        UnitPage.Practice -> PracticePage(practice.run, practice.onChange, pageModifier)
         is UnitPage.Check ->
             CheckPage(
                 check = page.check,
@@ -156,6 +170,30 @@ private fun UnitPageContent(
                 actions = actions,
                 modifier = pageModifier,
             )
+    }
+}
+
+/** The practice run of the unit and how to change it. */
+private class PracticeState(val run: PracticeRun, val onChange: (PracticeRun) -> Unit)
+
+/**
+ * A reading screen with the grids after it. The first screen titles the page; a grid keeps its own
+ * heading unless it repeats that title.
+ */
+@Composable
+private fun TeachingPage(page: UnitPage.Teaching, offer: SoundsOfferState, modifier: Modifier) {
+    val pageTitle = page.screens.first().title
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
+        RichText(pageTitle, style = AwnTypography.title)
+        SoundsOfferRow(offer)
+        page.screens.forEach { screen ->
+            if (screen.kind == ScreenKind.Grid) {
+                if (screen.title != pageTitle) RichText(screen.title, style = AwnTypography.lead)
+                QaidaGrid(screen.cells)
+            } else {
+                LessonBlocks(screen.blocks)
+            }
+        }
     }
 }
 
@@ -188,7 +226,8 @@ private fun PageDots(pages: List<UnitPage>, pagerState: PagerState) {
                         .background(
                             when {
                                 isCurrent -> field.buttonFill
-                                page is UnitPage.Check -> field.mutedContent
+                                page is UnitPage.Check || page == UnitPage.Practice ->
+                                    field.mutedContent
                                 else -> field.softFill
                             },
                         ),

@@ -375,6 +375,56 @@ class GridAndPracticeTest(unittest.TestCase):
         check = self.build_screens(practice)[-1]["check"]
         self.assertEqual("qaida-01/014+qaida-08a/003", check["clip"])
 
+    def test_a_read_aloud_item_keeps_its_arabic_and_clip(self):
+        extra = "\n## Practice: Read a row\n\nread: [[حَ]] [[خَ]] [[دَ]]\nclip: qaida-04/012+qaida-04/013\n"
+
+        item = self.build_screens(extra)[-1]
+
+        self.assertEqual("practice", item["kind"])
+        self.assertEqual("[[حَ]] [[خَ]] [[دَ]]", item["read_aloud"]["read"])
+        self.assertEqual("qaida-04/012+qaida-04/013", item["read_aloud"]["clip"])
+        self.assertNotIn("check", item)
+
+    def test_a_read_aloud_item_mixed_with_question_lines_is_refused(self):
+        extra = "\n## Practice: Mix\n\nread: [[حَ]]\nclip: qaida-04/012\nquestion: Which?\n"
+        self.assert_build_fails(extra, "only read and clip lines")
+
+    def test_a_read_aloud_item_needs_a_clip_and_marked_arabic(self):
+        self.assert_build_fails("\n## Practice: R\n\nread: [[حَ]]\n", "needs a clip")
+        self.assert_build_fails("\n## Practice: R\n\nread: ba\nclip: qaida-04/012\n", "read needs Arabic")
+
+    def build_with_clips(self, extra, clip_names):
+        fixture = LessonFixture(self)
+        text = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first") + extra
+        fixture.write("en", "tajweed", "11-first.md", text)
+        clips = fixture.root / "clips"
+        for name in clip_names:
+            (clips / name).parent.mkdir(parents=True, exist_ok=True)
+            (clips / name).write_bytes(b"opus")
+        return build_learn_content.build(fixture.root / "lessons", fixture.quran, clips)
+
+    def test_every_named_clip_must_exist_when_a_clip_folder_is_given(self):
+        lessons = self.build_with_clips(GRID_BLOCK, ["qaida-04/012.opus", "qaida-04/013.opus"])
+        self.assertEqual(1, len(lessons["lessons"]))
+
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            self.build_with_clips(GRID_BLOCK, ["qaida-04/012.opus"])
+        self.assertIn("qaida-04/013", str(raised.exception))
+        self.assertIn("11-first.md", str(raised.exception))
+
+    def test_each_part_of_a_joined_clip_must_exist(self):
+        joined = "\n## Grid: J\n\n- بلب | bā lām bā | qaida-01/002+qaida-01/023\n"
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            self.build_with_clips(joined, ["qaida-01/002.opus"])
+        self.assertIn("qaida-01/023", str(raised.exception))
+
+    def test_practice_and_read_aloud_clips_are_checked_too(self):
+        with self.assertRaises(build_learn_content.LessonError):
+            self.build_with_clips(PRACTICE_BLOCK, [])
+        read = "\n## Practice: R\n\nread: [[حَ]]\nclip: qaida-04/012\n"
+        with self.assertRaises(build_learn_content.LessonError):
+            self.build_with_clips(read, [])
+
     def test_a_grid_without_cells_is_refused(self):
         self.assert_build_fails("\n## Grid: Empty\n\ntext only\n", "a grid line looks like")
 
