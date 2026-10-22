@@ -5,7 +5,7 @@ order: 1
 appears_after: "the start of the Reading track; the first unit for a reader who cannot read the letters yet"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [1:1:1]
+examples: [1:1:1, 2:10:1]
 reviewed_by: ""
 version: 2026-10-22
 ---
@@ -44,6 +44,8 @@ The same pattern runs through the rest of the alphabet. In each pair the second 
 Nine letters, written alone, look like no other letter: [[ا]], [[ك]], [[ل]], [[م]], [[ن]], [[ه]], [[و]], [[ي]] and [[ء]].
 
 [[ا]] alif is a single upright stroke. [[ل]] laam is also upright but curves to the left at the bottom. [[ن]] noon is a deep bowl with one dot above.
+
+Yaa has two dots below. At the end of a word the Quran's script leaves them out: {{2:10:1}}, fī, in, ends in a yaa with no dots.
 
 ## Screen 5: Sounds English does not have
 

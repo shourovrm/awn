@@ -154,12 +154,13 @@ internal fun AnswerRow(
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {
         if (showRadio) RadioMark(isSelected = state == AnswerRowState.Selected)
+        val isArabic = isArabicAnswer(markup)
         RichText(
             text = markup,
-            style = if (markup.contains("{{")) AwnTypography.lead else AwnTypography.bodyStrong,
+            style = if (isArabic) AwnTypography.lead else AwnTypography.bodyStrong,
             color = content,
             modifier = Modifier.weight(1f),
-            textAlign = if (markup.contains("{{")) TextAlign.Center else TextAlign.Start,
+            textAlign = if (isArabic) TextAlign.Center else TextAlign.Start,
         )
         if (isRight) {
             Icon(
@@ -171,6 +172,15 @@ internal fun AnswerRow(
         }
     }
 }
+
+/**
+ * True when the answer is Arabic to read: a Quran word, or nothing but a typed fragment such as one
+ * letter. Those are drawn large and centred; an answer in words stays at the start.
+ */
+internal fun isArabicAnswer(markup: String): Boolean =
+    markup.contains("{{") || ARABIC_FRAGMENT_ONLY.matches(markup.trim())
+
+private val ARABIC_FRAGMENT_ONLY = Regex("""^\[\[[^\]]+]]$""")
 
 @Composable
 internal fun RadioMark(isSelected: Boolean) {

@@ -20,6 +20,7 @@ import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.LocalColourMode
 import kotlinx.coroutines.delay
 
 /** The test tag of the Undo action of [UndoMessage]. */
@@ -29,9 +30,9 @@ const val UNDO_ACTION_TAG = "undo-action"
 const val UNDO_MESSAGE_MILLIS = 5_000L
 
 /**
- * A short message with one action, in the ink and ochre of the app so it reads in every colour
- * mode. After [UNDO_MESSAGE_MILLIS] it calls [onTimeout], which is when the caller lets go of what
- * it kept for the undo.
+ * A short message with one action, drawn in the opposite of the page's colours so it stands out:
+ * ink with ochre by day, paper with green by night. After [UNDO_MESSAGE_MILLIS] it calls
+ * [onTimeout], which is when the caller lets go of what it kept for the undo.
  */
 @Composable
 fun UndoMessage(
@@ -46,10 +47,15 @@ fun UndoMessage(
         delay(UNDO_MESSAGE_MILLIS)
         timeoutNow.value()
     }
+    val isNight = LocalColourMode.current.isNight
+    // An ink strip vanished on the night page; ochre on paper is too faint, so night uses green.
+    val background = if (isNight) AwnColors.paper else AwnColors.ink
+    val messageColour = if (isNight) AwnColors.ink else AwnColors.paper
+    val actionColour = if (isNight) AwnColors.green else AwnColors.ochre
     Row(
         modifier
             .fillMaxWidth()
-            .background(AwnColors.ink, AwnShapes.control)
+            .background(background, AwnShapes.control)
             .padding(start = AwnSpacing.medium),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -57,13 +63,13 @@ fun UndoMessage(
         Text(
             text = message,
             style = AwnTypography.body,
-            color = AwnColors.paper,
+            color = messageColour,
             modifier = Modifier.weight(1f),
         )
         Text(
             text = actionLabel,
             style = AwnTypography.bodyStrong,
-            color = AwnColors.ochre,
+            color = actionColour,
             modifier =
                 Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget)
                     .clickable(role = Role.Button, onClick = onAction)
