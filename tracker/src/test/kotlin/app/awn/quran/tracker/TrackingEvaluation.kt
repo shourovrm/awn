@@ -38,7 +38,11 @@ class TrackingResult(
 
     /** Confirmed words with a substituted sound: the session shows them as mispronounced. */
     val mispronouncedBySoundIndices: Set<Int>
-        get() = substitutions.map { it.wordIndex }.filter { finalStates[it] == WordState.Confirmed }.toSet()
+        get() =
+            substitutions
+                .map { it.wordIndex }
+                .filter { finalStates[it] == WordState.Confirmed }
+                .toSet()
 
     /** Confirmed words with a vowel held too short or too long. */
     val mispronouncedByDurationIndices: Set<Int>

@@ -14,8 +14,8 @@ import org.junit.Test
 /**
  * The user (2026-10-22): Awn "just said unknown", while Natlu tells whether a word was missed or
  * mispronounced. The page now has three outcomes: green (said right), yellow (said, with a wrong
- * sound or a madd held too short or too long: Mispronounced) and red (missed or another word).
- * A word the tracker is still unsure about is not marked at all.
+ * sound or a madd held too short or too long: Mispronounced) and red (missed or another word). A
+ * word the tracker is still unsure about is not marked at all.
  */
 class WordVerdictRulesTest {
 

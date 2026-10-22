@@ -215,7 +215,7 @@ private fun Modifier.plainCellTaps(
     onTap: () -> Unit,
     onAyahLongPress: () -> Unit,
 ): Modifier {
-    val isFlagged = state == WordState.Wrong || state == WordState.Tentative
+    val isFlagged = state == WordState.Wrong || state == WordState.Mispronounced
     return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else this
 }
 

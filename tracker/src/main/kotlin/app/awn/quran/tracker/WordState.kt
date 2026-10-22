@@ -7,9 +7,8 @@ enum class WordState {
     Tentative,
 
     /**
-     * The word was said (the tracker confirmed it) but with a wrong sound or a vowel held too
-     * short or too long. For display only: the tracker never reports it, the recite session
-     * publishes it.
+     * The word was said (the tracker confirmed it) but with a wrong sound or a vowel held too short
+     * or too long. For display only: the tracker never reports it, the recite session publishes it.
      */
     Mispronounced,
     Wrong,

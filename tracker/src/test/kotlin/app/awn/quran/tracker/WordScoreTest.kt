@@ -6,12 +6,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * How much a heard word may differ from the text and still count as said. The old rule (80 % of
- * the phonemes matched and at most one substitution) treated every wrong sound alike and gave long
- * and short words the same budget, so many words ended "unclear". The new score weighs each
- * difference: a sound swapped for a near one (س for ص, a short vowel for another) costs less than a
- * swap for an unrelated sound, a missing sound costs like an unrelated one, and longer words get a
- * larger share. The numbers are Awn's own, tuned on the tracker fixtures; the tests fix only the
+ * How much a heard word may differ from the text and still count as said. The old rule (80 % of the
+ * phonemes matched and at most one substitution) treated every wrong sound alike and gave long and
+ * short words the same budget, so many words ended "unclear". The new score weighs each difference:
+ * a sound swapped for a near one (س for ص, a short vowel for another) costs less than a swap for an
+ * unrelated sound, a missing sound costs like an unrelated one, and longer words get a larger
+ * share. The numbers are Awn's own, tuned on the tracker fixtures; the tests fix only the
  * relations.
  */
 class WordScoreTest {
@@ -54,8 +54,18 @@ class WordScoreTest {
     @Test
     fun aMissingSoundCostsLikeAnUnrelatedOne() {
         assertEquals(
-            WordScore.cost(substitutionCosts = listOf(1.0), missing = 0, extra = 0, referenceLength = 7),
-            WordScore.cost(substitutionCosts = emptyList(), missing = 1, extra = 0, referenceLength = 7),
+            WordScore.cost(
+                substitutionCosts = listOf(1.0),
+                missing = 0,
+                extra = 0,
+                referenceLength = 7,
+            ),
+            WordScore.cost(
+                substitutionCosts = emptyList(),
+                missing = 1,
+                extra = 0,
+                referenceLength = 7,
+            ),
             1e-9,
         )
     }

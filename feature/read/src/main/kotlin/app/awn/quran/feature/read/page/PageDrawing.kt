@@ -259,8 +259,8 @@ internal fun hiddenWordFills(
     }
 
 /**
- * The soft fill behind each word whose recitation state is Confirmed, Tentative or Wrong. Colour
- * glyph fonts ignore the text colour, so a fill is the one mark that shows on every print.
+ * The soft fill behind each word whose recitation state is Confirmed, Mispronounced or Wrong.
+ * Colour glyph fonts ignore the text colour, so a fill is the one mark that shows on every print.
  */
 internal fun wordStateFills(
     geometry: PageGeometry,
@@ -283,14 +283,14 @@ internal fun reciteFillColor(state: WordState, field: AwnFieldColors): Color? =
     if (field.isLight) {
         when (state) {
             WordState.Confirmed -> AwnReciteFills.dayConfirmed
-            WordState.Tentative -> AwnReciteFills.dayTentative
+            WordState.Mispronounced -> AwnReciteFills.dayTentative
             WordState.Wrong -> AwnReciteFills.dayWrong
             else -> null
         }
     } else {
         when (state) {
             WordState.Confirmed -> AwnReciteFills.nightConfirmed
-            WordState.Tentative -> AwnReciteFills.nightTentative
+            WordState.Mispronounced -> AwnReciteFills.nightTentative
             WordState.Wrong -> AwnReciteFills.nightWrong
             else -> null
         }

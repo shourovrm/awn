@@ -21,17 +21,27 @@ class MispronouncedFillTest {
     fun aMispronouncedWordIsYellowByDayAndByNight() {
         assertEquals(
             AwnReciteFills.dayTentative,
-            reciteFillColor(WordState.Mispronounced, awnFieldColors(AwnField.Paper, ColourMode.Awn)),
+            reciteFillColor(
+                WordState.Mispronounced,
+                awnFieldColors(AwnField.Paper, ColourMode.Awn),
+            ),
         )
         assertEquals(
             AwnReciteFills.nightTentative,
-            reciteFillColor(WordState.Mispronounced, awnFieldColors(AwnField.Paper, ColourMode.Dark)),
+            reciteFillColor(
+                WordState.Mispronounced,
+                awnFieldColors(AwnField.Paper, ColourMode.Dark),
+            ),
         )
     }
 
     @Test
     fun aWordStillBeingRecitedHasNoFill() {
-        assertNull(reciteFillColor(WordState.Tentative, awnFieldColors(AwnField.Paper, ColourMode.Awn)))
-        assertNull(reciteFillColor(WordState.Tentative, awnFieldColors(AwnField.Paper, ColourMode.Black)))
+        assertNull(
+            reciteFillColor(WordState.Tentative, awnFieldColors(AwnField.Paper, ColourMode.Awn)),
+        )
+        assertNull(
+            reciteFillColor(WordState.Tentative, awnFieldColors(AwnField.Paper, ColourMode.Black)),
+        )
     }
 }

@@ -18,13 +18,17 @@ class PassedWordVerdictTest {
     // Six-phoneme words of letters spaced through the alphabet, so neighbours differ.
     private val wordTexts =
         List(12) { wordIndex ->
-            String(CharArray(6) { offset -> alphabet[(wordIndex * 5 + offset * 3) % alphabet.length] })
+            String(
+                CharArray(6) { offset -> alphabet[(wordIndex * 5 + offset * 3) % alphabet.length] },
+            )
         }
 
-    private val reference =
-        wordTexts.mapIndexed { wordIndex, text ->
-            ReferenceWord(WordKeyLike(1, wordIndex / 3 + 1, wordIndex % 3 + 1), text.map { it.toString() })
-        }
+    private val reference = wordTexts.mapIndexed { wordIndex, text ->
+        ReferenceWord(
+            WordKeyLike(1, wordIndex / 3 + 1, wordIndex % 3 + 1),
+            text.map { it.toString() },
+        )
+    }
 
     private fun newTracker(): AlignmentTracker =
         AlignmentTracker(TrackerConfig(0.5f)).also { it.load(reference) }
@@ -44,14 +48,23 @@ class PassedWordVerdictTest {
 
     // Replaces the phoneme at each position with a digit, which no word holds.
     private fun withWrongSounds(word: String, positions: List<Int>): String =
-        String(word.mapIndexed { index, character -> if (index in positions) '7' else character }.toCharArray())
+        String(
+            word
+                .mapIndexed { index, character -> if (index in positions) '7' else character }
+                .toCharArray(),
+        )
 
     @Test
     fun aPassedWordWithOneWrongSoundIsSaidAndReportsIt() {
         val tracker = newTracker()
 
         val events =
-            tracker.hear(wordTexts[0] + withWrongSounds(wordTexts[1], listOf(2)) + wordTexts[2] + wordTexts[3])
+            tracker.hear(
+                wordTexts[0] +
+                    withWrongSounds(wordTexts[1], listOf(2)) +
+                    wordTexts[2] +
+                    wordTexts[3],
+            )
 
         assertEquals(WordState.Confirmed, tracker.stateOfWord(1))
         assertTrue(events.filterIsInstance<TrackerEvent.Substitution>().any { it.wordIndex == 1 })
@@ -61,7 +74,12 @@ class PassedWordVerdictTest {
     fun aPassedWordWithMostSoundsWrongIsNotSaid() {
         val tracker = newTracker()
 
-        tracker.hear(wordTexts[0] + withWrongSounds(wordTexts[1], listOf(0, 2, 3, 5)) + wordTexts[2] + wordTexts[3])
+        tracker.hear(
+            wordTexts[0] +
+                withWrongSounds(wordTexts[1], listOf(0, 2, 3, 5)) +
+                wordTexts[2] +
+                wordTexts[3],
+        )
 
         assertEquals(WordState.Wrong, tracker.stateOfWord(1))
     }
@@ -70,7 +88,9 @@ class PassedWordVerdictTest {
     fun noPassedWordIsLeftUnsure() {
         val tracker = newTracker()
 
-        tracker.hear(wordTexts[0] + wordTexts[1].take(3) + wordTexts[2] + wordTexts[3] + wordTexts[4])
+        tracker.hear(
+            wordTexts[0] + wordTexts[1].take(3) + wordTexts[2] + wordTexts[3] + wordTexts[4],
+        )
 
         for (index in 0..3) {
             assertNotEquals("word $index", WordState.Tentative, tracker.stateOfWord(index))

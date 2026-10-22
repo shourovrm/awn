@@ -256,7 +256,8 @@ class TrackingFixtureTest {
         for (result in resultsOf(FixtureKind.Full) + resultsOf(FixtureKind.Stretch)) {
             val soundWords = result.mispronouncedBySoundIndices
             val durationWords = result.mispronouncedByDurationIndices
-            val redWords = result.recitedWordIndices.count { result.finalStates[it] == WordState.Wrong }
+            val redWords =
+                result.recitedWordIndices.count { result.finalStates[it] == WordState.Wrong }
             val tentativeWords =
                 result.recitedWordIndices.count { result.finalStates[it] == WordState.Tentative }
             println(

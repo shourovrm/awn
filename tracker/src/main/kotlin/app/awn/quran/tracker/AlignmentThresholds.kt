@@ -8,8 +8,8 @@ import kotlin.math.roundToInt
  * Every threshold is a straight line between a patient value (speed 0) and an eager value (speed
  * 1). The default speed 0.5 gives the values in docs/plan.md: insertion at 6 unmatched phonemes,
  * re-anchoring at 12. Whether a word is green is decided by [WordScore], not by the speed.
- * "Phoneme" here is one character of a model token, after runs of one repeated character are
- * merged into one.
+ * "Phoneme" here is one character of a model token, after runs of one repeated character are merged
+ * into one.
  *
  * @property wrongSubstitutions substitutions that make a word red
  * @property skipEvidencePhonemes matched phonemes needed after a left-out word before it is flagged

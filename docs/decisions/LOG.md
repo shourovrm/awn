@@ -172,3 +172,4 @@
 2026-10-22 | A page tap shrinks a busy bottom bar to a corner button instead of hiding or ending it | combined bar (read.md)
 2026-10-22 | :app gives the audio bar onRecite and the screen isAudioActive | the combined bar needs both (player.md, read.md)
 2026-10-22 | Word verdict by weighted WordScore (near sounds cheaper, length-based budget); Mispronounced is a display state | Awn said unknown where Natlu names missed or mispronounced (tracker.md)
+2026-10-22 | Page shows green, yellow Mispronounced (sound or madd finding) and red; Tentative has no fill; Mispronounced is no Hifz mistake | name the problem, not 'unclear'

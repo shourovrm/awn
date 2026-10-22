@@ -4,8 +4,8 @@ package app.awn.quran.tracker
  * Decides whether a heard word is close enough to the expected one to count as said.
  *
  * Each difference between the heard and the expected phonemes has a cost: a missing sound costs
- * [MISSING_COST], a sound swapped for an unrelated one [UNRELATED_COST], a sound swapped for a
- * near one (see [nearSoundCosts]) less, and an extra sound [EXTRA_COST]. The cost of a word is the sum
+ * [MISSING_COST], a sound swapped for an unrelated one [UNRELATED_COST], a sound swapped for a near
+ * one (see [nearSoundCosts]) less, and an extra sound [EXTRA_COST]. The cost of a word is the sum
  * divided by the number of phonemes of the word, so one wrong sound weighs less in a long word. A
  * word passes when its cost is within [allowedCost], a share that also grows a little with the
  * length of the word.
@@ -42,22 +42,21 @@ object WordScore {
     private const val DAMMA = '\u064F'
     private const val KASRA = '\u0650'
 
-    private val nearSoundCosts: Map<Set<Char>, Double> =
-        buildMap {
-            fun addPairs(cost: Double, vararg pairs: Pair<Char, Char>) {
-                for ((one, other) in pairs) put(setOf(one, other), cost)
-            }
-            // Emphatic and plain consonants made at the same place.
-            addPairs(EMPHATIC_PAIR_COST, 'س' to 'ص', 'ت' to 'ط', 'د' to 'ض', 'ز' to 'ظ', 'ذ' to 'ظ')
-            // Interdental and alveolar consonants.
-            addPairs(INTERDENTAL_PAIR_COST, 'ذ' to 'ز', 'ث' to 'س', 'ث' to 'ت', 'ذ' to 'د')
-            // Throat consonants.
-            addPairs(THROAT_PAIR_COST, 'ح' to 'ه', 'ء' to 'ع', 'ء' to 'ه', 'ع' to 'ح')
-            // Consonants made at the back of the mouth.
-            addPairs(BACK_OF_MOUTH_PAIR_COST, 'ك' to 'ق', 'غ' to 'خ', 'خ' to 'ح')
-            // The three short vowels, which the model often swaps.
-            addPairs(SHORT_VOWEL_PAIR_COST, FATHA to DAMMA, FATHA to KASRA, DAMMA to KASRA)
+    private val nearSoundCosts: Map<Set<Char>, Double> = buildMap {
+        fun addPairs(cost: Double, vararg pairs: Pair<Char, Char>) {
+            for ((one, other) in pairs) put(setOf(one, other), cost)
         }
+        // Emphatic and plain consonants made at the same place.
+        addPairs(EMPHATIC_PAIR_COST, 'س' to 'ص', 'ت' to 'ط', 'د' to 'ض', 'ز' to 'ظ', 'ذ' to 'ظ')
+        // Interdental and alveolar consonants.
+        addPairs(INTERDENTAL_PAIR_COST, 'ذ' to 'ز', 'ث' to 'س', 'ث' to 'ت', 'ذ' to 'د')
+        // Throat consonants.
+        addPairs(THROAT_PAIR_COST, 'ح' to 'ه', 'ء' to 'ع', 'ء' to 'ه', 'ع' to 'ح')
+        // Consonants made at the back of the mouth.
+        addPairs(BACK_OF_MOUTH_PAIR_COST, 'ك' to 'ق', 'غ' to 'خ', 'خ' to 'ح')
+        // The three short vowels, which the model often swaps.
+        addPairs(SHORT_VOWEL_PAIR_COST, FATHA to DAMMA, FATHA to KASRA, DAMMA to KASRA)
+    }
 
     /** The cost of hearing [heard] where [expected] was due: 0 when equal, 1 when unrelated. */
     fun substitutionCost(heard: String, expected: String): Double {

@@ -12,19 +12,18 @@
   <string name="recite_status_stopped">Stopped</string>
   <string name="recite_status_no_text">Can\'t load these ayahs</string>
   <string name="recite_status_no_microphone">Can\'t use the microphone. Close other recording apps.</string>
-  <string name="recite_status_skipped">Skipped: ayah %1$d, word %2$d</string>
+  <string name="recite_status_skipped">Missed: ayah %1$d, word %2$d</string>
   <string name="recite_status_inserted">Extra words: ayah %1$d, after word %2$d</string>
   <string name="recite_status_anchored">Found your place: ayah %1$d, word %2$d</string>
 
 
   <string name="recite_review">Review</string>
-  <string name="recite_verdict_skipped">Skipped</string>
+  <string name="recite_verdict_skipped">Missed</string>
   <string name="recite_listen">Listen</string>
   <string name="recite_previous">Previous</string>
   <string name="recite_next">Next</string>
   <string name="recite_finding_madd">Madd</string>
-  <string name="recite_finding_wrong_word">Wrong word</string>
-  <string name="recite_finding_not_clear">Not clear</string>
+  <string name="recite_finding_wrong_word">Another word</string>
   <string name="recite_duration">%1$.2f s of %2$.2f s</string>
   <string name="recite_hint_say_again">Say the word again</string>
   <string name="recite_hint_hold_longer">Hold it a little longer</string>

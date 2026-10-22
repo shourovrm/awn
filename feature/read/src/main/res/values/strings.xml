@@ -44,9 +44,9 @@
   <string name="ayah_spoken">%1$s, ayah %2$d</string>
   <string name="ayah_select_action">Select ayah</string>
   <string name="word_meaning_action">Show meaning</string>
-  <string name="word_problem_skipped">Skipped</string>
-  <string name="word_problem_not_clear">Not clear</string>
-  <string name="word_problem_different">Different word</string>
+  <string name="word_problem_skipped">Missed</string>
+  <string name="word_problem_mispronounced">Mispronounced</string>
+  <string name="word_problem_different">Another word</string>
   <string name="word_add_to_my_words">Add to my words</string>
   <string name="word_added_to_my_words">Added to my words</string>
   <string name="word_play">Play this word</string>

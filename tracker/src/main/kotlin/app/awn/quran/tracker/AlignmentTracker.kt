@@ -12,13 +12,13 @@ package app.awn.quran.tracker
  * two after the one it lies in. The alignment decides, for every expected word, how many of its
  * phonemes were matched, substituted or left out:
  * - green ([WordState.Confirmed]) when the word's [WordScore] passes: its substitutions, missing
- *   and extra sounds, weighed by how near the sounds are, stay within the budget of its length;
- *   the first verdict of green is kept;
+ *   and extra sounds, weighed by how near the sounds are, stay within the budget of its length; the
+ *   first verdict of green is kept;
  * - red ([WordState.Wrong]) when a word the user has moved past has two or more substitutions, or
  *   when it was left out entirely (together with a [TrackerEvent.Skipped]);
- * - [WordState.Tentative] for a partly covered word the user may still be saying. A word is
- *   settled once the user is heard in a later word, and then it is green or red, never tentative.
- *   Settled words leave the front of the heard sequence, so the table stays small however long the
+ * - [WordState.Tentative] for a partly covered word the user may still be saying. A word is settled
+ *   once the user is heard in a later word, and then it is green or red, never tentative. Settled
+ *   words leave the front of the heard sequence, so the table stays small however long the
  *   recitation is.
  *
  * Whether a green word was also pronounced well is not decided here: substitutions and held vowels
@@ -293,7 +293,8 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
                 statistics[word].substitutionCosts +=
                     WordScore.substitutionCost(
                         heard = symbolsById[heardIds[operation.heardIndex]],
-                        expected = symbolsById[expectedIds[expectedStart + operation.expectedIndex]],
+                        expected =
+                            symbolsById[expectedIds[expectedStart + operation.expectedIndex]],
                     )
             }
         }
@@ -460,7 +461,8 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
 
     // A deviation of more than one haraka is a deviation; anything closer is fine. A vowel is
     // called too short only when it is also under UNDERHELD_MAXIMUM_SHARE of the expected time:
-    // Husary's clean recitation measures at about half the time the rules ask for on long madds, and
+    // Husary's clean recitation measures at about half the time the rules ask for on long madds,
+    // and
     // flagging those made one word in nine look mispronounced.
     private fun judgeDuration(
         measured: Float,
