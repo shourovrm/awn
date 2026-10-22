@@ -148,14 +148,8 @@ class ReciteController(
     val speechState: StateFlow<SpeechState> = speech.state
 
     init {
-        // The settings page and the bar both write the settings; the session follows them.
+        // The settings page and the bar both write the speed; the session follows it.
         scope.launch { settings.speed.distinctUntilChanged().collect { session.setSpeed(it) } }
-        scope.launch {
-            settings.hifzEnabled.distinctUntilChanged().collect { saved ->
-                // A run keeps its own hide-words choice; exit applies the saved one again.
-                if (!runActive) session.setHifzEnabled(saved)
-            }
-        }
         scope.launch { audioPlayer.state.collect(::followAudioWhileListeningOnward) }
         scope.launch {
             combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
@@ -173,12 +167,12 @@ class ReciteController(
         // The microphone would hear the reciter, so audio never plays under a new recitation.
         stopAudioForNewRun()
         mutableRevising.value = false
-        val endedRun = runActive
         runActive = false
         load(ayah) {
-            // The collector skips the saved value while a run is on, and does not re-emit it
-            // after the run, so the saved choice is applied here.
-            if (endedRun) session.setHifzEnabled(settings.hifzEnabled.first())
+            // Read here, once per run, and not followed while reciting: a follower fed by the
+            // store echoed the bar's own writes back, and its first read, taken before the user's
+            // tap, switched the words back.
+            session.setHifzEnabled(settings.hifzEnabled.first())
         }
     }
 
@@ -212,8 +206,9 @@ class ReciteController(
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
-            beforeLoad()
+            // Before the settings read of [beforeLoad], so the model starts loading at once.
             speech.prepare()
+            beforeLoad()
             session.load(ayahsFrom(ayah))
         }
     }
@@ -417,16 +412,13 @@ class ReciteController(
             if (playback.isSilent()) ignoreAudioUntilSilent = false
             return
         }
-        if (!mutableActive.value) return
-        if (!mutableListeningOnward.value) {
-            val playingAyah = (playback as? PlaybackState.Playing)?.ayah
-            val pausedAyah = (playback as? PlaybackState.Paused)?.ayah
-            val ayah = playingAyah ?: pausedAyah ?: return
-            if (!isPastTheReciter(ayah) || isSilentNow()) return
-            onwardAudioHasStarted = false
-            onwardAudioHasEnded = false
-            mutableListeningOnward.value = true
-        }
+        if (isFollowingAudio(playback)) noteAudioState(playback)
+    }
+
+    private fun isFollowingAudio(playback: PlaybackState): Boolean =
+        mutableActive.value && (mutableListeningOnward.value || beginsListeningOnward(playback))
+
+    private fun noteAudioState(playback: PlaybackState) {
         when (playback) {
             is PlaybackState.Playing -> noteListenedAyah(playback.ayah)
             is PlaybackState.Paused -> noteListenedAyah(playback.ayah)
@@ -435,6 +427,27 @@ class ReciteController(
             is PlaybackState.Error -> if (onwardAudioHasStarted) endListeningOnward()
         }
     }
+
+    // Audio the Listen button did not start counts as listening only when it plays an ayah past the
+    // one the reciter is on, and the player still plays it now: a collector that lags can deliver
+    // a Playing report for audio that has already stopped.
+    private fun beginsListeningOnward(playback: PlaybackState): Boolean {
+        val ayah = playedAyahOf(playback)
+        val isNewListening = ayah != null && isPastTheReciter(ayah) && !isSilentNow()
+        if (isNewListening) {
+            onwardAudioHasStarted = false
+            onwardAudioHasEnded = false
+            mutableListeningOnward.value = true
+        }
+        return isNewListening
+    }
+
+    private fun playedAyahOf(playback: PlaybackState): AyahRef? =
+        when (playback) {
+            is PlaybackState.Playing -> playback.ayah
+            is PlaybackState.Paused -> playback.ayah
+            else -> null
+        }
 
     private fun isPastTheReciter(ayah: AyahRef): Boolean {
         val current = session.currentWord.value ?: return true
@@ -537,6 +550,7 @@ class ReciteController(
     fun setHideWords(hide: Boolean) {
         // The session changes at once. Waiting for the saved value to come back made two quick taps
         // read the same old state and send the same choice, so the second tap seemed to do nothing.
+        // The saved value is only the next run's starting point.
         session.setHifzEnabled(hide)
         if (!runActive) scope.launch { settings.setHifzEnabled(hide) }
     }
