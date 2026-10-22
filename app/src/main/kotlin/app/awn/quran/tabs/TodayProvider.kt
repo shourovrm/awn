@@ -11,6 +11,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.R
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.feature.learn.CourseTodayLine
+import app.awn.quran.feature.learn.learnCourseTodayLine
 import app.awn.quran.feature.learn.learnDueAyahCount
 import app.awn.quran.feature.learn.learnFirstDueAyah
 import kotlinx.coroutines.launch
@@ -66,14 +68,42 @@ const val LEARN_TODAY_CAP = 10
 /** The ayah count the Learn row shows for [dueCount] due ayahs, or null when none is due. */
 fun learnTodayCount(dueCount: Int): Int? = dueCount.takeIf { it > 0 }?.coerceAtMost(LEARN_TODAY_CAP)
 
-/** The Learn row: revise the ayahs due today, capped at [LEARN_TODAY_CAP]. */
+/** The Learn row once the word course has started: its time, new words and words to revise. */
+@Composable
+private fun courseTodayItem(line: CourseTodayLine, navigation: TodayNavigation): TodayItem {
+    val parts = buildList {
+        if (line.newWords > 0) {
+            add(pluralStringResource(R.plurals.today_course_new, line.newWords, line.newWords))
+        }
+        if (line.reviews > 0) {
+            add(pluralStringResource(R.plurals.today_course_reviews, line.reviews, line.reviews))
+        }
+    }
+    return TodayItem(
+        title = stringResource(R.string.today_course_start, line.minutes),
+        detail = parts.joinToString(" · "),
+        icon = R.drawable.ic_app_school,
+        onOpen = navigation.openLearnTab,
+    )
+}
+
+/**
+ * The Learn row: the word course's day once the course has started, otherwise the ayahs due for
+ * revision, capped at [LEARN_TODAY_CAP].
+ */
 object LearnTodayProvider : TodayProvider {
+    @Suppress("ReturnCount") // The course row, no row, or the revise row.
     @Composable
     override fun item(navigation: TodayNavigation): TodayItem? {
         val context = LocalContext.current
         val dueCounts = remember(context) { learnDueAyahCount(context) }
         val dueCount by dueCounts.collectAsStateWithLifecycle(initialValue = 0)
         val scope = rememberCoroutineScope()
+        val courseLines = remember(context) { learnCourseTodayLine(context) }
+        val courseLine by courseLines.collectAsStateWithLifecycle(initialValue = null)
+        courseLine?.let {
+            return courseTodayItem(it, navigation)
+        }
         val count = learnTodayCount(dueCount) ?: return null
         return TodayItem(
             title = stringResource(R.string.tab_learn),
