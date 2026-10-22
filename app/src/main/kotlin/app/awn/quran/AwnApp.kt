@@ -71,6 +71,7 @@ import app.awn.quran.tabs.TabActions
 import app.awn.quran.tabs.TabSlots
 import app.awn.quran.tabs.TabsHost
 import app.awn.quran.tabs.TodayNavigation
+import app.awn.quran.tabs.defaultTabSlots
 import app.awn.quran.tabs.rememberTodayItems
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -81,7 +82,7 @@ import kotlinx.coroutines.launch
 fun AwnApp(
     services: AwnServices,
     languageApplier: AppLanguageApplier = AppCompatLanguageApplier,
-    tabSlots: TabSlots = TabSlots(),
+    tabSlots: TabSlots? = null,
 ) {
     val preferences = services.preferences
     val colourSettings by
@@ -118,7 +119,11 @@ fun AwnApp(
                 NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
             FirstLaunchStep.Done -> {
                 AskForNotificationsWhenAudioStarts(services)
-                AwnNavigation(services, colourSettings, tabSlots)
+                AwnNavigation(
+                    services,
+                    colourSettings,
+                    tabSlots ?: remember(services) { defaultTabSlots(services) },
+                )
             }
         }
     }

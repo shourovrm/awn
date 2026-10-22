@@ -9,7 +9,7 @@
   <string name="method_ayah_chain">আয়াত শিকল, ২০ বার</string>
   <string name="method_fixed_ayahs">প্রতিদিন নির্দিষ্ট আয়াত</string>
   <string name="method_track_only">কোনো পদ্ধতি নয়, শুধু হিসাব</string>
-  <string name="method_sabaq_sabqi_manzil_detail">প্রতিদিন একটি নতুন পাঠ, সাম্প্রতিক পৃষ্ঠা আর পুরোনো একটি অংশ। বাংলা ও উর্দু পাঠকদের মধ্যে প্রচলিত।</string>
+  <string name="method_sabaq_sabqi_manzil_detail">প্রতিদিন একটি নতুন পাঠ, সাম্প্রতিক পৃষ্ঠা আর পুরোনো একটি অংশ।</string>
   <string name="method_three_by_three_detail">প্রতিটি আয়াত ৩ বার পড়ুন, তারপর মুখস্থ ৩ বার তিলাওয়াত করুন।</string>
   <string name="method_ayah_chain_detail">একটি আয়াত ২০ বার পড়ুন, তারপর আগেরটির সাথে জুড়ুন।</string>
   <string name="method_fixed_ayahs_detail">প্রতিদিন একই সংখ্যক নতুন আয়াত।</string>

@@ -5,7 +5,6 @@
   <string name="tab_quran">কুরআন</string>
   <string name="tab_learn">শিখুন</string>
   <string name="tab_hifz">হিফয</string>
-  <string name="hifz_placeholder">হিফয এখনও পাওয়া যাচ্ছে না</string>
   <string name="continue_reading">পড়া চালিয়ে যান</string>
   <string name="continue_start">পড়া শুরু করুন</string>
   <string name="continue_detail">%1$s · পৃষ্ঠা %2$s · পারা %3$s</string>
