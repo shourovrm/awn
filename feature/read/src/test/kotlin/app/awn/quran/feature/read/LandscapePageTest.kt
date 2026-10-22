@@ -30,8 +30,8 @@ class LandscapePageTest {
             )
         }
 
-    private fun place(scale: Float = 1f): Pair<Float, PageGeometry> {
-        val heightPx = pageHeightFor(widthPx, bodyHeightPx, scale)
+    private fun place(): Pair<Float, PageGeometry> {
+        val heightPx = pageHeightFor(widthPx, bodyHeightPx)
         val geometry =
             layoutPage(
                 rows = fullPageRows(),
@@ -39,7 +39,6 @@ class LandscapePageTest {
                 widthPx = widthPx,
                 heightPx = heightPx,
                 tokenWidthEm = { wordWidthEm },
-                scale = scale,
             )
         return heightPx to geometry
     }
@@ -76,7 +75,6 @@ class LandscapePageTest {
 
     @Test
     fun portraitPagesAreAsTallAsTheBody() {
-        assertEquals(1800f, pageHeightFor(900f, 1800f, 1f), 0.01f)
-        assertEquals(2070f, pageHeightFor(900f, 1800f, 1.15f), 0.01f)
+        assertEquals(1800f, pageHeightFor(900f, 1800f), 0.01f)
     }
 }

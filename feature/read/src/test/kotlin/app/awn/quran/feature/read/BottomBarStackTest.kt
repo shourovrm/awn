@@ -64,7 +64,7 @@ class BottomBarStackWiringTest {
     fun theQuranScreenStoresTheMeasuredHeight() {
         assertTrue(source.contains("BottomBarStack("))
         assertTrue(
-            Regex("""onHeightChanged\s*=\s*\{\s*bottomStackHeightPx\s*=\s*it\s*\}""")
+            Regex("""onHeightChanged\s*=\s*\{\s*height\s*->[\s\S]*?onBottomBarMeasured\(height""")
                 .containsMatchIn(source),
         )
     }

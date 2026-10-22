@@ -54,7 +54,7 @@ class PageHelpersTest {
     }
 
     @Test
-    fun fontCacheKeepsOnlyPagesWithinFiveOfTheCurrentOne() {
+    fun fontCacheKeepsOnlyPagesWithinTwoOfTheCurrentOne() {
         val packs = FakePackRepository()
         packs.fontFiles[ScriptId.V1] = File("font.ttf")
         val cache = PageFontCache(packs, createFamily = { FontFamily.Serif })
@@ -62,7 +62,7 @@ class PageHelpersTest {
 
         cache.retainAround(15)
 
-        assertEquals((10..20).toSet(), cache.cachedPages)
+        assertEquals((13..17).toSet(), cache.cachedPages)
     }
 
     @Test

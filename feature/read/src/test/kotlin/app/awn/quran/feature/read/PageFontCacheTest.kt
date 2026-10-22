@@ -2,6 +2,7 @@ package app.awn.quran.feature.read
 
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.feature.read.page.PageFontCache
@@ -132,5 +133,53 @@ class PageFontCacheTest {
         cache.retainAround(5)
 
         assertTrue(cache.cachedPages.isEmpty())
+    }
+
+    /** Like the installed prints: every page has a font file of its own. */
+    private fun packsWithOneFontFilePerPage(): PackRepository =
+        object : PackRepository by FakePackRepository() {
+            override fun fontFile(script: ScriptId, page: Int): File = File("p$page.ttf")
+        }
+
+    @Test
+    fun theDefaultCacheKeepsTheCurrentPageAndTwoOnEachSide() {
+        val defaultCache =
+            PageFontCache(
+                packsWithOneFontFilePerPage(),
+                createFamily = { file -> FontFamily(Font(file)) },
+                prefetchDispatcher = Dispatchers.Unconfined,
+            )
+        (1..40).forEach { page -> defaultCache.familyFor(ScriptId.V2, page) }
+
+        defaultCache.retainAround(20)
+
+        assertEquals((18..22).toSet(), defaultCache.cachedPages)
+    }
+
+    @Test
+    fun aFontFileThatNoCachedPageUsesIsReleased() {
+        val cache =
+            PageFontCache(
+                packsWithOneFontFilePerPage(),
+                createFamily = { file -> FontFamily(Font(file)) },
+                prefetchDispatcher = Dispatchers.Unconfined,
+            )
+        (1..40).forEach { page -> cache.familyFor(ScriptId.V2, page) }
+        assertEquals(40, cache.loadedFileCount)
+
+        cache.retainAround(20)
+
+        assertEquals(5, cache.loadedFileCount)
+    }
+
+    @Test
+    fun pagesThatShareOneFontFileShareOneFamily() {
+        val cache = cache()
+
+        val first = cache.familyFor(ScriptId.V4Tajweed, 3)
+        val second = cache.familyFor(ScriptId.V4Tajweed, 4)
+
+        assertSame(first, second)
+        assertEquals(1, loadedFiles.size)
     }
 }

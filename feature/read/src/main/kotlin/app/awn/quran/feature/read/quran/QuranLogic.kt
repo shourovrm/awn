@@ -113,15 +113,20 @@ internal fun isFullyVisible(offset: Int, size: Int, visibleTop: Int, visibleBott
     offset >= visibleTop && offset + size <= visibleBottom
 
 /**
- * The padding of a list page. Below, it clears the navigation bar and either the audio bar's fixed
- * height or, while reciting, the recite bar as it was measured ([reciteBarHeight]): that bar is two
- * or three rows tall, so a fixed height left the last ayahs under it.
+ * The padding of a list page. Above, it clears the top bar as it was measured ([topBarHeight]).
+ * Below, it clears the navigation bar and either the audio bar's fixed height or, while reciting,
+ * the recite bar as it was measured ([reciteBarHeight]): that bar is two or three rows tall, so a
+ * fixed height left the last ayahs under it.
  */
-internal fun listContentPadding(reciteBarHeight: Dp?, navigationBarHeight: Dp): PaddingValues =
+internal fun listContentPadding(
+    reciteBarHeight: Dp?,
+    navigationBarHeight: Dp,
+    topBarHeight: Dp = AwnSpacing.topBarHeight,
+): PaddingValues =
     PaddingValues(
         start = AwnSpacing.screenMargin,
         end = AwnSpacing.screenMargin,
-        top = AwnSpacing.huge + AwnSpacing.small,
+        top = topBarHeight,
         bottom =
             if (reciteBarHeight != null) {
                 reciteBarHeight + AwnSpacing.small

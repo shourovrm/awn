@@ -52,7 +52,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             preferences[TRANSLATION_STEP_KEY] = updated.translationSizeStep
             preferences[TRANSLITERATION_STEP_KEY] = updated.transliterationSizeStep
             preferences[WORD_BY_WORD_STEP_KEY] = updated.wordByWordSizeStep
-            preferences[MUSHAF_STEP_KEY] = updated.mushafSizeStep
+            preferences[MUSHAF_SIZE_STEP_KEY] = updated.mushafSizeStep
             preferences[QURAN_ORIENTATION_KEY] = updated.quranOrientation.name
             preferences[APP_ORIENTATION_KEY] = updated.appOrientation.name
             preferences[HIGHLIGHT_BOOKMARKS_KEY] = updated.highlightBookmarks
@@ -118,9 +118,19 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             transliteration =
                 TextScale.clampStep(preferences[TRANSLITERATION_STEP_KEY] ?: translation),
             wordByWord = TextScale.clampStep(preferences[WORD_BY_WORD_STEP_KEY] ?: translation),
-            mushaf =
-                TextScale.clampMushafStep(preferences[MUSHAF_STEP_KEY] ?: defaults.mushafSizeStep),
+            mushaf = TextScale.clampMushafStep(mushafStepOf(preferences, defaults)),
         )
+    }
+
+    /**
+     * The stored size of the printed page. The first control stored 0 or 1 in [MUSHAF_STEP_KEY]
+     * (1.0 or 1.15 times the width); only the larger one moves to the step of the same size.
+     */
+    private fun mushafStepOf(preferences: Preferences, defaults: ReadSettings): Int {
+        val stored = preferences[MUSHAF_SIZE_STEP_KEY]
+        if (stored != null) return stored
+        val isLegacyLarge = preferences[MUSHAF_STEP_KEY] == LEGACY_LARGE_MUSHAF_VALUE
+        return if (isLegacyLarge) TextScale.MUSHAF_LEGACY_LARGE_STEP else defaults.mushafSizeStep
     }
 
     private class SizeSteps(
@@ -168,6 +178,8 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
         val TRANSLITERATION_STEP_KEY = intPreferencesKey("transliteration_size_step")
         val WORD_BY_WORD_STEP_KEY = intPreferencesKey("word_by_word_size_step")
         val MUSHAF_STEP_KEY = intPreferencesKey("mushaf_size_step")
+        val MUSHAF_SIZE_STEP_KEY = intPreferencesKey("mushaf_size_step_v2")
+        const val LEGACY_LARGE_MUSHAF_VALUE = 1
         val QURAN_ORIENTATION_KEY = stringPreferencesKey("quran_orientation")
         val APP_ORIENTATION_KEY = stringPreferencesKey("app_orientation")
         val SCRIPT_KEY = stringPreferencesKey("script")

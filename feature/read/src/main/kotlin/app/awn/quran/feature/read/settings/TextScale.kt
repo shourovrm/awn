@@ -15,13 +15,20 @@ object TextScale {
     const val DEFAULT_STEP = 3
 
     /**
-     * The printed page has two sizes: step 0 fits the width, step 1 prints it 15 % larger. Line
-     * breaks are fixed, so the glyphs stop growing once the widest line fills the width; measured
-     * on the real fonts that is 4 to 12 % (median 8 %) and steps 2 to 4 changed nothing but the
-     * space between lines. A wider page comes from rotating the screen.
+     * The sizes of the printed page, as multiples of its default size (the page that fits the width
+     * in portrait). Below 1 the page is a narrower column; above 1 the lines are poured again once
+     * a printed line no longer fits the width. A step is stored, not the factor.
      */
-    const val MUSHAF_LAST_STEP = 1
-    private const val MUSHAF_SPAN_PER_STEP = 0.15f
+    private val mushafFactors = listOf(0.7f, 0.8f, 0.9f, 1.0f, 1.15f, 1.3f, 1.5f, 1.75f, 2.0f)
+
+    /** The step of the default size, 1.0. */
+    const val MUSHAF_DEFAULT_STEP = 3
+
+    /** The step the earlier two-size control stored for 1.15 times the width. */
+    const val MUSHAF_LEGACY_LARGE_STEP = 4
+
+    val MUSHAF_LAST_STEP: Int
+        get() = mushafFactors.lastIndex
 
     private const val LEGACY_SMALL_ZOOM = 1.0f
     private const val LEGACY_MEDIUM_ZOOM = 1.15f
@@ -34,10 +41,8 @@ object TextScale {
 
     fun clampStep(step: Int): Int = step.coerceIn(0, LAST_STEP)
 
-    /**
-     * The factor that prints the Mushaf page larger than the width: 1.0 at step 0, 1.15 at step 1.
-     */
-    fun mushafScaleOf(step: Int): Float = 1f + clampMushafStep(step) * MUSHAF_SPAN_PER_STEP
+    /** The factor of the printed page for [step]; a step outside the range is clamped first. */
+    fun mushafScaleOf(step: Int): Float = mushafFactors[clampMushafStep(step)]
 
     fun clampMushafStep(step: Int): Int = step.coerceIn(0, MUSHAF_LAST_STEP)
 
