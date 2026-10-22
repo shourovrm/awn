@@ -3,7 +3,6 @@ package app.awn.quran.feature.read.quran
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -22,7 +21,11 @@ import app.awn.quran.feature.read.ReadIconButton
  * bottom stack, so the lists do not make room for it.
  */
 @Composable
-internal fun BusyBarButton(isReciting: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun BusyBarButton(
+    isReciting: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val field = Awn.field
     @DrawableRes val icon = if (isReciting) R.drawable.ic_read_recite else R.drawable.ic_read_pause
     ReadIconButton(
@@ -45,9 +48,10 @@ internal fun BusyBarButton(isReciting: Boolean, onClick: () -> Unit, modifier: M
 @Composable
 internal fun TuckedAwayWhenHidden(isShown: Boolean, content: @Composable () -> Unit) {
     val tuckedAway =
-        Modifier.clearAndSetSemantics {}.layout { measurable, constraints ->
-            measurable.measure(constraints)
-            layout(0, 0) {}
-        }
+        Modifier.clearAndSetSemantics {}
+            .layout { measurable, constraints ->
+                measurable.measure(constraints)
+                layout(0, 0) {}
+            }
     Box(if (isShown) Modifier else tuckedAway) { content() }
 }

@@ -313,7 +313,8 @@ class ReciteController(
         val ayah = continuationAyah() ?: return
         // Used once: a later listening of another kind must not go back to this ayah.
         lastListenedAyah = null
-        val isLoaded = session.words.value.any { it.key.surah == ayah.surah && it.key.ayah == ayah.ayah }
+        val isLoaded =
+            session.words.value.any { it.key.surah == ayah.surah && it.key.ayah == ayah.ayah }
         if (isLoaded) {
             session.continueAt(ayah)
         } else {

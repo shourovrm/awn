@@ -124,7 +124,9 @@ fun AudioBar(
                     if (canRecite) {
                         {
                             scope.launch {
-                                viewModel.reciteStart()?.let { ayah -> currentOnRecite?.invoke(ayah) }
+                                viewModel.reciteStart()?.let { ayah ->
+                                    currentOnRecite?.invoke(ayah)
+                                }
                             }
                         }
                     } else {

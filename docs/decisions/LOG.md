@@ -170,3 +170,4 @@
 2026-10-22 | Recite bar is ochre; the microphone works while audio plays and Listen is listen-onward | combined bar (recite.md)
 2026-10-22 | Audio bar ends with a Recite microphone; the playing bar drops the speed button | combined bar needs room for it (player.md)
 2026-10-22 | A page tap shrinks a busy bottom bar to a corner button instead of hiding or ending it | combined bar (read.md)
+2026-10-22 | :app gives the audio bar onRecite and the screen isAudioActive | the combined bar needs both (player.md, read.md)

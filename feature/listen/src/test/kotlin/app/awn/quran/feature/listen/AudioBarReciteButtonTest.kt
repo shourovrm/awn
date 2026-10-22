@@ -82,7 +82,10 @@ class AudioBarReciteButtonTest {
 
     @Test
     fun withoutAReciteActionThereIsNoMicrophone() {
-        show(AudioBarState.Idle(reciterName = "Mishary Alafasy", hasError = false), withRecite = false)
+        show(
+            AudioBarState.Idle(reciterName = "Mishary Alafasy", hasError = false),
+            withRecite = false,
+        )
 
         composeRule.onNodeWithContentDescription("Recite").assertDoesNotExist()
     }

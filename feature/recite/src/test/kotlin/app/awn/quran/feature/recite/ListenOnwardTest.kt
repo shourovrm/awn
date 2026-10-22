@@ -32,7 +32,10 @@ class ListenOnwardTest {
 
     @get:Rule val fixtures = ControllerFixtures()
 
-    private suspend fun recitingFrom(first: AyahRef, vararg heard: TrackerEvent): ControllerFixture {
+    private suspend fun recitingFrom(
+        first: AyahRef,
+        vararg heard: TrackerEvent,
+    ): ControllerFixture {
         val fixture = ControllerFixture(folder.root)
         fixture.controller.reciteFrom(first)
         fixture.controller.joinPendingWork()

@@ -328,7 +328,8 @@ class RecitationSession(
             if (!isResolved(index)) listenedIndexes += index
         }
         continuationIndex = pickUpIndex
-        continuationExpectedAyah = wordKeys.getOrNull(pickUpIndex)?.let { AyahRef(it.surah, it.ayah) }
+        continuationExpectedAyah =
+            wordKeys.getOrNull(pickUpIndex)?.let { AyahRef(it.surah, it.ayah) }
         awaitingFirstConfirmedWord = true
         userSkippedContinuationAyah = false
         publishStates()
@@ -575,9 +576,9 @@ class RecitationSession(
     /**
      * Drops what the tracker reports about words the user only listened to. Those are the words
      * before the point where reciting went on, and, when the user's first confirmed word after it
-     * lies in a later ayah, the words of the ayah reciting was expected to go on with: the user
-     * may start with the ayah after it. The tracker reports the skipped words in the same batch as
-     * that first confirmed word. Must be called with [lock] held.
+     * lies in a later ayah, the words of the ayah reciting was expected to go on with: the user may
+     * start with the ayah after it. The tracker reports the skipped words in the same batch as that
+     * first confirmed word. Must be called with [lock] held.
      */
     private fun withoutListenedWords(events: List<TrackerEvent>): List<TrackerEvent> {
         val pickUpIndex = continuationIndex ?: return events
