@@ -182,3 +182,4 @@
 2026-10-22 | One local data folder awn-data/ with published/, next/, fonts/, raw/; tools find it through tools/data_paths.py; AWN_DATA_DIR now names the folder that holds published/ | four folders held duplicates and the build read a stale one
 2026-10-23 | versionCode = (MINOR*100+PATCH)*10000 + commits since tag, ABI step 100M | old scheme made the first tag a downgrade from commit-count builds
 2026-10-23 | Tajweed units open at any time; the Reading-unit-7 rule is a note, not a lock | rows ignored taps for users who chose the letters; read the track as broken
+2026-10-23 | Reading track in Noorani Qaida order, drills folded into checks, new unit 8 | maintainer: shorter Qaida, non-commercial use

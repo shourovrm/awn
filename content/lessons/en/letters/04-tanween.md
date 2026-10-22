@@ -5,9 +5,9 @@ order: 4
 appears_after: "Reading unit 3, short vowels"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [11:81:17, 2:102:27, 2:126:7]
+examples: [11:81:17, 2:102:27, 2:126:7, 112:4:5]
 reviewed_by: ""
-version: 2026-10-22
+version: 2026-10-23
 ---
 
 ## Screen 1: A doubled vowel adds n
@@ -54,3 +54,15 @@ answer: 2
 ## Answer: The final alif
 
 After two fathas the [[ا]] only carries the vowel; the word is read baladan.
+
+## Check: Reading {{112:4:5}}
+
+question: How does {{112:4:5}} end?
+- an
+- in
+- un
+answer: 3
+
+## Answer: un
+
+The [[د]] carries two dammas, read un: aḥadun, one.

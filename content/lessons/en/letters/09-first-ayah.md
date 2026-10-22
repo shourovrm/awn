@@ -1,13 +1,13 @@
 ---
-id: letters-08-first-ayah
+id: letters-09-first-ayah
 title: Reading a whole ayah
-order: 8
-appears_after: "Reading unit 7, shaddah; the first ayah read with every mark taught so far"
+order: 9
+appears_after: "Reading unit 8, letters read by name; the first ayah read with every mark taught so far"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [112:1, 112:1:1, 112:1:2, 112:1:3, 112:1:4, 112:3:1, 112:3:2]
 reviewed_by: ""
-version: 2026-10-22
+version: 2026-10-23
 ---
 
 ## Screen 1: Al-Ikhlas, ayah 1
