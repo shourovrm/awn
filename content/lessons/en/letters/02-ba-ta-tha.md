@@ -1,16 +1,16 @@
 ---
 id: letters-02-ba-ta-tha
-title: The letter ب
+title: Letter shapes
 order: 2
-appears_after: "the start of the letters course, which a reader chooses by saying they cannot read the letters yet"
+appears_after: "Reading unit 1, which shows all 29 letters alone"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
-examples: [1:1:1, 6:112:4, 2:2:2, 1:2:3, 2:255:9, 2:28:7, 2:28]
+examples: [1:1:1, 6:112:4, 2:2:2, 1:2:3, 2:255:9, 2:28:7, 2:28, 108:1:3]
 reviewed_by: ""
-version: 2026-10-21
+version: 2026-10-22
 ---
 
-## Screen 1: The letter [[ب]]
+## Screen 1: The letter [[ب]] in four shapes
 
 [[ب]] is the letter baa. It sounds like b in book and has one dot below.
 
@@ -35,6 +35,12 @@ In {{1:2:3}} the letter before [[ب]] is [[ر]]. The letter [[ر]] does not join
 - Two dots above: {{2:255:9}} (2:255:9), overtakes Him
 - Three dots above: {{2:28:7}} (2:28:7), then
 
+## Screen 4: Letters that do not join forward
+
+Six letters join to the letter before them but never to the letter after them: [[ا]], [[د]], [[ذ]], [[ر]], [[ز]] and [[و]]. The letter after one of them starts fresh, in its start shape or alone.
+
+In {{108:1:3}} (108:1:3), Al-Kawthar, the [[و]] does not join forward, so the [[ث]] after it takes its start shape.
+
 ## Check: The letter in {{2:28:7}}
 
 question: Choose the word that starts with [[ث]]
@@ -48,3 +54,15 @@ answer: 3
 {{2:28:7}} starts with [[ث]], which has three dots above.
 
 {{2:28}}
+
+## Check: A letter that does not join
+
+question: Which letter never joins to the letter after it?
+- [[ب]]
+- [[ر]]
+- [[ت]]
+answer: 2
+
+## Answer: The letter [[ر]]
+
+[[ر]] joins only to the letter before it. That is why [[ب]] stands alone in {{1:2:3}}.
