@@ -67,6 +67,10 @@ class UnitGridPracticeTest {
         """{"kind":"practice","title":"P1","check":{"question":"Which one did you hear?",
               "options":["[[سَ]]","[[صَ]]"],"answer":1,"clip":"qaida-01/014","explain":"The heavy s."}}"""
 
+    private val textOptionsScreen =
+        """{"kind":"practice","title":"P3","check":{"question":"How is it read?",
+              "options":["ba","ta"],"answer":0,"clip":"qaida-04/012","explain":"It is ba."}}"""
+
     private val readAloudScreen =
         """{"kind":"practice","title":"P2","read_aloud":{"read":"[[حَ]] [[خَ]]","clip":"qaida-04/015"}}"""
 
@@ -175,5 +179,28 @@ class UnitGridPracticeTest {
 
         composeRule.onNodeWithText("Practice finished").assertExists()
         composeRule.onNodeWithText("Right: 1 of 1").assertDoesNotExist()
+    }
+
+    @Test
+    fun aListeningQuestionWithTilesHasAListenButtonBeforeTheAnswer() {
+        show()
+        composeRule.onNodeWithContentDescription("Page 2").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(PRACTICE_LISTEN_TAG).assertExists()
+    }
+
+    @Test
+    fun aQuestionWithTextOptionsHidesListenUntilAnsweredThenPlaysTheClipOnce() {
+        show(practiceScreens = textOptionsScreen)
+        composeRule.onNodeWithContentDescription("Page 2").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(PRACTICE_LISTEN_TAG).assertDoesNotExist()
+        assertEquals(emptyList<Any>(), sounds.clipRequests)
+
+        composeRule.onNodeWithText("ta").performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(listOf(listOf("qaida-04/012")), sounds.clipRequests.map { it.first })
     }
 }

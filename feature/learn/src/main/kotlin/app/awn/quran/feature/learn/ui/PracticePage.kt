@@ -95,7 +95,8 @@ private fun QuestionItem(item: LessonCheck, pick: Int?, onPick: (Int) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
         RichText(item.question, style = AwnTypography.lead)
         item.ayah?.let { AyahCard(it, highlight = item.highlight) }
-        if (item.clipIds.isNotEmpty() && pick == null) {
+        // Only a listening question, whose options are tiles, may be heard before the answer.
+        if (item.clipIds.isNotEmpty() && pick == null && item.options.all(::isTileOption)) {
             ListenButton(item)
         }
         if (item.options.all(::isTileOption)) {
