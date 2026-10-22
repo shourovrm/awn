@@ -191,3 +191,4 @@
 2026-10-23 | IndoPak page drawing reuses the glyph-script path with one font and extra header lines shifted into slots | no new renderer; Hafs text in lists
 2026-10-23 | Lesson builder takes a tajweed course folder and Grid and Practice blocks; clip ids must match across languages | units get a Qaida grid and a random practice set (learn.md)
 2026-10-23 | Tajweed track reads the nine tajweed units; old JSON lessons and loader removed; done ids carried over by LegacyTajweedProgress | no lost progress (learn.md)
+2026-10-23 | Learn sounds are a learn-audio entry in scripts.json (zip of qaida-NN/NNN.opus), group LearnAudio, extracted to packs/learn-audio/<id> | reuses font-zip install, no new manifest file (learn.md)

@@ -8,6 +8,9 @@ enum class PackKind {
     Timing,
     Translation,
     Model,
+
+    /** The recorded sounds of the Learn units: one zip of short clips. */
+    LearnAudio,
 }
 
 /** One downloadable file, as listed in a manifest such as `scripts.json`. */

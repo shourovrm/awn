@@ -364,6 +364,17 @@ class GridAndPracticeTest(unittest.TestCase):
     def test_a_clip_id_must_look_like_a_clip(self):
         self.assert_build_fails("\n## Grid: Bad\n\n- بَ | ba | 12\n", "clip id")
 
+    def test_several_clip_ids_joined_by_plus_are_kept_and_each_is_checked(self):
+        line = "\n## Grid: Joined\n\n- بلب | bā lām bā | qaida-01/002+qaida-01/023+qaida-01/002\n"
+        cell = self.build_screens(line)[-1]["cells"][0]
+        self.assertEqual("qaida-01/002+qaida-01/023+qaida-01/002", cell["clip"])
+        self.assert_build_fails(line.replace("qaida-01/023", "23"), "clip id")
+
+    def test_a_practice_clip_may_join_several_ids(self):
+        practice = PRACTICE_BLOCK.replace("qaida-01/014", "qaida-01/014+qaida-08a/003")
+        check = self.build_screens(practice)[-1]["check"]
+        self.assertEqual("qaida-01/014+qaida-08a/003", check["clip"])
+
     def test_a_grid_without_cells_is_refused(self):
         self.assert_build_fails("\n## Grid: Empty\n\ntext only\n", "a grid line looks like")
 

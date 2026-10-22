@@ -33,6 +33,7 @@ object CatalogueGrouping {
     fun groupOf(record: PackRecord, isBundled: Boolean): CatalogueGroup? =
         when (record.kindLabel) {
             "font" -> if (isBundled) null else CatalogueGroup.PageType
+            ManifestCatalog.LEARN_AUDIO_KIND -> CatalogueGroup.LearnAudio
             "translation" -> translationGroupOf(record)
             // An ayah-level timing pack (Basfar) cannot play a word, so it is not offered.
             "timing" ->

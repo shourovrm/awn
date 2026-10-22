@@ -212,8 +212,10 @@ def split_paragraphs(lines):
 
 
 def parse_clip(value, where):
-    if not CLIP_PATTERN.match(value):
-        raise LessonError(f"{where}: clip id must look like 'qaida-04/012', not {value!r}.")
+    """Checks a clip value: one clip id, or several joined by '+' that play one after another."""
+    for clip_id in value.split("+"):
+        if not CLIP_PATTERN.match(clip_id):
+            raise LessonError(f"{where}: clip id must look like 'qaida-04/012', not {clip_id!r}.")
     return value
 
 

@@ -11,6 +11,11 @@ internal object PackFiles {
     private val FONT_MEMBER_NAME = Regex("p[0-9]{1,3}\\.ttf")
 
     /**
+     * A clip is `<unit>/<number>.opus`; the pattern leaves no room for `..` or an absolute path.
+     */
+    private val AUDIO_MEMBER_NAME = Regex("[a-z0-9-]+/[a-z0-9-]+\\.opus")
+
+    /**
      * Returns the `format_version` row of a SQLite pack's `pack_info` table. Throws
      * [PackInstallException] when the file is not a pack database.
      */
@@ -57,6 +62,34 @@ internal object PackFiles {
                     )
                 }
                 File(targetDirectory, member.name).outputStream().use { zip.copyTo(it) }
+                extractedCount += 1
+            }
+        }
+        return extractedCount
+    }
+
+    /**
+     * Extracts the `<unit>/<clip>.opus` members of [archive] into [targetDirectory], which must not
+     * exist yet, and returns how many files were written. Any other member name is rejected, which
+     * also rules out path traversal.
+     */
+    @Suppress("LoopWithTooManyJumpStatements") // End of archive and directory entries.
+    fun extractAudioArchive(archive: File, targetDirectory: File, displayName: String): Int {
+        check(targetDirectory.mkdirs()) { "Could not create ${targetDirectory.path}." }
+        var extractedCount = 0
+        ZipInputStream(archive.inputStream().buffered()).use { zip ->
+            while (true) {
+                val member = zip.nextEntry ?: break
+                if (member.isDirectory) continue
+                if (!AUDIO_MEMBER_NAME.matches(member.name)) {
+                    throw PackInstallException(
+                        displayName,
+                        "unexpected member '${member.name}' in the sound archive",
+                    )
+                }
+                val clipFile = File(targetDirectory, member.name)
+                clipFile.parentFile?.mkdirs()
+                clipFile.outputStream().use { zip.copyTo(it) }
                 extractedCount += 1
             }
         }

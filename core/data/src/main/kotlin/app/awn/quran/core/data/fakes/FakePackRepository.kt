@@ -23,6 +23,8 @@ class FakePackRepository(
     /** The rows [catalogue] returns; [install] and [remove] flip their installed state. */
     val catalogueItems: MutableList<CatalogueItem> = mutableListOf(),
     var freeBytesValue: Long = Long.MAX_VALUE,
+    /** The files [learnAudioFile] returns, by clip id. */
+    val learnAudioFiles: MutableMap<String, File> = mutableMapOf(),
     /** When set, [install] throws it instead of installing. */
     var installFailure: Throwable? = null,
 ) : PackRepository {
@@ -41,6 +43,8 @@ class FakePackRepository(
     override suspend fun catalogue(): List<CatalogueItem> = catalogueItems.toList()
 
     override fun freeBytes(): Long = freeBytesValue
+
+    override fun learnAudioFile(clipId: String): File? = learnAudioFiles[clipId]
 
     override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) {
         installFailure?.let { throw it }

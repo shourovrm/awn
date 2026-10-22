@@ -14,6 +14,11 @@ enum class PackFileLayout {
 
     /** A zip of per-page fonts, extracted into a folder. */
     FontArchive,
+
+    /**
+     * A zip of Opus clips in one folder per unit (`qaida-04/012.opus`), extracted into a folder.
+     */
+    AudioArchive,
 }
 
 /**
@@ -59,8 +64,19 @@ class ManifestCatalog(
     private val externalUrlPrefix: String = HTTPS_PREFIX,
 ) {
 
-    val scriptPacks: List<PackRecord> by lazy {
+    private val scriptsManifestRecords: List<PackRecord> by lazy {
         packsOf("scripts.json").map { json -> recordOf(json, scriptKindLabel(json)) }
+    }
+
+    val scriptPacks: List<PackRecord> by lazy {
+        scriptsManifestRecords.filter { it.kindLabel != LEARN_AUDIO_KIND }
+    }
+
+    /**
+     * The recorded sounds of the Learn units; they are listed in `scripts.json` beside the fonts.
+     */
+    val learnAudioPacks: List<PackRecord> by lazy {
+        scriptsManifestRecords.filter { it.kindLabel == LEARN_AUDIO_KIND }
     }
 
     val translationPacks: List<PackRecord> by lazy {
@@ -80,7 +96,9 @@ class ManifestCatalog(
 
     val timingPacks: List<PackRecord> by lazy { reciters.mapNotNull { it.timingPack } }
 
-    val allPacks: List<PackRecord> by lazy { scriptPacks + translationPacks + timingPacks }
+    val allPacks: List<PackRecord> by lazy {
+        scriptPacks + learnAudioPacks + translationPacks + timingPacks
+    }
 
     fun findPack(id: String): PackRecord? = allPacks.firstOrNull { it.entry.id == id }
 
@@ -107,6 +125,7 @@ class ManifestCatalog(
         when (val kind = json.getString("kind")) {
             "text" -> "script"
             "font" -> "font"
+            LEARN_AUDIO_KIND -> LEARN_AUDIO_KIND
             else -> throw IllegalArgumentException("scripts.json has an unknown kind '$kind'.")
         }
 
@@ -120,6 +139,8 @@ class ManifestCatalog(
         val layout =
             when {
                 fileName.endsWith(".sqlite") -> PackFileLayout.Database
+                fileName.endsWith(".zip") && kindLabel == LEARN_AUDIO_KIND ->
+                    PackFileLayout.AudioArchive
                 fileName.endsWith(".zip") -> PackFileLayout.FontArchive
                 else -> PackFileLayout.SingleFont
             }
@@ -169,6 +190,7 @@ class ManifestCatalog(
             "font" -> PackKind.Script
             "translation" -> PackKind.Translation
             "timing" -> PackKind.Timing
+            LEARN_AUDIO_KIND -> PackKind.LearnAudio
             else -> throw IllegalArgumentException("Unknown pack kind label '$kindLabel'.")
         }
 
@@ -203,6 +225,9 @@ class ManifestCatalog(
 
     companion object {
         const val SUPPORTED_FORMAT_VERSION = 1
+
+        /** The manifest `kind` and the label of the Learn sounds pack. */
+        const val LEARN_AUDIO_KIND = "learn-audio"
         const val HTTPS_PREFIX = "https://"
         const val DATA_RELEASE_URL = "https://github.com/shourovrm/awn/releases/download/data-v1"
 
