@@ -795,6 +795,8 @@ class QuranViewModel(
                 wordPopup = null,
                 isPageBookmarked = validPage in bookmarkedPages,
                 isFollowing = isFollowingOn(it.isFollowing, it.playingPage, validPage),
+                layouts = keepPagesNear(it.layouts, validPage),
+                contents = keepPagesNear(it.contents, validPage),
             )
         }
         loadAroundPage(validPage)

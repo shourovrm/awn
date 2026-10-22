@@ -22,7 +22,11 @@ internal data class PageFontKey(val script: ScriptId, val page: Int, val isNight
 /**
  * Keeps the [FontFamily] of the pages near the one on screen. Glyph scripts draw each page with its
  * own font file, so the families are created on demand and dropped once the reader is more than
- * [radius] pages away.
+ * [radius] pages away: the page on screen and two on each side by default.
+ *
+ * A family belongs to a font file, not to a page. A script that draws every page with one font file
+ * shares one family, and so one loaded typeface, between all its pages; a family is released when
+ * no page within [radius] uses its file any more.
  *
  * Colour (tajweed) fonts are cached per day and per night: at night the family is made from a copy
  * of the font whose palette 0 is the night palette (see [NightFontFiles]).
@@ -42,6 +46,9 @@ class PageFontCache(
 
     private val loadLock = Any()
     private val families = ConcurrentHashMap<PageFontKey, FontFamily>()
+
+    /** One family per font file that a cached page uses; guarded by [loadLock]. */
+    private val familiesByFile = HashMap<File, FontFamily>()
     private val prefetchScope = CoroutineScope(SupervisorJob() + prefetchDispatcher)
     private var prefetchJob: Job? = null
 
@@ -72,7 +79,9 @@ class PageFontCache(
             // A missing font is not cached, because the pack may be installed a moment later.
             val file = packs.fontFile(script, page) ?: return null
             val fileToLoad = if (isNight && hasColourPages(script)) nightCopyOrSame(file) else file
-            return createFamily(fileToLoad).also { families[key] = it }
+            val family = familiesByFile.getOrPut(fileToLoad) { createFamily(fileToLoad) }
+            families[key] = family
+            return family
         }
     }
 
@@ -95,14 +104,29 @@ class PageFontCache(
      */
     fun retainAround(centerPage: Int) {
         val nearby = (centerPage - radius)..(centerPage + radius)
-        families.keys.retainAll { key -> key.page in nearby }
+        synchronized(loadLock) {
+            families.keys.retainAll { key -> key.page in nearby }
+            releaseFamiliesNoPageUses()
+        }
         prepareAround(centerPage)
+    }
+
+    /** The number of font files with a family held, so a test can see that old ones are dropped. */
+    val loadedFileCount: Int
+        get() = synchronized(loadLock) { familiesByFile.size }
+
+    private fun releaseFamiliesNoPageUses() {
+        val inUse = families.values.toSet()
+        familiesByFile.values.retainAll(inUse)
     }
 
     /** Forgets everything, for when a pack was installed or removed. */
     fun clear() {
         prefetchJob?.cancel()
-        families.clear()
+        synchronized(loadLock) {
+            families.clear()
+            familiesByFile.clear()
+        }
     }
 
     private fun prepareAround(centerPage: Int) {
@@ -131,8 +155,8 @@ class PageFontCache(
     companion object {
         private const val TAG = "PageFontCache"
 
-        /** Five pages on either side of the current one. */
-        const val DEFAULT_RADIUS = 5
+        /** Two pages on either side of the current one; the same pages are prepared ahead. */
+        const val DEFAULT_RADIUS = 2
 
         /** Two pages on either side of the current one are prepared ahead of a swipe. */
         const val DEFAULT_PREFETCH_RADIUS = 2
