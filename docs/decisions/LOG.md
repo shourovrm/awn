@@ -180,3 +180,4 @@
 2026-10-22 | Leaving the app and Hifz Play stop the microphone with stopMicrophone() | plain session.stop() cleared the marks on next start
 2026-10-22 | Word card: add is an icon in the heading; words get their own reciter setting (Word audio) | listening reciter had no word timings, play button vanished
 2026-10-22 | One local data folder awn-data/ with published/, next/, fonts/, raw/; tools find it through tools/data_paths.py; AWN_DATA_DIR now names the folder that holds published/ | four folders held duplicates and the build read a stale one
+2026-10-23 | versionCode = (MINOR*100+PATCH)*10000 + commits since tag, ABI step 100M | old scheme made the first tag a downgrade from commit-count builds

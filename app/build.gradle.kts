@@ -22,10 +22,9 @@ fun gitOutput(vararg arguments: String): String? {
     return if (succeeded) execution.standardOutput.asText.get().trim() else null
 }
 
-val versionTag =
-    gitOutput("tag", "--points-at", "HEAD")?.lines()?.firstOrNull { it.startsWith("v") }
+val versionDescribe = gitOutput("describe", "--tags", "--match", "v*", "--long")
 val commitCount = gitOutput("rev-list", "--count", "HEAD")?.toIntOrNull() ?: 0
-val awnVersion = AwnVersion.fromGit(exactTag = versionTag, commitCount = commitCount)
+val awnVersion = AwnVersion.fromGit(describe = versionDescribe, commitCount = commitCount)
 
 // ---------------------------------------------------------------------------------------------
 // Signing. Every build is a signed release build; the key never lives in the repository.
