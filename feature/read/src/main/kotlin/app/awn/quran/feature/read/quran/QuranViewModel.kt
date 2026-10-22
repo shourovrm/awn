@@ -20,6 +20,7 @@ import app.awn.quran.feature.read.page.FontPackController
 import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
+import app.awn.quran.feature.read.page.indoPakScripts
 import app.awn.quran.feature.read.page.pageTypeScripts
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 import app.awn.quran.feature.read.settings.PageView
@@ -282,7 +283,11 @@ class QuranViewModel(
             // The saved settings come first, so every entry opens in the saved view and print.
             val saved = dependencies.settingsStore.settings.first()
             mutableState.update {
-                it.copy(settings = saved, printStatuses = fontPacks.statuses.value)
+                it.copy(
+                    settings = saved,
+                    pageCount = dependencies.quranText.pageCount(saved.script),
+                    printStatuses = fontPacks.statuses.value,
+                )
             }
             openPrintOfferIfPending()
             when (target) {
@@ -811,7 +816,9 @@ class QuranViewModel(
                 hasStarted = true,
                 currentPage = validPage,
                 jumpToken = if (movesPager) it.jumpToken + 1 else it.jumpToken,
-                juz = JuzTable.juzOfPage(validPage),
+                juz =
+                    if (it.settings.script in indoPakScripts) it.juz
+                    else JuzTable.juzOfPage(validPage),
                 areBarsVisible = barsVisible,
                 selection = if (keepsSelection) it.selection else null,
                 selectionEnd = if (keepsSelection) it.selectionEnd else null,
@@ -827,11 +834,22 @@ class QuranViewModel(
             )
         }
         loadAroundPage(validPage)
+        updateIndoPakJuz(validPage)
         when (arrival) {
             Arrival.Reading -> resumeTracker.onReading(validPage)
             Arrival.Lookup -> resumeTracker.onLookup(validPage)
         }
         restartReadTimer()
+    }
+
+    /** The IndoPak pages are not the Madani ones, so their juz comes from the text on the page. */
+    private fun updateIndoPakJuz(page: Int) {
+        val script = mutableState.value.settings.script
+        if (script !in indoPakScripts) return
+        viewModelScope.launch {
+            val juz = juzOfFirstAyahOnPage(dependencies.quranText, page, script) ?: return@launch
+            mutableState.update { if (it.currentPage == page) it.copy(juz = juz) else it }
+        }
     }
 
     /** The page and its neighbours, so a swipe either way shows a page at once. */
@@ -955,6 +973,7 @@ class QuranViewModel(
             mutableState.update {
                 it.copy(
                     settings = settings,
+                    pageCount = dependencies.quranText.pageCount(settings.script),
                     layouts = if (scriptChanged) emptyMap() else it.layouts,
                     contents =
                         if (scriptChanged || translationsChanged || wordLanguageChanged) {
@@ -967,7 +986,23 @@ class QuranViewModel(
             val needsReload =
                 scriptChanged || translationsChanged || wordLanguageChanged || viewChanged
             if (mutableState.value.hasStarted && needsReload) {
-                loadAroundPage(mutableState.value.currentPage)
+                val currentPage = mutableState.value.currentPage
+                val pageNow =
+                    if (scriptChanged) {
+                        pageAfterPrintChange(
+                            dependencies.quranText,
+                            currentPage,
+                            previous.script,
+                            settings.script,
+                        )
+                    } else {
+                        currentPage
+                    }
+                if (pageNow == currentPage) {
+                    loadAroundPage(currentPage)
+                } else {
+                    showPage(pageNow, barsVisible = mutableState.value.areBarsVisible)
+                }
             }
         }
     }
@@ -1216,6 +1251,9 @@ class QuranViewModel(
         } catch (_: IllegalStateException) {
             null
         } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: UnsupportedOperationException) {
+            // The IndoPak layouts are not on the phone.
             null
         }
 

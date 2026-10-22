@@ -27,7 +27,7 @@ internal class GlyphPageIndex(
         val unplaced = words.mapTo(mutableSetOf()) { it.key }
         val placed = mutableMapOf<WordKey, Int>()
         var page = quranText.pageOf(ayah, script)
-        while (unplaced.isNotEmpty() && page <= LAST_PAGE) {
+        while (unplaced.isNotEmpty() && page <= quranText.pageCount(script)) {
             val printedHere = wordsPrintedOn(page)
             val found = unplaced.filter { it in printedHere }
             found.forEach { placed[it] = page }
@@ -48,8 +48,4 @@ internal class GlyphPageIndex(
                 .filterIsInstance<LineItem.WordItem>()
                 .mapTo(mutableSetOf()) { item -> item.word.key }
         }
-
-    private companion object {
-        const val LAST_PAGE = 604
-    }
 }

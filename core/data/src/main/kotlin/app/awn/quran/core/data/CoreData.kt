@@ -47,6 +47,12 @@ class CoreData(context: Context) {
                     "The Quran text pack is missing; the build did not bundle quran.sqlite."
                 }
             },
+            indoPakDatabase = {
+                catalog
+                    .findPack(INDOPAK_LAYOUTS_PACK_ID)
+                    ?.let { record -> storage.locate(record) }
+                    ?.let { file -> databases.open(file) }
+            },
         )
 
     val translations: TranslationRepository =
@@ -94,5 +100,6 @@ class CoreData(context: Context) {
 
     private companion object {
         const val QURAN_TEXT_PACK_ID = "quran-text"
+        const val INDOPAK_LAYOUTS_PACK_ID = "indopak-layouts"
     }
 }

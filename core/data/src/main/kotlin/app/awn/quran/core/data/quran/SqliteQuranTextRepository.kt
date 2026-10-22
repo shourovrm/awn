@@ -16,11 +16,13 @@ import kotlinx.coroutines.withContext
 @Suppress("TooManyFunctions") // Interface members plus one private reader per table.
 /**
  * Reads `quran.sqlite` (pack format in docs/packs.md). The file is opened read-only on first use,
- * so [databaseFile] may copy the bundled asset the first time it is called.
+ * so [databaseFile] may copy the bundled asset the first time it is called. The IndoPak layouts
+ * come from `indopak.sqlite`: [indoPakDatabase] returns it, or null while it is not installed.
  */
 class SqliteQuranTextRepository(
     private val databaseFile: () -> File,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val indoPakDatabase: () -> SQLiteDatabase? = { null },
 ) : QuranTextRepository {
 
     private val database: SQLiteDatabase by lazy {
@@ -29,6 +31,12 @@ class SqliteQuranTextRepository(
     }
 
     private val chapterList: List<Chapter> by lazy { readChapters() }
+
+    private val indoPakReader =
+        IndoPakLayoutReader(
+            database = ::requireIndoPakDatabase,
+            uthmaniTextByPosition = ::uthmaniTextByPosition,
+        )
 
     override suspend fun chapters(): List<Chapter> = withContext(ioDispatcher) { chapterList }
 
@@ -51,55 +59,102 @@ class SqliteQuranTextRepository(
 
     override suspend fun pageLayout(page: Int, script: ScriptId): PageLayout =
         withContext(ioDispatcher) {
-            val print = LayoutPrint.of(script)
-            requirePageInRange(page)
-            val wordRows = readWordRows(page, print)
-            val markerRows = readMarkerRows(page, print)
-            val bismillahBySurah = chapterList.associate { it.number to it.bismillahPre }
-            val nextPageStarts =
-                if (page < PAGE_COUNT) readNextPageStarts(page + 1, print) else emptyList()
-            val lines =
-                PageLayoutBuilder.build(wordRows, markerRows, bismillahBySurah, nextPageStarts)
-            PageLayout(page, script, lines)
+            val indoPakPrint = IndoPakPrint.of(script)
+            if (indoPakPrint == null) {
+                madaniPageLayout(page, script)
+            } else {
+                indoPakReader.pageLayout(page, indoPakPrint, bismillahPreBySurah())
+            }
         }
 
     override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int =
         withContext(ioDispatcher) {
-            val print = LayoutPrint.of(script)
-            val cursor =
-                database.rawQuery(
-                    "SELECT ${print.pageColumn} FROM ayah WHERE surah = ? AND ayah = ?",
-                    arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
-                )
-            cursor.use {
-                require(it.moveToFirst()) { "There is no ayah $ayah." }
-                it.getInt(0)
+            val indoPakPrint = IndoPakPrint.of(script)
+            if (indoPakPrint == null) {
+                madaniPageOf(ayah, script)
+            } else {
+                indoPakReader.pageOf(ayah, indoPakPrint)
             }
         }
 
-    override fun pageCount(script: ScriptId): Int {
-        LayoutPrint.of(script)
-        return PAGE_COUNT
-    }
+    override fun pageCount(script: ScriptId): Int = IndoPakPrint.of(script)?.pageCount ?: PAGE_COUNT
 
     override suspend fun ayahsOnPage(page: Int, script: ScriptId): List<AyahRef> =
         withContext(ioDispatcher) {
-            val print = LayoutPrint.of(script)
-            requirePageInRange(page)
-            val cursor =
-                database.rawQuery(
-                    "SELECT DISTINCT surah, ayah FROM word WHERE ${print.pageColumn} = ? " +
-                        "ORDER BY surah, ayah",
-                    arrayOf(page.toString()),
-                )
-            cursor.use {
-                buildList {
-                    while (it.moveToNext()) {
-                        add(AyahRef(it.getInt(0), it.getInt(1)))
-                    }
+            val indoPakPrint = IndoPakPrint.of(script)
+            if (indoPakPrint == null) {
+                madaniAyahsOnPage(page, script)
+            } else {
+                indoPakReader.ayahsOnPage(page, indoPakPrint)
+            }
+        }
+
+    private fun madaniPageLayout(page: Int, script: ScriptId): PageLayout {
+        val print = LayoutPrint.of(script)
+        requirePageInRange(page)
+        val wordRows = readWordRows(page, print)
+        val markerRows = readMarkerRows(page, print)
+        val nextPageStarts =
+            if (page < PAGE_COUNT) readNextPageStarts(page + 1, print) else emptyList()
+        val lines =
+            PageLayoutBuilder.build(wordRows, markerRows, bismillahPreBySurah(), nextPageStarts)
+        return PageLayout(page, script, lines)
+    }
+
+    private fun bismillahPreBySurah(): Map<Int, Boolean> = chapterList.associate {
+        it.number to it.bismillahPre
+    }
+
+    private fun requireIndoPakDatabase(): SQLiteDatabase =
+        indoPakDatabase()
+            ?: throw UnsupportedOperationException("The IndoPak layouts are not installed.")
+
+    /** The Uthmani text of each word of [ayah], keyed by word position. */
+    private fun uthmaniTextByPosition(ayah: AyahRef): Map<Int, String> {
+        val cursor =
+            database.rawQuery(
+                "SELECT position, text_uthmani FROM word WHERE surah = ? AND ayah = ?",
+                arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
+            )
+        return cursor.use {
+            buildMap {
+                while (it.moveToNext()) {
+                    put(it.getInt(0), it.getString(1))
                 }
             }
         }
+    }
+
+    private fun madaniPageOf(ayah: AyahRef, script: ScriptId): Int {
+        val print = LayoutPrint.of(script)
+        val cursor =
+            database.rawQuery(
+                "SELECT ${print.pageColumn} FROM ayah WHERE surah = ? AND ayah = ?",
+                arrayOf(ayah.surah.toString(), ayah.ayah.toString()),
+            )
+        return cursor.use {
+            require(it.moveToFirst()) { "There is no ayah $ayah." }
+            it.getInt(0)
+        }
+    }
+
+    private fun madaniAyahsOnPage(page: Int, script: ScriptId): List<AyahRef> {
+        val print = LayoutPrint.of(script)
+        requirePageInRange(page)
+        val cursor =
+            database.rawQuery(
+                "SELECT DISTINCT surah, ayah FROM word WHERE ${print.pageColumn} = ? " +
+                    "ORDER BY surah, ayah",
+                arrayOf(page.toString()),
+            )
+        return cursor.use {
+            buildList {
+                while (it.moveToNext()) {
+                    add(AyahRef(it.getInt(0), it.getInt(1)))
+                }
+            }
+        }
+    }
 
     @Suppress("MagicNumber") // Column positions of the SELECT list just above.
     private fun readChapters(): List<Chapter> {
@@ -217,8 +272,9 @@ class SqliteQuranTextRepository(
 }
 
 /**
- * Which page and line columns of `word` and `ayah_marker` a script is laid out with. QpcHafs and
- * V4Tajweed use the V2 layout (V4 draws the V2 glyph codes with colour fonts; docs/packs.md).
+ * Which page and line columns of `word` and `ayah_marker` of `quran.sqlite` a script is laid out
+ * with; the IndoPak prints have no entry (see [IndoPakPrint]). QpcHafs and V4Tajweed use the V2
+ * layout (V4 draws the V2 glyph codes with colour fonts; docs/packs.md).
  */
 internal enum class LayoutPrint(
     val pageColumn: String,
@@ -235,9 +291,10 @@ internal enum class LayoutPrint(
                 ScriptId.V2,
                 ScriptId.QpcHafs,
                 ScriptId.V4Tajweed -> V2
-                ScriptId.IndoPak ->
-                    throw UnsupportedOperationException(
-                        "The IndoPak script is not available yet: no IndoPak layout pack exists.",
+                ScriptId.IndoPak15,
+                ScriptId.IndoPak16 ->
+                    throw IllegalArgumentException(
+                        "$script is laid out by indopak.sqlite, not by quran.sqlite.",
                     )
             }
     }

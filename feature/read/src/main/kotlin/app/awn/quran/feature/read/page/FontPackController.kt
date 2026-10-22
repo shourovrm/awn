@@ -36,6 +36,9 @@ data class FontPackStatus(
         get() = failure != null
 }
 
+/** Every print with a status: the three of the print offer, and the IndoPak prints of the list. */
+private val statusScripts = pageTypeScripts + indoPakScripts
+
 /**
  * Tracks, installs and removes the page fonts through the download catalogue. An install runs in
  * the background, so a font keeps downloading when the user leaves the app. The installed list is
@@ -53,14 +56,14 @@ class FontPackController(
     val statuses: StateFlow<Map<ScriptId, FontPackStatus>> =
         catalogue.state
             .map { state ->
-                pageTypeScripts.associateWith { script ->
+                statusScripts.associateWith { script ->
                     statusOf(script, state.rowFor(script.packId))
                 }
             }
             .stateIn(
                 scope,
                 SharingStarted.Eagerly,
-                pageTypeScripts.associateWith { FontPackStatus(it, isInstalled = false) },
+                statusScripts.associateWith { FontPackStatus(it, isInstalled = false) },
             )
 
     /** Downloads and installs the font of [script]; progress and failure show in [statuses]. */

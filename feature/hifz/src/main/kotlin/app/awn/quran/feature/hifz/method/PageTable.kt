@@ -14,24 +14,28 @@ enum class PageLayoutFamily(val storedName: String) {
     Madani1421("madani_1421"),
 
     /** The 1405 print (V1): 604 pages, some of them break at other ayahs than 1421. */
-    Madani1405("madani_1405");
+    Madani1405("madani_1405"),
+
+    /** The IndoPak print of 15 lines a page: 610 pages. */
+    IndoPak15Lines("indopak_15"),
+
+    /** The IndoPak print of 16 lines a page: 548 pages. */
+    IndoPak16Lines("indopak_16");
 
     companion object {
         fun fromStoredName(name: String): PageLayoutFamily =
             entries.firstOrNull { it.storedName == name }
                 ?: error("Unknown page layout '$name' in the hifz database.")
 
-        /**
-         * The pagination the user reads in [script]. IndoPak has no layout data yet, so it reads
-         * the 1421 pages until its own layout exists.
-         */
+        /** The pagination the user reads in [script]. */
         fun of(script: ScriptId): PageLayoutFamily =
             when (script) {
                 ScriptId.V1 -> Madani1405
                 ScriptId.V2,
                 ScriptId.QpcHafs,
-                ScriptId.V4Tajweed,
-                ScriptId.IndoPak -> Madani1421
+                ScriptId.V4Tajweed -> Madani1421
+                ScriptId.IndoPak15 -> IndoPak15Lines
+                ScriptId.IndoPak16 -> IndoPak16Lines
             }
 
         /** The script whose pages the repository reads for this family. */
@@ -39,6 +43,8 @@ enum class PageLayoutFamily(val storedName: String) {
             when (family) {
                 Madani1405 -> ScriptId.V1
                 Madani1421 -> ScriptId.QpcHafs
+                IndoPak15Lines -> ScriptId.IndoPak15
+                IndoPak16Lines -> ScriptId.IndoPak16
             }
     }
 }

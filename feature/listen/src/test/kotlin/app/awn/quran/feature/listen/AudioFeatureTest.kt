@@ -34,7 +34,7 @@ private class PrintAwareQuranText(private val base: FakeQuranTextRepository) :
 
     override suspend fun ayahsOnPage(page: Int, script: ScriptId): List<AyahRef> {
         requestedPrints += script
-        return if (script == ScriptId.IndoPak) {
+        return if (script == ScriptId.IndoPak15) {
             listOf(AyahRef(2, 20), AyahRef(2, 21))
         } else {
             base.ayahsOnPage(page, script)
@@ -121,11 +121,11 @@ class AudioFeatureTest {
         settle()
         assertEquals(AyahRef(2, 10), player.playCalls.last().second)
 
-        feature.useScript(ScriptId.IndoPak)
+        feature.useScript(ScriptId.IndoPak15)
         barViewModel.showPage(5)
         barViewModel.play()
         settle()
         assertEquals(AyahRef(2, 20), player.playCalls.last().second)
-        assertEquals(ScriptId.IndoPak, quranText.requestedPrints.last())
+        assertEquals(ScriptId.IndoPak15, quranText.requestedPrints.last())
     }
 }

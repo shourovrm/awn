@@ -444,7 +444,7 @@ class FilePackRepositoryTest {
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { repository.remove("qpc-hafs") }
         }
-        assertNull(repository.fontFile(ScriptId.IndoPak, 1))
+        assertNull(repository.fontFile(ScriptId.IndoPak15, 1))
     }
 
     @Test

@@ -158,7 +158,11 @@ internal data class SlotGrid(val slotHeightPx: Float, val firstSlotTopPx: Float)
          * The grid of a page [heightPx] tall at the default size: 15 equal slots, or for pages 1
          * and 2 slots 1.2 times taller with the banner centred at 27 % of the height.
          */
-        fun forPageHeight(heightPx: Float, isCentredBlock: Boolean): SlotGrid =
+        fun forPageHeight(
+            heightPx: Float,
+            isCentredBlock: Boolean,
+            slotCount: Int = PageGeometry.SLOTS,
+        ): SlotGrid =
             if (isCentredBlock) {
                 val slotHeight = heightPx / PageGeometry.SLOTS * PageGeometry.CENTRED_SLOT_SCALE
                 SlotGrid(
@@ -167,7 +171,7 @@ internal data class SlotGrid(val slotHeightPx: Float, val firstSlotTopPx: Float)
                         heightPx * PageGeometry.CENTRED_BANNER_CENTER - slotHeight / 2f,
                 )
             } else {
-                SlotGrid(slotHeightPx = heightPx / PageGeometry.SLOTS, firstSlotTopPx = 0f)
+                SlotGrid(slotHeightPx = heightPx / slotCount, firstSlotTopPx = 0f)
             }
     }
 }
@@ -181,14 +185,16 @@ internal data class SlotGrid(val slotHeightPx: Float, val firstSlotTopPx: Float)
  * Pages 1 and 2 ([isCentredBlock]) keep the spacing of normal pages scaled up a little, put the
  * surah banner at 27 % of the height and centre every line; they are not stretched to 15 slots.
  */
+@Suppress("LongParameterList") // Pure placement; the tests call it with these arguments.
 internal fun layoutPage(
     rows: List<PageRow>,
     isCentredBlock: Boolean,
     widthPx: Float,
     heightPx: Float,
     tokenWidthEm: (LineToken) -> Float,
+    slotCount: Int = PageGeometry.SLOTS,
 ): PageGeometry {
-    val grid = SlotGrid.forPageHeight(heightPx, isCentredBlock)
+    val grid = SlotGrid.forPageHeight(heightPx, isCentredBlock, slotCount)
     val widestEm =
         rows.filterIsInstance<PageRow.TextRow>().maxOfOrNull { row ->
             naturalWidthEm(row, tokenWidthEm)

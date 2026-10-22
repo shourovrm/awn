@@ -67,6 +67,39 @@ class FilePackRepository(
 
     override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) {
         val record = requireRecord(entry.id)
+        val steps = withContext(ioDispatcher) { installSteps(record, entry) }
+        val totalBytes = steps.sumOf { step -> step.record.bytes }
+        var finishedBytes = 0L
+        for (step in steps) {
+            val bytesBeforeStep = finishedBytes
+            installOne(step.record, step.entry) { fraction ->
+                onProgress((bytesBeforeStep + fraction * step.record.bytes) / totalBytes)
+            }
+            finishedBytes += step.record.bytes
+        }
+        changeCounter.update { it + 1 }
+        onProgress(1f)
+    }
+
+    /**
+     * What to download for [record]: the packs it requires that are missing or out of date, then
+     * it.
+     */
+    private fun installSteps(record: PackRecord, entry: PackEntry): List<InstallStep> =
+        requirementsToInstall(record).map { required -> InstallStep(required, required.entry) } +
+            InstallStep(record, entry)
+
+    private fun requirementsToInstall(record: PackRecord): List<PackRecord> =
+        record.requires.map(::requireRecord).filter { required ->
+            storage.locate(required) == null ||
+                PackUpdate.isAvailable(storage.installedSha(required), required.entry.sha256)
+        }
+
+    private suspend fun installOne(
+        record: PackRecord,
+        entry: PackEntry,
+        onProgress: (Float) -> Unit,
+    ) {
         withContext(ioDispatcher) {
             installMutex.withLock {
                 val partFile = File(storage.downloadsDirectory, "${record.fileName}.part")
@@ -77,8 +110,6 @@ class FilePackRepository(
                 storage.recordInstalledSha(record, entry.sha256)
             }
         }
-        changeCounter.update { it + 1 }
-        onProgress(1f)
     }
 
     override suspend fun remove(id: String) {
@@ -90,9 +121,28 @@ class FilePackRepository(
             installMutex.withLock {
                 databases.close(storage.locationOf(record))
                 storage.delete(record)
+                removeRequirementsNobodyUses(record)
             }
         }
         changeCounter.update { it + 1 }
+    }
+
+    /** Deletes the packs [removed] required when no other installed pack requires them. */
+    private fun removeRequirementsNobodyUses(removed: PackRecord) {
+        for (requiredId in removed.requires) {
+            val required = requireRecord(requiredId)
+            if (storage.isBundled(required)) continue
+            val isStillRequired =
+                catalog.allPacks.any { other ->
+                    other.entry.id != removed.entry.id &&
+                        requiredId in other.requires &&
+                        storage.locate(other) != null
+                }
+            if (!isStillRequired) {
+                databases.close(storage.locationOf(required))
+                storage.delete(required)
+            }
+        }
     }
 
     @Suppress("ReturnCount") // Each early return is a distinct "not installed" case.
@@ -110,40 +160,52 @@ class FilePackRepository(
         }
     }
 
-    /** Maps a manifest record to its catalogue row; records outside every group are skipped. */
+    /**
+     * Maps a manifest record to its catalogue row; records outside every group are skipped. The
+     * download size and the free space needed count the required packs that are still to come, so a
+     * print with its own layout pack shows the whole cost; the row is installed only when they are
+     * on the phone too.
+     */
     private fun catalogueItemOf(record: PackRecord): CatalogueItem? {
         val group = CatalogueGrouping.groupOf(record, storage.isBundled(record)) ?: return null
         val location = storage.locate(record)
-        val installedSha = storage.installedSha(record)
+        val toInstall = requirementsToInstall(record)
+        val requirements = record.requires.map(::requireRecord)
         return CatalogueItem(
             id = record.entry.id,
             name = record.displayName,
             group = group,
             language = record.language,
-            downloadBytes = record.bytes,
+            downloadBytes = record.bytes + toInstall.sumOf { it.bytes },
             requiredFreeBytes =
-                PackSpace.requiredFreeBytes(
-                    record.layout,
-                    record.bytes,
-                    storage.partialDownloadBytes(record),
-                ),
-            isInstalled = location != null,
+                requiredFreeBytesOf(record) + toInstall.sumOf { requiredFreeBytesOf(it) },
+            isInstalled = location != null && requirements.all { storage.locate(it) != null },
             installedBytes = location?.let { storage.sizeOnDisk(it) },
             isBundled = storage.isBundled(record),
-            hasUpdate =
-                location != null && PackUpdate.isAvailable(installedSha, record.entry.sha256),
+            hasUpdate = location != null && hasUpdate(record, requirements),
             entry = record.entry,
         )
     }
 
+    /**
+     * True when the installed copy of [record], or of a pack it requires, has an older checksum.
+     */
+    private fun hasUpdate(record: PackRecord, requirements: List<PackRecord>): Boolean =
+        (listOf(record) + requirements).any { pack ->
+            storage.locate(pack) != null &&
+                PackUpdate.isAvailable(storage.installedSha(pack), pack.entry.sha256)
+        }
+
+    private fun requiredFreeBytesOf(record: PackRecord): Long =
+        PackSpace.requiredFreeBytes(
+            record.layout,
+            record.bytes,
+            storage.partialDownloadBytes(record),
+        )
+
     /** Fails before any byte is downloaded when the phone cannot hold the pack. */
     private fun requireFreeSpace(record: PackRecord) {
-        val required =
-            PackSpace.requiredFreeBytes(
-                record.layout,
-                record.bytes,
-                storage.partialDownloadBytes(record),
-            )
+        val required = requiredFreeBytesOf(record)
         val free = storage.freeBytes()
         if (PackSpace.shortfall(required, free) > 0) {
             throw PackInstallException(
@@ -252,6 +314,9 @@ class FilePackRepository(
                 bytes = storage.sizeOnDisk(location),
             )
         }
+
+    /** One download of an install: a pack and the manifest entry it is checked against. */
+    private class InstallStep(val record: PackRecord, val entry: PackEntry)
 
     private companion object {
         const val FIRST_PAGE = 1

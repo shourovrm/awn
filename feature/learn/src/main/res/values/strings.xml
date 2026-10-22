@@ -278,7 +278,7 @@
   <string name="track_tajweed">Tajweed</string>
   <string name="track_grammar">Grammar</string>
   <string name="track_words">Quran words</string>
-  <string name="track_opens_after">Opens after Reading unit %d</string>
+  <string name="track_opens_after">Best after Reading unit %d</string>
   <string name="track_next_unit">Unit %1$d of %2$d · %3$s</string>
   <plurals name="track_all_done">
     <item quantity="one">%d unit done</item>

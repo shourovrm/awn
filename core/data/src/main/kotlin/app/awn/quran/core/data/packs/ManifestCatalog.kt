@@ -21,7 +21,8 @@ enum class PackFileLayout {
  * is the label shown by `InstalledPack.kind`: script, font, translation or timing. [fileName] is
  * the basename of the manifest `file` path, which is also the release asset name. [memberCount] is
  * the number of files in a font archive, or null for other layouts. [timingGranularity] is "word"
- * or "ayah" for a timing pack and null for every other kind.
+ * or "ayah" for a timing pack and null for every other kind. [requires] lists the ids of the packs
+ * that must be on the phone for this one to work; they are installed with it.
  */
 data class PackRecord(
     val entry: PackEntry,
@@ -34,6 +35,7 @@ data class PackRecord(
     val language: String? = null,
     val displayName: String,
     val timingGranularity: String? = null,
+    val requires: List<String> = emptyList(),
 )
 
 /** A reciter row of `reciters.json`; [timingPack] is null when the reciter has no timings. */
@@ -54,6 +56,7 @@ class ManifestCatalog(
     private val assets: BundledAssets,
     private val releaseBaseUrl: String = DATA_RELEASE_URL,
     private val supportedFormatVersion: Int = SUPPORTED_FORMAT_VERSION,
+    private val externalUrlPrefix: String = HTTPS_PREFIX,
 ) {
 
     val scriptPacks: List<PackRecord> by lazy {
@@ -126,7 +129,7 @@ class ManifestCatalog(
                 kind = packKindOf(kindLabel),
                 formatVersion = json.getInt("format_version"),
                 sha256 = json.getString("sha256"),
-                downloadUrl = "${releaseBaseUrl.trimEnd('/')}/$fileName",
+                downloadUrl = downloadUrlOf(json, id, fileName),
                 credit =
                     Credit(
                         sourceName = json.getString("credit"),
@@ -142,7 +145,22 @@ class ManifestCatalog(
             layout = layout,
             memberCount = if (json.has("member_count")) json.getInt("member_count") else null,
             displayName = json.optString("name", id),
+            requires = json.stringsOrEmpty("requires"),
         )
+    }
+
+    /**
+     * A pack comes from the data release unless the manifest gives its own `download_url` (the
+     * IndoPak font, which the data release does not host). Either way the app checks the hash and
+     * the size, and an address other than https is refused.
+     */
+    private fun downloadUrlOf(json: JSONObject, id: String, fileName: String): String {
+        val externalUrl = json.stringOrNull("download_url")
+        if (externalUrl == null) return "${releaseBaseUrl.trimEnd('/')}/$fileName"
+        require(externalUrl.startsWith(externalUrlPrefix)) {
+            "Pack '$id' has a download_url that does not start with $externalUrlPrefix: $externalUrl"
+        }
+        return externalUrl
     }
 
     private fun packKindOf(kindLabel: String): PackKind =
@@ -185,9 +203,15 @@ class ManifestCatalog(
 
     companion object {
         const val SUPPORTED_FORMAT_VERSION = 1
+        const val HTTPS_PREFIX = "https://"
         const val DATA_RELEASE_URL = "https://github.com/shourovrm/awn/releases/download/data-v1"
 
         /** The manifests carry no licence text; `docs/packs.md` says it must be confirmed. */
         const val LICENCE_NOT_STATED = "Not stated by the source"
     }
+}
+
+private fun JSONObject.stringsOrEmpty(key: String): List<String> {
+    val values = optJSONArray(key) ?: return emptyList()
+    return (0 until values.length()).map { values.getString(it) }
 }

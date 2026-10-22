@@ -28,7 +28,14 @@ internal fun planPage(
 ): PagePlan {
     val defaultHeightPx = pageHeightFor(size.widthPx, size.bodyHeightPx)
     val defaultGeometry =
-        layoutPage(rows, size.isCentredBlock, size.widthPx, defaultHeightPx, tokenWidthEm)
+        layoutPage(
+            rows,
+            size.isCentredBlock,
+            size.widthPx,
+            defaultHeightPx,
+            tokenWidthEm,
+            size.slotCount,
+        )
     val availableWidth = availableWidthOf(size.widthPx, size.isCentredBlock)
 
     val fontSizePx =

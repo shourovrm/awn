@@ -107,20 +107,28 @@ private fun buttonIf(isOffered: Boolean, @StringRes description: Int, onClick: (
     if (isOffered) PackRowButton(stringResource(description), onClick) else null
 
 /**
- * Returns the name to show for [item]. The three page types have names of their own in the app;
- * every other item keeps the name its manifest gives it.
+ * Returns the name to show for [item]. The page types have names of their own in the app; every
+ * other item keeps the name its manifest gives it.
  */
 @Composable
 fun catalogueItemName(item: CatalogueItem): String {
     val script = ScriptId.entries.firstOrNull { it.packId == item.id }
     val baseName =
         if (item.group == CatalogueGroup.PageType && script != null) {
-            stringResource(pageTypeText(script).name)
+            stringResource(pageTypeNameOf(script))
         } else {
             item.name
         }
     return translationNameWithNote(baseName, item.id)
 }
+
+@StringRes
+private fun pageTypeNameOf(script: ScriptId): Int =
+    when (script) {
+        ScriptId.IndoPak15 -> R.string.print_name_indopak_15
+        ScriptId.IndoPak16 -> R.string.print_name_indopak_16
+        else -> pageTypeText(script).name
+    }
 
 /** The line under an item name: its size, its progress or why the download failed. */
 @Composable

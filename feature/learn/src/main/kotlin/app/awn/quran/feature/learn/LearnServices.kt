@@ -44,6 +44,12 @@ class LearnServices private constructor(context: Context) {
     val snippets = SnippetRepository(context.assets)
     val courseRepository = WordCourseRepository(database)
 
+    /**
+     * For records that must be written after the screen that asked for them is gone: a screen's own
+     * scope is cancelled when it leaves, which can cancel the database transaction half way.
+     */
+    val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     // Reading the lesson file and the word ranking takes tens of milliseconds, so it happens once,
     // off the main thread, when a screen first asks for it.
     private val loadingCourseAssets: Deferred<CourseAssets> =

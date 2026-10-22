@@ -1,11 +1,11 @@
 package app.awn.quran.feature.learn
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.QuranTextRepository
@@ -40,16 +40,22 @@ internal fun OneLessonRoute(
         }
         return
     }
-    val scope = rememberCoroutineScope()
-    val repository = course.dependencies.services.courseRepository
+    val services = course.dependencies.services
     val track = route.track
-    val onBack = {
-        if (track != null) {
-            scope.launch { repository.finishLesson(route.id, lessonReadStep(route.id)) }
-            onRouteChange(LearnRoute.Track(track))
-        } else {
-            onRouteChange(LearnRoute.Hub)
+    // Leaving by the bar arrow or by the system back gesture both end here, so the record is made
+    // when the screen goes, in a scope that outlives it.
+    DisposableEffect(route.id, track) {
+        onDispose {
+            if (track != null) {
+                services.backgroundScope.launch {
+                    services.courseRepository.finishLesson(route.id, lessonReadStep(route.id))
+                }
+            }
         }
+    }
+    val onBack = {
+        val backRoute = if (track != null) LearnRoute.Track(track) else LearnRoute.Hub
+        onRouteChange(backRoute)
     }
     LessonRoute(content.lessons.firstOrNull { it.id == route.id }, content, onBack, modifier)
 }

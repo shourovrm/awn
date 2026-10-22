@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read.page
 
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
@@ -29,7 +30,31 @@ internal fun headerChapter(layout: PageLayout, chapters: List<Chapter>): Chapter
 internal data class PageHeaderInfo(val juz: Int, val startingQuarter: Quarter?)
 
 internal fun pageHeaderInfo(layout: PageLayout): PageHeaderInfo =
-    PageHeaderInfo(
-        juz = JuzTable.juzOfPage(layout.page),
-        startingQuarter = Quarters.startingOnPage(layout.page, layout.script).firstOrNull(),
-    )
+    if (layout.script in indoPakScripts) {
+        indoPakHeaderInfo(layout)
+    } else {
+        PageHeaderInfo(
+            juz = JuzTable.juzOfPage(layout.page),
+            startingQuarter = Quarters.startingOnPage(layout.page, layout.script).firstOrNull(),
+        )
+    }
+
+/**
+ * The Madani page tables do not fit the IndoPak pages, so the juz and the quarter come from the
+ * words on the page: the juz of its first ayah, and the quarter whose first word is printed here.
+ */
+private fun indoPakHeaderInfo(layout: PageLayout): PageHeaderInfo {
+    val keys =
+        layout.lines.flatMap { it.items }.filterIsInstance<LineItem.WordItem>().map { it.word.key }
+    val firstAyah = keys.firstOrNull()?.let { AyahRef(it.surah, it.ayah) }
+    val startingQuarter =
+        Quarters.all.firstOrNull { quarter ->
+            keys.any { key ->
+                key.wordPosition == 1 &&
+                    key.surah == quarter.firstAyah.surah &&
+                    key.ayah == quarter.firstAyah.ayah
+            }
+        }
+    val juz = firstAyah?.let { Quarters.containing(it).juz } ?: 1
+    return PageHeaderInfo(juz = juz, startingQuarter = startingQuarter)
+}
