@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,6 +73,7 @@ const val HIFZ_BAR_PREVIOUS_TAG = "hifz-bar-previous"
 const val HIFZ_BAR_NEXT_TAG = "hifz-bar-next"
 const val HIFZ_BAR_REPEAT_TAG = "hifz-bar-repeat"
 const val HIFZ_BAR_MIC_TAG = "hifz-bar-mic"
+const val HIFZ_BAR_PART_TAG = "hifz-bar-part"
 const val HIFZ_BAR_FINISH_TAG = "hifz-bar-finish"
 const val HIFZ_BAR_CLOSE_TAG = "hifz-bar-close"
 
@@ -79,6 +81,12 @@ const val HIFZ_BAR_CLOSE_TAG = "hifz-bar-close"
 const val HIFZ_BAR_GRADE_TAG_PREFIX = "hifz-bar-grade-"
 
 private const val DISABLED_ALPHA = 0.38f
+private const val CHIP_ALPHA = 0.14f
+private const val HEADER_ALPHA = 0.7f
+
+// Six buttons and the pill share 360 dp: with 44 dp buttons the pill keeps about 60 dp.
+private val BAR_BUTTON_SIZE = 44.dp
+private val BAR_PADDING = 4.dp
 private val repeatChoices = listOf(1, 3, 5, 10, 20)
 
 /** The colours of the bar; in Awn mode the main button is the ochre of the mushaf's rosettes. */
@@ -196,12 +204,12 @@ fun HifzBar(
 
     Column(
         modifier
-            .padding(horizontal = AwnSpacing.screenMargin)
+            .padding(horizontal = AwnSpacing.dockFloatGap)
             .padding(bottom = AwnSpacing.dockFloatGap)
             .fillMaxWidth()
             .clip(AwnShapes.control)
             .background(colors.background)
-            .padding(AwnSpacing.small)
+            .padding(BAR_PADDING)
             .testTag(HIFZ_BAR_TAG),
     ) {
         if (barMode == ReciteBarMode.Preparing) {
@@ -211,16 +219,6 @@ fun HifzBar(
             }
             return@Column
         }
-        TitleRow(
-            request = current,
-            currentAyah = currentWord?.let { AyahRef(it.surah, it.ayah) },
-            colors = colors,
-            onFinish = { isFinishing = true },
-            onClose = {
-                controller.cancelPractice()
-                onExit()
-            },
-        )
         if (isFinishing) {
             val didRecite = phase == RecitationPhase.Stopped || phase == RecitationPhase.Listening
             val suggested =
@@ -241,11 +239,18 @@ fun HifzBar(
             }
             return@Column
         }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            PartChip(
+                request = current,
+                currentAyah = currentWord?.let { AyahRef(it.surah, it.ayah) },
+                colors = colors,
+                onFinish = { isFinishing = true },
+                onClose = {
+                    controller.cancelPractice()
+                    onExit()
+                },
+                modifier = Modifier.weight(1f),
+            )
             BarToggle(
                 icon =
                     if (hideWords) R.drawable.ic_hifz_hide_words else R.drawable.ic_hifz_show_words,
@@ -306,57 +311,94 @@ fun HifzBar(
     }
 }
 
+/**
+ * The part's name and ayah as a pill at the start of the bar. Tapping it opens a menu with a muted
+ * line saying what is practised, Finish part and Close. The text shortens with "..." before any
+ * other button of the bar loses room.
+ */
 @Composable
-private fun TitleRow(
+private fun PartChip(
     request: PracticeRequest,
     currentAyah: AyahRef?,
     colors: HifzBarColors,
     onFinish: () -> Unit,
     onClose: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val secondLine =
+    var isOpen by remember { mutableStateOf(false) }
+    val title = partTitle(request.kind, request.method)
+    val detail =
         if (request.kind == PartKind.NewLesson) {
             stringResource(R.string.bar_ayah, (currentAyah ?: request.firstAyah).ayah)
         } else {
             pagesText(request.pages)
         }
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f).padding(horizontal = AwnSpacing.small)) {
+    val range = ayahRangeText(request.firstAyah, request.lastAyah)
+    val header = listOf(title, range, detail).joinToString(" \u00b7 ")
+    Box(modifier) {
+        Row(
+            Modifier.defaultMinSize(minHeight = BAR_BUTTON_SIZE)
+                .clip(AwnShapes.control)
+                .background(colors.content.copy(alpha = CHIP_ALPHA))
+                .clickable(role = Role.Button) { isOpen = true }
+                .testTag(HIFZ_BAR_PART_TAG)
+                .padding(start = AwnSpacing.small, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = partTitle(request.kind, request.method),
+                text = "$title $detail",
                 style = AwnTypography.bodyStrong,
                 color = colors.content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
             )
-            Text(
-                text = secondLine,
-                style = AwnTypography.small,
-                color = colors.content,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            Icon(
+                painter = painterResource(R.drawable.ic_hifz_more),
+                contentDescription = null,
+                tint = colors.content,
             )
         }
-        BarButton(
-            icon = R.drawable.ic_hifz_done,
-            description = stringResource(R.string.bar_finish),
-            onClick = onFinish,
-            tag = HIFZ_BAR_FINISH_TAG,
-            colors = colors,
-        )
-        BarButton(
-            icon = R.drawable.ic_hifz_close,
-            description = stringResource(R.string.bar_close),
-            onClick = onClose,
-            tag = HIFZ_BAR_CLOSE_TAG,
-            colors = colors,
-        )
+        DropdownMenu(
+            expanded = isOpen,
+            onDismissRequest = { isOpen = false },
+            containerColor = Awn.field.background,
+        ) {
+            Text(
+                text = header,
+                style = AwnTypography.small,
+                color = Awn.field.content.copy(alpha = HEADER_ALPHA),
+                modifier = Modifier.padding(horizontal = AwnSpacing.medium, vertical = 4.dp),
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(R.string.bar_finish_part), style = AwnTypography.body)
+                },
+                onClick = {
+                    isOpen = false
+                    onFinish()
+                },
+                modifier = Modifier.testTag(HIFZ_BAR_FINISH_TAG),
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.bar_close), style = AwnTypography.body) },
+                onClick = {
+                    isOpen = false
+                    onClose()
+                },
+                modifier = Modifier.testTag(HIFZ_BAR_CLOSE_TAG),
+            )
+        }
     }
 }
+
+/** "2:255-257" for one surah, "2:285-3:2" across two, "2:255" for one ayah. */
+internal fun ayahRangeText(first: AyahRef, last: AyahRef): String =
+    when {
+        first == last -> "${first.surah}:${first.ayah}"
+        first.surah == last.surah -> "${first.surah}:${first.ayah}-${last.ayah}"
+        else -> "${first.surah}:${first.ayah}-${last.surah}:${last.ayah}"
+    }
 
 @Composable
 private fun PreparingRow(colors: HifzBarColors, onClose: () -> Unit) {
@@ -443,27 +485,24 @@ private fun RepeatButton(count: Int, onChange: (Int) -> Unit, colors: HifzBarCol
     var isOpen by remember { mutableStateOf(false) }
     val description = stringResource(R.string.bar_repeat)
     Box {
-        Row(
-            Modifier.defaultMinSize(
-                    minWidth = AwnSpacing.touchTarget,
-                    minHeight = AwnSpacing.touchTarget,
-                )
+        Box(
+            Modifier.requiredSize(BAR_BUTTON_SIZE)
                 .semantics { contentDescription = description }
                 .clickable(role = Role.Button) { isOpen = true }
                 .testTag(HIFZ_BAR_REPEAT_TAG),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_hifz_repeat),
                 contentDescription = null,
                 tint = colors.content,
             )
+            // The count sits over the corner of the icon to keep the button 44 dp wide.
             Text(
                 text = stringResource(R.string.bar_repeat_value, count),
-                style = AwnTypography.small,
+                style = AwnTypography.caption,
                 color = colors.content,
-                modifier = Modifier.padding(start = 4.dp, end = AwnSpacing.small),
+                modifier = Modifier.align(Alignment.TopEnd).padding(top = 4.dp, end = 4.dp),
             )
         }
         DropdownMenu(
@@ -505,7 +544,7 @@ private fun MicrophoneButton(
         stringResource(if (listening) R.string.bar_stop_reciting else R.string.bar_recite)
     Box(
         modifier =
-            Modifier.requiredSize(AwnSpacing.touchTarget)
+            Modifier.requiredSize(BAR_BUTTON_SIZE)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(AwnShapes.control)
                 .background(colors.primaryFill)
@@ -534,7 +573,7 @@ private fun BarButton(
 ) {
     Box(
         modifier =
-            Modifier.requiredSize(AwnSpacing.touchTarget)
+            Modifier.requiredSize(BAR_BUTTON_SIZE)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .semantics { contentDescription = description }
                 .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
@@ -557,7 +596,7 @@ private fun BarToggle(
 ) {
     Box(
         modifier =
-            Modifier.requiredSize(AwnSpacing.touchTarget)
+            Modifier.requiredSize(BAR_BUTTON_SIZE)
                 .semantics { contentDescription = description }
                 .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
                 .testTag(tag),

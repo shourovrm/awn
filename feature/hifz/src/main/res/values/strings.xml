@@ -115,8 +115,8 @@
   <string name="bar_repeat_value">×%d</string>
   <string name="bar_recite">Recite</string>
   <string name="bar_stop_reciting">Stop reciting</string>
-  <string name="bar_finish">Finish</string>
   <string name="bar_close">Close</string>
+  <string name="bar_finish_part">Finish part</string>
   <string name="bar_getting_ready">Getting ready</string>
   <string name="bar_ayah">Ayah %d</string>
   <string name="bar_page">Page %d</string>
