@@ -82,6 +82,7 @@ internal class HubActions(
     val onSources: () -> Unit,
     val onDownloadMeanings: () -> Unit,
     val onLesson: (String) -> Unit,
+    val onChangeChoices: () -> Unit,
 )
 
 private val SESSION_MINUTES = listOf(5, 10, 15)
@@ -447,6 +448,10 @@ private fun MoreRows(state: HubState, actions: HubActions) {
         selected = state.sessionMinutes,
         optionLabel = { stringResource(R.string.course_minutes, it) },
         onSelect = actions.onSessionMinutes,
+    )
+    SettingsLinkRow(
+        label = stringResource(R.string.course_change_choices),
+        onClick = actions.onChangeChoices,
     )
     SettingsLinkRow(label = stringResource(R.string.course_sources), onClick = actions.onSources)
 }

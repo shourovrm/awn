@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.theme.Awn
@@ -148,8 +149,9 @@ private fun CoverageChart(progress: CourseProgress) {
         Text(text = formatCount(0), style = AwnTypography.small, color = Awn.field.mutedContent)
         Text(
             text =
-                stringResource(
-                    R.string.progress_chart_you,
+                pluralStringResource(
+                    R.plurals.progress_chart_you,
+                    progress.wordsKnown,
                     progress.wordsKnown,
                     (progress.coverage * PERCENT).roundToInt(),
                 ),

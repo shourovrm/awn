@@ -108,6 +108,7 @@
   </plurals>
   <string name="course_session_length">প্রতিদিনের সময়</string>
   <string name="course_minutes">%d মিনিট</string>
+  <string name="course_change_choices">অক্ষর ও প্রতিদিনের সময়</string>
   <string name="course_sources">সূত্র</string>
   <string name="course_meanings_title">শব্দের অর্থ</string>
   <string name="course_meanings_download">ডাউনলোড</string>
@@ -151,16 +152,35 @@
   <!-- End of a day -->
   <string name="end_title">আজকের পাঠ শেষ</string>
   <string name="end_quiz_title">কুইজ শেষ</string>
-  <string name="end_summary">%1$dটি শব্দ ঝালাই, %2$dটি নতুন শব্দ।</string>
+  <plurals name="end_summary_revised">
+    <item quantity="one">%dটি শব্দ ঝালাই</item>
+    <item quantity="other">%dটি শব্দ ঝালাই</item>
+  </plurals>
+  <plurals name="end_summary_new">
+    <item quantity="one">%dটি নতুন শব্দ</item>
+    <item quantity="other">%dটি নতুন শব্দ</item>
+  </plurals>
+  <string name="end_summary_join">%1$s, %2$s।</string>
   <string name="end_quiz_summary">%2$dটির মধ্যে %1$dটি সঠিক।</string>
   <string name="end_known">শব্দ জানা। কুরআনের সব শব্দের %d%% এগুলো।</string>
   <string name="end_last_ayah">আপনার শেষ আয়াত, %s</string>
-  <string name="end_last_ayah_known">এখানে %2$dটির মধ্যে %1$dটি শব্দ আপনি জানেন।</string>
+  <plurals name="end_last_ayah_known">
+    <item quantity="one">এখানে %2$dটির মধ্যে %1$dটি শব্দ আপনি জানেন।</item>
+    <item quantity="other">এখানে %2$dটির মধ্যে %1$dটি শব্দ আপনি জানেন।</item>
+  </plurals>
   <string name="end_words_met">দেখা শব্দ</string>
   <string name="end_words_known">জানা শব্দ</string>
   <string name="end_range">%1$d থেকে %2$d</string>
   <string name="end_tomorrow">আগামীকাল</string>
-  <string name="end_tomorrow_detail">%1$dটি শব্দ ঝালাই, তারপর %2$dটি নতুন শব্দ।</string>
+  <plurals name="end_tomorrow_detail_revise">
+    <item quantity="one">%dটি শব্দ ঝালাই</item>
+    <item quantity="other">%dটি শব্দ ঝালাই</item>
+  </plurals>
+  <plurals name="end_tomorrow_detail_new">
+    <item quantity="one">%dটি নতুন শব্দ</item>
+    <item quantity="other">%dটি নতুন শব্দ</item>
+  </plurals>
+  <string name="end_tomorrow_detail_join">%1$s, তারপর %2$s।</string>
   <string name="end_done">শেষ</string>
 
   <!-- Word list and word page -->
@@ -185,7 +205,10 @@
   </plurals>
   <string name="word_rank">ক্রম</string>
   <string name="word_state">অবস্থা</string>
-  <string name="word_state_known_back">জানা, %d দিন পরে আবার আসবে</string>
+  <plurals name="word_state_known_back">
+    <item quantity="one">জানা, %d দিন পরে আবার আসবে</item>
+    <item quantity="other">জানা, %d দিন পরে আবার আসবে</item>
+  </plurals>
   <string name="word_state_known">জানা</string>
   <string name="word_state_learning">শিখছি</string>
   <string name="word_state_not_met">এখনো না</string>
@@ -219,7 +242,10 @@
   <string name="progress_known_share">কুরআনের সব শব্দের %d%% এগুলো।</string>
   <string name="progress_chart_title">কুরআনের যতটা ঢাকা পড়েছে</string>
   <string name="progress_chart_axis">জানা শব্দ, সবচেয়ে বেশি আসা আগে</string>
-  <string name="progress_chart_you">আপনি: %1$dটি শব্দ, %2$d%%</string>
+  <plurals name="progress_chart_you">
+    <item quantity="one">আপনি: %1$dটি শব্দ, %2$d%%</item>
+    <item quantity="other">আপনি: %1$dটি শব্দ, %2$d%%</item>
+  </plurals>
   <string name="progress_known_caption">জানা শব্দ</string>
 
   <!-- Sources -->

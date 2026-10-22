@@ -23,15 +23,24 @@ class PluralStringsTest {
     @Test
     fun theCountedLinesArePlurals() {
         val counted =
-            listOf("end_summary", "end_tomorrow_detail", "word_state_known_back", "progress_chart_you")
+            listOf(
+                "end_summary",
+                "end_tomorrow_detail",
+                "word_state_known_back",
+                "progress_chart_you",
+            )
         counted.forEach { name ->
-            assertTrue("$name should be a <plurals> in English", english.contains("<plurals name=\"$name"))
+            assertTrue(
+                "$name should be a <plurals> in English",
+                english.contains("<plurals name=\"$name"),
+            )
         }
     }
 
     @Test
     fun englishPluralsHaveAOneForm() {
-        val pluralBlocks = Regex("""<plurals name="([^"]+)">(.*?)</plurals>""", RegexOption.DOT_MATCHES_ALL)
+        val pluralBlocks =
+            Regex("""<plurals name="([^"]+)">(.*?)</plurals>""", RegexOption.DOT_MATCHES_ALL)
         pluralBlocks.findAll(english).forEach { block ->
             assertTrue(
                 "${block.groupValues[1]} has no quantity=\"one\"",

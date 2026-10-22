@@ -143,6 +143,7 @@ internal fun CourseRoutes(
         )
     when (route) {
         LearnRoute.FirstOpen -> FirstOpenRoute(context, modifier)
+        LearnRoute.CourseChoices -> CourseChoicesRoute(context, modifier)
         LearnRoute.Hub ->
             HubRoute(
                 context,
@@ -192,6 +193,23 @@ private fun FirstOpenRoute(context: CourseScreenContext, modifier: Modifier) {
     )
 }
 
+/** The first screen again, with today's choices ticked; saving keeps the cards and progress. */
+@Composable
+private fun CourseChoicesRoute(context: CourseScreenContext, modifier: Modifier) {
+    FirstOpenScreen(
+        initial = FirstChoices(context.choices.includeLetters, context.choices.sessionMinutes),
+        onContinue = { picked ->
+            context.scope.launch {
+                val settings = context.services.settings
+                settings.setIncludeLetters(picked.includeLetters)
+                settings.setSessionMinutes(picked.minutes)
+                context.goHub()
+            }
+        },
+        modifier = modifier,
+    )
+}
+
 private fun hubActions(
     context: CourseScreenContext,
     dueAyahs: List<AyahRef>,
@@ -224,6 +242,7 @@ private fun hubActions(
             )
         },
         onLesson = { context.onRouteChange(LearnRoute.OneLesson(it)) },
+        onChangeChoices = { context.onRouteChange(LearnRoute.CourseChoices) },
     )
 
 @Composable

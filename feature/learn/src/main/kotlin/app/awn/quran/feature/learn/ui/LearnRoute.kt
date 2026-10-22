@@ -6,6 +6,9 @@ internal sealed interface LearnRoute {
 
     data object Hub : LearnRoute
 
+    /** The letters and daily time choices of the first screen, opened again from the hub. */
+    data object CourseChoices : LearnRoute
+
     /** [isOwnQuiz] is true for a quiz the user started, which never changes the schedule. */
     data class Session(val isOwnQuiz: Boolean) : LearnRoute
 

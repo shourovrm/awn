@@ -41,6 +41,7 @@ class CourseRenderTest {
             onSources = {},
             onDownloadMeanings = {},
             onLesson = {},
+            onChangeChoices = {},
         )
 
     private fun hubState(plan: TodayPlan) =
@@ -130,5 +131,6 @@ class CourseRenderTest {
             onSources = onSources,
             onDownloadMeanings = onDownloadMeanings,
             onLesson = onLesson,
+            onChangeChoices = onChangeChoices,
         )
 }

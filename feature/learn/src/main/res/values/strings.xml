@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <string name="learn_title">Learn</string>
   <string name="learn_progress_link">Progress</string>
   <string name="learn_streak_caption">days in a row</string>
@@ -68,7 +68,7 @@
     <item quantity="one">%d word to revise</item>
     <item quantity="other">%d words to revise</item>
   </plurals>
-  <string name="course_today_new" tools:ignore="PluralsCandidate">%d new</string>
+  <string name="course_today_new">%d new</string>
   <string name="course_today_lesson">one short lesson</string>
   <string name="course_heading">Course</string>
   <string name="course_progress_heading">Progress</string>
@@ -81,10 +81,10 @@
     <item quantity="other">%d steps done</item>
   </plurals>
   <string name="course_set_title">Set %d · 10 words</string>
-  <string name="course_set_known" tools:ignore="PluralsCandidate">%d known</string>
-  <string name="course_set_left" tools:ignore="PluralsCandidate">%d left to start</string>
+  <string name="course_set_known">%d known</string>
+  <string name="course_set_left">%d left to start</string>
   <string name="course_lesson_title">Lesson · %s</string>
-  <string name="course_lesson_reason" tools:ignore="PluralsCandidate">Set %1$d brought %2$s, %3$s</string>
+  <string name="course_lesson_reason">Set %1$d brought %2$s, %3$s</string>
   <string name="course_basics">Basics</string>
   <string name="course_later">Later</string>
   <string name="course_later_from">From set %d</string>
@@ -97,7 +97,7 @@
   <string name="course_coverage_title">%d%% of the Quran</string>
   <string name="course_coverage_detail">Covered by the words you know</string>
   <string name="course_word_list">Word list</string>
-  <string name="course_word_list_detail" tools:ignore="PluralsCandidate">%1$d met · %2$d known</string>
+  <string name="course_word_list_detail">%1$d met · %2$d known</string>
   <string name="course_quiz">Quiz on my own</string>
   <string name="course_tajweed">Tajweed lessons</string>
   <string name="course_reading_progress">Reading progress</string>
@@ -108,6 +108,7 @@
   </plurals>
   <string name="course_session_length">Time each day</string>
   <string name="course_minutes">%d min</string>
+  <string name="course_change_choices">Letters and daily time</string>
   <string name="course_sources">Sources</string>
   <string name="course_meanings_title">Word meanings</string>
   <string name="course_meanings_download">Download</string>
@@ -151,16 +152,35 @@
   <!-- End of a day -->
   <string name="end_title">Done for today</string>
   <string name="end_quiz_title">Quiz finished</string>
-  <string name="end_summary" tools:ignore="PluralsCandidate">%1$d words revised, %2$d new words.</string>
-  <string name="end_quiz_summary" tools:ignore="PluralsCandidate">%1$d of %2$d right.</string>
+  <plurals name="end_summary_revised">
+    <item quantity="one">%d word revised</item>
+    <item quantity="other">%d words revised</item>
+  </plurals>
+  <plurals name="end_summary_new">
+    <item quantity="one">%d new word</item>
+    <item quantity="other">%d new words</item>
+  </plurals>
+  <string name="end_summary_join">%1$s, %2$s.</string>
+  <string name="end_quiz_summary">%1$d of %2$d right.</string>
   <string name="end_known">words known. They make up %d%% of all words in the Quran.</string>
   <string name="end_last_ayah">Your last ayah, %s</string>
-  <string name="end_last_ayah_known" tools:ignore="PluralsCandidate">You know %1$d of %2$d words here.</string>
+  <plurals name="end_last_ayah_known">
+    <item quantity="one">You know %1$d of %2$d word here.</item>
+    <item quantity="other">You know %1$d of %2$d words here.</item>
+  </plurals>
   <string name="end_words_met">Words met</string>
   <string name="end_words_known">Words known</string>
   <string name="end_range">%1$d to %2$d</string>
   <string name="end_tomorrow">Tomorrow</string>
-  <string name="end_tomorrow_detail" tools:ignore="PluralsCandidate">%1$d words to revise, then %2$d new words.</string>
+  <plurals name="end_tomorrow_detail_revise">
+    <item quantity="one">%d word to revise</item>
+    <item quantity="other">%d words to revise</item>
+  </plurals>
+  <plurals name="end_tomorrow_detail_new">
+    <item quantity="one">%d new word</item>
+    <item quantity="other">%d new words</item>
+  </plurals>
+  <string name="end_tomorrow_detail_join">%1$s, then %2$s.</string>
   <string name="end_done">Done</string>
 
   <!-- Word list and word page -->
@@ -185,7 +205,10 @@
   </plurals>
   <string name="word_rank">Rank</string>
   <string name="word_state">State</string>
-  <string name="word_state_known_back" tools:ignore="PluralsCandidate">Known, back in %d days</string>
+  <plurals name="word_state_known_back">
+    <item quantity="one">Known, back in %d day</item>
+    <item quantity="other">Known, back in %d days</item>
+  </plurals>
   <string name="word_state_known">Known</string>
   <string name="word_state_learning">Learning</string>
   <string name="word_state_not_met">Not yet</string>
@@ -219,7 +242,10 @@
   <string name="progress_known_share">They make up %d%% of all words in the Quran.</string>
   <string name="progress_chart_title">Share of the Quran covered</string>
   <string name="progress_chart_axis">Words known, most frequent first</string>
-  <string name="progress_chart_you" tools:ignore="PluralsCandidate">You: %1$d words, %2$d%%</string>
+  <plurals name="progress_chart_you">
+    <item quantity="one">You: %1$d word, %2$d%%</item>
+    <item quantity="other">You: %1$d words, %2$d%%</item>
+  </plurals>
   <string name="progress_known_caption">words known</string>
 
   <!-- Sources -->

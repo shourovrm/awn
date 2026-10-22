@@ -171,3 +171,5 @@
 2026-10-22 | Audio bar ends with a Recite microphone; the playing bar drops the speed button | combined bar needs room for it (player.md)
 2026-10-22 | A page tap shrinks a busy bottom bar to a corner button instead of hiding or ending it | combined bar (read.md)
 2026-10-22 | :app gives the audio bar onRecite and the screen isAudioActive | the combined bar needs both (player.md, read.md)
+2026-10-22 | Hub row "Letters and daily time" reopens the first-open choices; saving keeps cards and progress | users could not undo "I cannot read letters" (learn.md)
+2026-10-22 | Counted Learn strings are plurals; PluralsCandidate ignores removed | English read "1 words" (learn.md)
