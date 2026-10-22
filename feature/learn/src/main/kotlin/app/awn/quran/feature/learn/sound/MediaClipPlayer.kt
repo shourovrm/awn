@@ -13,6 +13,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * calling coroutine ends the one that is playing, and the coroutine that waited for it goes on. A
  * clip that cannot be read ends at once, so a damaged file never leaves "Play all" waiting.
  */
+// An unreadable clip counts as played, so the catches below end it and say nothing.
+@Suppress("SwallowedException")
 class MediaClipPlayer : ClipPlayer {
 
     /** Ends the clip that is playing now; null when nothing plays. */

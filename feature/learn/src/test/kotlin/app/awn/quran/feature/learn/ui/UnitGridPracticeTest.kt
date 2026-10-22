@@ -55,6 +55,7 @@ class UnitGridPracticeTest {
             {"kind":"screen","title":"Fatha","blocks":[{"type":"paragraph","text":"A small stroke."}]},
             {"kind":"grid","title":"Fatha","cells":[
               {"arabic":"بَ","transliteration":"ba","clip":"qaida-04/012"},
+              {"arabic":"حَ","transliteration":"\u09B9\u09BC\u09BE","clip":"qaida-04/016"},
               {"arabic":"تَ","transliteration":"ta","clip":"qaida-04/013+qaida-04/014"}]},
             $practiceScreens
             ]}}}]}""",
@@ -93,8 +94,10 @@ class UnitGridPracticeTest {
         show()
 
         composeRule.onNodeWithText("A small stroke.").assertIsDisplayed()
-        assertEquals(2, composeRule.onAllNodesWithTag(GRID_CELL_TAG).fetchSemanticsNodes().size)
+        assertEquals(3, composeRule.onAllNodesWithTag(GRID_CELL_TAG).fetchSemanticsNodes().size)
         composeRule.onNodeWithText("ba").assertIsDisplayed()
+        // The Bangla label keeps its combining nukta (U+09BC) as the lesson file writes it.
+        composeRule.onNodeWithText("\u09B9\u09BC\u09BE").assertExists()
         composeRule.onNodeWithText("1 of 3").assertIsDisplayed()
     }
 
@@ -102,7 +105,7 @@ class UnitGridPracticeTest {
     fun aTapOnACellPlaysItsSoundsInOrder() {
         show()
 
-        composeRule.onAllNodesWithTag(GRID_CELL_TAG)[1].performClick()
+        composeRule.onAllNodesWithTag(GRID_CELL_TAG)[2].performClick()
         composeRule.waitForIdle()
 
         assertEquals(listOf(listOf("qaida-04/013", "qaida-04/014") to 1f), sounds.clipRequests)
@@ -116,7 +119,11 @@ class UnitGridPracticeTest {
         composeRule.waitForIdle()
 
         assertEquals(
-            listOf(listOf("qaida-04/012"), listOf("qaida-04/013", "qaida-04/014")),
+            listOf(
+                listOf("qaida-04/012"),
+                listOf("qaida-04/016"),
+                listOf("qaida-04/013", "qaida-04/014"),
+            ),
             sounds.clipRequests.map { it.first },
         )
     }

@@ -193,3 +193,4 @@
 2026-10-23 | Tajweed track reads the nine tajweed units; old JSON lessons and loader removed; done ids carried over by LegacyLessonProgress | no lost progress (learn.md)
 2026-10-23 | Learn sounds are a learn-audio entry in scripts.json (zip of qaida-NN/NNN.opus), group LearnAudio, extracted to packs/learn-audio/<id> | reuses font-zip install, no new manifest file (learn.md)
 2026-10-23 | Reading units use the ten Qaida-order files; unit pages show grids and a seeded 10-item practice; read-aloud items count as done | matches mock A (learn.md)
+2026-10-23 | Lesson sounds row in Settings > Downloads, credits for Qaida, academy and tajweed book, Bangla Reading units added | completes the guide (learn.md)

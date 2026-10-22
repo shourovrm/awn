@@ -162,13 +162,14 @@ class FilePackRepository(
     }
 
     override fun learnAudioFile(clipId: String): File? {
-        val record = catalog.learnAudioPacks.firstOrNull() ?: return null
-        val location = storage.locate(record) ?: return null
+        val location = catalog.learnAudioPacks.firstOrNull()?.let { storage.locate(it) }
         // The clip id comes from lesson files; the extracted folder only holds names that the
         // archive check accepted, so a path that is not one of them finds nothing.
-        return File(location, "$clipId.opus").takeIf {
-            it.isFile && it.canonicalPath.startsWith(location.canonicalPath)
-        }
+        return location
+            ?.let { File(it, "$clipId.opus") }
+            ?.takeIf {
+                it.isFile && it.canonicalPath.startsWith(location.canonicalPath)
+            }
     }
 
     /**

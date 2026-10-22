@@ -78,6 +78,7 @@ class PackListsTest {
                 CatalogueGroup.Transliteration,
                 CatalogueGroup.WordByWord,
                 CatalogueGroup.WordAudio,
+                CatalogueGroup.LearnAudio,
             ),
             PackListKind.entries.map { it.group }.toSet(),
         )

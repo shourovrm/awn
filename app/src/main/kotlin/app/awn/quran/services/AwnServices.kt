@@ -17,6 +17,7 @@ import app.awn.quran.feature.learn.learnAddWord
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.learn.learnRemoveWord
 import app.awn.quran.feature.learn.learnWordIsAdded
+import app.awn.quran.feature.learn.sound.WordSound
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
@@ -183,6 +184,20 @@ class AwnServices(private val application: Application) {
             },
             myWords = readDependencies.myWords,
         )
+
+    /** Plays the Quran word of a Learn practice item with the word reciter chosen in Settings. */
+    val learnWordSound = WordSound { word ->
+        val withTimings =
+            coreData.reciters
+                .reciters()
+                .filter { it.wordByWord && it.timingPack != null }
+                .map { it.id }
+        val listeningReciterId = listenSettings.selectedReciterId.first()
+        val reciterId =
+            wordReciterFor(listenSettings.wordReciterId.first(), listeningReciterId, withTimings)
+                ?: listeningReciterId
+        audioPlayer.playWord(reciterId, AyahRef(word.surah, word.ayah), word.wordPosition)
+    }
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
     val hifz =

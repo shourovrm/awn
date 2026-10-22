@@ -166,6 +166,11 @@ private val SETTINGS: List<RegisteredSetting> =
             ),
             RegisteredSetting(
                 SettingsSection.Downloads,
+                SettingRowKeys.DOWNLOADS_LESSON_SOUNDS,
+                R.string.downloads_lesson_sounds,
+            ),
+            RegisteredSetting(
+                SettingsSection.Downloads,
                 SettingRowKeys.DOWNLOADS_RECITERS,
                 R.string.downloads_reciters,
             ),

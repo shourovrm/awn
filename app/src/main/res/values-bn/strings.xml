@@ -143,4 +143,12 @@
   <string name="summary_appearance">দিনে %1$s · রাতে %2$s · %3$s</string>
   <string name="summary_backup">বুকমার্ক ও সাম্প্রতিক পৃষ্ঠা</string>
   <string name="summary_about">সংস্করণ %1$s</string>
+  <string name="downloads_lesson_sounds">পাঠের শব্দ</string>
+  <string name="credits_lessons">পাঠ</string>
+  <string name="credit_qaida_name">ক্বারী নূর মুহাম্মদ, আল-ক্বায়িদা আন-নূরানিয়্যা (নূরানি ক্বায়িদা)</string>
+  <string name="credit_qaida_detail">পড়ার পাঠগুলোর ক্রম ও অনুশীলন। অবাণিজ্যিক কাজে ব্যবহৃত।</string>
+  <string name="credit_academy_name">নিউজিল্যান্ডের ইসলামিক হোম স্কুলিং একাডেমি</string>
+  <string name="credit_academy_detail">নূরানি ক্বায়িদার ভিডিও পাঠ: হরফ ও অনুশীলনের শব্দ। ক্রিয়েটিভ কমন্স অ্যাট্রিবিউশন। রেকর্ডিংগুলো আল-ফুরকান নূরানি ক্বায়িদা অনুষ্ঠানের স্ক্রিন ধারণ।</string>
+  <string name="credit_tajweed_book_name">উসামা মাহিদা ও SMA-এর শিক্ষকগণ, Tajweed Made Easy (২০১৮)</string>
+  <string name="credit_tajweed_book_detail">তাজবিদ পাঠগুলোর ক্রম ও তথ্য।</string>
 </resources>

@@ -12,6 +12,7 @@ enum class PackListKind(val group: CatalogueGroup, @StringRes val title: Int) {
     Transliteration(CatalogueGroup.Transliteration, R.string.pack_list_transliteration),
     WordByWord(CatalogueGroup.WordByWord, R.string.pack_list_word_by_word),
     WordAudio(CatalogueGroup.WordAudio, R.string.pack_list_word_audio),
+    LessonSounds(CatalogueGroup.LearnAudio, R.string.pack_list_lesson_sounds),
 }
 
 /** The rows of one language in a list; [language] is null when the manifest does not say. */

@@ -23,11 +23,12 @@ class FakePackRepository(
     /** The rows [catalogue] returns; [install] and [remove] flip their installed state. */
     val catalogueItems: MutableList<CatalogueItem> = mutableListOf(),
     var freeBytesValue: Long = Long.MAX_VALUE,
-    /** The files [learnAudioFile] returns, by clip id. */
-    val learnAudioFiles: MutableMap<String, File> = mutableMapOf(),
     /** When set, [install] throws it instead of installing. */
     var installFailure: Throwable? = null,
 ) : PackRepository {
+
+    /** The files [learnAudioFile] returns, by clip id. */
+    val learnAudioFiles: MutableMap<String, File> = mutableMapOf()
 
     private var installedPacks = emptyList<InstalledPack>()
 

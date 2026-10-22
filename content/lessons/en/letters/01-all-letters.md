@@ -49,7 +49,7 @@ Yaa has two dots below. At the end of a word the Quran's script leaves them out:
 
 ## Screen 5: Sounds English does not have
 
-Eight letters have no English sound. A beginner learns them by ear from a teacher or a recording.
+Nine letters have no English sound. A beginner learns them by ear from a teacher or a recording.
 
 - [[ح]] ḥaa: a breathy h from the middle of the throat
 - [[خ]] khaa: like ch in the Scottish word loch

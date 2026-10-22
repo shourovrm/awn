@@ -240,6 +240,7 @@ private fun TabsRoute(
                 translations = services.coreData.translations,
                 packs = services.coreData.packs,
                 downloads = services.coreData.packDownloads,
+                wordSound = services.learnWordSound,
                 onReviseAt = { ayah ->
                     navigation.openQuran(page = null, ayah = ayah)
                     services.recite.reviseAt(ayah)

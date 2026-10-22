@@ -164,4 +164,12 @@
   <string name="summary_appearance">%1$s by day · %2$s at night · %3$s</string>
   <string name="summary_backup">Bookmarks and recent pages</string>
   <string name="summary_about">Version %1$s</string>
+  <string name="downloads_lesson_sounds">Lesson sounds</string>
+  <string name="credits_lessons">Lessons</string>
+  <string name="credit_qaida_name">Qari Noor Muhammad, Al-Qaida An-Nooraniyya (Noorani Qaida)</string>
+  <string name="credit_qaida_detail">Order and practice of the Reading units. Used for non-commercial purposes.</string>
+  <string name="credit_academy_name">Islamic Home Schooling Academy of New Zealand</string>
+  <string name="credit_academy_detail">Noorani Qaida video lessons: letter and practice sounds. Creative Commons Attribution. The recordings are screen captures of the Al-Furqan Noorani Qaida program.</string>
+  <string name="credit_tajweed_book_name">Usama Mahida and the teachers of SMA, Tajweed Made Easy (2018)</string>
+  <string name="credit_tajweed_book_detail">Order and facts of the Tajweed units.</string>
 </resources>
