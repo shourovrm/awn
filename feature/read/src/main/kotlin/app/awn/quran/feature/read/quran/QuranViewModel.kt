@@ -290,7 +290,9 @@ class QuranViewModel(
                 is QuranTarget.Ayah -> {
                     val page = dependencies.quranText.pageOf(target.ayah, scriptNow())
                     showPage(page, barsVisible = true)
-                    selectAyah(target.ayah)
+                    // A Hifz part starts recite mode at the same moment. Recite mode shows no ayah
+                    // bar, so a selection made now would use up the first tap on the page.
+                    if (!mutableState.value.isReciting) selectAyah(target.ayah)
                 }
                 null -> {
                     val lastPage = dependencies.bookmarks.recentPages().first().firstOrNull()?.page
