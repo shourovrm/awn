@@ -23,10 +23,7 @@ import quran_com
 
 DATA_ROOT = quran_com.DATA_ROOT
 REPOSITORY = "shourovrm/awn"
-HOLD_REASONS = {
-    "indopak": "font licence: its name table forbids distribution without written notice from quranwbw.com",
-    "indopak-layouts": "useless without the IndoPak font; layouts come from the same Quran.com source",
-}
+HOLD_REASONS = {}
 
 
 def load(name, key):
@@ -57,6 +54,9 @@ def main():
     packs = load("scripts.json", "packs") + load("translations.json", "packs")
     reciters = [entry for entry in load("reciters.json", "reciters") if entry["file"]]
     published, held = [], []
+    # A pack with a download_url is fetched by the app from that host (the IndoPak font, whose name table
+    # forbids distribution without written notice from quranwbw.com); there is nothing to upload.
+    packs = [entry for entry in packs if "download_url" not in entry]
     for entry in packs + reciters:
         reason = hold_reason(entry)
         (held if reason else published).append((entry, reason))

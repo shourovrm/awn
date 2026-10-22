@@ -8,6 +8,8 @@ The manifests keep `format_version: 1`. The second catalogue adds only optional 
 the first catalogue ignores:
   min_sdk            (scripts) lowest Android API level that can show the print; 33 for v4-tajweed (COLRv1)
   requires           (scripts) ids of the packs that must be installed with this one
+  download_url       (scripts) where the app downloads the file from when it is not the data release; the
+                     sha256 and bytes still describe that file and the app checks both
   script_id          (scripts) the app's ScriptId name that this pack makes available
   layouts            (scripts) page counts and lines per page of a text pack with several layouts
   installed_bytes    (font zips) unpacked size, for the free-space check; a single file or SQLite pack installs at `bytes`
@@ -31,7 +33,10 @@ write the manifests that go into a release. Without the flag every pack is liste
 
 --exclude=id,id leaves the named entries out of every manifest (a font script, a translation, a reciter).
 
-Usage: python3 tools/build_manifests.py [--publishable=yes,conditional] [--exclude=indopak,indopak-layouts]
+--add-indopak-to=PATH only puts the IndoPak entries into the scripts.json at PATH (the published one, which
+lists fewer packs than the workspace) and does nothing else.
+
+Usage: python3 tools/build_manifests.py [--publishable=yes,conditional] [--exclude=indopak-15,indopak-16,indopak-layouts]
 """
 
 import hashlib
@@ -59,7 +64,18 @@ FONT_SOURCE_URL = ("https://github.com/quran/quran.com-frontend-next/tree/"
 FONT_CREDIT = ("King Fahd Quran Printing Complex (Madinah Mushaf fonts), "
                "as hosted by the Quran.com frontend repository (quran/quran.com-frontend-next)")
 INDOPAK_FONT_CREDIT = ("AlQuran IndoPak by QuranWBW 4.2.1-WL, Ayman Siddiqui (quranwbw.com), "
-                       "as hosted by the Quran.com frontend repository (quran/quran.com-frontend-next)")
+                       "downloaded from the Quran.com frontend repository (quran/quran.com-frontend-next)")
+# The font's name table forbids distribution without written notice from quranwbw.com, so Awn does not
+# host it: the app downloads it from the Quran.com repository, pinned to the commit that build_fonts.py uses.
+INDOPAK_FONT_DOWNLOAD_URL = (
+    "https://raw.githubusercontent.com/quran/quran.com-frontend-next/aff1a035b09b66f28047b3216edcae4c5c949a49/"
+    "public/fonts/quran/hafs/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf")
+# pack id, name, lines per page, pages
+INDOPAK_PRINTS = [
+    ("indopak-15", "IndoPak, 15 lines", 15, 610),
+    ("indopak-16", "IndoPak, 16 lines", 16, 548),
+]
+INDOPAK_PACK_IDS = {"indopak-layouts", "indopak-15", "indopak-16"}
 INDOPAK_LAYOUT_CREDIT = (f"{QURAN_COM_ATTRIBUTION} (QDC API, mushaf 6 and 7): IndoPak 15-line layout "
                          "(Qudratullah, Lahore, 610 pages) and IndoPak 16-line layout (Taj Company, 548 pages)")
 SURAH_URL_PATTERN = "https://download.quranicaudio.com/quran/{quranicaudio_path}{SSS}.mp3"
@@ -124,6 +140,43 @@ def write_manifest(name, key, entries):
     print("wrote", path, f"({len(entries)} entries)")
 
 
+def indopak_entries():
+    """The IndoPak layout pack and one font entry per line count.
+
+    Both prints use the same font file, so each print is its own entry (its own install folder) and
+    both require the one layout pack. The font is downloaded from `download_url`, never from our release.
+    """
+    entries = [pack_entry(
+        os.path.join(DATA_ROOT, "quran", "indopak.sqlite"), id="indopak-layouts", kind="text",
+        name="IndoPak layouts (15-line and 16-line)", credit=INDOPAK_LAYOUT_CREDIT,
+        source_url=f"{QURAN_COM_URL.replace('/v4', '/qdc')}/verses/by_page",
+        requires=["quran-text"],
+        layouts=[{"id": str(lines), "pages": pages, "lines_per_page": lines} for _, _, lines, pages in INDOPAK_PRINTS])]
+    font_path = os.path.join(FONTS_ROOT, "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf")
+    for pack_id, name, lines, pages in INDOPAK_PRINTS:
+        entries.append(pack_entry(
+            font_path, id=pack_id, kind="font", name=name, glyph_font_per_page=False,
+            script_id=pack_id, requires=["indopak-layouts"], lines_per_page=lines, pages=pages,
+            credit=INDOPAK_FONT_CREDIT, source_url=FONT_SOURCE_URL + "/nastaleeq/indopak",
+            download_url=INDOPAK_FONT_DOWNLOAD_URL))
+    return entries
+
+
+def add_indopak_to_manifest(path):
+    """Puts the IndoPak entries into an existing scripts.json (the one the app bundles), leaving the rest as is."""
+    with open(path, encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    replaced_ids = INDOPAK_PACK_IDS | {"indopak"}
+    kept = [entry for entry in manifest["packs"] if entry["id"] not in replaced_ids]
+    manifest["packs"] = kept + indopak_entries()
+    temporary_path = path + ".part"
+    with open(temporary_path, "w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2, ensure_ascii=False)
+        handle.write("\n")
+    os.replace(temporary_path, path)
+    print("wrote", path, f"({len(manifest['packs'])} entries)")
+
+
 def build_scripts_manifest():
     entries = [pack_entry(
         os.path.join(DATA_ROOT, "quran", "quran.sqlite"), id="quran-text", kind="text",
@@ -147,17 +200,7 @@ def build_scripts_manifest():
             archive_format="zip", member_pattern="p{page}.ttf", member_count=quran_com.PAGE_COUNT,
             installed_bytes=installed_font_bytes(script),
             credit=FONT_CREDIT, source_url=f"{FONT_SOURCE_URL}/{repository_directory}", **extra_fields))
-    entries.append(pack_entry(
-        os.path.join(DATA_ROOT, "quran", "indopak.sqlite"), id="indopak-layouts", kind="text",
-        name="IndoPak layouts (15-line and 16-line)", credit=INDOPAK_LAYOUT_CREDIT,
-        source_url=f"{QURAN_COM_URL.replace('/v4', '/qdc')}/verses/by_page",
-        requires=["quran-text"],
-        layouts=[{"id": "15", "pages": 610, "lines_per_page": 15}, {"id": "16", "pages": 548, "lines_per_page": 16}]))
-    entries.append(pack_entry(
-        os.path.join(FONTS_ROOT, "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"),
-        id="indopak", kind="font", name="IndoPak (15-line and 16-line)", glyph_font_per_page=False,
-        script_id="indopak", requires=["indopak-layouts"],
-        credit=INDOPAK_FONT_CREDIT, source_url=FONT_SOURCE_URL + "/nastaleeq/indopak"))
+    entries.extend(indopak_entries())
     entries.append(pack_entry(
         os.path.join(DATA_ROOT, "quran", "tajweed.sqlite"), id="tajweed-text", kind="text",
         name="Tajweed-coloured Uthmani text (inline rule markup)",
@@ -297,6 +340,9 @@ def main():
             allowed_publishable = set(argument.split("=", 1)[1].split(","))
         elif argument.startswith("--exclude="):
             EXCLUDED_IDS.update(argument.split("=", 1)[1].split(","))
+        elif argument.startswith("--add-indopak-to="):
+            add_indopak_to_manifest(argument.split("=", 1)[1])
+            return
         else:
             raise SystemExit(f"unknown argument {argument}")
     build_scripts_manifest()

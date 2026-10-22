@@ -11,6 +11,25 @@ internal data class PlacedWord(val word: Word, val line: Int)
 /** The end sign of an ayah with the line slot it is printed on. */
 internal data class PlacedAyahEnd(val ayah: AyahRef, val line: Int, val glyphCode: String? = null)
 
+/** Where the header of a surah goes when the slots above its first word run off the page. */
+internal enum class HeaderOverflow {
+    /** The Madani prints: the free bottom slots of the previous page. */
+    PreviousPage,
+
+    /**
+     * The IndoPak prints: the previous page ends with text, so the header gets extra lines above
+     * slot 1.
+     */
+    ExtraLinesAbove,
+}
+
+/** How many slots a page has and where a header that does not fit above the first word goes. */
+internal data class HeaderPlacement(val slotsPerPage: Int, val overflow: HeaderOverflow) {
+    companion object {
+        val MADANI = HeaderPlacement(slotsPerPage = 15, overflow = HeaderOverflow.PreviousPage)
+    }
+}
+
 /** Turns the rows of one page into numbered lines. */
 internal object PageLayoutBuilder {
 
@@ -31,12 +50,16 @@ internal object PageLayoutBuilder {
      * line 1 or 2 of the next page, so this page can draw the banner that belongs to it.
      *
      * [bismillahPreBySurah] maps a surah number to whether it has a separate bismillah line.
+     * [placement] has 15 slots for the Madani prints and 15 or 16 for IndoPak. With
+     * [HeaderOverflow.ExtraLinesAbove] a header that runs off the top becomes lines 0, -1 of this
+     * page instead of lines of the previous page.
      */
     fun build(
         words: List<PlacedWord>,
         ayahEnds: List<PlacedAyahEnd>,
         bismillahPreBySurah: Map<Int, Boolean>,
         nextPageStarts: List<PlacedWord> = emptyList(),
+        placement: HeaderPlacement = HeaderPlacement.MADANI,
     ): List<PageLine> {
         val itemsByLine = sortedMapOf<Int, MutableList<OrderedItem>>()
         addWordsAndEnds(itemsByLine, words, ayahEnds)
@@ -46,19 +69,23 @@ internal object PageLayoutBuilder {
         }
         for ((word, line) in firstWordsOfSurahs) {
             for ((slot, item) in headerSlots(word, line, bismillahPreBySurah)) {
-                // A slot above the top of the page is on the previous page.
-                if (slot >= 1) addItem(itemsByLine, slot, item)
+                // A slot above the top of the page is on the previous page, unless the print has no
+                // room there.
+                if (slot >= 1 || placement.overflow == HeaderOverflow.ExtraLinesAbove) {
+                    addItem(itemsByLine, slot, item)
+                }
             }
         }
         for ((word, line) in nextPageStarts) {
             for ((slot, item) in headerSlots(word, line, bismillahPreBySurah)) {
                 // Slot 0 of the next page is this page's last line, slot -1 the one before.
-                if (slot <= 0) addItem(itemsByLine, LAST_SLOT + slot, item)
+                if (slot <= 0) addItem(itemsByLine, placement.slotsPerPage + slot, item)
             }
         }
 
+        val firstLine = minOf(1, itemsByLine.firstKey())
         val lastLine = itemsByLine.lastKey()
-        return (1..lastLine).map { line ->
+        return (firstLine..lastLine).map { line ->
             val ordered = itemsByLine[line].orEmpty().sortedWith(READING_ORDER)
             PageLine(line, ordered.map { it.item })
         }
@@ -134,7 +161,6 @@ internal object PageLayoutBuilder {
     private val READING_ORDER =
         compareBy<OrderedItem>({ it.surah }, { it.ayah }, { it.rank }, { it.position })
 
-    private const val LAST_SLOT = 15
     private const val HEADER_RANK = 0
     private const val WORD_RANK = 1
     private const val AYAH_END_RANK = 2

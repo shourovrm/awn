@@ -7,7 +7,9 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.SavedAyah
 import app.awn.quran.core.data.ScriptId
 
-/** The print used for page numbers when the user's print has no page table (IndoPak today). */
+/**
+ * The print used for page numbers when the user's print has no page table (IndoPak not installed).
+ */
 val FALLBACK_INDEX_SCRIPT = ScriptId.V2
 
 /**

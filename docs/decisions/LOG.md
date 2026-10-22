@@ -183,3 +183,4 @@
 2026-10-23 | versionCode = (MINOR*100+PATCH)*10000 + commits since tag, ABI step 100M | old scheme made the first tag a downgrade from commit-count builds
 2026-10-23 | Tajweed units open at any time; the Reading-unit-7 rule is a note, not a lock | rows ignored taps for users who chose the letters; read the track as broken
 2026-10-23 | Reading track in Noorani Qaida order, drills folded into checks, new unit 8 | maintainer: shorter Qaida, non-commercial use
+2026-10-23 | IndoPak prints are two scripts (IndoPak15, IndoPak16) sharing one layout pack; font downloaded from Quran.com via download_url | font licence forbids our hosting it

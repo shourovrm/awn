@@ -30,8 +30,7 @@ class TrackScreenTest {
     @Test
     fun aTajweedUnitOpensBeforeReadingUnitSevenIsDone() {
         val unit = TrackUnit("makharij", 1, "Where letters come from", PathState.Next)
-        val summary =
-            TrackSummary(LearnTrack.Tajweed, 0, 1, next = unit, opensAfterReadingUnit = 7)
+        val summary = TrackSummary(LearnTrack.Tajweed, 0, 1, next = unit, opensAfterReadingUnit = 7)
         val opened = mutableListOf<String>()
 
         composeRule.setContent {

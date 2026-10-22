@@ -65,16 +65,40 @@ class IndexLoaderTest {
     }
 
     @Test
+    fun anInstalledIndoPakPrintKeepsItsOwnPageNumbersAndCount() = runBlocking {
+        val indoPakText =
+            object : QuranTextRepository by fakeText {
+                override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int =
+                    if (script == ScriptId.IndoPak16) ayah.surah * 4 - 3
+                    else fakeText.pageOf(ayah, script)
+
+                override fun pageCount(script: ScriptId): Int =
+                    if (script == ScriptId.IndoPak16) INDOPAK_16_PAGES
+                    else fakeText.pageCount(script)
+            }
+
+        val content = IndexLoader(indoPakText).loadContent(ScriptId.IndoPak16)
+
+        assertEquals(ScriptId.IndoPak16, content.script)
+        val baqarah =
+            content.surahRows.filterIsInstance<SurahRow>().first { it.chapter.number == 2 }
+        assertEquals(5, baqarah.page)
+        assertEquals(INDOPAK_16_PAGES, content.pageRows.count { it is PageRow })
+    }
+
+    @Test
     fun aScriptWithoutAPageTableFallsBackToTheMadaniPrint() = runBlocking {
         val withoutIndoPak =
             object : QuranTextRepository by fakeText {
                 override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int {
-                    if (script == ScriptId.IndoPak) throw UnsupportedOperationException("no table")
+                    if (script == ScriptId.IndoPak15) {
+                        throw UnsupportedOperationException("no table")
+                    }
                     return fakeText.pageOf(ayah, script)
                 }
             }
 
-        val content = IndexLoader(withoutIndoPak).loadContent(ScriptId.IndoPak)
+        val content = IndexLoader(withoutIndoPak).loadContent(ScriptId.IndoPak15)
 
         assertEquals(FALLBACK_INDEX_SCRIPT, content.script)
     }
@@ -100,5 +124,9 @@ class IndexLoaderTest {
 
         assertEquals(1, reading.page)
         assertTrue(reading.isStart)
+    }
+
+    private companion object {
+        const val INDOPAK_16_PAGES = 548
     }
 }

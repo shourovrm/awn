@@ -1,7 +1,7 @@
 package app.awn.quran.feature.learn
 
-import androidx.compose.ui.test.hasText
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -107,14 +107,25 @@ class TajweedTrackTest {
     }
 
     private fun waitForText(text: String) {
-        composeRule.waitUntil(conditionDescription = "text '$text' shown", timeoutMillis = WAIT_MILLIS) {
-            composeRule.onAllNodes(hasText(text, substring = false)).fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(
+            conditionDescription = "text '$text' shown",
+            timeoutMillis = WAIT_MILLIS,
+        ) {
+            composeRule
+                .onAllNodes(hasText(text, substring = false))
+                .fetchSemanticsNodes()
+                .isNotEmpty()
         }
     }
 
     private fun waitForDone(services: LearnServices, lessonId: String) {
-        composeRule.waitUntil(conditionDescription = "$lessonId marked done", timeoutMillis = WAIT_MILLIS) {
-            runBlocking(Dispatchers.IO) { lessonId in services.courseRepository.observeSnapshot().first().doneLessonIds }
+        composeRule.waitUntil(
+            conditionDescription = "$lessonId marked done",
+            timeoutMillis = WAIT_MILLIS,
+        ) {
+            runBlocking(Dispatchers.IO) {
+                lessonId in services.courseRepository.observeSnapshot().first().doneLessonIds
+            }
         }
     }
 
