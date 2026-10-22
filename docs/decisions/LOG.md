@@ -176,3 +176,4 @@
 2026-10-22 | Listen-onward end and resume ayah are read from the player before our own stop, not only from observed states | conflated StateFlow made a test fail (recite.md)
 2026-10-22 | Green by weighted WordScore (near sounds cheaper, length budget); passed words end green or red | Awn said unknown; see tracker.md
 2026-10-22 | Yellow Mispronounced = sound or madd finding on a green word; no Tentative fill; not a Hifz mistake | name the problem, not unclear
+2026-10-22 | One local data folder awn-data/ with published/, next/, fonts/, raw/; tools find it through tools/data_paths.py; AWN_DATA_DIR now names the folder that holds published/ | four folders held duplicates and the build read a stale one
