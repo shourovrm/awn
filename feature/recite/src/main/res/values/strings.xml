@@ -2,14 +2,10 @@
 <resources>
   <string name="recite_start">Start</string>
   <string name="recite_stop">Stop</string>
-  <string name="recite_hint">Hint</string>
   <string name="recite_speed">Speed</string>
   <string name="recite_slower">Slower</string>
   <string name="recite_faster">Faster</string>
 
-  <string name="recite_status_ready">Ready</string>
-  <string name="recite_status_listening">Listening</string>
-  <string name="recite_status_stopped">Stopped</string>
   <string name="recite_status_no_text">Can\'t load these ayahs</string>
   <string name="recite_status_no_microphone">Can\'t use the microphone. Close other recording apps.</string>
   <string name="recite_status_skipped">Missed: ayah %1$d, word %2$d</string>
@@ -45,7 +41,7 @@
 
   <string name="recite_settings_title">Recite and memorise</string>
   <string name="recite_settings_hide_words">Hide words</string>
-  <string name="recite_settings_hint">Hint button</string>
+  <string name="recite_settings_hint">Show first letter first</string>
 
   <string name="recite_close">Close</string>
   <string name="recite_hide_words">Hide words</string>
@@ -53,12 +49,12 @@
   <string name="recite_speed_normal">Normal</string>
   <string name="recite_speed_fastest">Fastest</string>
   <string name="recite_status_preparing">Preparing…</string>
-  <string name="recite_status_hint">Next word starts with %1$s</string>
   <string name="recite_status_allow_microphone">Allow the microphone to recite</string>
   <string name="recite_status_microphone_off">Microphone is off for Awn</string>
   <string name="recite_review_empty">Nothing to review</string>
   <string name="recite_review_note">Experimental feedback on likely mistakes</string>
   <string name="recite_reveal_word">Show next word</string>
+  <string name="recite_reveal_letter">Show first letter</string>
   <string name="recite_reveal_ayah">Show ayah</string>
   <string name="recite_grade_easy">Easy</string>
   <string name="recite_grade_good">Good</string>
@@ -72,8 +68,4 @@
   <string name="recite_listen_ayah">Listen</string>
   <string name="recite_listen_pause">Pause audio</string>
   <string name="recite_listen_resume">Resume audio</string>
-  <string name="recite_listen_stop">Stop audio</string>
-  <string name="recite_status_audio_loading">Getting the audio…</string>
-  <string name="recite_status_audio_playing">Playing ayah %1$d</string>
-  <string name="recite_status_audio_paused">Audio paused</string>
 </resources>

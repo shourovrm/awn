@@ -79,6 +79,8 @@ internal class ListPageEnvironment(
     val fontCache: PageFontCache,
     /** The recite state of each word while reciting; empty otherwise. */
     val wordStates: Map<WordKey, WordState>,
+    /** The first letter shown inside the block of a Hidden word. */
+    val hintLetters: Map<WordKey, String> = emptyMap(),
     val isReciting: Boolean,
     /**
      * The ayah of the word the reciter is on; the list keeps it in view. Null when not reciting.

@@ -8,10 +8,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -71,9 +73,8 @@ class ReciteBarTest {
     }
 
     @Test
-    fun theBarStartsReadyWithoutAReviewButton() {
-        composeRule.onNodeWithTag(RECITE_BAR_STATUS_TAG).assertIsDisplayed()
-        composeRule.onNodeWithText("Ready").assertIsDisplayed()
+    fun theBarStartsWithoutAStatusLineOrAReviewButton() {
+        composeRule.onNodeWithTag(RECITE_BAR_STATUS_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).assertDoesNotExist()
     }
 
@@ -135,14 +136,10 @@ class ReciteBarTest {
     }
 
     @Test
-    fun theReviewCardOpensEvenWhenNothingWasFlagged() {
+    fun theReviewEntryAppearsOnlyWhenSomethingWasFlagged() {
         recite(fixture.confirmed(0))
 
-        composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).performClick()
-        composeRule.waitForIdle()
-
-        composeRule.onNodeWithTag(REVIEW_CARD_TAG).assertIsDisplayed()
-        composeRule.onNode(hasText("Nothing to review")).assertIsDisplayed()
+        composeRule.onNodeWithTag(RECITE_BAR_REVIEW_TAG).assertDoesNotExist()
     }
 
     @Test
@@ -154,12 +151,10 @@ class ReciteBarTest {
     }
 
     @Test
-    fun theHintButtonShowsOnlyWhileWordsAreHidden() {
-        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertDoesNotExist()
-
+    fun noHintButtonExistsBecauseShowNextWordGivesTheFirstLetter() {
         hideWords()
 
-        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertIsEnabled()
+        composeRule.onAllNodesWithTag("recite-bar-hint").assertCountEquals(0)
     }
 
     @Test
@@ -169,12 +164,11 @@ class ReciteBarTest {
                 R.drawable.ic_recite_hide_words,
                 R.drawable.ic_recite_reveal_word,
                 R.drawable.ic_recite_reveal_ayah,
-                R.drawable.ic_recite_hint,
             )
 
         assertEquals(icons.size, icons.toSet().size)
         val files =
-            listOf("hide_words", "reveal_word", "reveal_ayah", "hint").map {
+            listOf("hide_words", "reveal_word", "reveal_ayah").map {
                 File("src/main/res/drawable/ic_recite_$it.xml").readText()
             }
         assertEquals(files.size, files.toSet().size)
@@ -232,9 +226,19 @@ class ReciteBarTest {
     }
 
     @Test
-    fun showNextWordRevealsOneWordWithoutTheMicrophone() {
+    fun showNextWordTapsOnceForTheLetterAndAgainForTheWordWithoutTheMicrophone() {
         hideWords()
 
+        composeRule
+            .onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG)
+            .assertContentDescriptionEquals("Show first letter")
+        composeRule.onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG).performClick()
+        composeRule.waitForIdle()
+        assertEquals(WordState.Hidden, stateOf(fixture.first))
+        assertEquals("ب", fixture.controller.session.hint.value?.letter)
+        composeRule
+            .onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG)
+            .assertContentDescriptionEquals("Show next word")
         composeRule.onNodeWithTag(RECITE_BAR_REVEAL_WORD_TAG).performClick()
         composeRule.waitForIdle()
 

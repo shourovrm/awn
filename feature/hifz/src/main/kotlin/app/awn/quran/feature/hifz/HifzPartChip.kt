@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
@@ -56,8 +58,12 @@ internal fun PartChip(
     val title = partTitle(request.kind, request.method)
     val detail = partDetail(request, currentAyah)
     Box(modifier) {
+        val shownAyah = currentAyah ?: request.firstAyah
         PartPill(
-            label = stringResource(R.string.bar_part_chip, title, detail),
+            // The pill is about 60 dp wide: only the reference fits at a glance, the menu names
+            // the part. TalkBack still hears both.
+            label = ayahRangeText(shownAyah, shownAyah),
+            description = stringResource(R.string.bar_part_chip, title, detail),
             colors = colors,
             onClick = { isOpen = true },
         )
@@ -89,11 +95,17 @@ private fun partDetail(request: PracticeRequest, currentAyah: AyahRef?): String 
     }
 
 @Composable
-private fun PartPill(label: String, colors: HifzBarColors, onClick: () -> Unit) {
+private fun PartPill(
+    label: String,
+    description: String,
+    colors: HifzBarColors,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier.defaultMinSize(minHeight = AwnSpacing.compactButton)
             .clip(AwnShapes.control)
             .background(colors.content.copy(alpha = CHIP_ALPHA))
+            .semantics(mergeDescendants = true) { contentDescription = description }
             .clickable(role = Role.Button, onClick = onClick)
             .testTag(HIFZ_BAR_PART_TAG)
             .padding(start = AwnSpacing.small, end = 4.dp),

@@ -239,23 +239,8 @@ internal fun hiddenWordFills(
     decorations: PageDecorations,
     field: AwnFieldColors,
 ): List<PageFill> =
-    geometry.textLines.flatMap { line ->
-        line.tokens
-            .filter { placement ->
-                val token = placement.token
-                token is LineToken.WordToken &&
-                    decorations.wordStates(token.key) == WordState.Hidden
-            }
-            .map { placement ->
-                val rect =
-                    Rect(
-                        placement.left,
-                        line.top,
-                        placement.right,
-                        line.top + geometry.slotHeightPx,
-                    )
-                PageFill(rect, field.content.copy(alpha = HIDDEN_BLOCK_ALPHA))
-            }
+    hiddenWordSlots(geometry, decorations).map { slot ->
+        PageFill(slot.rect, field.content.copy(alpha = HIDDEN_BLOCK_ALPHA))
     }
 
 /**

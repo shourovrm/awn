@@ -94,6 +94,19 @@ class QuranViewModelTest {
     }
 
     @Test
+    fun openingAtAnAyahInReciteModeLeavesNothingSelectedSoTheFirstTapShowsTheBars() = runTest {
+        viewModel.enterReciteMode()
+
+        viewModel.open(QuranTarget.Ayah(AyahRef(1, 3)))
+        advanceTimeBy(BARS_REVEAL_MS + 1)
+        assertFalse(viewModel.state.value.areBarsVisible)
+        viewModel.onPageTapped()
+
+        assertEquals(null, viewModel.state.value.selection)
+        assertTrue(viewModel.state.value.areBarsVisible)
+    }
+
+    @Test
     fun theBarsShowForTwoSecondsWhenTheScreenOpensThenHide() = runTest {
         viewModel.open(null)
         assertTrue(viewModel.state.value.areBarsVisible)

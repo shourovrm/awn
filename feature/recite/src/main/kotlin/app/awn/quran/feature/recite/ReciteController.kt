@@ -3,6 +3,7 @@ package app.awn.quran.feature.recite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
@@ -589,4 +590,17 @@ internal object DefaultTrackerFactory : TrackerFactory {
 fun rememberReciteWordStates(controller: ReciteController): Map<WordKey, WordState> {
     val states by controller.session.wordStates.collectAsState()
     return states
+}
+
+/**
+ * The first letter of the next word when the user asked for it with "Show next word": the page
+ * draws it inside that word's hidden box. Empty when no letter is shown.
+ */
+@Composable
+fun rememberReciteHintLetters(controller: ReciteController): Map<WordKey, String> {
+    val hint by controller.session.hint.collectAsState()
+    return remember(hint) {
+        val shown = hint
+        if (shown == null) emptyMap() else mapOf(shown.key to shown.letter)
+    }
 }

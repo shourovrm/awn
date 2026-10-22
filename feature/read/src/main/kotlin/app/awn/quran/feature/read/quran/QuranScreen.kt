@@ -110,6 +110,8 @@ data class QuranScreenSlots(
      * opens a card with it.
      */
     val reciteWordProblems: @Composable () -> Map<WordKey, WordProblem> = { emptyMap() },
+    /** Optional. The first letter of the next word, shown inside the word's hidden block. */
+    val reciteHintLetters: @Composable () -> Map<WordKey, String> = { emptyMap() },
     val isNight: Boolean,
     val onToggleNight: () -> Unit,
     val onOpenIndex: () -> Unit,
@@ -387,6 +389,7 @@ private fun QuranContent(
                 ReciteMarks(
                     states = slots.reciteWordStates(),
                     problems = slots.reciteWordProblems(),
+                    hintLetters = slots.reciteHintLetters(),
                     // A mistake under review keeps its ayah in view in the lists.
                     currentAyah =
                         focusedWord?.let { AyahRef(it.surah, it.ayah) }
@@ -838,6 +841,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteMarks.states,
+                                    hintLetters = reciteMarks.hintLetters,
                                     focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
@@ -878,6 +882,7 @@ private fun QuranPager(
                         arabicFamily = arabicLookup.family,
                         fontCache = fontCache,
                         wordStates = reciteMarks.states,
+                        hintLetters = reciteMarks.hintLetters,
                         isReciting = state.isReciting,
                         recitedAyah = reciteMarks.currentAyah,
                         focusedWord = focusedWord,
@@ -927,6 +932,7 @@ private class ReciteMarks(
     val problems: Map<WordKey, WordProblem>,
     /** The ayah of the word the reciter is on. */
     val currentAyah: AyahRef?,
+    val hintLetters: Map<WordKey, String> = emptyMap(),
 ) {
     companion object {
         val None = ReciteMarks(emptyMap(), emptyMap(), currentAyah = null)
