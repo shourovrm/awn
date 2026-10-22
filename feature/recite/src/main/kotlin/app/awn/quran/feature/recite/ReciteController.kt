@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
@@ -68,6 +69,14 @@ class ReciteController(
     internal val hasWordTimings: suspend (reciterId: String, AyahRef) -> Boolean = { _, _ ->
         false
     },
+    /**
+     * The reciter whose voice plays a single word, given the recite reciter. The app passes the
+     * Word audio choice of Settings; :feature:recite cannot see :feature:read, which holds the
+     * rule.
+     */
+    internal val wordReciterId: suspend (reciterId: String) -> String = { it },
+    /** The user's own word list, or null when the course is not available. */
+    val myWords: MyWords? = null,
 ) {
     val session: RecitationSession =
         RecitationSession(

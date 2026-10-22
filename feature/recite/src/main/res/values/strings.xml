@@ -19,7 +19,10 @@
 
   <string name="recite_review">Review</string>
   <string name="recite_verdict_skipped">Missed</string>
-  <string name="recite_listen">Listen</string>
+  <string name="recite_word_play">Play this word</string>
+  <string name="recite_word_stop">Stop this word</string>
+  <string name="recite_word_save">Add to my words</string>
+  <string name="recite_word_saved">Added to my words</string>
   <string name="recite_previous">Previous</string>
   <string name="recite_next">Next</string>
   <string name="recite_finding_madd">Madd</string>

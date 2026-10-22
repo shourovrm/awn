@@ -53,6 +53,8 @@ class ControllerFixture(
     recognitionThread: CoroutineDispatcher? = null,
     /** Whether the chosen reciter has word timings, so Listen can play a single word. */
     hasWordTimings: Boolean = false,
+    /** The Word audio reciter of Settings; null means the recite reciter is used. */
+    wordReciter: String? = null,
 ) {
     val first = WordKey(1, 1, 1)
     val second = WordKey(1, 1, 2)
@@ -156,6 +158,7 @@ class ControllerFixture(
                 revisionQueue = { dueAyahs.toList() },
                 onOpenAyah = { opened += it },
                 hasWordTimings = { _, _ -> hasWordTimings },
+                wordReciterId = { reciteReciter -> wordReciter ?: reciteReciter },
             )
     }
 

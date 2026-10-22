@@ -73,6 +73,22 @@ class ReciteListeningTest {
     }
 
     @Test
+    fun listenPlaysAFocusedWordWithTheWordAudioReciterNotTheReciteReciter() = runTest {
+        val fixture = ControllerFixture(folder.root, hasWordTimings = true, wordReciter = "alafasy")
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.controller.focusWord(fixture.second)
+
+        fixture.controller.listenToAyah()
+
+        assertEquals(
+            listOf(Triple("alafasy", AyahRef(1, 1), 2)),
+            fixture.audioPlayer.wordCalls,
+        )
+        assertEquals("husary", fixture.settings.reciterId.first())
+    }
+
+    @Test
     fun pausingTheMicrophoneKeepsWhatWasHeard() = runTest {
         val fixture =
             ControllerFixture(

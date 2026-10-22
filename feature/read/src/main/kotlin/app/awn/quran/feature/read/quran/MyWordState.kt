@@ -24,7 +24,8 @@ enum class MyWordState {
 
 /**
  * The icon at the start of the word card's heading: a bookmark with a plus while the word is not in
- * the list (a tap adds it), a filled bookmark once it is (a tap takes it out again, so a word saved by mistake can be undone).
+ * the list (a tap adds it), a filled bookmark once it is (a tap takes it out again, so a word saved
+ * by mistake can be undone).
  */
 @Composable
 internal fun AddToMyWordsButton(state: MyWordState, onAdd: () -> Unit, onRemove: () -> Unit) {

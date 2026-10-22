@@ -23,7 +23,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +47,6 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.player.PlaybackState
 import kotlin.math.abs
-import kotlinx.coroutines.launch
 
 const val RECITE_BAR_MIC_TAG = "recite-bar-mic"
 const val RECITE_BAR_CLOSE_TAG = "recite-bar-close"
@@ -107,7 +105,6 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val speechState by controller.speechState.collectAsState()
     val hintEnabled by controller.settings.hintEnabled.collectAsState(initial = true)
     var reviewOpen by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     DisposableEffect(controller) { onDispose { controller.exit() } }
     // The microphone is not available to an app in the background.
@@ -143,14 +140,12 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         if (reviewOpen || focusedWord != null) {
-            ReciteReviewCard(
+            ReciteReviewCardWithWordActions(
+                controller = controller,
                 reviews = flaggedWords,
                 focusedKey = focusedWord,
                 words = words,
-                onFocus = controller::focusWord,
-                onListen = {
-                    scope.launch { controller.listenToAyah() }
-                },
+                isAudioActive = isAudioActive,
                 onDismiss = {
                     reviewOpen = false
                     controller.clearFocus()

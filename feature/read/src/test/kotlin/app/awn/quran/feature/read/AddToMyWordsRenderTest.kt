@@ -30,6 +30,7 @@ class AddToMyWordsRenderTest {
     @get:Rule val composeRule = createComposeRule()
 
     private var adds = 0
+    private var removes = 0
 
     private fun show(state: MyWordState?) {
         val popup =

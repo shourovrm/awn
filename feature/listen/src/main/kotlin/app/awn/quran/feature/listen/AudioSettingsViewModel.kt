@@ -121,7 +121,8 @@ class AudioSettingsViewModel(
 
 /**
  * The reciter whose voice plays a single word, in the same order as the word card: the chosen word
- * reciter, the listening one, then the first with word timings. Null when [wordReciterIds] is empty.
+ * reciter, the listening one, then the first with word timings. Null when [wordReciterIds] is
+ * empty.
  */
 internal fun wordReciterIdInUse(
     chosenWordId: String?,
