@@ -5,12 +5,11 @@
   <string name="audio_play">চালান</string>
   <string name="audio_pause">থামান</string>
   <string name="audio_stop">বন্ধ করুন</string>
+  <string name="audio_recite">তিলাওয়াত করুন</string>
   <string name="audio_previous">আগের আয়াত</string>
   <string name="audio_next">পরের আয়াত</string>
   <string name="audio_repeat">পুনরাবৃত্তি</string>
   <string name="audio_repeat_value">পুনরাবৃত্তি, %1$s</string>
-  <string name="audio_speed">গতি</string>
-  <string name="audio_speed_value">গতি, %1$s</string>
   <string name="audio_expand">চালানোর বিকল্প</string>
   <string name="audio_choose_reciter">ক্বারী বেছে নিন</string>
   <string name="audio_cancel">বাতিল</string>

@@ -168,3 +168,4 @@
 2026-10-22 | Robolectric tests in :app name a plain Application (RobolectricApplicationGateTest) | AwnApplication.onCreate WorkManager check threw after tests, failing a later test at random on CI
 2026-10-22 | Listening while reciting plays on until the microphone; the ayahs only heard are never marked left out | user rule for the combined bar (recite.md)
 2026-10-22 | Recite bar is ochre; the microphone works while audio plays and Listen is listen-onward | combined bar (recite.md)
+2026-10-22 | Audio bar ends with a Recite microphone; the playing bar drops the speed button | combined bar needs room for it (player.md)
