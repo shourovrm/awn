@@ -92,5 +92,49 @@ class AddIndopakToManifestTest(unittest.TestCase):
         self.assertEqual(["quran-text", "indopak-layouts", "indopak-15", "indopak-16"], self.read_ids(path))
 
 
+class LearnAudioEntryTest(unittest.TestCase):
+    def make_archive(self, members):
+        import zipfile
+        folder = os.path.join(DATA_ROOT, "next", "learn")
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, "qaida-audio.zip")
+        with zipfile.ZipFile(path, "w") as archive:
+            for name, content in members.items():
+                archive.writestr(name, content)
+        return path
+
+    def write_manifest(self, packs):
+        path = os.path.join(tempfile.mkdtemp(prefix="awn-manifest-test-"), "scripts.json")
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump({"format_version": 1, "packs": packs}, handle)
+        return path
+
+    def test_the_entry_describes_the_zip_by_hash_size_and_member_count(self):
+        archive = self.make_archive({"qaida-01/002.opus": b"abc", "qaida-04/012.opus": b"defg"})
+
+        entry = build_manifests.learn_audio_entry(archive)
+
+        with open(archive, "rb") as handle:
+            data = handle.read()
+        self.assertEqual(hashlib.sha256(data).hexdigest(), entry["sha256"])
+        self.assertEqual(len(data), entry["bytes"])
+        self.assertEqual(2, entry["member_count"])
+        self.assertEqual(7, entry["installed_bytes"])
+        self.assertEqual("learn-audio", entry["kind"])
+        self.assertEqual("learn-qaida-audio", entry["id"])
+        self.assertIn("Islamic Home Schooling Academy", entry["credit"])
+
+    def test_other_entries_stay_and_running_twice_keeps_one_learn_entry(self):
+        archive = self.make_archive({"qaida-01/002.opus": b"abc"})
+        path = self.write_manifest([{"id": "quran-text"}])
+
+        build_manifests.add_learn_audio_to_manifest(path, archive)
+        build_manifests.add_learn_audio_to_manifest(path, archive)
+
+        with open(path, encoding="utf-8") as handle:
+            ids = [entry["id"] for entry in json.load(handle)["packs"]]
+        self.assertEqual(["quran-text", "learn-qaida-audio"], ids)
+
+
 if __name__ == "__main__":
     unittest.main()

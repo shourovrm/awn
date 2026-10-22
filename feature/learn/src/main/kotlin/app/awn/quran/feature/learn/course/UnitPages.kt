@@ -1,20 +1,43 @@
 package app.awn.quran.feature.learn.course
 
-/** One page of a unit opened from a track: a reading screen, a check, or the closing page. */
+/** One page of a unit opened from a track: teaching, a check, the practice or the closing page. */
 sealed interface UnitPage {
-    data class Reading(val screen: LessonScreenData) : UnitPage
+    /**
+     * A reading screen with the grids that follow it, or grids alone when no reading screen comes
+     * before them. The first screen gives the page its title.
+     */
+    data class Teaching(val screens: List<LessonScreenData>) : UnitPage
 
     /** [index] counts the checks of the unit from 0. */
     data class Check(val index: Int, val check: CheckWithAnswer) : UnitPage
 
+    /** The practice set: ten items drawn from the unit's pool, one screen each. */
+    data object Practice : UnitPage
+
     data object Done : UnitPage
 }
 
-/** The pages of a unit in swipe order: every reading screen, every check, then the closing page. */
+/**
+ * The pages of a unit in swipe order: the teaching pages, every check, the practice when the unit
+ * has any practice item, then the closing page.
+ */
 fun unitPages(text: LessonText): List<UnitPage> =
-    text.readingScreens.map { UnitPage.Reading(it) } +
+    teachingPages(text) +
         text.checks.mapIndexed { index, check -> UnitPage.Check(index, check) } +
+        listOfNotNull(UnitPage.Practice.takeIf { text.practiceItems.isNotEmpty() }) +
         UnitPage.Done
+
+private fun teachingPages(text: LessonText): List<UnitPage.Teaching> {
+    val pages = mutableListOf<MutableList<LessonScreenData>>()
+    for (screen in text.teachingScreens) {
+        if (screen.kind == ScreenKind.Grid && pages.isNotEmpty()) {
+            pages.last().add(screen)
+        } else {
+            pages.add(mutableListOf(screen))
+        }
+    }
+    return pages.map { UnitPage.Teaching(it) }
+}
 
 /**
  * The answers given in one unit. [chosen] maps a check index to the option picked; the first pick

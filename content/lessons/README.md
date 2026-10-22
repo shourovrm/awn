@@ -13,7 +13,7 @@ content/lessons/<language>/<course>/NN-slug.md
 ```
 
 - `<language>`: `en`, `bn`. A lesson has the same file name and the same `id` in every language.
-- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (the Reading track: from the letters to a whole ayah, in Qaida order).
+- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (the Reading track: from the letters to a whole ayah, in Qaida order), `tajweed` (the Tajweed track: the rules of reciting, units 11 to 19).
 - `NN`: the order in the course. A gap is allowed; the course runs in `order`.
 
 ## File format
@@ -38,6 +38,9 @@ The body is a list of screens. Each screen starts with a heading and holds parag
 
 - `## Screen N: Title` is a reading screen.
 - `## Check: Title` is a question after the reading screens, and `## Answer: Title` is the explanation shown once the user has answered. A lesson may end with several Check and Answer pairs; nothing else may follow them. A check has `question:`, an optional `ayah:` (shown with the words around it), an optional `highlight:` (a word key marked in the ayah), a bullet list of options and `answer:` (the option number, from 1). Options appear in the order written.
+- `## Grid: Title` is a teaching grid, read right to left, five cells to a row. Each line is one cell: `- Arabic | transliteration | clip id`. The Arabic is written as it is drawn (no `[[ ]]`), the transliteration is in the file's language and has no Arabic, and the clip id looks like `qaida-04/012`. A tap on a cell plays its sound; Play all plays the cells in order.
+- `## Practice: Title` is one item of the unit's practice set; the app draws 10 at random from all the Practice items of the unit on each visit. It has the lines of a Check (`question:`, optional `ayah:` and `highlight:`, options, `answer:`) and a required `explain:` line, shown after the answer, and an optional `clip:` that plays after the answer. An option written as `[[بَ]]` alone shows as a large tile.
+- Grid and Practice screens may come anywhere after the first reading screen, between the Check and Answer pairs; a Check is still followed at once by its Answer. Translations keep the same clip ids as English.
 - `letters: [[ا]] alif; [[ب]] baa` is a grid of letters, five to a row from the right, each with its name under it.
 - `- item` is a bullet; `| a | b |` rows are a table (header row, then `|---|`).
 - `{{2:3:7}}` stands for the Quran word 2:3:7, drawn in the reader's script. `{{2:3}}` alone in a paragraph stands for the ayah, drawn with the reader's translation.

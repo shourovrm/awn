@@ -36,6 +36,10 @@ write the manifests that go into a release. Without the flag every pack is liste
 --add-indopak-to=PATH only puts the IndoPak entries into the scripts.json at PATH (the published one, which
 lists fewer packs than the workspace) and does nothing else.
 
+--add-learn-audio=PATH only puts the Learn sounds entry (id learn-qaida-audio, kind learn-audio) into the
+scripts.json at PATH, from the zip that tools/build_learn_audio_pack.py wrote to awn-data/next/learn/. The
+entry has member_count (clips) and installed_bytes (unpacked size). It does nothing else.
+
 Usage: python3 tools/build_manifests.py [--publishable=yes,conditional] [--exclude=indopak-15,indopak-16,indopak-layouts]
 """
 
@@ -169,6 +173,38 @@ def add_indopak_to_manifest(path):
     replaced_ids = INDOPAK_PACK_IDS | {"indopak"}
     kept = [entry for entry in manifest["packs"] if entry["id"] not in replaced_ids]
     manifest["packs"] = kept + indopak_entries()
+    temporary_path = path + ".part"
+    with open(temporary_path, "w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2, ensure_ascii=False)
+        handle.write("\n")
+    os.replace(temporary_path, path)
+    print("wrote", path, f"({len(manifest['packs'])} entries)")
+
+
+LEARN_AUDIO_ID = "learn-qaida-audio"
+LEARN_AUDIO_CREDIT = ("Islamic Home Schooling Academy of New Zealand, Noorani Qaida lessons (CC BY); "
+                      "recordings are screen captures of the Al-Furqan Noorani Qaida program")
+LEARN_AUDIO_SOURCE_URL = "https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng"
+
+
+def learn_audio_entry(archive_path=None):
+    """The manifest entry of the Learn sounds zip."""
+    archive_path = archive_path or os.path.join(data_paths.workspace(), "learn", "qaida-audio.zip")
+    with zipfile.ZipFile(archive_path) as archive:
+        members = archive.infolist()
+        unpacked_bytes = sum(member.file_size for member in members)
+    return pack_entry(
+        archive_path, id=LEARN_AUDIO_ID, kind="learn-audio", name="Lesson sounds",
+        archive_format="zip", member_pattern="{unit}/{clip}.opus", member_count=len(members),
+        installed_bytes=unpacked_bytes, credit=LEARN_AUDIO_CREDIT, source_url=LEARN_AUDIO_SOURCE_URL)
+
+
+def add_learn_audio_to_manifest(path, archive_path=None):
+    """Puts the Learn sounds entry into an existing scripts.json, replacing an older one."""
+    with open(path, encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    kept = [entry for entry in manifest["packs"] if entry["id"] != LEARN_AUDIO_ID]
+    manifest["packs"] = kept + [learn_audio_entry(archive_path)]
     temporary_path = path + ".part"
     with open(temporary_path, "w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2, ensure_ascii=False)
@@ -342,6 +378,9 @@ def main():
             EXCLUDED_IDS.update(argument.split("=", 1)[1].split(","))
         elif argument.startswith("--add-indopak-to="):
             add_indopak_to_manifest(argument.split("=", 1)[1])
+            return
+        elif argument.startswith("--add-learn-audio="):
+            add_learn_audio_to_manifest(argument.split("=", 1)[1])
             return
         else:
             raise SystemExit(f"unknown argument {argument}")

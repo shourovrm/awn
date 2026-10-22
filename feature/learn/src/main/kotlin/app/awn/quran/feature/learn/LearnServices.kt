@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ProgressEvents
-import app.awn.quran.feature.learn.content.LessonRepository
 import app.awn.quran.feature.learn.content.SnippetRepository
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CourseContent
@@ -40,15 +39,8 @@ class LearnServices private constructor(context: Context) {
     private val database = LearnDatabase.open(context)
     val settings = LearnSettings(context.learnDataStore)
     val progress = LearnProgress(database, settings)
-    val lessons = LessonRepository(context.assets)
     val snippets = SnippetRepository(context.assets)
     val courseRepository = WordCourseRepository(database)
-
-    /**
-     * For records that must be written after the screen that asked for them is gone: a screen's own
-     * scope is cancelled when it leaves, which can cancel the database transaction half way.
-     */
-    val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // Reading the lesson file and the word ranking takes tens of milliseconds, so it happens once,
     // off the main thread, when a screen first asks for it.

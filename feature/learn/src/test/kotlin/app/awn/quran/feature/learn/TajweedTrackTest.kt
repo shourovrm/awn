@@ -16,11 +16,16 @@ import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
 import app.awn.quran.core.ui.theme.AwnTheme
-import app.awn.quran.feature.learn.content.LessonRepository
-import kotlinx.coroutines.Dispatchers
+import app.awn.quran.feature.learn.course.CourseContentReader
+import app.awn.quran.feature.learn.course.LessonCourse
+import app.awn.quran.feature.learn.course.unitPages
+import app.awn.quran.feature.learn.data.StepItemKind
+import app.awn.quran.feature.learn.data.StepOutcome
+import app.awn.quran.feature.learn.session.StepKind
+import app.awn.quran.feature.learn.words.FinishedStep
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -30,8 +35,8 @@ import org.robolectric.annotation.Config
 
 /**
  * The whole path a user takes in the Tajweed track: hub, Tajweed row, a unit, back to the track.
- * The unit must open with its text, and leaving it by the bar arrow or by the system back gesture
- * must mark it done.
+ * Every unit must open on its first page, and leaving it by the bar arrow or by the system back
+ * gesture must return to the track.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -61,8 +66,7 @@ class TajweedTrackTest {
             override fun pruneFinished() = Unit
         }
 
-    @Test
-    fun everyTajweedUnitOpensWithItsTextAndLeavingItMarksItDone() {
+    private fun showLearnTab() {
         val services = LearnServices.get(context)
         // The user who picked "Not yet" for the letters is the one who found the track closed.
         runBlocking {
@@ -79,19 +83,23 @@ class TajweedTrackTest {
                 )
             }
         }
+    }
+
+    @Test
+    fun everyTajweedUnitOpensOnItsFirstPageAndBackReturnsToTheTrack() {
+        showLearnTab()
         waitForText("Tajweed")
         composeRule.onNodeWithText("Tajweed").performScrollTo().performClick()
 
-        val lessons = LessonRepository(context.assets).all()
-        val openedTitles = mutableListOf<String>()
-        LearnTrackOrder.tajweedIds.forEachIndexed { index, lessonId ->
-            val title = lessons.first { it.id == lessonId }.titleEnglish
+        val units = CourseContentReader.read(context.assets).inCourse(LessonCourse.Tajweed)
+        assertEquals(9, units.size)
+        units.forEachIndexed { index, unit ->
+            val title = unit.text("en").title
             val rowText = "${index + 1} · $title"
             waitForText(rowText)
             composeRule.onNodeWithText(rowText).performScrollTo().performClick()
-            // The lesson screen shows its title in the bar and again above the text.
-            waitForText("Examples")
-            openedTitles += title
+            val pageCount = unitPages(unit.text("en")).size
+            waitForText("1 of $pageCount")
             if (index % 2 == 0) {
                 composeRule.onNodeWithContentDescription("Back").performClick()
             } else {
@@ -99,11 +107,30 @@ class TajweedTrackTest {
                     composeRule.activity.onBackPressedDispatcher.onBackPressed()
                 }
             }
-            // The numbered row is on the track page only, so it shows once the lesson is left.
+            // The numbered row is on the track page only, so it shows once the unit is left.
             waitForText(rowText)
-            waitForDone(services, lessonId)
         }
-        assertTrue(openedTitles.size == LearnTrackOrder.tajweedIds.size)
+    }
+
+    @Test
+    fun anOlderLessonThatTheUserFinishedShowsAsADoneUnit() {
+        val services = LearnServices.get(context)
+        runBlocking {
+            val olderLesson =
+                FinishedStep(
+                    StepKind.Lesson,
+                    StepItemKind.LESSON,
+                    "ghunnah",
+                    null,
+                    StepOutcome.SEEN,
+                    0L,
+                )
+            services.courseRepository.finishLesson("ghunnah", olderLesson)
+        }
+
+        val snapshot = runBlocking { services.courseRepository.snapshot() }
+
+        assertTrue("tajweed-15-nasal-sound" in snapshot.doneLessonIds)
     }
 
     private fun waitForText(text: String) {
@@ -118,22 +145,7 @@ class TajweedTrackTest {
         }
     }
 
-    private fun waitForDone(services: LearnServices, lessonId: String) {
-        composeRule.waitUntil(
-            conditionDescription = "$lessonId marked done",
-            timeoutMillis = WAIT_MILLIS,
-        ) {
-            runBlocking(Dispatchers.IO) {
-                lessonId in services.courseRepository.observeSnapshot().first().doneLessonIds
-            }
-        }
-    }
-
     private companion object {
         const val WAIT_MILLIS = 20_000L
     }
-}
-
-private object LearnTrackOrder {
-    val tajweedIds = app.awn.quran.feature.learn.course.LearnTracks.TAJWEED_ORDER
 }

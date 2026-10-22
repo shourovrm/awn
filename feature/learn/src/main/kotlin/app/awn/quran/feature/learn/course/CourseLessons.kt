@@ -6,11 +6,12 @@ import app.awn.quran.core.data.WordKey
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** The three courses; [folder] is the folder name in `content/lessons/<language>/`. */
+/** The four courses; [folder] is the folder name in `content/lessons/<language>/`. */
 enum class LessonCourse(val folder: String) {
     Basics("basics"),
     Grammar("grammar"),
-    Letters("letters");
+    Letters("letters"),
+    Tajweed("tajweed");
 
     companion object {
         fun ofFolder(folder: String): LessonCourse = entries.first { it.folder == folder }
@@ -39,19 +40,59 @@ sealed interface LessonBlock {
     data class LetterName(val letter: String, val name: String)
 }
 
-/** The question that ends a lesson; [correctIndex] counts from 0. */
+/**
+ * A question of a lesson; [correctIndex] counts from 0. The last three fields belong to practice
+ * items: [clip] is the sound id played with the question, [explanation] the line shown after the
+ * answer.
+ */
 data class LessonCheck(
     val question: String,
     val ayah: AyahRef?,
     val highlight: WordKey?,
     val options: List<String>,
     val correctIndex: Int,
-)
+    val clip: String? = null,
+    val explanation: String? = null,
+) {
+    /** The sounds of the item, in playing order; empty when it has none. */
+    val clipIds: List<String>
+        get() = clip?.split(CLIP_SEPARATOR).orEmpty()
+}
+
+/**
+ * One cell of a grid: the Arabic as written, its transliteration in the lesson's language, and the
+ * id of the sound that a tap plays (for example `qaida-04/012`).
+ */
+data class GridCell(val arabic: String, val transliteration: String, val clip: String) {
+    /** The sounds of the cell: one id, or several joined by `+` that play one after another. */
+    val clipIds: List<String>
+        get() = clip.split(CLIP_SEPARATOR)
+}
+
+private const val CLIP_SEPARATOR = "+"
+
+/** One item of a unit's practice pool: a question to answer, or a row to read aloud. */
+sealed interface PracticeItem {
+    val clipIds: List<String>
+
+    data class Question(val check: LessonCheck) : PracticeItem {
+        override val clipIds: List<String>
+            get() = check.clipIds
+    }
+
+    /** Arabic [read] in lesson markup to read aloud, then listen to the clip. Nothing is judged. */
+    data class ReadAloud(val read: String, val clip: String) : PracticeItem {
+        override val clipIds: List<String>
+            get() = clip.split(CLIP_SEPARATOR)
+    }
+}
 
 enum class ScreenKind {
     Reading,
     Check,
     Answer,
+    Grid,
+    Practice,
 }
 
 data class LessonScreenData(
@@ -59,12 +100,14 @@ data class LessonScreenData(
     val title: String,
     val blocks: List<LessonBlock>,
     val check: LessonCheck?,
+    val cells: List<GridCell> = emptyList(),
+    val readAloud: PracticeItem.ReadAloud? = null,
 )
 
 /** One language of a lesson. */
 data class LessonText(val title: String, val screens: List<LessonScreenData>) {
     val check: LessonCheck?
-        get() = screens.firstNotNullOfOrNull { it.check }
+        get() = screens.firstOrNull { it.kind == ScreenKind.Check }?.check
 
     val answerBlocks: List<LessonBlock>
         get() = screens.firstOrNull { it.kind == ScreenKind.Answer }?.blocks.orEmpty()
@@ -72,9 +115,29 @@ data class LessonText(val title: String, val screens: List<LessonScreenData>) {
     val readingScreens: List<LessonScreenData>
         get() = screens.filter { it.kind == ScreenKind.Reading }
 
+    /** The pages that teach, reading screens and grids, in the order of the file. */
+    val teachingScreens: List<LessonScreenData>
+        get() = screens.filter { it.kind == ScreenKind.Reading || it.kind == ScreenKind.Grid }
+
+    /** The unit's practice pool; each practice screen is one item. */
+    val practiceItems: List<PracticeItem>
+        get() =
+            screens
+                .filter { it.kind == ScreenKind.Practice }
+                .mapNotNull { screen ->
+                    screen.readAloud ?: screen.check?.let { PracticeItem.Question(it) }
+                }
+
+    /** True when any grid cell or practice item has a sound, so the unit offers the download. */
+    val hasClips: Boolean
+        get() =
+            screens.any { screen -> screen.cells.isNotEmpty() } ||
+                practiceItems.any { it.clipIds.isNotEmpty() }
+
     /** Every check of the lesson with the explanation shown after it, in order. */
     val checks: List<CheckWithAnswer>
         get() = screens.mapIndexedNotNull { index, screen ->
+            if (screen.kind != ScreenKind.Check) return@mapIndexedNotNull null
             val check = screen.check ?: return@mapIndexedNotNull null
             val answer = screens.getOrNull(index + 1)?.takeIf { it.kind == ScreenKind.Answer }
             CheckWithAnswer(screen.title, check, answer?.title, answer?.blocks.orEmpty())
@@ -176,6 +239,8 @@ object CourseContentReader {
                 "screen" -> ScreenKind.Reading
                 "check" -> ScreenKind.Check
                 "answer" -> ScreenKind.Answer
+                "grid" -> ScreenKind.Grid
+                "practice" -> ScreenKind.Practice
                 else -> error("Unknown lesson screen kind $stored.")
             }
         return LessonScreenData(
@@ -183,6 +248,11 @@ object CourseContentReader {
             title = screen.getString("title"),
             blocks = screen.optJSONArray("blocks")?.objects()?.map(::parseBlock).orEmpty(),
             check = screen.optJSONObject("check")?.let(::parseCheck),
+            cells = screen.optJSONArray("cells")?.objects()?.map(::parseCell).orEmpty(),
+            readAloud =
+                screen.optJSONObject("read_aloud")?.let {
+                    PracticeItem.ReadAloud(it.getString("read"), it.getString("clip"))
+                },
         )
     }
 
@@ -210,6 +280,13 @@ object CourseContentReader {
             else -> error("Unknown lesson block type $type.")
         }
 
+    private fun parseCell(cell: JSONObject) =
+        GridCell(
+            arabic = cell.getString("arabic"),
+            transliteration = cell.getString("transliteration"),
+            clip = cell.getString("clip"),
+        )
+
     private fun parseTerm(term: JSONObject) =
         LessonBlock.Term(term.getString("text"), term.getString("gloss"))
 
@@ -221,6 +298,8 @@ object CourseContentReader {
                 check.optString("highlight").takeIf { it.isNotEmpty() }?.let(WordKey::parse),
             options = check.getJSONArray("options").strings(),
             correctIndex = check.getInt("answer"),
+            clip = check.optString("clip").takeIf { it.isNotEmpty() },
+            explanation = check.optString("explain").takeIf { it.isNotEmpty() },
         )
 
     private fun parseAyah(key: String): AyahRef {

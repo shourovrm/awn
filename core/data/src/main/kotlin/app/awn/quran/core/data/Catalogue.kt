@@ -18,6 +18,9 @@ enum class CatalogueGroup {
 
     /** One reciter's word timings, which let the word card play a single word. */
     WordAudio,
+
+    /** The recorded letter and syllable sounds of the Learn units. */
+    LearnAudio,
 }
 
 /**

@@ -46,41 +46,7 @@ fun DownloadsPage(
             rowKey = SettingRowKeys.DOWNLOADS_SPACE_USED,
         )
         SettingsGroupHeading(stringResource(R.string.downloads_group_on_phone))
-        PackListLinkRow(
-            R.string.downloads_page_types,
-            PackListKind.PageTypes,
-            SettingRowKeys.DOWNLOADS_PAGE_TYPES,
-            catalogue,
-            onOpenList,
-        )
-        PackListLinkRow(
-            R.string.downloads_translations,
-            PackListKind.Translations,
-            SettingRowKeys.DOWNLOADS_TRANSLATIONS,
-            catalogue,
-            onOpenList,
-        )
-        PackListLinkRow(
-            R.string.downloads_transliteration,
-            PackListKind.Transliteration,
-            SettingRowKeys.DOWNLOADS_TRANSLITERATION,
-            catalogue,
-            onOpenList,
-        )
-        PackListLinkRow(
-            R.string.downloads_word_by_word,
-            PackListKind.WordByWord,
-            SettingRowKeys.DOWNLOADS_WORD_BY_WORD,
-            catalogue,
-            onOpenList,
-        )
-        PackListLinkRow(
-            R.string.downloads_word_audio,
-            PackListKind.WordAudio,
-            SettingRowKeys.DOWNLOADS_WORD_AUDIO,
-            catalogue,
-            onOpenList,
-        )
+        PackListLinkRows(catalogue, onOpenList)
         SettingsLinkRow(
             label = stringResource(R.string.downloads_reciters),
             value = Formatter.formatShortFileSize(context, audioBytes),
@@ -111,5 +77,52 @@ private fun PackListLinkRow(
             ),
         onClick = { onOpenList(kind) },
         rowKey = rowKey,
+    )
+}
+
+/** One row for each kind of download that is a list of entries. */
+@Composable
+private fun PackListLinkRows(catalogue: CatalogueState, onOpenList: (PackListKind) -> Unit) {
+    PackListLinkRow(
+        R.string.downloads_page_types,
+        PackListKind.PageTypes,
+        SettingRowKeys.DOWNLOADS_PAGE_TYPES,
+        catalogue,
+        onOpenList,
+    )
+    PackListLinkRow(
+        R.string.downloads_translations,
+        PackListKind.Translations,
+        SettingRowKeys.DOWNLOADS_TRANSLATIONS,
+        catalogue,
+        onOpenList,
+    )
+    PackListLinkRow(
+        R.string.downloads_transliteration,
+        PackListKind.Transliteration,
+        SettingRowKeys.DOWNLOADS_TRANSLITERATION,
+        catalogue,
+        onOpenList,
+    )
+    PackListLinkRow(
+        R.string.downloads_word_by_word,
+        PackListKind.WordByWord,
+        SettingRowKeys.DOWNLOADS_WORD_BY_WORD,
+        catalogue,
+        onOpenList,
+    )
+    PackListLinkRow(
+        R.string.downloads_word_audio,
+        PackListKind.WordAudio,
+        SettingRowKeys.DOWNLOADS_WORD_AUDIO,
+        catalogue,
+        onOpenList,
+    )
+    PackListLinkRow(
+        R.string.downloads_lesson_sounds,
+        PackListKind.LessonSounds,
+        SettingRowKeys.DOWNLOADS_LESSON_SOUNDS,
+        catalogue,
+        onOpenList,
     )
 }

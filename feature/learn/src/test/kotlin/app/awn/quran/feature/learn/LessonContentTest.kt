@@ -2,9 +2,11 @@ package app.awn.quran.feature.learn
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.LessonRepository
 import app.awn.quran.feature.learn.content.SnippetRepository
+import app.awn.quran.feature.learn.course.CourseContentReader
+import app.awn.quran.feature.learn.course.LessonBlock
+import app.awn.quran.feature.learn.course.LessonCourse
+import app.awn.quran.feature.learn.course.LessonText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -18,38 +20,48 @@ class LessonContentTest {
 
     private val assets = ApplicationProvider.getApplicationContext<Context>().assets
 
-    @Test
-    fun twelveLessonsLoadAsUnreviewedDraftsWithExamples() {
-        val lessons = LessonRepository(assets).all()
-
-        assertEquals(12, lessons.size)
-        lessons.forEach { lesson ->
-            assertTrue("${lesson.id} is a draft", lesson.isDraft)
-            assertNull(lesson.reviewedOn)
-            assertTrue("${lesson.id} has examples", lesson.examples.size >= 3)
-            assertTrue(lesson.paragraphs(LearnLanguage.English).size >= 3)
-            assertTrue(lesson.paragraphs(LearnLanguage.Bangla).size >= 3)
-        }
-    }
-
     /**
      * The live feedback judges skipped words, substituted letters and madd length only, so no
-     * lesson may say that the app checks or detects anything else.
+     * tajweed unit may say that the app checks or detects anything else.
      */
     @Test
-    fun noLessonClaimsThatTheAppChecksIt() {
+    fun noTajweedUnitClaimsThatTheAppChecksIt() {
         val forbidden = listOf("app ", "detect", "checks your", "অ্যাপ", "যাচাই করে")
+        val units = CourseContentReader.read(assets).inCourse(LessonCourse.Tajweed)
 
-        LessonRepository(assets).all().forEach { lesson ->
-            val text = lesson.bodyEnglish + lesson.bodyBangla
-            forbidden.forEach { phrase ->
-                assertTrue(
-                    "${lesson.id} contains '$phrase'",
-                    !text.contains(phrase, ignoreCase = true),
-                )
+        assertEquals(9, units.size)
+        units.forEach { unit ->
+            listOf("en", "bn").forEach { languageCode ->
+                val text = textOf(unit.text(languageCode))
+                forbidden.forEach { phrase ->
+                    assertTrue(
+                        "${unit.id} ($languageCode) contains '$phrase'",
+                        !text.contains(phrase, ignoreCase = true),
+                    )
+                }
             }
         }
     }
+
+    private fun textOf(lessonText: LessonText): String =
+        lessonText.screens.joinToString(" ") { screen ->
+            val blockText = screen.blocks.joinToString(" ") { block -> textOf(block) }
+            val checkText =
+                screen.check?.let { check ->
+                    check.question + " " + check.options.joinToString(" ") + check.explanation
+                }
+            screen.title + " " + blockText + " " + checkText.orEmpty()
+        }
+
+    private fun textOf(block: LessonBlock): String =
+        when (block) {
+            is LessonBlock.Paragraph -> block.text
+            is LessonBlock.Bullets -> block.items.joinToString(" ")
+            is LessonBlock.Table -> (block.header + block.rows.flatten()).joinToString(" ")
+            is LessonBlock.Equation -> block.parts.joinToString(" ") { it.text + it.gloss }
+            is LessonBlock.Ayah,
+            is LessonBlock.Letters -> ""
+        }
 
     @Test
     fun sixtySnippetsLoadWithReferences() {

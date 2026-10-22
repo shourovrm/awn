@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -28,10 +29,12 @@ import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.Lesson
 import app.awn.quran.feature.learn.course.LearningArabic
-import app.awn.quran.feature.learn.course.TajweedLessonTitle
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
+import app.awn.quran.feature.learn.sound.LocalUnitSounds
+import app.awn.quran.feature.learn.sound.MediaClipPlayer
+import app.awn.quran.feature.learn.sound.PackUnitSounds
+import app.awn.quran.feature.learn.sound.WordSound
 import app.awn.quran.feature.learn.ui.CourseDependencies
 import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
@@ -42,10 +45,8 @@ import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
 import java.util.Locale
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private val EMPTY_SNAPSHOT =
     ProgressSnapshot(
@@ -67,7 +68,8 @@ private val EMPTY_SNAPSHOT =
  * When [onReviseAt] is set, "Revise" calls it with the first due ayah in reading order, and :app
  * opens the Quran screen there in recite mode with words hidden; the Revision screen of this tab is
  * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
- * end of the bar on the hub (:app puts Settings there).
+ * end of the bar on the hub (:app puts Settings there). [wordSound] plays a Quran word of a
+ * practice item with the word reciter the user chose; the recorded lesson sounds come from [packs].
  */
 @Composable
 fun LearnScreen(
@@ -78,6 +80,7 @@ fun LearnScreen(
     modifier: Modifier = Modifier,
     onReviseAt: ((AyahRef) -> Unit)? = null,
     barActions: @Composable RowScope.() -> Unit = {},
+    wordSound: WordSound = WordSound.Silent,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -93,10 +96,6 @@ fun LearnScreen(
         services.progress.observeSnapshot()
     }
         .collectAsState(initial = EMPTY_SNAPSHOT)
-    val lessons by
-        produceState(emptyList<Lesson>()) {
-            value = withContext(Dispatchers.IO) { services.lessons.all() }
-        }
     val chapters by produceState(emptyList<Chapter>(), quranText) { value = quranText.chapters() }
     val surahName = { surah: Int ->
         surahNameOf(chapters, surah, language) { resources.getString(R.string.surah_number, surah) }
@@ -114,15 +113,21 @@ fun LearnScreen(
             assets?.let { CourseRuntime(it, courseDependencies) }
         }
 
+    val unitSounds =
+        remember(packs, wordSound) { PackUnitSounds(packs, MediaClipPlayer(), wordSound) }
+    DisposableEffect(unitSounds) { onDispose { unitSounds.stop() } }
+
     val current = route ?: return
-    CompositionLocalProvider(LocalLearnEnvironment provides environment) {
+    CompositionLocalProvider(
+        LocalLearnEnvironment provides environment,
+        LocalUnitSounds provides unitSounds,
+    ) {
         LearnRoutes(
             route = current,
             onRouteChange = { routeState.value = it },
             content =
                 LearnRouteContent(
                     snapshot = snapshot,
-                    lessons = lessons,
                     locale = locale,
                     quranText = quranText,
                     surahName = surahName,
@@ -139,7 +144,6 @@ fun LearnScreen(
 /** What the screens of the Learn tab read; loaded once by [LearnScreen]. */
 internal class LearnRouteContent(
     val snapshot: ProgressSnapshot,
-    val lessons: List<Lesson>,
     val locale: Locale,
     val quranText: QuranTextRepository,
     val surahName: (Int) -> String,
@@ -214,7 +218,6 @@ private fun LearnRoutes(
     barActions: @Composable RowScope.() -> Unit,
     modifier: Modifier,
 ) {
-    val summaries = LearnUiMapper.lessonSummaries(content.lessons, content.language)
     val snapshot = content.snapshot
     val surahName = content.surahName
     val goHub = { onRouteChange(LearnRoute.Hub) }
@@ -231,14 +234,6 @@ private fun LearnRoutes(
                 onBackClick = goHub,
                 modifier = modifier,
             )
-        LearnRoute.Lessons ->
-            LessonsListScreen(
-                lessons = summaries,
-                onLessonClick = { onRouteChange(LearnRoute.OneLesson(it)) },
-                onBackClick = goHub,
-                modifier = modifier,
-            )
-        is LearnRoute.OneLesson -> OneLessonRoute(route, content, course, onRouteChange, modifier)
         LearnRoute.Revision ->
             RevisionHost(
                 dueToday = snapshot.dueToday,
@@ -258,7 +253,6 @@ private fun LearnRoutes(
                     dueAyahs = snapshot.dueToday,
                     onReviseAt = onReviseAt,
                     barActions = barActions,
-                    tajweedLessons = summaries.map { TajweedLessonTitle(it.id, it.title) },
                     modifier = modifier,
                 )
             }

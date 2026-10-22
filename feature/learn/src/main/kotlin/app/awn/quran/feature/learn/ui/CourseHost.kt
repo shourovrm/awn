@@ -26,7 +26,6 @@ import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.course.RepositoryWordInfoSource
 import app.awn.quran.feature.learn.course.RepositoryWordMeanings
-import app.awn.quran.feature.learn.course.TajweedLessonTitle
 import app.awn.quran.feature.learn.progress.LearnSettings
 import app.awn.quran.feature.learn.session.PlanStep
 import app.awn.quran.feature.learn.session.QuestionFactory
@@ -100,7 +99,6 @@ internal class CourseScreenContext(
     val choices: CourseChoices,
     val scope: CoroutineScope,
     val onRouteChange: (LearnRoute) -> Unit,
-    val tajweedLessons: List<TajweedLessonTitle>,
     val startSession: (SessionRequest) -> Unit,
 ) {
     val services: LearnServices
@@ -122,7 +120,6 @@ internal fun CourseRoutes(
     dueAyahs: List<AyahRef>,
     onReviseAt: ((AyahRef) -> Unit)?,
     barActions: @Composable RowScope.() -> Unit,
-    tajweedLessons: List<TajweedLessonTitle>,
     modifier: Modifier,
 ) {
     if (runtime == null) return
@@ -140,7 +137,6 @@ internal fun CourseRoutes(
             choices = CourseChoices(sessionMinutes, includeLetters),
             scope = rememberCoroutineScope(),
             onRouteChange = onRouteChange,
-            tajweedLessons = tajweedLessons,
             startSession = { newRequest ->
                 request = newRequest
                 onRouteChange(LearnRoute.Session(newRequest.isOwnQuiz))
@@ -357,7 +353,6 @@ internal fun HubRoute(
                         choices,
                         dueAyahs.size,
                         meanings,
-                        context.tajweedLessons,
                     )
                 }
         }

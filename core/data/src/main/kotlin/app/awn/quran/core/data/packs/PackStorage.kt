@@ -11,8 +11,8 @@ import java.nio.file.StandardCopyOption
  * Decides where each pack lives under `filesDir/packs` and copies bundled packs there on first use.
  *
  * Layout: a database pack is `packs/<file>.sqlite`; a single font is `packs/fonts/<id>/<file>`; a
- * font archive is extracted to `packs/fonts/<id>/pN.ttf`; unfinished downloads sit in
- * `packs/.downloads/`.
+ * font archive is extracted to `packs/fonts/<id>/pN.ttf`; a sound archive is extracted to
+ * `packs/learn-audio/<id>/<unit>/<clip>.opus`; unfinished downloads sit in `packs/.downloads/`.
  */
 @Suppress("TooManyFunctions") // One small function per storage question.
 class PackStorage(
@@ -40,9 +40,13 @@ class PackStorage(
             PackFileLayout.Database -> File(root, record.fileName)
             PackFileLayout.SingleFont -> File(fontsDirectory(record.entry.id), record.fileName)
             PackFileLayout.FontArchive -> fontsDirectory(record.entry.id)
+            PackFileLayout.AudioArchive -> learnAudioDirectory(record.entry.id)
         }
 
     fun fontsDirectory(packId: String): File = File(File(root, "fonts"), packId)
+
+    /** The folder that holds the clips of the Learn sounds pack [packId], one folder per unit. */
+    fun learnAudioDirectory(packId: String): File = File(File(root, "learn-audio"), packId)
 
     /**
      * Returns the installed pack file or folder, copying a bundled pack out of the APK first when
@@ -54,7 +58,8 @@ class PackStorage(
         val location = locationOf(record)
         val present =
             when (record.layout) {
-                PackFileLayout.FontArchive ->
+                PackFileLayout.FontArchive,
+                PackFileLayout.AudioArchive ->
                     location.isDirectory && !location.list().isNullOrEmpty()
                 else -> location.isFile
             }
@@ -67,7 +72,8 @@ class PackStorage(
 
     fun sizeOnDisk(location: File): Long =
         if (location.isDirectory) {
-            location.listFiles().orEmpty().sumOf { it.length() }
+            // Sound packs keep one folder per unit, so the files are counted at any depth.
+            location.walkTopDown().filter { it.isFile }.sumOf { it.length() }
         } else {
             location.length()
         }

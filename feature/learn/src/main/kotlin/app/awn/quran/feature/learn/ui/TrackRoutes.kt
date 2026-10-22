@@ -8,7 +8,6 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.LearnTrack
 import app.awn.quran.feature.learn.course.LearnTracks
-import app.awn.quran.feature.learn.course.TrackUnit
 import app.awn.quran.feature.learn.data.StepItemKind
 import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.session.StepKind
@@ -41,26 +40,15 @@ internal fun TrackRoutes(
 
 @Composable
 private fun TrackRoute(track: LearnTrack, context: CourseScreenContext, modifier: Modifier) {
-    val input =
-        trackInput(
-            context.runtime.lookups,
-            context.snapshot,
-            context.choices,
-            context.tajweedLessons,
-        )
+    val input = trackInput(context.runtime.lookups, context.snapshot, context.choices)
     TrackScreen(
         summary = LearnTracks.summary(track, input),
         units = LearnTracks.units(track, input),
-        onOpen = { unit -> context.onRouteChange(unitRoute(track, unit)) },
+        onOpen = { unit -> context.onRouteChange(LearnRoute.CourseUnit(unit.id, track)) },
         onBack = context::goHub,
         modifier = modifier,
     )
 }
-
-/** Tajweed units are still the older lessons; the other tracks open the paged course unit. */
-private fun unitRoute(track: LearnTrack, unit: TrackUnit): LearnRoute =
-    if (track == LearnTrack.Tajweed) LearnRoute.OneLesson(unit.id, track)
-    else LearnRoute.CourseUnit(unit.id, track)
 
 @Composable
 private fun CourseUnitRoute(
@@ -70,18 +58,13 @@ private fun CourseUnitRoute(
 ) {
     val lesson = context.runtime.assets.content.lesson(route.id) ?: return
     val track = route.track
-    val input =
-        trackInput(
-            context.runtime.lookups,
-            context.snapshot,
-            context.choices,
-            context.tajweedLessons,
-        )
+    val input = trackInput(context.runtime.lookups, context.snapshot, context.choices)
     val place = track?.let {
         val number = LearnTracks.units(it, input).firstOrNull { unit -> unit.id == lesson.id }
         UnitPlace(it, number?.number ?: 0, LearnTracks.unitAfter(it, lesson.id, input))
     }
     val openedAtMillis = remember(lesson.id) { Instant.now().toEpochMilli() }
+    val soundsOffer = rememberSoundsOffer(context.dependencies)
     val backRoute = track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
     // The unit is drawn again for the next one, so its pages and answers start fresh.
     key(lesson.id) {
@@ -98,10 +81,13 @@ private fun CourseUnitRoute(
                         }
                     },
                     onNextUnit = { next ->
-                        context.onRouteChange(unitRoute(track ?: LearnTrack.Reading, next))
+                        context.onRouteChange(
+                            LearnRoute.CourseUnit(next.id, track ?: LearnTrack.Reading),
+                        )
                     },
                 ),
             modifier = modifier,
+            soundsOffer = soundsOffer,
         )
     }
 }

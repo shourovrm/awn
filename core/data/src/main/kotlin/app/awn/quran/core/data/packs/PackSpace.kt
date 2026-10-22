@@ -26,7 +26,8 @@ object PackSpace {
         return when (layout) {
             PackFileLayout.Database,
             PackFileLayout.SingleFont -> remaining
-            PackFileLayout.FontArchive -> remaining + downloadBytes * UNPACKED_COPIES_OF_ARCHIVE
+            PackFileLayout.FontArchive,
+            PackFileLayout.AudioArchive -> remaining + downloadBytes * UNPACKED_COPIES_OF_ARCHIVE
         }
     }
 

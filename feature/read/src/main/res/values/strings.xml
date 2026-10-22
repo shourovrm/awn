@@ -99,4 +99,5 @@
   <string name="pack_list_word_by_word">Word by word</string>
   <string name="pack_list_word_audio">Word audio</string>
   <string name="catalogue_remove_frees">Frees %1$s. You can download it again.</string>
+  <string name="pack_list_lesson_sounds">Lesson sounds</string>
 </resources>

@@ -12,18 +12,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class LearnTracksTest {
 
-    private val tajweed =
-        listOf(
-            TajweedLessonTitle("qalqalah", "Qalqalah"),
-            TajweedLessonTitle("makharij", "Where letters are said"),
-            TajweedLessonTitle("extra-rule", "Extra"),
-        )
-
     private fun input(done: Set<String> = emptySet(), includeLetters: Boolean = true) =
         TrackInput(
             content = readingContent(),
             languageCode = "en",
-            tajweedLessons = tajweed,
             doneLessonIds = done,
             includeLetters = includeLetters,
         )
@@ -48,10 +40,11 @@ class LearnTracksTest {
     }
 
     @Test
-    fun `tajweed follows the fixed order and keeps unknown lessons at the end`() {
+    fun `tajweed lists its units by order`() {
         val units = LearnTracks.units(LearnTrack.Tajweed, input())
 
-        assertEquals(listOf("makharij", "qalqalah", "extra-rule"), units.map { it.id })
+        assertEquals(listOf("tajweed-11-first", "tajweed-12-second"), units.map { it.id })
+        assertEquals(listOf(1, 2), units.map { it.number })
     }
 
     @Test
@@ -86,7 +79,7 @@ class LearnTracksTest {
 
         assertEquals(LearnTrack.Reading, LearnTracks.trackOf("letters-02", content))
         assertEquals(LearnTrack.Grammar, LearnTracks.trackOf("basics-01", content))
-        assertEquals(LearnTrack.Tajweed, LearnTracks.trackOf("makharij", content))
+        assertEquals(LearnTrack.Tajweed, LearnTracks.trackOf("tajweed-11-first", content))
         assertNull(LearnTracks.trackOf("unknown", content))
     }
 
@@ -114,7 +107,9 @@ class LearnTracksTest {
             ${lesson("letters-01", "letters", 1)},
             ${lesson("letters-02", "letters", 2)},
             ${lesson("basics-01", "basics", 1)},
-            ${lesson("grammar-03", "grammar", 3)}]}"""
+            ${lesson("grammar-03", "grammar", 3)},
+            ${lesson("tajweed-12-second", "tajweed", 12)},
+            ${lesson("tajweed-11-first", "tajweed", 11)}]}"""
         return CourseContentReader.parse(json)
     }
 }

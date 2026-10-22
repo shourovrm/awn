@@ -14,9 +14,6 @@
   <string name="back">Back</string>
   <string name="surah_number">Surah %d</string>
 
-  <string name="lessons_title">Lessons</string>
-  <string name="lesson_draft">Draft</string>
-  <string name="lesson_examples">Examples</string>
   <plurals name="lesson_detail_draft">
     <item quantity="one">%d example · Draft</item>
     <item quantity="other">%d examples · Draft</item>
@@ -293,4 +290,21 @@
   <string name="unit_numbered_title">%1$d · %2$s</string>
   <string name="unit_next">Next unit</string>
   <string name="unit_back_to_track">Back to %s</string>
+  <string name="unit_sounds_download">Download sounds · %1$s</string>
+  <string name="unit_sounds_downloading">Downloading sounds</string>
+  <string name="unit_grid_play_all">Play all</string>
+  <string name="unit_grid_stop">Stop</string>
+  <string name="unit_grid_progress">%1$s · %2$d of %3$d</string>
+  <string name="practice_progress">%1$d of %2$d</string>
+  <string name="practice_listen">Listen</string>
+  <string name="practice_next">Next</string>
+  <string name="practice_done">Practice finished</string>
+  <string name="practice_read_aloud">Read it aloud, then listen.</string>
+  <string name="practice_listen_slowly">0.75×</string>
+  <string name="sources_qaida">Qari Noor Muhammad, Al-Qaida An-Nooraniyya (Noorani Qaida)</string>
+  <string name="sources_qaida_detail">Order and practice of the Reading units. Used for non-commercial purposes.</string>
+  <string name="sources_academy">Islamic Home Schooling Academy of New Zealand</string>
+  <string name="sources_academy_detail">Noorani Qaida video lessons: letter and practice sounds. Creative Commons Attribution. The recordings are screen captures of the Al-Furqan Noorani Qaida program.</string>
+  <string name="sources_tajweed_book">Usama Mahida and the teachers of SMA, Tajweed Made Easy (2018)</string>
+  <string name="sources_tajweed_book_detail">Order and facts of the Tajweed units.</string>
 </resources>

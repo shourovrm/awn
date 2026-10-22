@@ -1,10 +1,6 @@
 package app.awn.quran.feature.learn
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.Word
-import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.Lesson
-import app.awn.quran.feature.learn.content.LessonExample
 import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import java.time.ZoneId
@@ -52,26 +48,10 @@ data class ProgressUiState(
     val nextRevisionDate: String?,
 )
 
-/** One word of an example ayah; [isHighlighted] marks the words that carry the rule. */
-data class ExampleWord(val text: String, val isHighlighted: Boolean)
-
-/** One lesson example with its ayah text, which is empty when the Quran text is not available. */
-data class ExampleLine(val reference: String, val words: List<ExampleWord>, val note: String)
-
 object LearnUiMapper {
 
     /** How many lessons the Learn screen lists; the rest sit behind "All lessons". */
     const val LESSONS_ON_LEARN_SCREEN = 4
-
-    fun lessonSummaries(lessons: List<Lesson>, language: LearnLanguage): List<LessonSummary> =
-        lessons.map { lesson ->
-            LessonSummary(
-                id = lesson.id,
-                title = lesson.title(language),
-                exampleCount = lesson.examples.size,
-                isDraft = lesson.isDraft,
-            )
-        }
 
     fun learnState(
         snapshot: ProgressSnapshot,
@@ -105,26 +85,4 @@ object LearnUiMapper {
             nextRevisionDate = snapshot.nextDue?.atZone(zone)?.toLocalDate()?.format(dateFormat),
         )
     }
-
-    /**
-     * Builds the example block of a lesson. [ayahWords] is empty when the Quran text is not
-     * available; the reference and the note are shown without the text then.
-     */
-    fun exampleLine(
-        example: LessonExample,
-        language: LearnLanguage,
-        surahName: String,
-        ayahWords: List<Word>,
-    ): ExampleLine =
-        ExampleLine(
-            reference = "$surahName ${example.surah}:${example.ayah}",
-            words =
-                ayahWords.map { word ->
-                    ExampleWord(
-                        text = word.textUthmani,
-                        isHighlighted = word.key.wordPosition in example.wordPositions,
-                    )
-                },
-            note = example.note(language),
-        )
 }

@@ -9,7 +9,6 @@ import app.awn.quran.feature.learn.course.LearnTrack
 import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.PathInput
 import app.awn.quran.feature.learn.course.PathRow
-import app.awn.quran.feature.learn.course.TajweedLessonTitle
 import app.awn.quran.feature.learn.course.TrackInput
 import app.awn.quran.feature.learn.session.TodayPlan
 import app.awn.quran.feature.learn.session.WordInfoSource
@@ -36,7 +35,6 @@ internal suspend fun buildHubState(
     choices: CourseChoices,
     dueAyahs: Int,
     meanings: MeaningsState,
-    tajweedLessons: List<TajweedLessonTitle>,
 ): HubState {
     val path =
         CoursePath.build(
@@ -63,7 +61,7 @@ internal suspend fun buildHubState(
         meanings = meanings,
         tracks =
             listOf(LearnTrack.Reading, LearnTrack.Tajweed, LearnTrack.Grammar).map {
-                LearnTracks.summary(it, trackInput(lookups, snapshot, choices, tajweedLessons))
+                LearnTracks.summary(it, trackInput(lookups, snapshot, choices))
             },
     )
 }
@@ -72,12 +70,10 @@ internal fun trackInput(
     lookups: CourseLookups,
     snapshot: CourseSnapshot,
     choices: CourseChoices,
-    tajweedLessons: List<TajweedLessonTitle>,
 ): TrackInput =
     TrackInput(
         content = lookups.content,
         languageCode = lookups.languageCode,
-        tajweedLessons = tajweedLessons,
         doneLessonIds = snapshot.doneLessonIds,
         includeLetters = choices.includeLetters,
     )

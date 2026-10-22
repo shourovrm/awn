@@ -45,6 +45,7 @@ class FilePackRepository(
             "scripts" -> catalog.scriptPacks
             "translations" -> catalog.translationPacks
             "reciters" -> catalog.timingPacks
+            "learn-audio" -> catalog.learnAudioPacks
             "models" -> emptyList()
             else -> throw IllegalArgumentException("Unknown manifest '$kind'.")
         }.map { it.entry }
@@ -160,6 +161,17 @@ class FilePackRepository(
         }
     }
 
+    override fun learnAudioFile(clipId: String): File? {
+        val location = catalog.learnAudioPacks.firstOrNull()?.let { storage.locate(it) }
+        // The clip id comes from lesson files; the extracted folder only holds names that the
+        // archive check accepted, so a path that is not one of them finds nothing.
+        return location
+            ?.let { File(it, "$clipId.opus") }
+            ?.takeIf {
+                it.isFile && it.canonicalPath.startsWith(location.canonicalPath)
+            }
+    }
+
     /**
      * Maps a manifest record to its catalogue row; records outside every group are skipped. The
      * download size and the free space needed count the required packs that are still to come, so a
@@ -270,6 +282,7 @@ class FilePackRepository(
                 }
                 PackFileLayout.SingleFont -> moveInto(verifiedFile, destination)
                 PackFileLayout.FontArchive -> extractArchive(record, verifiedFile, destination)
+                PackFileLayout.AudioArchive -> extractArchive(record, verifiedFile, destination)
             }
         } catch (error: PackInstallException) {
             throw error
@@ -287,12 +300,17 @@ class FilePackRepository(
         val temporary = File(destination.parentFile, "${destination.name}.tmp")
         temporary.deleteRecursively()
         destination.parentFile?.mkdirs()
-        val extractedCount = PackFiles.extractFontArchive(archive, temporary, record.fileName)
+        val extractedCount =
+            if (record.layout == PackFileLayout.AudioArchive) {
+                PackFiles.extractAudioArchive(archive, temporary, record.fileName)
+            } else {
+                PackFiles.extractFontArchive(archive, temporary, record.fileName)
+            }
         if (record.memberCount != null && extractedCount != record.memberCount) {
             temporary.deleteRecursively()
             throw PackInstallException(
                 record.fileName,
-                "archive holds $extractedCount fonts but the manifest lists ${record.memberCount}",
+                "archive holds $extractedCount files but the manifest lists ${record.memberCount}",
             )
         }
         destination.deleteRecursively()

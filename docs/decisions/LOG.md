@@ -189,3 +189,8 @@
 2026-10-23 | Pages built ahead of a swipe reveal two rows per frame | one 36 ms frame per swipe was the likely jank (read.md)
 2026-10-23 | Font cache keeps page +-2, one family per font file; measured-page cache 5; loaded layouts within 4 pages | memory grew 93 MB over 30 swipes (read.md)
 2026-10-23 | IndoPak page drawing reuses the glyph-script path with one font and extra header lines shifted into slots | no new renderer; Hafs text in lists
+2026-10-23 | Lesson builder takes a tajweed course folder and Grid and Practice blocks; clip ids must match across languages | units get a Qaida grid and a random practice set (learn.md)
+2026-10-23 | Tajweed track reads the nine tajweed units; old JSON lessons and loader removed; done ids carried over by LegacyLessonProgress | no lost progress (learn.md)
+2026-10-23 | Learn sounds are a learn-audio entry in scripts.json (zip of qaida-NN/NNN.opus), group LearnAudio, extracted to packs/learn-audio/<id> | reuses font-zip install, no new manifest file (learn.md)
+2026-10-23 | Reading units use the ten Qaida-order files; unit pages show grids and a seeded 10-item practice; read-aloud items count as done | matches mock A (learn.md)
+2026-10-23 | Lesson sounds row in Settings > Downloads, credits for Qaida, academy and tajweed book, Bangla Reading units added | completes the guide (learn.md)

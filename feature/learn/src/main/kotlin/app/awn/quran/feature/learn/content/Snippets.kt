@@ -56,3 +56,7 @@ class SnippetRepository(private val assets: AssetManager) {
             else snippets[Math.floorMod(epochDay, snippets.size.toLong()).toInt()]
     }
 }
+
+/** Returns null for a JSON null or a missing key, where `optString` would return "null". */
+private fun JSONObject.optStringOrNull(name: String): String? =
+    if (isNull(name)) null else getString(name)

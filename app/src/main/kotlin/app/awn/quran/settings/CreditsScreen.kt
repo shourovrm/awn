@@ -34,6 +34,21 @@ fun CreditsScreen(credits: List<CreditLine>, onBack: () -> Unit) {
                 onLinkClick = { openLink(context, credit.sourceUrl) },
             )
         }
+        GroupTitle(stringResource(R.string.credits_lessons))
+        DetailedCreditRow(
+            name = stringResource(R.string.credit_qaida_name),
+            detail = stringResource(R.string.credit_qaida_detail),
+        )
+        DetailedCreditRow(
+            name = stringResource(R.string.credit_academy_name),
+            detail = stringResource(R.string.credit_academy_detail),
+            linkLabel = CreditText.linkLabel(ACADEMY_URL),
+            onLinkClick = { openLink(context, ACADEMY_URL) },
+        )
+        DetailedCreditRow(
+            name = stringResource(R.string.credit_tajweed_book_name),
+            detail = stringResource(R.string.credit_tajweed_book_detail),
+        )
         GroupTitle(stringResource(R.string.credits_recogniser))
         PlainLine(stringResource(R.string.credit_recogniser_entry))
         GroupTitle(stringResource(R.string.credits_libraries))
@@ -74,6 +89,34 @@ private fun CreditRow(name: String, linkLabel: String, onLinkClick: () -> Unit) 
         Text(text = linkLabel, style = AwnTypography.small, color = Awn.field.buttonFill)
     }
 }
+
+/** A source with a line on what Awn takes from it; the address is shown when there is one. */
+@Composable
+private fun DetailedCreditRow(
+    name: String,
+    detail: String,
+    linkLabel: String? = null,
+    onLinkClick: (() -> Unit)? = null,
+) {
+    Column(
+        Modifier.fillMaxWidth()
+            .heightIn(min = AwnSpacing.touchTarget)
+            .then(
+                if (onLinkClick != null)
+                    Modifier.clickable(role = Role.Button, onClick = onLinkClick)
+                else Modifier,
+            )
+            .padding(vertical = AwnSpacing.small),
+    ) {
+        Text(text = name, style = AwnTypography.body, color = Awn.field.content)
+        Text(text = detail, style = AwnTypography.small, color = Awn.field.content)
+        if (linkLabel != null) {
+            Text(text = linkLabel, style = AwnTypography.small, color = Awn.field.buttonFill)
+        }
+    }
+}
+
+private const val ACADEMY_URL = "https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng"
 
 private fun openLink(context: Context, url: String) {
     try {

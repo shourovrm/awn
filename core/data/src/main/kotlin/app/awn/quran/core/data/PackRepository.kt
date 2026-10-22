@@ -50,4 +50,10 @@ interface PackRepository {
      * installed. [page] is ignored for scripts with a single font.
      */
     fun fontFile(script: ScriptId, page: Int): File?
+
+    /**
+     * Returns the sound file of Learn clip [clipId] (for example `qaida-04/012`), or null when the
+     * sounds are not installed or hold no such clip.
+     */
+    fun learnAudioFile(clipId: String): File?
 }

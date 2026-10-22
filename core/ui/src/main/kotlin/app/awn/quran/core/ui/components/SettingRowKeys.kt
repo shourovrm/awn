@@ -35,6 +35,7 @@ object SettingRowKeys {
     const val DOWNLOADS_TRANSLITERATION = "downloads.transliteration"
     const val DOWNLOADS_WORD_BY_WORD = "downloads.word_by_word"
     const val DOWNLOADS_WORD_AUDIO = "downloads.word_audio"
+    const val DOWNLOADS_LESSON_SOUNDS = "downloads.lesson_sounds"
     const val DOWNLOADS_RECITERS = "downloads.reciters"
 
     const val RECITE_SPEED = "recite.speed"

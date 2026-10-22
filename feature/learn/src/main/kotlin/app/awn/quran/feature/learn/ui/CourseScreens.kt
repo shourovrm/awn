@@ -280,6 +280,7 @@ internal fun SourcesScreen(
                     },
                 )
             }
+            BookSources()
             GroupHeading(stringResource(R.string.sources_words))
             SourceItem(
                 stringResource(R.string.sources_quran_com),
@@ -297,7 +298,35 @@ internal fun SourcesScreen(
     }
 }
 
+/** The Qaida, the recordings of the academy and the tajweed book that the units follow. */
+@Composable
+private fun BookSources() {
+    val context = LocalContext.current
+    SourceItem(
+        stringResource(R.string.sources_qaida),
+        stringResource(R.string.sources_qaida_detail),
+        null,
+        null,
+    )
+    SourceItem(
+        stringResource(R.string.sources_academy),
+        stringResource(R.string.sources_academy_detail),
+        stringResource(
+            R.string.sources_open_link,
+            stringResource(R.string.sources_academy),
+        ),
+        { context.startActivity(Intent(Intent.ACTION_VIEW, ACADEMY_URL.toUri())) },
+    )
+    SourceItem(
+        stringResource(R.string.sources_tajweed_book),
+        stringResource(R.string.sources_tajweed_book_detail),
+        null,
+        null,
+    )
+}
+
 private const val WRIGHT = "Wright"
+private const val ACADEMY_URL = "https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng"
 
 @Composable
 private fun SourceItem(title: String, detail: String, linkLabel: String?, onClick: (() -> Unit)?) {
