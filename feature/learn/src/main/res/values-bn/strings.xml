@@ -278,7 +278,7 @@
   <string name="track_tajweed">তাজবীদ</string>
   <string name="track_grammar">ব্যাকরণ</string>
   <string name="track_words">কুরআনের শব্দ</string>
-  <string name="track_opens_after">পড়ার %d নম্বর পাঠের পর খুলবে</string>
+  <string name="track_opens_after">পড়ার %d নম্বর পাঠের পর পড়লে ভালো</string>
   <string name="track_next_unit">পাঠ %1$d / %2$d · %3$s</string>
   <plurals name="track_all_done">
     <item quantity="one">%dটি পাঠ শেষ</item>

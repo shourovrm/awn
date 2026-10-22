@@ -20,7 +20,8 @@ import app.awn.quran.feature.learn.course.TrackUnit
 
 /**
  * The numbered units of Reading, Tajweed or Grammar. Any unit can be opened, done or not, so a user
- * can go back over one; a closed track lists its units but opens none.
+ * can go back over one. A track that is best started later says so in the line under the bar, but
+ * its units still open: rows that look like the others and do nothing read as a broken page.
  */
 @Composable
 internal fun TrackScreen(
@@ -30,7 +31,6 @@ internal fun TrackScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isOpen = summary.opensAfterReadingUnit == null
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
             title = trackName(summary.track),
@@ -50,7 +50,7 @@ internal fun TrackScreen(
                     title = stringResource(R.string.unit_numbered_title, unit.number, unit.title),
                     detail = null,
                     isToday = false,
-                    onClick = if (isOpen) ({ onOpen(unit) }) else null,
+                    onClick = { onOpen(unit) },
                 )
             }
         }

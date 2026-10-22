@@ -21,7 +21,7 @@ data class TrackSummary(
     val doneCount: Int,
     val unitCount: Int,
     val next: TrackUnit?,
-    /** Null when the track is open; otherwise the Reading unit that opens it. */
+    /** Null when the track can be started now; otherwise the Reading unit after which it suits. */
     val opensAfterReadingUnit: Int?,
 )
 

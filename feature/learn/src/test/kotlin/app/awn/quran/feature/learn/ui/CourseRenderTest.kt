@@ -108,7 +108,7 @@ class CourseRenderTest {
             }
         }
         composeRule.onNodeWithText("Unit 2 of 8 · Letter shapes").assertIsDisplayed()
-        composeRule.onNodeWithText("Opens after Reading unit 7").assertIsDisplayed()
+        composeRule.onNodeWithText("Best after Reading unit 7").assertIsDisplayed()
         composeRule.onNodeWithText("Reading").performClick()
 
         assertEquals(listOf(LearnTrack.Reading), opened)
