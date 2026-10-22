@@ -22,6 +22,7 @@ object SettingRowKeys {
     const val READING_ORIENTATION_APP = "reading.orientation_app"
 
     const val AUDIO_RECITER = "audio.reciter"
+    const val AUDIO_WORD_RECITER = "audio.word_reciter"
     const val AUDIO_DOWNLOAD_BY = "audio.download_by"
     const val AUDIO_WIFI_ONLY = "audio.wifi_only"
     const val AUDIO_STOP_ON_CLOSE = "audio.stop_on_close"

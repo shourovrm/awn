@@ -126,6 +126,7 @@ class AwnServices(private val application: Application) {
             downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
+            wordReciterId = listenSettings.wordReciterId,
             printOffer =
                 object : PrintOfferStore {
                     override val isPending = preferences.printOfferPending

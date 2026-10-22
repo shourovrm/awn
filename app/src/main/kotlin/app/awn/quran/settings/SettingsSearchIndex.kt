@@ -111,6 +111,11 @@ private val SETTINGS: List<RegisteredSetting> =
             ),
             RegisteredSetting(
                 SettingsSection.Audio,
+                SettingRowKeys.AUDIO_WORD_RECITER,
+                ListenR.string.audio_setting_word_audio,
+            ),
+            RegisteredSetting(
+                SettingsSection.Audio,
                 SettingRowKeys.AUDIO_DOWNLOAD_BY,
                 ListenR.string.audio_setting_download_amount,
                 listOf(

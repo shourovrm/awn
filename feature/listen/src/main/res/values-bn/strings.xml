@@ -32,6 +32,7 @@
   <string name="reciter_current">নির্বাচিত</string>
   <string name="audio_settings_title">অডিও</string>
   <string name="audio_setting_reciter">ক্বারী</string>
+  <string name="audio_setting_word_audio">শব্দের তিলাওয়াত</string>
   <string name="audio_setting_download_amount">ডাউনলোডের একক</string>
   <string name="audio_setting_wifi">শুধু ওয়াই-ফাই</string>
   <string name="audio_setting_downloads">ডাউনলোড</string>

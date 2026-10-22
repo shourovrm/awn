@@ -179,7 +179,14 @@ internal fun WordPopupCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            WordHeading(popup = popup, isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
+            WordHeading(
+                popup = popup,
+                isPlaying = isPlaying,
+                onPlay = onPlay,
+                onStop = onStop,
+                myWordState = myWordState,
+                onAddToMyWords = onAddToMyWords,
+            )
             popup.word.meaning?.let {
                 Text(text = it, style = AwnTypography.body.ltr(), color = field.onBar)
             }
@@ -187,7 +194,6 @@ internal fun WordPopupCard(
                 Text(text = it, style = AwnTypography.small.ltr(), color = field.onBar)
             }
             popup.audioOffer?.let { offer -> WordAudioOfferLine(offer, onDownloadAudio) }
-            myWordState?.let { MyWordLine(it, onAddToMyWords) }
             popup.problem?.let { problem ->
                 Text(
                     text = stringResource(problem.messageRes()),
@@ -209,8 +215,9 @@ private fun WordProblem.messageRes(): Int =
     }
 
 /**
- * The Arabic word with the play button at the end corner of the card. A spacer of the same size
- * sits at the start, so the word stays centred over the meaning below it.
+ * The Arabic word with the add icon at the start corner of the card and the play button at the end
+ * corner. When only one of them shows, a spacer of the same size takes the other corner, so the
+ * word stays centred over the meaning below it.
  */
 @Composable
 private fun WordHeading(
@@ -218,14 +225,23 @@ private fun WordHeading(
     isPlaying: Boolean,
     onPlay: () -> Unit,
     onStop: () -> Unit,
+    myWordState: MyWordState?,
+    onAddToMyWords: () -> Unit,
 ) {
+    val hasCornerButton = popup.canPlay || myWordState != null
     Row(verticalAlignment = Alignment.Top) {
-        if (popup.canPlay) Spacer(Modifier.size(AwnSpacing.touchTarget))
+        if (myWordState != null) {
+            AddToMyWordsButton(myWordState, onAddToMyWords)
+        } else if (hasCornerButton) {
+            Spacer(Modifier.size(AwnSpacing.touchTarget))
+        }
         Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
             Text(text = popup.word.arabic, style = AwnTypography.quranLead, color = Awn.field.onBar)
         }
         if (popup.canPlay) {
             PlayWordButton(isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
+        } else if (hasCornerButton) {
+            Spacer(Modifier.size(AwnSpacing.touchTarget))
         }
     }
 }

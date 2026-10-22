@@ -2,6 +2,7 @@ package app.awn.quran.feature.listen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioPlayer
@@ -20,6 +21,10 @@ data class AudioSettingsState(
     val wifiOnly: Boolean = true,
     val usedBytes: Long = 0L,
     val stopOnTaskRemoved: Boolean = true,
+    /** The reciters that have word timings, the only ones the word audio can use. */
+    val wordReciters: List<Reciter> = emptyList(),
+    /** The id of the word reciter in use; null when no reciter has word timings. */
+    val wordReciterId: String? = null,
 )
 
 /** Drives the Audio settings page. */
@@ -30,7 +35,7 @@ class AudioSettingsViewModel(
     private val player: AudioPlayer,
 ) : ViewModel() {
 
-    private val reciterNames = MutableStateFlow<Map<String, String>>(emptyMap())
+    private val allReciters = MutableStateFlow<List<Reciter>>(emptyList())
     private val totalUsedBytes = MutableStateFlow(0L)
 
     private val wifiOnlyAndOptions =
@@ -38,20 +43,35 @@ class AudioSettingsViewModel(
             wifiOnly to options
         }
 
+    private val reciterChoices =
+        combine(allReciters, settings.selectedReciterId, settings.wordReciterId) {
+            reciters,
+            listeningId,
+            chosenWordId ->
+            ReciterChoices(reciters, listeningId, chosenWordId)
+        }
+
     val state: StateFlow<AudioSettingsState> =
         combine(
-                reciterNames,
-                settings.selectedReciterId,
+                reciterChoices,
                 settings.downloadAmount,
                 wifiOnlyAndOptions,
                 totalUsedBytes,
-            ) { names, reciterId, amount, (wifiOnly, options), used ->
+            ) { choices, amount, (wifiOnly, options), used ->
+                val wordReciters =
+                    choices.reciters.filter { it.wordByWord && it.timingPack != null }
                 AudioSettingsState(
-                    names[reciterId].orEmpty(),
-                    amount,
-                    wifiOnly,
-                    used,
-                    options.stopOnTaskRemoved,
+                    reciterName =
+                        choices.reciters
+                            .firstOrNull { it.id == choices.listeningId }
+                            ?.name
+                            .orEmpty(),
+                    downloadAmount = amount,
+                    wifiOnly = wifiOnly,
+                    usedBytes = used,
+                    stopOnTaskRemoved = options.stopOnTaskRemoved,
+                    wordReciters = wordReciters,
+                    wordReciterId = wordReciterIdInUse(choices, wordReciters),
                 )
             }
             .stateIn(
@@ -63,11 +83,15 @@ class AudioSettingsViewModel(
     init {
         viewModelScope.launch {
             val list = reciters.reciters()
-            reciterNames.value = list.associate { it.id to it.name }
+            allReciters.value = list
             if (list.isEmpty()) return@launch
             combine(list.map { downloads.usedBytes(it.id) }) { sizes -> sizes.sum() }
                 .collect { totalUsedBytes.value = it }
         }
+    }
+
+    fun setWordReciter(reciter: Reciter) {
+        viewModelScope.launch { settings.setWordReciter(reciter.id) }
     }
 
     fun setDownloadAmount(amount: DownloadAmount) {
@@ -79,6 +103,22 @@ class AudioSettingsViewModel(
 
     fun setWifiOnly(wifiOnly: Boolean) {
         viewModelScope.launch { settings.setWifiOnly(wifiOnly) }
+    }
+
+    private class ReciterChoices(
+        val reciters: List<Reciter>,
+        val listeningId: String,
+        val chosenWordId: String?,
+    )
+
+    // The same order as the word card: the chosen reciter, the listening one, then the first.
+    private fun wordReciterIdInUse(choices: ReciterChoices, wordReciters: List<Reciter>): String? {
+        val ids = wordReciters.map { it.id }
+        return when {
+            choices.chosenWordId in ids -> choices.chosenWordId
+            choices.listeningId in ids -> choices.listeningId
+            else -> ids.firstOrNull()
+        }
     }
 
     private companion object {
