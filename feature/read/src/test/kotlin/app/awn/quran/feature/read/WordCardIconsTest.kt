@@ -18,9 +18,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * The user (2026-10-22): "Add to my words is too big of a text" (chose an icon only), and "previously
- * the word card had play icon, which currently is not available". The card carries two icon
- * buttons around the word, play and add, and no long text label.
+ * The user (2026-10-22): "Add to my words is too big of a text" (chose an icon only), and
+ * "previously the word card had play icon, which currently is not available". The card carries two
+ * icon buttons around the word, play and add, and no long text label.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])

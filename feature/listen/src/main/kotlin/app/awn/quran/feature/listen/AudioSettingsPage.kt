@@ -76,6 +76,17 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
         onClick = { reciterSheetOpen = true },
         rowKey = SettingRowKeys.AUDIO_RECITER,
     )
+    val wordReciterInUse = state.wordReciters.firstOrNull { it.id == state.wordReciterId }
+    if (wordReciterInUse != null) {
+        AwnChoiceRow(
+            label = stringResource(R.string.audio_setting_word_audio),
+            options = state.wordReciters,
+            selected = wordReciterInUse,
+            optionLabel = { it.name },
+            onSelect = viewModel::setWordReciter,
+            rowKey = SettingRowKeys.AUDIO_WORD_RECITER,
+        )
+    }
     SettingsSwitchRow(
         label = stringResource(R.string.audio_setting_stop_on_close),
         checked = state.stopOnTaskRemoved,

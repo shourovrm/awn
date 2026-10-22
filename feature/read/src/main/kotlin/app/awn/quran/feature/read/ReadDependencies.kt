@@ -32,6 +32,11 @@ data class ReadDependencies(
     val reciters: ReciterRepository? = null,
     /** The id of the reciter chosen in the audio settings, emitted again after each change. */
     val selectedReciterId: Flow<String> = flowOf(DEFAULT_RECITER_ID),
+    /**
+     * The reciter chosen for single words in Settings > Audio, or null before a choice; the word
+     * card falls back to the listening reciter, then to any reciter with word timings.
+     */
+    val wordReciterId: Flow<String?> = flowOf(null),
     /** The one-time offer of a printed Mushaf on the first Quran screen. */
     val printOffer: PrintOfferStore = PrintOfferStore.Never,
     /**

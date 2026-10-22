@@ -263,15 +263,14 @@ class WordCardPlayTest {
     }
 
     @Test
-    fun choosingAnotherWordReciterDownloadsItsWordAudio() = runTest {
+    fun aListeningReciterWithoutWordTimingsDownloadsTheFirstWordReciterAudio() = runTest {
+        // Basfar cannot play words, so the first reciter with word timings is the word reciter.
         reciters.reciterList += reciter("basfar", hasWordTimings = false)
         reciterWithTimingPackNotInstalled("husary")
         selectedReciter.value = "basfar"
         val model = viewModelOnNetwork(isMetered = false)
-        model.open(QuranTarget.Page(1))
-        assertTrue(scheduler.enqueued.isEmpty())
 
-        selectedReciter.value = "husary"
+        model.open(QuranTarget.Page(1))
 
         assertEquals(listOf("husary"), scheduler.enqueued)
     }

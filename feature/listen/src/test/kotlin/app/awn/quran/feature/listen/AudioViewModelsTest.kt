@@ -384,6 +384,29 @@ class AudioViewModelsTest {
     }
 
     @Test
+    fun theWordReciterIsKeptAndOffersOnlyRecitersWithWordTimings() = runTest {
+        val basfar = Reciter("basfar", "Basfar", "s{SSS}", "a{SSS}{AAA}", false, "basfar")
+        val withBasfar = FakeReciterRepository(reciterList = mutableListOf(basfar, alafasy, husary))
+        val viewModel =
+            AudioSettingsViewModel(withBasfar, FakeAudioDownloads(), settings, player).also {
+                backgroundScope.launch { it.state.collect {} }
+            }
+        settings.selectReciter("basfar")
+        settle()
+
+        assertNull(settings.wordReciterId.first())
+        assertEquals(listOf(alafasy, husary), viewModel.state.value.wordReciters)
+        assertEquals("alafasy", viewModel.state.value.wordReciterId)
+
+        viewModel.setWordReciter(husary)
+        settle()
+
+        assertEquals("husary", settings.wordReciterId.first())
+        assertEquals("husary", viewModel.state.value.wordReciterId)
+        assertEquals("Basfar", viewModel.state.value.reciterName)
+    }
+
+    @Test
     fun managerShowsSizeBeforeDownloadingThenDownloadsAndDeletes() = runTest {
         val downloads = FakeAudioDownloads(bytesPerAyah = 10L)
         downloads.estimate = 4_321L
