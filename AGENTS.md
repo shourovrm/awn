@@ -39,7 +39,7 @@ Rules:
 - If the layout is missing, create `DECISIONS.md`, `docs/decisions/LOG.md` and `docs/decisions/ops.md`. If an old single-file `DECISIONS.md` exists, split it into topics first and cut every shipped/deployed line from the log.
 
 ## Local-only files
-`AGENTS.md`, `CLAUDE.md`, `DECISIONS.md`, `docs/decisions/` and `docs/plan.md` are committed (public repo, future contributors). `sessions/` (exported chats) and `.claude/` are local-only and gitignored. Model weights, audio, fonts and data packs are never committed (see `.gitignore`); they are downloaded at build or run time.
+`AGENTS.md`, `CLAUDE.md`, `DECISIONS.md`, `docs/decisions/` and `docs/plan.md` are committed (public repo, future contributors). `sessions/` (exported chats) and `.claude/` are local-only and gitignored. Model weights, audio, fonts and data packs are never committed (see `.gitignore`); they are downloaded at build or run time. The one local data folder is `awn-data/` (`published/` pinned files, `next/` data-v2 workspace, `fonts/`, `raw/`); a worktree points at the main checkout's with `AWN_DATA_ROOT`.
 
 ## Project conventions
 These apply to every contributor and agent; the maintainer's global rules are not available to outside contributors, so the essentials are repeated here.

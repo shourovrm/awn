@@ -2,9 +2,9 @@
 """Check the lesson files against the Quran text and print every example word for review.
 
 Run with `python3 -I tools/check_lessons.py`. The Quran database is read from
-$AWN_DATA_DIR/quran/quran.sqlite (default: <repository>/awn-data, which is not present in a git
-worktree; set AWN_DATA_DIR there). The script asserts the structure of every lesson and that every
-referenced word exists, then prints the words. A person still has to confirm that each printed word
+awn-data/published/quran/quran.sqlite (a git worktree has no awn-data;
+set AWN_DATA_ROOT or AWN_DATA_DIR to the main checkout's awn-data there). The script asserts the structure of every lesson and
+that every referenced word exists, then prints the words. A person still has to confirm that each printed word
 carries the rule; the script cannot judge that.
 """
 
@@ -13,6 +13,9 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 LESSON_DIRECTORY = REPOSITORY / "feature/learn/src/main/assets/lessons"
@@ -36,7 +39,7 @@ MINIMUM_EXAMPLES = 3
 
 
 def database_path() -> Path:
-    data_directory = Path(os.environ.get("AWN_DATA_DIR", REPOSITORY / "awn-data"))
+    data_directory = data_paths.published()
     return data_directory / "quran" / "quran.sqlite"
 
 
@@ -86,7 +89,7 @@ def check_lesson(database: sqlite3.Connection, path: Path) -> list[str]:
 def main() -> int:
     database_file = database_path()
     if not database_file.is_file():
-        print(f"Quran database not found at {database_file}; set AWN_DATA_DIR", file=sys.stderr)
+        print(f"Quran database not found at {database_file}; set AWN_DATA_ROOT", file=sys.stderr)
         return 2
     database = sqlite3.connect(f"file:{database_file}?mode=ro", uri=True)
 

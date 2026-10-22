@@ -2,7 +2,7 @@
 """Write awn-data/manifests/{scripts,translations,reciters}.json from the built packs.
 
 Every pack entry carries format_version, sha256, bytes, credit and source_url.
-sha256 and bytes describe the file named in "file", relative to awn-data/.
+sha256 and bytes describe the file named in "file", relative to the data root; font files read "fonts/..." although awn-data/fonts sits beside the workspace.
 
 The manifests keep `format_version: 1`. The second catalogue adds only optional fields, which a reader of
 the first catalogue ignores:
@@ -20,7 +20,7 @@ the first catalogue ignores:
   ayah_audio_bytes   (reciters) estimate for the EveryAyah ayah files; `estimated` is true when it is present
   ayah_base_url      (reciters) the host folder that serves the ayah files, when it is not the default mirror
 
-Font scripts that have one file per page are packed into awn-data/fonts/<script>.zip
+Font scripts that have one file per page are packed into awn-data/fonts/<script>.zip (data_paths.fonts())
 (deflate, fixed member timestamps, members in page order) so a script is one
 download with one checksum. A Unicode font is a single file and is listed as is.
 
@@ -42,12 +42,14 @@ import sys
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 import pack_catalogue
 import quran_com
 import reciter_catalogue
 
 FORMAT_VERSION = 1
 DATA_ROOT = quran_com.DATA_ROOT
+FONTS_ROOT = quran_com.FONTS_ROOT
 FIXED_ZIP_TIMESTAMP = (2026, 1, 1, 0, 0, 0)
 QURAN_COM_ATTRIBUTION = "Quran.com / Quran Foundation, API v4"
 QURAN_COM_URL = "https://api.quran.com/api/v4"
@@ -75,7 +77,7 @@ def file_checksum_and_size(path):
 
 
 def relative_path(path):
-    return os.path.relpath(path, DATA_ROOT)
+    return data_paths.manifest_file_name(path)
 
 
 def pack_entry(path, **fields):
@@ -87,12 +89,12 @@ def pack_entry(path, **fields):
 
 def installed_font_bytes(script):
     """Unpacked size of a per-page font script: the sum of its member files."""
-    directory = os.path.join(DATA_ROOT, "fonts", script)
+    directory = os.path.join(FONTS_ROOT, script)
     return sum(os.path.getsize(os.path.join(directory, f"p{page}.ttf")) for page in range(1, quran_com.PAGE_COUNT + 1))
 
 
 def zip_font_script(script):
-    directory = os.path.join(DATA_ROOT, "fonts", script)
+    directory = os.path.join(FONTS_ROOT, script)
     archive_path = directory + ".zip"
     temporary_path = archive_path + ".part"
     names = [f"p{page}.ttf" for page in range(1, quran_com.PAGE_COUNT + 1)]
@@ -129,7 +131,7 @@ def build_scripts_manifest():
         credit=f"{QURAN_COM_ATTRIBUTION}; Uthmani text and King Fahd Quran Printing Complex page layouts",
         source_url=QURAN_COM_URL,
     )]
-    unicode_font = os.path.join(DATA_ROOT, "fonts", "qpc-hafs", "UthmanicHafs1Ver18.ttf")
+    unicode_font = os.path.join(FONTS_ROOT, "qpc-hafs", "UthmanicHafs1Ver18.ttf")
     entries.append(pack_entry(
         unicode_font, id="qpc-hafs", kind="font", name="QPC Hafs (Unicode)", glyph_font_per_page=False,
         credit=FONT_CREDIT, source_url=FONT_SOURCE_URL + "/uthmanic_hafs"))
@@ -152,7 +154,7 @@ def build_scripts_manifest():
         requires=["quran-text"],
         layouts=[{"id": "15", "pages": 610, "lines_per_page": 15}, {"id": "16", "pages": 548, "lines_per_page": 16}]))
     entries.append(pack_entry(
-        os.path.join(DATA_ROOT, "fonts", "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"),
+        os.path.join(FONTS_ROOT, "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"),
         id="indopak", kind="font", name="IndoPak (15-line and 16-line)", glyph_font_per_page=False,
         script_id="indopak", requires=["indopak-layouts"],
         credit=INDOPAK_FONT_CREDIT, source_url=FONT_SOURCE_URL + "/nastaleeq/indopak"))

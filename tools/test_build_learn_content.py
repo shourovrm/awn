@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_learn_content
+import data_paths
 
 BASMALA_WORD = "بِسْمِ"
 
@@ -273,8 +274,7 @@ class RepositoryContentTest(unittest.TestCase):
 
     def test_every_committed_lesson_parses_against_the_real_quran_text(self):
         repository = Path(__file__).resolve().parent.parent
-        data_directory = Path(os.environ.get("AWN_DATA_DIR", repository / "awn-data"))
-        quran = data_directory / "quran" / "quran.sqlite"
+        quran = data_paths.published() / "quran" / "quran.sqlite"
         if not quran.is_file():
             self.skipTest(f"{quran} is not present")
 

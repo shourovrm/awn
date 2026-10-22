@@ -26,6 +26,7 @@ import sys
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 import pack_catalogue
 import quran_com
 
@@ -34,7 +35,7 @@ NOT_LETTERS_OR_DIGITS = re.compile(r"[\W_]+", re.UNICODE)
 
 
 def download_tanzil(tanzil_id):
-    path = os.path.join(quran_com.DATA_ROOT, "raw", "tanzil", tanzil_id + ".txt")
+    path = os.path.join(str(data_paths.raw()), "tanzil", tanzil_id + ".txt")
     if not os.path.exists(path):
         request = urllib.request.Request(TANZIL_URL.format(tanzil_id=tanzil_id), headers={"User-Agent": quran_com.USER_AGENT})
         with urllib.request.urlopen(request, timeout=60) as response:

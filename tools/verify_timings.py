@@ -33,6 +33,9 @@ import urllib.error
 import urllib.request
 import wave
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
+
 SAMPLE_RATE = 16000
 FRAME_MS = 10
 FRAME_SAMPLES = SAMPLE_RATE * FRAME_MS // 1000
@@ -40,7 +43,7 @@ MIN_ACTIVE_SHARE = 0.6
 MAX_SILENT_EDGE_SHARE = 0.3
 THRESHOLD_POSITION = 0.4
 MIN_SPEECH_ABOVE_FLOOR_DB = 10.0
-DEFAULT_DATA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "awn-data")
+DEFAULT_DATA_ROOT = str(data_paths.workspace())
 
 
 def load_ayahs_with_word_timing(pack_path):

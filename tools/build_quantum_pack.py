@@ -34,6 +34,9 @@ import time
 import unicodedata
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
+
 SITE = "https://alquran.org.bd"
 VERSES_PER_SURAH = [
     7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
@@ -217,7 +220,7 @@ def main():
     if len(sys.argv) == 4 and sys.argv[1] == "--add-pack-info":
         add_pack_info(sys.argv[2], sys.argv[3])
         return
-    output = sys.argv[1] if len(sys.argv) > 1 else "awn-data/translations/bn_quantum.sqlite"
+    output = sys.argv[1] if len(sys.argv) > 1 else str(data_paths.workspace() / "translations" / "bn_quantum.sqlite")
     if os.path.exists(output):
         os.remove(output)
     connection = sqlite3.connect(output)

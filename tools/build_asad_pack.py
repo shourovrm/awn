@@ -31,11 +31,12 @@ import sqlite3
 import sys
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
+
 SOURCE_URL = "https://api.alquran.cloud/v1/quran/en.asad"
 SOURCE_TEXT_SHA256 = "a99dd372bd52b0db6ddc6ee51022d89b746d57599e672507d88bd303aaf0f51a"
-DEFAULT_OUTPUT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "awn-data", "translations", "en_asad.sqlite"
-)
+DEFAULT_OUTPUT = str(data_paths.workspace() / "translations" / "en_asad.sqlite")
 VERSES_PER_SURAH = [
     7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
     112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53,
