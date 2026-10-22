@@ -53,8 +53,8 @@ data class ReadSettings(
     val translationSizeStep: Int = TextScale.DEFAULT_STEP,
     val transliterationSizeStep: Int = TextScale.DEFAULT_STEP,
     val wordByWordSizeStep: Int = TextScale.DEFAULT_STEP,
-    /** Step 0 to 4 of the printed page: 0 fits the width, higher steps print it larger. */
-    val mushafSizeStep: Int = 0,
+    /** Step of the printed page's size, 0.7 to 2.0 times the default (see [TextScale]). */
+    val mushafSizeStep: Int = TextScale.MUSHAF_DEFAULT_STEP,
     /** How the Quran pages may turn. */
     val quranOrientation: ScreenOrientation = ScreenOrientation.Auto,
     /** How every other screen of the app may turn. */
@@ -82,7 +82,7 @@ data class ReadSettings(
     val wordByWordScale: Float
         get() = TextScale.scaleOf(wordByWordSizeStep)
 
-    /** The factor that makes the printed page larger than the screen width; 1 fits it. */
+    /** The size of the printed page's letters compared with the default; 1 is the default. */
     val mushafScale: Float
         get() = TextScale.mushafScaleOf(mushafSizeStep)
 

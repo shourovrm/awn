@@ -156,3 +156,7 @@
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
+2026-10-23 | Mushaf size is 0.7 to 2.0 times the default; too-wide printed lines are re-broken by greedy fill | the old control did almost nothing (read.md)
+2026-10-23 | Mushaf page reserves bar-height strips top and bottom, measured from the bars; scrolling pages pad their content | no text under a bar (read.md)
+2026-10-23 | Pages built ahead of a swipe reveal two rows per frame | one 36 ms frame per swipe was the likely jank (read.md)
+2026-10-23 | Font cache keeps page +-2, one family per font file; measured-page cache 5; loaded layouts within 4 pages | memory grew 93 MB over 30 swipes (read.md)

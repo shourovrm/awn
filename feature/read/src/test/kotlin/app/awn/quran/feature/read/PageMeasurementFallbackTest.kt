@@ -32,6 +32,7 @@ class PageMeasurementFallbackTest {
             basmalaWidthEm = null,
             rows = rows,
             families = PageFamilies(null, null),
+            pageHeightPx = 100f,
         )
 
     @Test

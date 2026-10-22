@@ -13,6 +13,7 @@ import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ReadSettingsViewModel
 import app.awn.quran.feature.read.settings.ScreenOrientation
 import app.awn.quran.feature.read.settings.TextLayer
+import app.awn.quran.feature.read.settings.TextScale
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -172,13 +173,46 @@ class ReadSettingsTest {
     }
 
     @Test
-    fun thePrintedPageFitsTheWidthAtStepZeroAndGrowsFromThere() {
+    fun thePrintedPageSizeRunsFromSeventyToTwoHundredPercentAndStartsAtOne() {
         assertEquals(1f, ReadSettings().mushafScale, 0.001f)
-        assertEquals(1.15f, ReadSettings(mushafSizeStep = 1).mushafScale, 0.001f)
-        // Steps past the second only added line spacing, so a stored 4 reads back as 1.
-        assertEquals(1.15f, ReadSettings(mushafSizeStep = 4).mushafScale, 0.001f)
-        assertEquals(1, ReadSettings().withMushafStepMoved(99).mushafSizeStep)
-        assertEquals(0, ReadSettings().withMushafStepMoved(-1).mushafSizeStep)
+        assertEquals(0.7f, ReadSettings(mushafSizeStep = 0).mushafScale, 0.001f)
+        assertEquals(2f, ReadSettings().withMushafStepMoved(99).mushafScale, 0.001f)
+        assertEquals(0.7f, ReadSettings().withMushafStepMoved(-99).mushafScale, 0.001f)
+        assertEquals(
+            TextScale.MUSHAF_LAST_STEP,
+            ReadSettings().withMushafStepMoved(99).mushafSizeStep,
+        )
+        assertEquals(0, ReadSettings().withMushafStepMoved(-99).mushafSizeStep)
+    }
+
+    @Test
+    fun theStepsOfThePrintedPageGrowOneAfterTheOther() {
+        val factors = (0..TextScale.MUSHAF_LAST_STEP).map(TextScale::mushafScaleOf)
+
+        assertEquals(factors.sorted(), factors)
+        assertEquals(factors.size, factors.toSet().size)
+        assertEquals(1f, TextScale.mushafScaleOf(TextScale.MUSHAF_DEFAULT_STEP), 0.001f)
+        assertEquals(1.15f, TextScale.mushafScaleOf(TextScale.MUSHAF_LEGACY_LARGE_STEP), 0.001f)
+    }
+
+    @Test
+    fun theOldTwoSizeControlKeepsItsLargeSizeAndItsDefault() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        suspend fun storeWith(name: String, oldStep: Int): DataStoreReadSettingsStore {
+            val dataStore =
+                PreferenceDataStoreFactory.create(scope = scope) {
+                    File(folder.root, "$name.preferences_pb")
+                }
+            dataStore.edit { it[intPreferencesKey("mushaf_size_step")] = oldStep }
+            return DataStoreReadSettingsStore(dataStore)
+        }
+
+        val large = storeWith("old_large", oldStep = 1).settings.first()
+        val fitted = storeWith("old_fitted", oldStep = 0).settings.first()
+        scope.coroutineContext.job.cancelAndJoin()
+
+        assertEquals(1.15f, large.mushafScale, 0.001f)
+        assertEquals(1f, fitted.mushafScale, 0.001f)
     }
 
     @Test

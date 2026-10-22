@@ -72,6 +72,7 @@ class PageMeasurementTest {
             basmalaWidthEm = null,
             rows = emptyList(),
             families = PageFamilies(null, null),
+            pageHeightPx = 100f,
         )
 
     private fun keyFor(width: Float) =
@@ -82,8 +83,8 @@ class PageMeasurementTest {
             size =
                 PagePlacement(
                     widthPx = width,
-                    pageHeightPx = 100f,
-                    scale = 1f,
+                    bodyHeightPx = 100f,
+                    sizeFactor = 1f,
                     isCentredBlock = false,
                 ),
             density = Density(1f),
@@ -101,6 +102,15 @@ class PageMeasurementTest {
         assertEquals(2, cache.size)
         assertNull(cache[keys[1]])
         assertNotNull(cache[keys[0]])
+    }
+
+    @Test
+    fun theDefaultCacheHoldsThePageOnScreenAndTwoOnEachSide() {
+        val cache = PageMeasurementCache()
+
+        (1..20).forEach { index -> cache[keyFor(index.toFloat())] = measuredPage() }
+
+        assertEquals(5, cache.size)
     }
 
     @Test
