@@ -68,7 +68,10 @@
     <item quantity="one">%dটি শব্দ ঝালাই</item>
     <item quantity="other">%dটি শব্দ ঝালাই</item>
   </plurals>
-  <string name="course_today_new">%dটি নতুন</string>
+  <plurals name="course_today_new">
+    <item quantity="one">%dটি নতুন</item>
+    <item quantity="other">%dটি নতুন</item>
+  </plurals>
   <string name="course_today_lesson">একটি ছোট পাঠ</string>
   <string name="course_heading">পাঠক্রম</string>
   <string name="course_progress_heading">অগ্রগতি</string>
@@ -81,10 +84,16 @@
     <item quantity="other">%dটি ধাপ শেষ</item>
   </plurals>
   <string name="course_set_title">সেট %d · ১০টি শব্দ</string>
-  <string name="course_set_known">%dটি জানা</string>
-  <string name="course_set_left">%dটি শুরু করা বাকি</string>
+  <plurals name="course_set_known">
+    <item quantity="one">%dটি জানা</item>
+    <item quantity="other">%dটি জানা</item>
+  </plurals>
+  <plurals name="course_set_left">
+    <item quantity="one">%dটি শুরু করা বাকি</item>
+    <item quantity="other">%dটি শুরু করা বাকি</item>
+  </plurals>
   <string name="course_lesson_title">পাঠ · %s</string>
-  <string name="course_lesson_reason">সেট %1$d-এ এসেছে %2$s, %3$s</string>
+  <string name="course_lesson_reason">সেট %1$s-এ এসেছে %2$s, %3$s</string>
   <string name="course_basics">প্রাথমিক</string>
   <string name="course_later">পরে</string>
   <string name="course_later_from">সেট %d থেকে</string>
@@ -97,7 +106,10 @@
   <string name="course_coverage_title">কুরআনের %d%%</string>
   <string name="course_coverage_detail">আপনার জানা শব্দগুলো যতটা ঢাকে</string>
   <string name="course_word_list">শব্দের তালিকা</string>
-  <string name="course_word_list_detail">দেখা %1$d · জানা %2$d</string>
+  <plurals name="course_word_list_detail">
+    <item quantity="one">দেখা %1$d · জানা %2$d</item>
+    <item quantity="other">দেখা %1$d · জানা %2$d</item>
+  </plurals>
   <string name="course_quiz">নিজে কুইজ</string>
   <string name="course_tajweed">তাজবীদ পাঠ</string>
   <string name="course_reading_progress">পড়ার অগ্রগতি</string>
@@ -161,7 +173,10 @@
     <item quantity="other">%dটি নতুন শব্দ</item>
   </plurals>
   <string name="end_summary_join">%1$s, %2$s।</string>
-  <string name="end_quiz_summary">%2$dটির মধ্যে %1$dটি সঠিক।</string>
+  <plurals name="end_quiz_summary">
+    <item quantity="one">%2$dটির মধ্যে %1$dটি সঠিক।</item>
+    <item quantity="other">%2$dটির মধ্যে %1$dটি সঠিক।</item>
+  </plurals>
   <string name="end_known">শব্দ জানা। কুরআনের সব শব্দের %d%% এগুলো।</string>
   <string name="end_last_ayah">আপনার শেষ আয়াত, %s</string>
   <plurals name="end_last_ayah_known">

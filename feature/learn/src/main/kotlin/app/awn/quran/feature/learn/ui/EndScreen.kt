@@ -43,8 +43,9 @@ private fun QuizEnd(summary: SessionSummary) {
     )
     Text(
         text =
-            stringResource(
-                R.string.end_quiz_summary,
+            pluralStringResource(
+                R.plurals.end_quiz_summary,
+                summary.wordsRevised,
                 summary.answeredCorrectly,
                 summary.wordsRevised,
             ),

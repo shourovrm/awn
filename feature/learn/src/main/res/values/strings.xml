@@ -68,7 +68,10 @@
     <item quantity="one">%d word to revise</item>
     <item quantity="other">%d words to revise</item>
   </plurals>
-  <string name="course_today_new">%d new</string>
+  <plurals name="course_today_new">
+    <item quantity="one">%d new</item>
+    <item quantity="other">%d new</item>
+  </plurals>
   <string name="course_today_lesson">one short lesson</string>
   <string name="course_heading">Course</string>
   <string name="course_progress_heading">Progress</string>
@@ -81,10 +84,16 @@
     <item quantity="other">%d steps done</item>
   </plurals>
   <string name="course_set_title">Set %d · 10 words</string>
-  <string name="course_set_known">%d known</string>
-  <string name="course_set_left">%d left to start</string>
+  <plurals name="course_set_known">
+    <item quantity="one">%d known</item>
+    <item quantity="other">%d known</item>
+  </plurals>
+  <plurals name="course_set_left">
+    <item quantity="one">%d left to start</item>
+    <item quantity="other">%d left to start</item>
+  </plurals>
   <string name="course_lesson_title">Lesson · %s</string>
-  <string name="course_lesson_reason">Set %1$d brought %2$s, %3$s</string>
+  <string name="course_lesson_reason">Set %1$s brought %2$s, %3$s</string>
   <string name="course_basics">Basics</string>
   <string name="course_later">Later</string>
   <string name="course_later_from">From set %d</string>
@@ -97,7 +106,10 @@
   <string name="course_coverage_title">%d%% of the Quran</string>
   <string name="course_coverage_detail">Covered by the words you know</string>
   <string name="course_word_list">Word list</string>
-  <string name="course_word_list_detail">%1$d met · %2$d known</string>
+  <plurals name="course_word_list_detail">
+    <item quantity="one">%1$d met · %2$d known</item>
+    <item quantity="other">%1$d met · %2$d known</item>
+  </plurals>
   <string name="course_quiz">Quiz on my own</string>
   <string name="course_tajweed">Tajweed lessons</string>
   <string name="course_reading_progress">Reading progress</string>
@@ -161,7 +173,10 @@
     <item quantity="other">%d new words</item>
   </plurals>
   <string name="end_summary_join">%1$s, %2$s.</string>
-  <string name="end_quiz_summary">%1$d of %2$d right.</string>
+  <plurals name="end_quiz_summary">
+    <item quantity="one">%1$d of %2$d right.</item>
+    <item quantity="other">%1$d of %2$d right.</item>
+  </plurals>
   <string name="end_known">words known. They make up %d%% of all words in the Quran.</string>
   <string name="end_last_ayah">Your last ayah, %s</string>
   <plurals name="end_last_ayah_known">
