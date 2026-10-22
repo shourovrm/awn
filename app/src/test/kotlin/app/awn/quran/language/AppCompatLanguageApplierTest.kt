@@ -1,5 +1,6 @@
 package app.awn.quran.language
 
+import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import org.junit.After
@@ -13,7 +14,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 // Below Android 13 AppCompat keeps the requested locales itself, so the call works without an
 // activity.
-@Config(sdk = [32])
+@Config(sdk = [32], application = Application::class)
 class AppCompatLanguageApplierTest {
 
     @After
