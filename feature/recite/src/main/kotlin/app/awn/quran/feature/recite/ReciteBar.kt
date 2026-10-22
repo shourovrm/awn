@@ -83,11 +83,11 @@ private val speedLabels =
 
 /**
  * The recite bar for the `reciteBar` slot of the Quran screen: one status line above icon buttons
- * for close, speed, hide words, hint, review (after stopping) and the microphone. While words are
- * hidden a second row offers "show next word" and "show ayah" for silent self-testing, and a
- * finished ayah brings four grade buttons. The colours follow the active colour mode. [onExit] runs
- * when the close button is tapped. Leaving the composition, for example when Back removes the bar,
- * also stops reciting and clears the word states.
+ * for close, speed, hide words, listen and the microphone. While words are hidden a second row
+ * offers the first-letter hint, "show next word" and "show ayah" for silent self-testing, and
+ * review (after stopping) joins it. A finished ayah brings four grade buttons. The colours follow
+ * the active colour mode. [onExit] runs when the close button is tapped. Leaving the composition,
+ * for example when Back removes the bar, also stops reciting and clears the word states.
  */
 // One bar: its state, the controls and the review sheet belong together.
 @Suppress("LongMethod", "CyclomaticComplexMethod")
@@ -211,16 +211,6 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                         tag = RECITE_BAR_HIDE_TAG,
                         colors = colors,
                     )
-                    if (hintEnabled && !isAudioActive) {
-                        BarIconButton(
-                            icon = R.drawable.ic_recite_hint,
-                            description = stringResource(R.string.recite_hint),
-                            onClick = session::requestHint,
-                            enabled = hideWords,
-                            tag = RECITE_BAR_HINT_TAG,
-                            colors = colors,
-                        )
-                    }
                     ListenButton(
                         audio = audio,
                         enabled = canListen || isAudioActive,
@@ -266,6 +256,17 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                 if (hideWords || showsReview) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         if (hideWords) {
+                            // The hint is for hidden words only, so it sits with the other buttons
+                            // that help with them.
+                            if (hintEnabled) {
+                                BarIconButton(
+                                    icon = R.drawable.ic_recite_hint,
+                                    description = stringResource(R.string.recite_hint),
+                                    onClick = session::requestHint,
+                                    tag = RECITE_BAR_HINT_TAG,
+                                    colors = colors,
+                                )
+                            }
                             BarIconButton(
                                 icon = R.drawable.ic_recite_reveal_word,
                                 description = stringResource(R.string.recite_reveal_word),
@@ -367,13 +368,13 @@ private fun barStatusText(
     val listening = phase == RecitationPhase.Listening
     return when {
         audio.isActive() -> audioStatusText(audio, playback)
+        currentHint != null -> stringResource(R.string.recite_status_hint, currentHint.letter)
         access == MicrophoneAccess.CanAsk && !listening ->
             stringResource(R.string.recite_status_allow_microphone)
         access == MicrophoneAccess.DeniedPermanently && !listening ->
             stringResource(R.string.recite_status_microphone_off)
         currentPrompt != null && !listening ->
             stringResource(R.string.recite_status_grade, currentPrompt.ayah.ayah)
-        currentHint != null -> stringResource(R.string.recite_status_hint, currentHint.letter)
         currentStatus != null -> findingText(currentStatus)
         revising && revisionRemaining > 0 && phase == RecitationPhase.Idle ->
             pluralStringResource(

@@ -9,7 +9,7 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -20,6 +20,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordState
+import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -153,8 +154,30 @@ class ReciteBarTest {
     }
 
     @Test
-    fun theHintButtonIsOffUntilWordsAreHidden() {
-        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertIsNotEnabled()
+    fun theHintButtonShowsOnlyWhileWordsAreHidden() {
+        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertDoesNotExist()
+
+        hideWords()
+
+        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertIsEnabled()
+    }
+
+    @Test
+    fun theTwoHideAndRevealButtonsNeverShareAnIcon() {
+        val icons =
+            listOf(
+                R.drawable.ic_recite_hide_words,
+                R.drawable.ic_recite_reveal_word,
+                R.drawable.ic_recite_reveal_ayah,
+                R.drawable.ic_recite_hint,
+            )
+
+        assertEquals(icons.size, icons.toSet().size)
+        val files =
+            listOf("hide_words", "reveal_word", "reveal_ayah", "hint").map {
+                File("src/main/res/drawable/ic_recite_$it.xml").readText()
+            }
+        assertEquals(files.size, files.toSet().size)
     }
 
     @Test
