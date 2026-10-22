@@ -3,7 +3,7 @@ id: letters-05-long-vowels
 title: Long vowels
 order: 5
 appears_after: "Reading unit 4, tanween"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [2:30:2, 2:11:2, 2:8:4, 2:5:2, 1:4:1, 2:7:9, 106:4:4]
 reviewed_by: ""

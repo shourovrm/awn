@@ -3,7 +3,7 @@ id: letters-07-shaddah
 title: Shaddah
 order: 7
 appears_after: "Reading unit 6, sukoon"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [1:2:3, 1:5:1, 108:1:1, 2:28:7, 108:2:1]
 reviewed_by: ""

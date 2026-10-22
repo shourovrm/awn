@@ -3,7 +3,7 @@ id: letters-08-letters-by-name
 title: Letters read by name
 order: 8
 appears_after: "Reading unit 7, shaddah; before the first whole ayah, because many surahs open with these letters"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [2:1:1, 38:1:1, 50:1:1, 68:1:1, 19:1:1, 20:1:1, 36:1:1]
 reviewed_by: ""

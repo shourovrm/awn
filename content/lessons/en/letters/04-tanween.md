@@ -3,7 +3,7 @@ id: letters-04-tanween
 title: Tanween
 order: 4
 appears_after: "Reading unit 3, short vowels"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [11:81:17, 2:102:27, 2:126:7, 112:4:5]
 reviewed_by: ""

@@ -3,7 +3,7 @@ id: letters-03-short-vowels
 title: Short vowels
 order: 3
 appears_after: "Reading unit 2, letter shapes"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [2:29:3, 3:144:13, 2:178:4, 6:54:16, 96:2:1, 86:5:4, 87:19:1]
 reviewed_by: ""

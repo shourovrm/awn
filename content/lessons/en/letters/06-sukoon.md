@@ -3,7 +3,7 @@ id: letters-06-sukoon
 title: Sukoon
 order: 6
 appears_after: "Reading unit 5, long vowels"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [2:80:8, 2:74:30, 2:6:8, 1:4:2, 106:1:2, 2:6:5]
 reviewed_by: ""

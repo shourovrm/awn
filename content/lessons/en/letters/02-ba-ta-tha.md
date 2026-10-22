@@ -3,7 +3,7 @@ id: letters-02-ba-ta-tha
 title: Letter shapes
 order: 2
 appears_after: "Reading unit 1, which shows all 29 letters alone"
-reference: "Order follows Al-Qaida An-Nooraniyya (Noorani Qaida) by Qari Noor Muhammad; facts follow Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
+reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [1:1:1, 6:112:4, 2:2:2, 1:2:3, 2:255:9, 2:28:7, 2:28, 108:1:3]
 reviewed_by: ""
