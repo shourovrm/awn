@@ -30,24 +30,28 @@ private enum class MatchRank {
  */
 internal fun surahsMatching(query: String, chapters: List<Chapter>): List<Chapter> {
     val trimmedQuery = query.trim()
-    if (trimmedQuery.isNotEmpty() && trimmedQuery.all { it.isDigit() }) {
-        val number = trimmedQuery.toIntOrNull()
-        return chapters.filter { it.number == number }
+    val isNumber = trimmedQuery.isNotEmpty() && trimmedQuery.all { it.isDigit() }
+    return if (isNumber) {
+        chapters.filter { it.number == trimmedQuery.toIntOrNull() }
+    } else {
+        surahsNamed(lettersOnly(trimmedQuery), chapters)
     }
-    val wanted = lettersOnly(trimmedQuery)
-    if (wanted.length < MINIMUM_QUERY_LENGTH) return emptyList()
+}
 
+private fun surahsNamed(wanted: String, chapters: List<Chapter>): List<Chapter> {
+    if (wanted.length < MINIMUM_QUERY_LENGTH) return emptyList()
     val ranked = chapters.mapNotNull { chapter ->
         rankOf(wanted, nameFormsOf(chapter))?.let { rank -> rank to chapter }
     }
     return ranked.sortedBy { (rank, _) -> rank }.map { (_, chapter) -> chapter }
 }
 
-private fun rankOf(wanted: String, nameForms: List<String>): MatchRank? {
-    if (nameForms.any { it.startsWith(wanted) }) return MatchRank.StartsWith
-    if (nameForms.any { it.contains(wanted) }) return MatchRank.Contains
-    return null
-}
+private fun rankOf(wanted: String, nameForms: List<String>): MatchRank? =
+    when {
+        nameForms.any { it.startsWith(wanted) } -> MatchRank.StartsWith
+        nameForms.any { it.contains(wanted) } -> MatchRank.Contains
+        else -> null
+    }
 
 /** Every spelling of the chapter's names that a user may type, with and without the article. */
 private fun nameFormsOf(chapter: Chapter): List<String> {
