@@ -635,6 +635,8 @@ class QuranViewModel(
                 selectionPage = null,
                 isPanelOpen = false,
                 panelBlock = null,
+                wordPopup = null,
+                isPopupWordPlaying = false,
             )
         }
     }
