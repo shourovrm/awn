@@ -17,6 +17,7 @@
   <string name="action_smaller">ছোট</string>
   <string name="action_larger">বড়</string>
   <string name="action_move_up">উপরে নিন</string>
+  <string name="action_show_controls">নিয়ন্ত্রণ দেখান</string>
   <string name="action_go_to_playing_ayah">চলমান আয়াতে যান</string>
   <string name="mushaf_size_hint">পৃষ্ঠার লাইন একই থাকে। বড় অক্ষরের জন্য স্ক্রিন ঘোরান।</string>
   <string name="size_percent">%1$d%%</string>

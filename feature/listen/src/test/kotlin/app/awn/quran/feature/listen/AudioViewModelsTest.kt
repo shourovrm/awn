@@ -154,6 +154,29 @@ class AudioViewModelsTest {
         assertTrue(player.playCalls.isEmpty())
     }
 
+    /** The microphone on the audio bar recites from the ayah that is playing. */
+    @Test
+    fun recitingWhileAudioPlaysStartsAtThePlayingAyah() = runTest {
+        val viewModel = barViewModel()
+        settle()
+        viewModel.showPage(5)
+        settle()
+        player.play("alafasy", AyahRef(2, 11), null)
+
+        assertEquals(AyahRef(2, 11), viewModel.reciteStart())
+    }
+
+    /** When nothing plays, the microphone recites from the first ayah of the page on screen. */
+    @Test
+    fun recitingWhileIdleStartsAtTheFirstAyahOfThePage() = runTest {
+        val viewModel = barViewModel()
+        settle()
+        viewModel.showPage(5)
+        settle()
+
+        assertEquals(AyahRef(2, 10), viewModel.reciteStart())
+    }
+
     @Test
     fun barShowsDownloadingBytesAndError() = runTest {
         val viewModel = barViewModel()

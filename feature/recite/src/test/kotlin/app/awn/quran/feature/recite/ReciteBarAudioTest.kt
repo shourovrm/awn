@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -120,7 +119,7 @@ class ReciteBarAudioTest {
     }
 
     @Test
-    fun listenPlaysTheCurrentAyahOnce() {
+    fun listenPlaysFromTheCurrentAyahWithNoEnd() {
         prepare()
         show()
 
@@ -129,7 +128,7 @@ class ReciteBarAudioTest {
 
         val call = fixture.audioPlayer.playCalls.single()
         assertEquals(ayah, call.second)
-        assertEquals(ayah, call.third)
+        assertEquals(null, call.third)
     }
 
     @Test
@@ -142,8 +141,25 @@ class ReciteBarAudioTest {
         composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).assert(hasDescription("Pause audio"))
         composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).assertIsEnabled()
         composeRule.onNodeWithTag(RECITE_BAR_AUDIO_PROGRESS_TAG).assertExists()
-        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsNotEnabled()
+        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsEnabled()
         composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun theMicrophoneWhileAudioPlaysStopsTheAudioAndStartsReciting() {
+        prepare(microphone = { OpenMicrophone() })
+        show()
+        composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) { fixture.audioPlayer.playCalls.isNotEmpty() }
+        val stopsBefore = fixture.audioPlayer.stopCalls
+
+        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            fixture.controller.session.phase.value == RecitationPhase.Listening
+        }
+        assertEquals(stopsBefore + 1, fixture.audioPlayer.stopCalls)
+        assertEquals(PlaybackState.Idle, fixture.audioPlayer.currentState.value)
     }
 
     @Test

@@ -9,6 +9,7 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.AlignmentTracker
 import app.awn.quran.tracker.Tracker
 import app.awn.quran.tracker.TrackerConfig
@@ -85,11 +86,18 @@ class ReciteController(
     private val mutableRevising = MutableStateFlow(false)
     private val mutableRevisionRemaining = MutableStateFlow(0)
     private val mutableFocusedWord = MutableStateFlow<WordKey?>(null)
+    private val mutableListeningOnward = MutableStateFlow(false)
 
     // The ayahs still to revise in this run, in reading order; only touched on the controller's
     // scope.
     private var revisionQueueLeft: List<AyahRef> = emptyList()
     private var loadJob: Job? = null
+
+    // The last ayah the player reported since [listenOnward], and whether the audio has ended since
+    // it started. Together they say where reciting goes on.
+    @Volatile private var lastListenedAyah: AyahRef? = null
+    @Volatile private var onwardAudioHasStarted = false
+    @Volatile private var onwardAudioHasEnded = false
 
     // True from [practiceFrom] or [reviseAt] until the run ends. While it is set, the hide-words
     // choice belongs to the run and the saved setting does not reach the session. Volatile because
@@ -115,6 +123,13 @@ class ReciteController(
      */
     val focusedWord: StateFlow<WordKey?> = mutableFocusedWord.asStateFlow()
 
+    /**
+     * True from [listenOnward] until the user goes back to reciting with [resumeReciting], stops
+     * with [stopListening], or leaves recite mode. The audio may have ended by itself meanwhile;
+     * the microphone is off all that time.
+     */
+    val isListeningOnward: StateFlow<Boolean> = mutableListeningOnward.asStateFlow()
+
     /** Whether the speech files are ready; the bar waits on this. */
     val speechState: StateFlow<SpeechState> = speech.state
 
@@ -127,6 +142,7 @@ class ReciteController(
                 if (!runActive) session.setHifzEnabled(saved)
             }
         }
+        scope.launch { audioPlayer.state.collect(::followAudioWhileListeningOnward) }
         scope.launch {
             combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
                 val focused = mutableFocusedWord.value
@@ -253,6 +269,105 @@ class ReciteController(
         load(next)
     }
 
+    /**
+     * Plays the reciter from the ayah the user is on to the end of its surah, with the repeat
+     * setting of the player, and keeps the microphone off. It goes on until the user presses the
+     * microphone ([resumeReciting]) or stops it ([stopListening]).
+     */
+    fun listenOnward() {
+        val ayah = ayahToListenTo() ?: return
+        lastListenedAyah = ayah
+        onwardAudioHasStarted = false
+        onwardAudioHasEnded = false
+        mutableListeningOnward.value = true
+        // The tracker is not asked about the ayahs played, whatever the microphone hears later.
+        session.continueAt(ayah)
+        pauseMicrophone()
+        runAfterPendingWork { audioPlayer.play(settings.reciterId.first(), ayah, to = null) }
+    }
+
+    /**
+     * Stops the audio and starts the microphone again where the listening left off: at the ayah
+     * that was playing, or after the last one played when the audio had ended. The ayahs only
+     * listened to are not marked as left out.
+     */
+    fun resumeReciting() {
+        mutableListeningOnward.value = false
+        audioPlayer.stop()
+        runAfterPendingWork {
+            settleContinuationPoint()
+            session.start()
+        }
+    }
+
+    /** Stops the audio and leaves the microphone off; the next start goes on where it left off. */
+    fun stopListening() {
+        mutableListeningOnward.value = false
+        audioPlayer.stop()
+        runAfterPendingWork { settleContinuationPoint() }
+    }
+
+    // Tells the session where the next start goes on. An ayah that is not loaded (the audio ran on
+    // past the loaded words) is loaded fresh, which also ends the old marks: the page has moved on.
+    private suspend fun settleContinuationPoint() {
+        val ayah = continuationAyah() ?: return
+        // Used once: a later listening of another kind must not go back to this ayah.
+        lastListenedAyah = null
+        val isLoaded =
+            session.words.value.any { it.key.surah == ayah.surah && it.key.ayah == ayah.ayah }
+        if (isLoaded) {
+            session.continueAt(ayah)
+        } else {
+            session.load(ayahsFrom(ayah))
+        }
+    }
+
+    // The ayah where reciting goes on after listening: the one playing when the audio was stopped,
+    // or the one after the last played when the audio had ended. Null when nothing was played.
+    private suspend fun continuationAyah(): AyahRef? {
+        val last = lastListenedAyah ?: return null
+        return if (onwardAudioHasEnded) nextAyahAfter(last) else last
+    }
+
+    private suspend fun nextAyahAfter(ayah: AyahRef): AyahRef? {
+        val page = quranText.pageOf(ayah, pageScript)
+        val onSamePage = quranText.ayahsOnPage(page, pageScript).firstOrNull { it > ayah }
+        return onSamePage ?: ayahsOnPageAfter(ayah).firstOrNull()
+    }
+
+    private fun followAudioWhileListeningOnward(playback: PlaybackState) {
+        if (!mutableListeningOnward.value) return
+        when (playback) {
+            is PlaybackState.Playing -> noteListenedAyah(playback.ayah)
+            is PlaybackState.Paused -> noteListenedAyah(playback.ayah)
+            is PlaybackState.Downloading -> onwardAudioHasStarted = true
+            is PlaybackState.Idle,
+            is PlaybackState.Error -> if (onwardAudioHasStarted) endListeningOnward()
+        }
+    }
+
+    private fun noteListenedAyah(ayah: AyahRef) {
+        lastListenedAyah = ayah
+        onwardAudioHasStarted = true
+    }
+
+    // The audio ran out by itself: the microphone button goes back to its normal job, and a plain
+    // start goes on after the last ayah played.
+    private fun endListeningOnward() {
+        onwardAudioHasEnded = true
+        mutableListeningOnward.value = false
+        runAfterPendingWork { settleContinuationPoint() }
+    }
+
+    // Runs [work] after the load, exit or listening step before it, so the steps stay in order.
+    private fun runAfterPendingWork(work: suspend () -> Unit) {
+        val previous = loadJob
+        loadJob = scope.launch {
+            previous?.join()
+            work()
+        }
+    }
+
     /** Waits until the last [reciteFrom] or [exit] has finished; for tests. */
     internal suspend fun joinPendingWork() {
         loadJob?.join()
@@ -279,6 +394,8 @@ class ReciteController(
 
     /** Stops the microphone, forgets the loaded words and leaves recite mode. */
     fun exit() {
+        mutableListeningOnward.value = false
+        lastListenedAyah = null
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false

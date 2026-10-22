@@ -497,6 +497,12 @@ class QuranViewModel(
         }
     }
 
+    /** Brings the bars back, for the corner button a busy bar shrinks to. */
+    fun showBars() {
+        barsRevealJob?.cancel()
+        mutableState.update { it.copy(areBarsVisible = true) }
+    }
+
     fun toggleBars() {
         // A bar the reader shows or hides by hand stays as they left it.
         barsRevealJob?.cancel()
@@ -615,8 +621,11 @@ class QuranViewModel(
 
     /** Switches the bottom bar to the recite bar. The caller also tells :feature:recite to load. */
     fun enterReciteMode() {
+        // The recite bar must be in reach when reciting starts, whatever the bars were doing.
+        barsRevealJob?.cancel()
         mutableState.update {
             it.copy(
+                areBarsVisible = true,
                 isReciting = true,
                 isReciteFollowPaused = false,
                 selection = null,

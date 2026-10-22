@@ -330,6 +330,7 @@ private fun QuranRoute(
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
     val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()
+    val isAudioActive = rememberIsAudioActive(services)
     // The audio bar maps a page to its ayahs in the print the reader shows.
     LaunchedEffect(services) {
         services.readDependencies.settingsStore.settings
@@ -339,7 +340,7 @@ private fun QuranRoute(
     }
     val slots =
         QuranScreenSlots(
-            audioBar = { currentPage -> AudioBar(services.audio, currentPage) },
+            audioBar = { currentPage -> QuranAudioBar(services, currentPage) },
             playPanel = { selected, currentPage ->
                 PlayRangePanel(services.audio, selected, currentPage)
             },
@@ -362,6 +363,7 @@ private fun QuranRoute(
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
             hifzBar = hifzBarSlot(services, isPracticing = practice != null),
+            isAudioActive = isAudioActive,
         )
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {
@@ -369,4 +371,17 @@ private fun QuranRoute(
             StarterOfferOverlay(services)
         }
     }
+}
+
+/**
+ * The audio bar with its microphone: the recite bar takes the bar's place, and the Quran screen
+ * enters recite mode by itself when the controller turns active.
+ */
+@Composable
+private fun QuranAudioBar(services: AwnServices, currentPage: Int) {
+    AudioBar(
+        services.audio,
+        currentPage,
+        onRecite = { ayah -> services.recite.reciteFrom(ayah) },
+    )
 }
