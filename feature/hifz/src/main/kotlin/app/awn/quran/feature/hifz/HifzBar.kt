@@ -62,6 +62,7 @@ import app.awn.quran.feature.recite.ReciteBarMode
 import app.awn.quran.feature.recite.ReciteController
 import app.awn.quran.feature.recite.reciteBarMode
 import app.awn.quran.feature.recite.rememberMicrophonePermission
+import app.awn.quran.feature.recite.stopMicrophone
 import app.awn.quran.player.PlaybackState
 
 const val HIFZ_BAR_TAG = "hifz-bar"
@@ -294,7 +295,7 @@ fun HifzBar(
                 colors = colors,
                 onClick = {
                     when {
-                        listening -> session.stop()
+                        listening -> recite.stopMicrophone()
                         permission.access == MicrophoneAccess.Granted -> session.start()
                         permission.access == MicrophoneAccess.CanAsk -> permission.requestAccess()
                         else -> permission.openAppSettings()

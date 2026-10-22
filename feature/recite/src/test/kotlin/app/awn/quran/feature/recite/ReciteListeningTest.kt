@@ -51,7 +51,7 @@ class ReciteListeningTest {
     }
 
     @Test
-    fun nothingLoadedGivesNoAyah() {
+    fun nothingLoadedGivesNoAyah() = runTest {
         val fixture = ControllerFixture(folder.root)
 
         assertNull(fixture.controller.ayahToListenTo())

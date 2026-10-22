@@ -156,6 +156,17 @@ data class QuranScreenSlots(
      * to a corner button instead of hiding it.
      */
     val isAudioActive: Boolean = false,
+    /**
+     * Optional. What the corner button of a busy bar shows: whether audio plays or is paused, or
+     * whether the microphone is on or off. Null draws no button.
+     */
+    val busyState: @Composable () -> BusyState? = { null },
+    /**
+     * Optional. Runs when the corner button is tapped: pauses or resumes the audio, stops or starts
+     * the microphone. It calls its argument to open the full bar when it cannot act by itself, for
+     * example when the microphone permission is missing.
+     */
+    val onToggleBusy: (openFullBar: () -> Unit) -> Unit = {},
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -483,14 +494,17 @@ private fun QuranContent(
             }
         }
         if (!state.isPanelOpen && bottomBar == BottomBarDisplay.Mini) {
-            BusyBarButton(
-                isReciting = state.isReciting,
-                onClick = viewModel::showBars,
-                modifier =
-                    Modifier.align(Alignment.BottomStart)
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(AwnSpacing.screenMargin),
-            )
+            val busyState = slots.busyState()
+            if (busyState != null) {
+                BusyBarButton(
+                    state = busyState,
+                    onToggle = { slots.onToggleBusy(viewModel::showBars) },
+                    modifier =
+                        Modifier.align(Alignment.BottomStart)
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .padding(AwnSpacing.screenMargin),
+                )
+            }
         }
 
         val range = state.selectedRange

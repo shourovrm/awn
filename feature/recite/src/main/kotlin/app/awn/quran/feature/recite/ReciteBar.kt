@@ -251,7 +251,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                         colors = colors,
                         onClick = {
                             when {
-                                listening -> session.stop()
+                                listening -> controller.stopMicrophone()
                                 access == MicrophoneAccess.Granted && isAudioActive ->
                                     controller.resumeReciting()
                                 access == MicrophoneAccess.Granted -> session.start()
