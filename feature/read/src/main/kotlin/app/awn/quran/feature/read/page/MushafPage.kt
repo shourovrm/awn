@@ -119,6 +119,7 @@ fun MushafPage(
                         bodyHeightPx = area.bodyHeightPx,
                         sizeFactor = sizeFactor,
                         isCentredBlock = isCentredBlockPage(layout),
+                        slotCount = frameSlotCountOf(layout),
                     ),
                 )
             val body: @Composable () -> Unit = {

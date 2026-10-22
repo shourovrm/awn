@@ -188,3 +188,4 @@
 2026-10-23 | Mushaf page reserves bar-height strips top and bottom, measured from the bars; scrolling pages pad their content | no text under a bar (read.md)
 2026-10-23 | Pages built ahead of a swipe reveal two rows per frame | one 36 ms frame per swipe was the likely jank (read.md)
 2026-10-23 | Font cache keeps page +-2, one family per font file; measured-page cache 5; loaded layouts within 4 pages | memory grew 93 MB over 30 swipes (read.md)
+2026-10-23 | IndoPak page drawing reuses the glyph-script path with one font and extra header lines shifted into slots | no new renderer; Hafs text in lists

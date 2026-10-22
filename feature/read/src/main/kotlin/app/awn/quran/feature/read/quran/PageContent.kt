@@ -9,7 +9,7 @@ import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.text.normalizeFallbackText
-import app.awn.quran.feature.read.page.isGlyphScript
+import app.awn.quran.feature.read.page.pageGlyphScripts
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 
 /**
@@ -107,7 +107,7 @@ internal class PageContentLoader(
         chapters: List<Chapter>,
     ): PageContent {
         val names = translations.available().associate { it.id to it.name }
-        val fontPages = if (isGlyphScript(script)) GlyphPageIndex(quranText, script) else null
+        val fontPages = if (script in pageGlyphScripts) GlyphPageIndex(quranText, script) else null
         val items = mutableListOf<PageItem>()
         for (ayah in quranText.ayahsOnPage(page, script)) {
             if (ayah.ayah == 1) items += surahStartItems(chapters.chapterNumbered(ayah.surah))

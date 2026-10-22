@@ -28,8 +28,14 @@ internal sealed interface PageRow {
     data class BasmalaRow(override val slot: Int) : PageRow
 }
 
-/** The scripts whose words are drawn as glyph codes from a font made for each page. */
-internal val glyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
+/** The scripts whose words are glyph codes of a font made for each page. */
+internal val pageGlyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
+
+/** The IndoPak prints: Nastaleeq text in one Unicode font, laid out by their own line counts. */
+internal val indoPakScripts = setOf(ScriptId.IndoPak15, ScriptId.IndoPak16)
+
+/** The scripts the page draws with their own font; the others draw the Hafs text. */
+internal val glyphScripts = pageGlyphScripts + indoPakScripts
 
 /**
  * Returns what to draw for [word]. Glyph scripts draw their private-use code with the page font; if
@@ -42,27 +48,40 @@ internal fun textToDraw(word: Word, script: ScriptId, hasGlyphFont: Boolean): St
             ScriptId.V1 -> word.codeV1
             ScriptId.V2,
             ScriptId.V4Tajweed -> word.codeV2
-            ScriptId.QpcHafs,
             ScriptId.IndoPak15,
-            ScriptId.IndoPak16 -> null
+            ScriptId.IndoPak16 -> word.textNastaleeq
+            ScriptId.QpcHafs -> null
         }
     return glyphCode ?: word.textUthmani
 }
 
 /** Turns the layout lines into rows, keeping the slot numbers so short pages stay short. */
-internal fun buildPageRows(layout: PageLayout, hasGlyphFont: Boolean): List<PageRow> =
-    layout.lines.map { line ->
+internal fun buildPageRows(layout: PageLayout, hasGlyphFont: Boolean): List<PageRow> {
+    val shift = slotShiftOf(layout)
+    return layout.lines.map { line ->
+        val slot = line.line + shift
         val header = line.items.filterIsInstance<LineItem.SurahHeader>().firstOrNull()
         when {
-            header != null -> PageRow.HeaderRow(line.line, header.surah)
-            line.items.any { it is LineItem.Basmala } -> PageRow.BasmalaRow(line.line)
+            header != null -> PageRow.HeaderRow(slot, header.surah)
+            line.items.any { it is LineItem.Basmala } -> PageRow.BasmalaRow(slot)
             else ->
                 PageRow.TextRow(
-                    line.line,
+                    slot,
                     line.items.flatMap { item -> tokensOf(item, layout.script, hasGlyphFont) },
                 )
         }
     }
+}
+
+/**
+ * How far the slot numbers move so the first one is 1. An IndoPak page whose surah header has no
+ * free slot above its first word has lines numbered 0 and below (see [PageLine]); they are drawn
+ * above slot 1 by giving every slot of that page the same height as the extra ones.
+ */
+internal fun slotShiftOf(layout: PageLayout): Int {
+    val firstLine = layout.lines.minOfOrNull { it.line } ?: 1
+    return if (firstLine < 1) 1 - firstLine else 0
+}
 
 private fun tokensOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): List<LineToken> =
     when (item) {
@@ -74,11 +93,27 @@ private fun tokensOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): L
         is LineItem.Basmala -> emptyList()
     }
 
-/** Pages 1 and 2 are drawn as a centred block, not in the 15-line frame. */
-internal fun isCentredBlockPage(layout: PageLayout): Boolean = layout.page <= 2
+/**
+ * Pages 1 and 2 of the Madani prints are drawn as a centred block, not in the 15-line frame. The
+ * IndoPak prints print them at the bottom of the full frame, which their line numbers already say.
+ */
+internal fun isCentredBlockPage(layout: PageLayout): Boolean =
+    layout.page <= 2 && layout.script !in indoPakScripts
 
 /** Lines in the layout, counting banner and Basmalah lines. */
 internal fun slotCountOf(layout: PageLayout): Int = layout.lines.maxOfOrNull { it.line } ?: 0
+
+/**
+ * The slots the page frame is divided into: the lines of the print (15, or 16 for the IndoPak
+ * 16-line print), or more when extra header lines were added above slot 1.
+ */
+internal fun frameSlotCountOf(layout: PageLayout): Int {
+    val printedLines =
+        if (layout.script == ScriptId.IndoPak16) INDOPAK_16_LINES else PageGeometry.SLOTS
+    return maxOf(printedLines, slotCountOf(layout) + slotShiftOf(layout))
+}
+
+private const val INDOPAK_16_LINES = 16
 
 /** True when [script] is drawn with one font per page. */
 internal fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts
