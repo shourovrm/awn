@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.fsrs.FsrsScheduler
 import app.awn.quran.core.data.fsrs.FsrsState
+import app.awn.quran.feature.learn.course.LegacyTajweedProgress
 import app.awn.quran.feature.learn.data.GrammarCardEntity
 import app.awn.quran.feature.learn.data.LearnDatabase
 import app.awn.quran.feature.learn.data.LearnSetEntity
@@ -88,7 +89,8 @@ class WordCourseRepository(
                 wordCards = cards.associateBy { it.rank },
                 queuedRanks = queued.map { it.rank },
                 grammarCards = grammar.associateBy { it.lessonId },
-                doneLessonIds = done.map { it.lessonId }.toSet(),
+                doneLessonIds =
+                    LegacyTajweedProgress.withCarriedOver(done.map { it.lessonId }.toSet()),
                 sets = sets.associateBy { it.number },
             )
         }

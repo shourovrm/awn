@@ -337,6 +337,14 @@ class GridAndPracticeTest(unittest.TestCase):
             ["screen", "check", "answer", "grid", "practice", "check", "answer", "practice"], kinds
         )
 
+    def test_a_grid_between_a_check_and_its_answer_is_refused(self):
+        text = ENGLISH_LESSON.replace("## Answer: Answered", GRID_BLOCK.strip() + "\n\n## Answer: Answered")
+        fixture = LessonFixture(self)
+        fixture.write("en", "tajweed", "11-first.md", text.replace("basics-01-first", "tajweed-11-first"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("each followed by its Answer", str(raised.exception))
+
     def test_the_tajweed_folder_is_a_course(self):
         fixture = LessonFixture(self)
         text = ENGLISH_LESSON.replace("basics-01-first", "tajweed-11-first")

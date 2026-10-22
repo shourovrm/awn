@@ -14,9 +14,6 @@
   <string name="back">Back</string>
   <string name="surah_number">Surah %d</string>
 
-  <string name="lessons_title">Lessons</string>
-  <string name="lesson_draft">Draft</string>
-  <string name="lesson_examples">Examples</string>
   <plurals name="lesson_detail_draft">
     <item quantity="one">%d example · Draft</item>
     <item quantity="other">%d examples · Draft</item>

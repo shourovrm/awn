@@ -28,13 +28,7 @@ internal sealed interface LearnRoute {
     /** The existing reading progress page: streak, pages and memorised ayahs. */
     data object ReadingProgress : LearnRoute
 
-    /** The existing list of tajweed lessons. */
-    data object Lessons : LearnRoute
-
     data object Revision : LearnRoute
-
-    /** An older tajweed lesson; [track] is set when it was opened from a track page. */
-    data class OneLesson(val id: String, val track: LearnTrack? = null) : LearnRoute
 
     /** The numbered units of one track. */
     data class Track(val track: LearnTrack) : LearnRoute
@@ -54,6 +48,5 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
         LearnRoute.FirstOpen -> null
         is LearnRoute.WordPage -> LearnRoute.WordList
         is LearnRoute.CourseUnit -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
-        is LearnRoute.OneLesson -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
         else -> LearnRoute.Hub
     }

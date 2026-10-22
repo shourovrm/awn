@@ -44,7 +44,6 @@ class LearnNavigationTest {
                 LearnRoute.Sources,
                 LearnRoute.Progress,
                 LearnRoute.Revision,
-                LearnRoute.OneLesson("basics-01"),
                 LearnRoute.Track(LearnTrack.Reading),
                 LearnRoute.CourseUnit("letters-01", track = null),
             )
@@ -62,7 +61,9 @@ class LearnNavigationTest {
         )
         assertEquals(
             LearnRoute.Track(LearnTrack.Tajweed),
-            learnBackFrom(LearnRoute.OneLesson("makharij", LearnTrack.Tajweed)),
+            learnBackFrom(
+                LearnRoute.CourseUnit("tajweed-11-where-letters-are-made", LearnTrack.Tajweed),
+            ),
         )
     }
 }

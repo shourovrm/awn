@@ -14,9 +14,6 @@
   <string name="back">ফিরে যান</string>
   <string name="surah_number">সূরা %d</string>
 
-  <string name="lessons_title">পাঠ</string>
-  <string name="lesson_draft">খসড়া</string>
-  <string name="lesson_examples">উদাহরণ</string>
   <plurals name="lesson_detail_draft">
     <item quantity="one">%dটি উদাহরণ · খসড়া</item>
     <item quantity="other">%dটি উদাহরণ · খসড়া</item>

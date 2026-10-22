@@ -323,6 +323,10 @@ def parse_body(body, name, first_line, used_keys):
 
 def check_screen_order(screens, name):
     """Reading screens come first; the lesson may end with Check and Answer pairs."""
+    for position, screen in enumerate(screens):
+        following = screens[position + 1]["kind"] if position + 1 < len(screens) else None
+        if screen["kind"] == "check" and following != "answer":
+            raise LessonError(f"{name}: a lesson ends with Check screens, each followed by its Answer screen, with no Grid or Practice between them.")
     kinds = [screen["kind"] for screen in screens if screen["kind"] not in FREE_KINDS]
     if "check" in kinds:
         position = kinds.index("check")

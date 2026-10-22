@@ -2,8 +2,8 @@ package app.awn.quran.feature.learn.course
 
 /**
  * The four parts of Learn. Reading takes a beginner from the letters to reading a whole ayah, as a
- * Qaida does; Tajweed teaches the recitation rules; Grammar teaches how words are built; Words is
- * the frequency course of ten-word sets.
+ * Qaida does; Tajweed teaches the recitation rules in nine units; Grammar teaches how words are
+ * built; Words is the frequency course of ten-word sets.
  */
 enum class LearnTrack {
     Reading,
@@ -25,14 +25,10 @@ data class TrackSummary(
     val opensAfterReadingUnit: Int?,
 )
 
-/** A tajweed lesson of the older lesson list, which the Tajweed track lists by id. */
-data class TajweedLessonTitle(val id: String, val title: String)
-
 /** What the tracks need to know about the content and the user. */
 data class TrackInput(
     val content: CourseContent,
     val languageCode: String,
-    val tajweedLessons: List<TajweedLessonTitle>,
     val doneLessonIds: Set<String>,
     /** True when the user chose to start with the letters, so Tajweed waits for Reading. */
     val includeLetters: Boolean,
@@ -41,31 +37,10 @@ data class TrackInput(
 object LearnTracks {
 
     /**
-     * Tajweed rules need the sukoon and the shaddah, which Reading teaches in units 6 and 7; a user
+     * Tajweed rules need the sukoon and the shaddah, which Reading teaches in units 8 and 9; a user
      * who starts with the letters meets Tajweed after those.
      */
-    const val TAJWEED_OPENS_AFTER_READING_UNIT = 7
-
-    /**
-     * The order of the tajweed lessons: where letters are said and how they sound first, then the
-     * rules of noon and meem sakinah, ghunnah and qalqalah, then the long vowels, and the rules of
-     * single letters and of stopping last.
-     */
-    val TAJWEED_ORDER =
-        listOf(
-            "makharij",
-            "sifat",
-            "noon-sakinah-tanween",
-            "meem-sakinah",
-            "ghunnah",
-            "qalqalah",
-            "madd-natural",
-            "madd-extended",
-            "raa",
-            "lam-of-allah",
-            "hamzat-al-wasl",
-            "waqf-signs",
-        )
+    const val TAJWEED_OPENS_AFTER_READING_UNIT = 9
 
     /** The units of [track] in order. Words has no units: its sets are the course path. */
     fun units(track: LearnTrack, input: TrackInput): List<TrackUnit> {
@@ -93,9 +68,10 @@ object LearnTracks {
     fun trackOf(lessonId: String, content: CourseContent): LearnTrack? =
         when (content.lesson(lessonId)?.course) {
             LessonCourse.Letters -> LearnTrack.Reading
+            LessonCourse.Tajweed -> LearnTrack.Tajweed
             LessonCourse.Basics,
             LessonCourse.Grammar -> LearnTrack.Grammar
-            null -> if (lessonId in TAJWEED_ORDER) LearnTrack.Tajweed else null
+            null -> null
         }
 
     fun summary(track: LearnTrack, input: TrackInput): TrackSummary {
@@ -124,13 +100,7 @@ object LearnTracks {
             LearnTrack.Reading -> courseTitles(input, LessonCourse.Letters)
             LearnTrack.Grammar ->
                 courseTitles(input, LessonCourse.Basics) + courseTitles(input, LessonCourse.Grammar)
-            LearnTrack.Tajweed -> {
-                val byId = input.tajweedLessons.associateBy { it.id }
-                TAJWEED_ORDER.mapNotNull { id -> byId[id]?.let { id to it.title } } +
-                    input.tajweedLessons
-                        .filter { it.id !in TAJWEED_ORDER }
-                        .map { it.id to it.title }
-            }
+            LearnTrack.Tajweed -> courseTitles(input, LessonCourse.Tajweed)
             LearnTrack.Words -> emptyList()
         }
 

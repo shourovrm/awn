@@ -28,9 +28,7 @@ import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.Lesson
 import app.awn.quran.feature.learn.course.LearningArabic
-import app.awn.quran.feature.learn.course.TajweedLessonTitle
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import app.awn.quran.feature.learn.ui.CourseDependencies
 import app.awn.quran.feature.learn.ui.CourseRoutes
@@ -42,10 +40,8 @@ import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
 import java.util.Locale
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private val EMPTY_SNAPSHOT =
     ProgressSnapshot(
@@ -93,10 +89,6 @@ fun LearnScreen(
         services.progress.observeSnapshot()
     }
         .collectAsState(initial = EMPTY_SNAPSHOT)
-    val lessons by
-        produceState(emptyList<Lesson>()) {
-            value = withContext(Dispatchers.IO) { services.lessons.all() }
-        }
     val chapters by produceState(emptyList<Chapter>(), quranText) { value = quranText.chapters() }
     val surahName = { surah: Int ->
         surahNameOf(chapters, surah, language) { resources.getString(R.string.surah_number, surah) }
@@ -122,7 +114,6 @@ fun LearnScreen(
             content =
                 LearnRouteContent(
                     snapshot = snapshot,
-                    lessons = lessons,
                     locale = locale,
                     quranText = quranText,
                     surahName = surahName,
@@ -139,7 +130,6 @@ fun LearnScreen(
 /** What the screens of the Learn tab read; loaded once by [LearnScreen]. */
 internal class LearnRouteContent(
     val snapshot: ProgressSnapshot,
-    val lessons: List<Lesson>,
     val locale: Locale,
     val quranText: QuranTextRepository,
     val surahName: (Int) -> String,
@@ -214,7 +204,6 @@ private fun LearnRoutes(
     barActions: @Composable RowScope.() -> Unit,
     modifier: Modifier,
 ) {
-    val summaries = LearnUiMapper.lessonSummaries(content.lessons, content.language)
     val snapshot = content.snapshot
     val surahName = content.surahName
     val goHub = { onRouteChange(LearnRoute.Hub) }
@@ -231,14 +220,6 @@ private fun LearnRoutes(
                 onBackClick = goHub,
                 modifier = modifier,
             )
-        LearnRoute.Lessons ->
-            LessonsListScreen(
-                lessons = summaries,
-                onLessonClick = { onRouteChange(LearnRoute.OneLesson(it)) },
-                onBackClick = goHub,
-                modifier = modifier,
-            )
-        is LearnRoute.OneLesson -> OneLessonRoute(route, content, course, onRouteChange, modifier)
         LearnRoute.Revision ->
             RevisionHost(
                 dueToday = snapshot.dueToday,
@@ -258,7 +239,6 @@ private fun LearnRoutes(
                     dueAyahs = snapshot.dueToday,
                     onReviseAt = onReviseAt,
                     barActions = barActions,
-                    tajweedLessons = summaries.map { TajweedLessonTitle(it.id, it.title) },
                     modifier = modifier,
                 )
             }

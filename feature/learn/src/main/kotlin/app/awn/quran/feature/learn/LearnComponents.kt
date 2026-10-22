@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -157,14 +156,5 @@ internal fun ArabicText(text: String, modifier: Modifier = Modifier) {
         style = AwnTypography.quran.copy(textDirection = TextDirection.Rtl),
         textAlign = TextAlign.Start,
         modifier = modifier.fillMaxWidth(),
-    )
-}
-
-@Composable
-internal fun DraftLabel(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(R.string.lesson_draft),
-        style = AwnTypography.small,
-        modifier = modifier,
     )
 }
