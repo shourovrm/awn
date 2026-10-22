@@ -44,7 +44,7 @@ class RevealAndHideWordsTest {
     @Test
     fun hidingAgainHidesTheWordsThatWereRevealedBefore() = runTest {
         val fixture = hidingFrom(AyahRef(1, 1))
-        fixture.controller.session.revealNextWord()
+        fixture.controller.session.revealNextWord(showsFirstLetterFirst = false)
         assertEquals(WordState.Neutral, fixture.controller.session.wordStates.value[fixture.first])
 
         fixture.controller.setHideWords(false)
@@ -81,7 +81,7 @@ class RevealAndHideWordsTest {
             session.words.value.map { it.key },
         )
         assertEquals(fixture.fourth, session.currentWord.value)
-        session.revealNextWord()
+        session.revealNextWord(showsFirstLetterFirst = false)
         assertEquals(WordState.Neutral, session.wordStates.value[fixture.fourth])
     }
 }

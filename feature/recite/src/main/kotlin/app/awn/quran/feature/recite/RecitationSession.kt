@@ -72,7 +72,7 @@ sealed interface ReciteStatus {
     data class Anchored(override val ayah: Int, override val wordPosition: Int) : ReciteStatus
 }
 
-/** The first letter of a hidden word, shown because the user asked for a hint. */
+/** The first letter of a hidden word, shown inside the word's hidden box on the page. */
 data class ReciteHint(val key: WordKey, val letter: String)
 
 /**
@@ -407,31 +407,36 @@ class RecitationSession(
         }
     }
 
-    /** Reveals the first letter of the next hidden word; only meaningful in hifz mode. */
-    @Suppress("ReturnCount") // Each guard is one reason there is nothing to hint.
-    fun requestHint() {
-        synchronized(lock) {
-            if (!mutableHifz.value) return
-            val key = mutableCurrentWord.value ?: return
-            val letter = wordTextByKey[key]?.let(HifzRules::firstLetter) ?: return
-            mutableHint.value = ReciteHint(key, letter)
-        }
-    }
-
     /**
-     * Shows the next hidden word without the microphone, for silent self-testing. A revealed word
-     * counts as help: the ayah is not reported as recited by itself and waits for a grade.
+     * Shows the next hidden word without the microphone, for silent self-testing. With
+     * [showsFirstLetterFirst] the first tap shows only the word's first letter inside its hidden
+     * box and the second tap on the same word shows the whole word. A revealed word counts as help:
+     * the ayah is not reported as recited by itself and waits for a grade. A first letter alone is
+     * a hint and does not count.
      */
-    fun revealNextWord() {
+    fun revealNextWord(showsFirstLetterFirst: Boolean = true) {
         val notifications =
             synchronized(lock) {
                 val index = firstOpenIndex()
                 if (!mutableHifz.value || index == null) return
+                if (showsFirstLetterFirst && showFirstLetterOf(index)) return
                 revealedIndexes += index
+                mutableHint.value = null
                 publishStates()
                 collectAyahNotifications(listOf(ayahOf(index)))
             }
         runNotifications(notifications)
+    }
+
+    // Returns true when the letter was shown by this call, false when it was already shown or the
+    // word has no letter, in which case the caller shows the whole word. Must be called with
+    // [lock] held.
+    private fun showFirstLetterOf(index: Int): Boolean {
+        val key = wordKeys[index]
+        val letter = wordTextByKey[key]?.let(HifzRules::firstLetter)
+        val isNewLetter = letter != null && mutableHint.value?.key != key
+        if (isNewLetter) mutableHint.value = ReciteHint(key, checkNotNull(letter))
+        return isNewLetter
     }
 
     /**

@@ -158,7 +158,7 @@
   <string name="summary_word_by_word">word by word</string>
   <string name="summary_arabic_only">Arabic only</string>
   <string name="summary_words_hidden">Words hidden</string>
-  <string name="summary_hint_on">Hint on</string>
+  <string name="summary_hint_on">First letter first</string>
   <string name="summary_memorised_after">Memorised after %1$s</string>
   <string name="summary_space_used">%1$s used</string>
   <string name="summary_appearance">%1$s by day · %2$s at night · %3$s</string>

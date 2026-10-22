@@ -155,34 +155,78 @@ class RecitationSessionTest {
     }
 
     @Test
-    fun hintRevealsTheFirstLetterOfTheNextHiddenWord() = runTest {
+    fun firstTapOnShowNextWordShowsOnlyItsFirstLetter() = runTest {
         val fixture = SessionFixture()
         fixture.session.load(fixture.range)
         fixture.session.setHifzEnabled(true)
 
-        fixture.session.requestHint()
+        fixture.session.revealNextWord()
 
         assertEquals(ReciteHint(fixture.first, "ب"), fixture.session.hint.value)
+        assertEquals(WordState.Hidden, fixture.session.wordStates.value[fixture.first])
+        assertEquals(fixture.first, fixture.session.currentWord.value)
+        assertNull(fixture.session.gradePrompt.value)
     }
 
     @Test
-    fun hintIsClearedOnceItsWordIsConfirmed() = runTest {
+    fun secondTapOnTheSameWordShowsTheWholeWordAndDropsTheLetter() = runTest {
         val fixture = SessionFixture()
         fixture.session.load(fixture.range)
         fixture.session.setHifzEnabled(true)
-        fixture.session.requestHint()
+
+        fixture.session.revealNextWord()
+        fixture.session.revealNextWord()
+
+        assertEquals(WordState.Neutral, fixture.session.wordStates.value[fixture.first])
+        assertNull(fixture.session.hint.value)
+        assertEquals(fixture.second, fixture.session.currentWord.value)
+    }
+
+    @Test
+    fun theLetterOfTheNextWordStartsOverForEachWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.session.revealNextWord()
+        fixture.session.revealNextWord()
+
+        fixture.session.revealNextWord()
+
+        assertEquals(fixture.second, fixture.session.hint.value?.key)
+        assertEquals(WordState.Hidden, fixture.session.wordStates.value[fixture.second])
+    }
+
+    @Test
+    fun withoutTheLetterStepOneTapShowsTheWholeWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+
+        fixture.session.revealNextWord(showsFirstLetterFirst = false)
+
+        assertNull(fixture.session.hint.value)
+        assertEquals(WordState.Neutral, fixture.session.wordStates.value[fixture.first])
+    }
+
+    @Test
+    fun aWordShowingItsLetterIsResolvedByReciting() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.session.setHifzEnabled(true)
+        fixture.session.revealNextWord()
         fixture.script(fixture.confirmed(0))
         fixture.session.start()
 
         assertNull(fixture.session.hint.value)
+        assertEquals(WordState.Confirmed, fixture.session.wordStates.value[fixture.first])
     }
 
     @Test
-    fun hintDoesNothingOutsideHifz() = runTest {
+    fun showNextWordDoesNothingOutsideHifz() = runTest {
         val fixture = SessionFixture()
         fixture.session.load(fixture.range)
 
-        fixture.session.requestHint()
+        fixture.session.revealNextWord(showsFirstLetterFirst = false)
 
         assertNull(fixture.session.hint.value)
     }
@@ -262,7 +306,7 @@ class RecitationSessionTest {
         fixture.session.load(fixture.range)
         fixture.session.setHifzEnabled(true)
 
-        fixture.session.revealNextWord()
+        fixture.session.revealNextWord(showsFirstLetterFirst = false)
 
         val states = fixture.session.wordStates.value
         assertEquals(WordState.Neutral, states[fixture.first])
@@ -275,7 +319,7 @@ class RecitationSessionTest {
         val fixture = SessionFixture()
         fixture.session.load(fixture.range)
 
-        fixture.session.revealNextWord()
+        fixture.session.revealNextWord(showsFirstLetterFirst = false)
 
         assertEquals(fixture.first, fixture.session.currentWord.value)
         assertNull(fixture.session.gradePrompt.value)
@@ -351,7 +395,7 @@ class RecitationSessionTest {
         val fixture = SessionFixture(inputBlocks = 1)
         fixture.session.load(fixture.range)
         fixture.session.setHifzEnabled(true)
-        fixture.session.revealNextWord()
+        fixture.session.revealNextWord(showsFirstLetterFirst = false)
         fixture.script(fixture.confirmed(1))
         fixture.session.start()
 

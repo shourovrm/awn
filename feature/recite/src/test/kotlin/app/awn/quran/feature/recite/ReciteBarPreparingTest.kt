@@ -54,7 +54,6 @@ class ReciteBarPreparingTest {
         composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(RECITE_BAR_SPEED_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(RECITE_BAR_HIDE_TAG).assertDoesNotExist()
-        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertDoesNotExist()
     }
 
     @Test
@@ -79,6 +78,6 @@ class ReciteBarPreparingTest {
         composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsDisplayed()
         composeRule.onNodeWithTag(RECITE_BAR_SPEED_TAG).assertIsDisplayed()
         composeRule.onNodeWithTag(RECITE_BAR_PROGRESS_TAG).assertDoesNotExist()
-        composeRule.onNodeWithText("Ready").assertIsDisplayed()
+        composeRule.onNodeWithTag(RECITE_BAR_STATUS_TAG).assertDoesNotExist()
     }
 }
