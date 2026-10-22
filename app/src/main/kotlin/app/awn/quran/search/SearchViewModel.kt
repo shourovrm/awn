@@ -3,6 +3,7 @@ package app.awn.quran.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.search.SearchHit
@@ -23,7 +24,12 @@ private const val STOP_TIMEOUT_MILLIS = 5_000L
 data class SearchRow(val hit: SearchHit, val surahName: String, val page: Int)
 
 /** [rows] is null until a query has been searched; an empty list means nothing matched. */
-data class SearchUiState(val query: String = "", val rows: List<SearchRow>? = null)
+data class SearchUiState(
+    val query: String = "",
+    val rows: List<SearchRow>? = null,
+    /** Surahs whose name or number matches [query]. */
+    val surahs: List<Chapter> = emptyList(),
+)
 
 /** Searches while the user types, after a short pause so each letter does not start a search. */
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -39,7 +45,7 @@ class SearchViewModel(
     val state: StateFlow<SearchUiState> =
         query
             .debounce(TYPING_PAUSE_MILLIS)
-            .mapLatest { SearchUiState(it, rowsFor(it)) }
+            .mapLatest { stateFor(it) }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
@@ -53,6 +59,17 @@ class SearchViewModel(
         query.value = newQuery
     }
 
+    private suspend fun stateFor(text: String): SearchUiState {
+        val surahs = surahsMatching(text, quranText.chapters())
+        return SearchUiState(text, rowsFor(text), surahs)
+    }
+
+    /** The page a surah starts on, for the surah rows. */
+    suspend fun firstPageOf(surah: Int): Int = pageOf(AyahRef(surah, 1))
+
+    private suspend fun pageOf(ayah: AyahRef): Int =
+        pageCache.getOrPut(ayah) { quranText.pageOf(ayah, script) }
+
     private suspend fun rowsFor(text: String): List<SearchRow>? {
         if (text.isBlank()) return null
         val names = quranText.chapters().associate { it.number to it.nameSimple }
@@ -60,7 +77,7 @@ class SearchViewModel(
             SearchRow(
                 hit = hit,
                 surahName = names[hit.ayah.surah].orEmpty(),
-                page = pageCache.getOrPut(hit.ayah) { quranText.pageOf(hit.ayah, script) },
+                page = pageOf(hit.ayah),
             )
         }
     }

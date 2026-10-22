@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -74,7 +75,8 @@ class SpeechModelStoreTest {
 
     @After
     fun stopServer() {
-        scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
+        // Joined so no store coroutine outlives the test and fails a later one.
+        runBlocking { scope.coroutineContext.job.cancelAndJoin() }
         server.stop(0)
     }
 

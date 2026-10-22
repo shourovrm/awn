@@ -24,8 +24,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.withTimeout
 
 /**
  * A [ReciteController] on fake collaborators. Surah 1 has ayah 1 (two words) and ayah 2 (one word)
@@ -65,9 +69,11 @@ class ControllerFixture(
     val tracker: FakeTracker
         get() = checkNotNull(fakeTrackers).created.last()
 
+    private val settingsScope = CoroutineScope(Dispatchers.IO)
+
     val settings =
         ReciteSettings(
-            PreferenceDataStoreFactory.create(scope = CoroutineScope(Dispatchers.IO)) {
+            PreferenceDataStoreFactory.create(scope = settingsScope) {
                 File(storeFolder, "controller.preferences_pb")
             },
         )
@@ -160,7 +166,13 @@ class ControllerFixture(
     fun close() {
         synchronized(openedInputs) { openedInputs.forEach { (it as? AutoCloseable)?.close() } }
         finishPreparing()
-        controllerJob.cancel()
+        // Joined so nothing from this test throws after it ends and fails the next test.
+        runBlocking {
+            withTimeout(JOIN_TIMEOUT_MILLIS) {
+                controllerJob.cancelAndJoin()
+                settingsScope.coroutineContext.job.cancelAndJoin()
+            }
+        }
         (ownedRecognitionThread as? AutoCloseable)?.close()
     }
 
@@ -192,6 +204,7 @@ class ControllerFixture(
         ReferenceWord(WordKeyLike(key.surah, key.ayah, key.wordPosition), listOf("a"))
 
     companion object {
+        private const val JOIN_TIMEOUT_MILLIS = 10_000L
         private val created = mutableListOf<ControllerFixture>()
 
         /** Closes every fixture made since the last call. */

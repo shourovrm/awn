@@ -161,3 +161,6 @@
 2026-10-22 | Print offer allows several ticked prints; Download installs all | the card showed many options but took one
 2026-10-22 | Audio bar gets a reciter button; a reciter change while playing continues from the same ayah | reciter was hard to reach from the page
 2026-10-22 | Arabic text styles use the bundled Hafs font through HafsFont installed by AwnTheme | generic serif drew marks badly (read.md)
+2026-10-22 | Do not ask for notifications when audio starts | The dialog stopped the first Listen; media notifications show without it (player.md)
+2026-10-22 | Search lists surahs by number or name above ayah results | users typed a surah name and found nothing
+2026-10-22 | Downloads space used leaves out bundled items | a fresh install showed 12 MB the user never downloaded

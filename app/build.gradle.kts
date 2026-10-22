@@ -198,6 +198,7 @@ dependencies {
     )
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testExtJunit)
     testImplementation(libs.compose.uiTestJunit4)

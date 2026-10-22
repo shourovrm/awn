@@ -1,11 +1,6 @@
 package app.awn.quran
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,9 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,7 +55,6 @@ import app.awn.quran.language.FirstLaunchStep
 import app.awn.quran.language.firstLaunchStep
 import app.awn.quran.notice.NoticeScreen
 import app.awn.quran.onboarding.LanguageScreen
-import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
 import app.awn.quran.services.AwnServices
@@ -118,7 +110,6 @@ fun AwnApp(
             FirstLaunchStep.AcceptNotice ->
                 NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
             FirstLaunchStep.Done -> {
-                AskForNotificationsWhenAudioStarts(services)
                 AwnNavigation(
                     services,
                     colourSettings,
@@ -142,29 +133,6 @@ private fun LanguageRoute(onContinue: (AppLanguage) -> Unit) {
         onSelect = { selectedTag = it.languageTag },
         onContinue = { onContinue(selected) },
     )
-}
-
-/**
- * Asks for the notification permission the first time audio plays, because the player's media
- * notification needs it on Android 13 and later. Playing works without it.
- */
-@Composable
-private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    LaunchedEffect(Unit) {
-        // Before Android 13 the permission does not exist and notifications are always allowed.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@LaunchedEffect
-        // Downloads show a progress notification too, so ask when either starts.
-        services.audioPlayer.state.first {
-            it is PlaybackState.Playing || it is PlaybackState.Downloading
-        }
-        val permission = Manifest.permission.POST_NOTIFICATIONS
-        val isGranted =
-            ContextCompat.checkSelfPermission(context, permission) ==
-                PackageManager.PERMISSION_GRANTED
-        if (!isGranted) launcher.launch(permission)
-    }
 }
 
 /**
@@ -224,26 +192,6 @@ private fun AwnNavigation(
                 tabSlots = tabSlots,
             )
         }
-    }
-}
-
-/** Moves between the tabs and the screens that open above them. */
-private class TabNavigation(
-    private val navController: NavController,
-    val selectTab: (AwnTab) -> Unit,
-) {
-    fun openQuran(page: Int?, ayah: AyahRef?) = navController.openQuran(page, ayah)
-
-    fun openSettings() = navController.navigate(Routes.SETTINGS)
-
-    fun openSearch() = navController.navigate(Routes.SEARCH)
-
-    fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)
-
-    /** Closes everything above the tabs and shows [tab]. */
-    fun showTab(tab: AwnTab) {
-        selectTab(tab)
-        navController.popBackStack(Routes.TABS, inclusive = false)
     }
 }
 
@@ -313,7 +261,7 @@ private fun optionalIntArgument(name: String) =
  * Opens the Quran screen directly above the tabs and drops the screens between, so Back always
  * returns to the tab.
  */
-private fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
+internal fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
     navigate(Routes.quran(page, ayah)) {
         popUpTo(Routes.TABS) { inclusive = false }
         launchSingleTop = true
@@ -338,12 +286,18 @@ private fun NavGraphBuilder.indexDestinations(
         val viewModel: SearchViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
         val typedQuery by viewModel.typedQuery.collectAsStateWithLifecycle()
+        val coroutineScope = rememberCoroutineScope()
         SearchScreen(
             typedQuery = typedQuery,
             state = state,
             onQueryChange = viewModel::setQuery,
             onBack = { navController.popBackStack() },
             onOpen = navController::openQuran,
+            onOpenSurah = { surah ->
+                coroutineScope.launch {
+                    navController.openQuran(page = viewModel.firstPageOf(surah), ayah = null)
+                }
+            },
         )
     }
 }
@@ -394,7 +348,7 @@ private fun QuranRoute(
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navigation.showTab(AwnTab.Quran) },
-            onBackWhenIdle = { navigation.showTab(AwnTab.Quran) },
+            onBackWhenIdle = navigation::returnToTabs,
             onOpenSearch = navigation::openSearch,
             onOpenLearn = { navigation.showTab(AwnTab.Learn) },
             onOpenSettings = navigation::openSettings,
