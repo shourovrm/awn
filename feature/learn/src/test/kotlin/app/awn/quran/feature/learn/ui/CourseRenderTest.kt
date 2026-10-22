@@ -7,6 +7,10 @@ import androidx.compose.ui.test.performClick
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.LearnField
+import app.awn.quran.feature.learn.course.LearnTrack
+import app.awn.quran.feature.learn.course.PathState
+import app.awn.quran.feature.learn.course.TrackSummary
+import app.awn.quran.feature.learn.course.TrackUnit
 import app.awn.quran.feature.learn.session.FrameLabel
 import app.awn.quran.feature.learn.session.ItemRef
 import app.awn.quran.feature.learn.session.PlanStep
@@ -34,7 +38,7 @@ class CourseRenderTest {
             onProgress = {},
             onWordList = {},
             onQuiz = {},
-            onTajweed = {},
+            onTrack = {},
             onReadingProgress = {},
             onReviseAyahs = {},
             onSessionMinutes = {},
@@ -56,6 +60,7 @@ class CourseRenderTest {
             coverage = 0.0,
             dueAyahs = 0,
             meanings = MeaningsState.Ready,
+            tracks = emptyList(),
         )
 
     @Test
@@ -78,6 +83,35 @@ class CourseRenderTest {
         composeRule.onNodeWithText("Start").performClick()
 
         assertEquals(1, starts)
+    }
+
+    @Test
+    fun theHubListsTheTracksAndOpensOne() {
+        val opened = mutableListOf<LearnTrack>()
+        val reading =
+            TrackSummary(
+                track = LearnTrack.Reading,
+                doneCount = 1,
+                unitCount = 8,
+                next = TrackUnit("letters-02", 2, "Letter shapes", PathState.Next),
+                opensAfterReadingUnit = null,
+            )
+        val tajweed = TrackSummary(LearnTrack.Tajweed, 0, 12, null, opensAfterReadingUnit = 7)
+        val plan = TodayPlan(steps = emptyList(), plannedSeconds = 0)
+
+        composeRule.setContent {
+            AwnTheme(field = LearnField) {
+                CourseHub(
+                    hubState(plan).copy(tracks = listOf(reading, tajweed)),
+                    noHubActions.withTrack { opened += it },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Unit 2 of 8 · Letter shapes").assertIsDisplayed()
+        composeRule.onNodeWithText("Opens after Reading unit 7").assertIsDisplayed()
+        composeRule.onNodeWithText("Reading").performClick()
+
+        assertEquals(listOf(LearnTrack.Reading), opened)
     }
 
     @Test
@@ -118,13 +152,29 @@ class CourseRenderTest {
         assertEquals(1, nexts)
     }
 
+    private fun HubActions.withTrack(onTrack: (LearnTrack) -> Unit) =
+        HubActions(
+            onStart = onStart,
+            onProgress = onProgress,
+            onWordList = onWordList,
+            onQuiz = onQuiz,
+            onTrack = onTrack,
+            onReadingProgress = onReadingProgress,
+            onReviseAyahs = onReviseAyahs,
+            onSessionMinutes = onSessionMinutes,
+            onSources = onSources,
+            onDownloadMeanings = onDownloadMeanings,
+            onLesson = onLesson,
+            onChangeChoices = onChangeChoices,
+        )
+
     private fun HubActions.withStart(onStart: () -> Unit) =
         HubActions(
             onStart = onStart,
             onProgress = onProgress,
             onWordList = onWordList,
             onQuiz = onQuiz,
-            onTajweed = onTajweed,
+            onTrack = onTrack,
             onReadingProgress = onReadingProgress,
             onReviseAyahs = onReviseAyahs,
             onSessionMinutes = onSessionMinutes,

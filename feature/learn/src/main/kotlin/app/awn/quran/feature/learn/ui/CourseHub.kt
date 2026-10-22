@@ -40,8 +40,10 @@ import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
+import app.awn.quran.feature.learn.course.LearnTrack
 import app.awn.quran.feature.learn.course.PathRow
 import app.awn.quran.feature.learn.course.PathState
+import app.awn.quran.feature.learn.course.TrackSummary
 import app.awn.quran.feature.learn.formatCount
 import app.awn.quran.feature.learn.session.TodayPlan
 import kotlin.math.roundToInt
@@ -59,6 +61,8 @@ internal data class HubState(
     val coverage: Double,
     val dueAyahs: Int,
     val meanings: MeaningsState,
+    /** Reading, Tajweed and Grammar, in that order; Words is drawn from the word figures. */
+    val tracks: List<TrackSummary>,
 )
 
 /** Whether the word meanings the course needs are on the phone. */
@@ -75,7 +79,7 @@ internal class HubActions(
     val onProgress: () -> Unit,
     val onWordList: () -> Unit,
     val onQuiz: () -> Unit,
-    val onTajweed: () -> Unit,
+    val onTrack: (LearnTrack) -> Unit,
     val onReadingProgress: () -> Unit,
     val onReviseAyahs: () -> Unit,
     val onSessionMinutes: (Int) -> Unit,
@@ -105,8 +109,20 @@ internal fun CourseHub(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             TodayCard(state, actions)
-            Heading(stringResource(R.string.course_heading))
-            state.path.forEach { PathRowView(it, state, actions) }
+            Heading(stringResource(R.string.track_heading))
+            state.tracks.forEach { TrackRow(it, actions) }
+            SettingsLinkRow(
+                label = trackName(LearnTrack.Words),
+                value =
+                    pluralStringResource(
+                        R.plurals.course_word_list_detail,
+                        state.wordsMet,
+                        state.wordsMet,
+                        state.wordsKnown,
+                    ),
+                icon = R.drawable.ic_learn_list,
+                onClick = { actions.onTrack(LearnTrack.Words) },
+            )
             Heading(stringResource(R.string.course_progress_heading))
             ProgressCard(state)
             SettingsLinkRow(
@@ -122,6 +138,29 @@ internal fun CourseHub(
             Heading(stringResource(R.string.course_more_heading))
             MoreRows(state, actions)
         }
+    }
+}
+
+/** A track on the hub: its name, and the next unit or what opens it. */
+@Composable
+private fun TrackRow(summary: TrackSummary, actions: HubActions) {
+    SettingsLinkRow(
+        label = trackName(summary.track),
+        value = trackDetail(summary),
+        icon = R.drawable.ic_learn_lessons,
+        onClick = { actions.onTrack(summary.track) },
+    )
+}
+
+@Composable
+internal fun trackDetail(summary: TrackSummary): String {
+    val opensAfter = summary.opensAfterReadingUnit
+    val next = summary.next
+    return when {
+        opensAfter != null -> stringResource(R.string.track_opens_after, opensAfter)
+        next != null ->
+            stringResource(R.string.track_next_unit, next.number, summary.unitCount, next.title)
+        else -> pluralStringResource(R.plurals.track_all_done, summary.unitCount, summary.unitCount)
     }
 }
 
@@ -225,7 +264,7 @@ private fun planSummary(plan: TodayPlan): String {
 }
 
 @Composable
-private fun PathRowView(row: PathRow, state: HubState, actions: HubActions) {
+internal fun PathRowView(row: PathRow, state: HubState, actions: HubActions) {
     when (row) {
         is PathRow.Folded -> FoldedRow(row, state)
         is PathRow.SetStep -> SetRow(row)
@@ -307,7 +346,7 @@ private const val LEARN_SET_SIZE = 10
  * One step of the path: a marker, the title with a detail, and "Today" when it is in today's plan.
  */
 @Composable
-private fun StepRow(
+internal fun StepRow(
     state: PathState,
     title: String,
     detail: String?,
@@ -423,26 +462,9 @@ private fun ProgressCard(state: HubState) {
 @Composable
 private fun MoreRows(state: HubState, actions: HubActions) {
     SettingsLinkRow(
-        label = stringResource(R.string.course_word_list),
-        value =
-            pluralStringResource(
-                R.plurals.course_word_list_detail,
-                state.wordsMet,
-                state.wordsMet,
-                state.wordsKnown,
-            ),
-        icon = R.drawable.ic_learn_list,
-        onClick = actions.onWordList,
-    )
-    SettingsLinkRow(
         label = stringResource(R.string.course_quiz),
         icon = R.drawable.ic_learn_quiz,
         onClick = actions.onQuiz,
-    )
-    SettingsLinkRow(
-        label = stringResource(R.string.course_tajweed),
-        icon = R.drawable.ic_learn_lessons,
-        onClick = actions.onTajweed,
     )
     SettingsLinkRow(
         label = stringResource(R.string.course_revise_ayahs),

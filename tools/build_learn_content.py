@@ -32,6 +32,8 @@ ARABIC_PATTERN = re.compile("[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
 HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer): (.+)$")
 URL_PATTERN = re.compile(r"https?://\S+")
 TERM_PATTERN = re.compile(r"^(.+?) \((.+)\)$")
+LETTERS_PREFIX = "letters:"
+LETTER_ENTRY_PATTERN = re.compile(r"^\[\[([^\]]+)\]\]\s+(.+)$")
 
 
 class LessonError(Exception):
@@ -130,13 +132,30 @@ def parse_table(lines, where, used_keys):
     return {"type": "table", "header": header, "rows": rows}
 
 
+def parse_letters(text, where, used_keys):
+    """Reads `letters: [[ا]] alif; [[ب]] baa; ...` as a grid of letters with their names."""
+    items = []
+    for entry in text[len(LETTERS_PREFIX) :].split(";"):
+        entry = entry.strip()
+        match = LETTER_ENTRY_PATTERN.match(entry)
+        if not match:
+            raise LessonError(f"{where}: a letters entry looks like '[[ب]] baa', not {entry!r}.")
+        scan_text(entry, where, used_keys)
+        items.append({"letter": match.group(1), "name": match.group(2).strip()})
+    if not items:
+        raise LessonError(f"{where}: a letters block needs at least one letter.")
+    return {"type": "letters", "items": items}
+
+
 def parse_blocks(lines, where, used_keys):
-    """Turns the lines of a screen into blocks: paragraph, bullets, table or ayah."""
+    """Turns the lines of a screen into blocks: paragraph, bullets, table, ayah or letters."""
     blocks = []
     for paragraph in split_paragraphs(lines):
         first = paragraph[0]
         text = " ".join(paragraph)
-        if first.startswith("|"):
+        if first.startswith(LETTERS_PREFIX):
+            blocks.append(parse_letters(text, where, used_keys))
+        elif first.startswith("|"):
             blocks.append(parse_table(paragraph, where, used_keys))
         elif first.startswith("- "):
             items = [scan_text(line[2:].strip(), where, used_keys) for line in paragraph]
@@ -256,11 +275,14 @@ def parse_body(body, name, first_line, used_keys):
 
 
 def check_screen_order(screens, name):
+    """Reading screens come first; the lesson may end with Check and Answer pairs."""
     kinds = [screen["kind"] for screen in screens]
     if "check" in kinds:
         position = kinds.index("check")
-        if kinds.count("check") != 1 or kinds[position + 1 :] != ["answer"]:
-            raise LessonError(f"{name}: a lesson ends with one Check screen and one Answer screen.")
+        tail = kinds[position:]
+        pair_count = len(tail) // 2
+        if tail != ["check", "answer"] * pair_count or pair_count == 0:
+            raise LessonError(f"{name}: a lesson ends with Check screens, each followed by its Answer screen.")
     elif "answer" in kinds:
         raise LessonError(f"{name}: an Answer screen needs a Check screen before it.")
 

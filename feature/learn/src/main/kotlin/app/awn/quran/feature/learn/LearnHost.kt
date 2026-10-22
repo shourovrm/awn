@@ -26,12 +26,18 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.ui.theme.AwnField
+import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Lesson
+import app.awn.quran.feature.learn.course.LearnTracks
 import app.awn.quran.feature.learn.course.LearningArabic
+import app.awn.quran.feature.learn.course.TajweedLessonTitle
+import app.awn.quran.feature.learn.data.StepItemKind
+import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
+import app.awn.quran.feature.learn.session.StepKind
 import app.awn.quran.feature.learn.ui.CourseDependencies
-import app.awn.quran.feature.learn.ui.CourseLessonScreen
 import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
 import app.awn.quran.feature.learn.ui.LearnEnvironment
@@ -39,6 +45,7 @@ import app.awn.quran.feature.learn.ui.LearnRoute
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
+import app.awn.quran.feature.learn.words.FinishedStep
 import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -147,22 +154,44 @@ private class LearnRouteContent(
         get() = LearnLanguage.of(locale)
 }
 
-/** The path lessons of the course and the older tajweed lessons share the OneLesson route. */
+/**
+ * An older tajweed lesson. Opened from the Tajweed track, leaving it marks it read and returns to
+ * the track; a course lesson id is sent on to the paged unit.
+ */
 @Composable
 private fun OneLessonRoute(
-    id: String,
+    route: LearnRoute.OneLesson,
     content: LearnRouteContent,
     course: CourseRouteContext,
-    onBack: () -> Unit,
+    onRouteChange: (LearnRoute) -> Unit,
     modifier: Modifier,
 ) {
-    val courseLesson = course.runtime?.assets?.content?.lesson(id)
-    if (courseLesson != null) {
-        CourseLessonScreen(courseLesson, course.dependencies.languageCode, onBack, modifier)
-    } else {
-        LessonRoute(content.lessons.firstOrNull { it.id == id }, content, onBack, modifier)
+    val courseContent = course.runtime?.assets?.content
+    if (courseContent?.lesson(route.id) != null) {
+        LaunchedEffect(route.id) {
+            onRouteChange(
+                LearnRoute.CourseUnit(route.id, LearnTracks.trackOf(route.id, courseContent)),
+            )
+        }
+        return
     }
+    val scope = rememberCoroutineScope()
+    val repository = course.dependencies.services.courseRepository
+    val track = route.track
+    val onBack = {
+        if (track != null) {
+            scope.launch { repository.finishLesson(route.id, lessonReadStep(route.id)) }
+            onRouteChange(LearnRoute.Track(track))
+        } else {
+            onRouteChange(LearnRoute.Hub)
+        }
+    }
+    LessonRoute(content.lessons.firstOrNull { it.id == route.id }, content, onBack, modifier)
 }
+
+// An older lesson has no check, so reading it to the end is its whole outcome.
+private fun lessonReadStep(lessonId: String) =
+    FinishedStep(StepKind.Lesson, StepItemKind.LESSON, lessonId, null, StepOutcome.SEEN, 0L)
 
 /**
  * The route on screen, null until the setting that says whether the course started is read. Back
@@ -254,7 +283,7 @@ private fun LearnRoutes(
                 onBackClick = goHub,
                 modifier = modifier,
             )
-        is LearnRoute.OneLesson -> OneLessonRoute(route.id, content, course, goHub, modifier)
+        is LearnRoute.OneLesson -> OneLessonRoute(route, content, course, onRouteChange, modifier)
         LearnRoute.Revision ->
             RevisionHost(
                 dueToday = snapshot.dueToday,
@@ -265,17 +294,29 @@ private fun LearnRoutes(
                 modifier = modifier,
             )
         else ->
-            CourseRoutes(
-                route = route,
-                onRouteChange = onRouteChange,
-                dependencies = course.dependencies,
-                runtime = course.runtime,
-                dueAyahs = snapshot.dueToday,
-                onReviseAt = onReviseAt,
-                barActions = barActions,
-                modifier = modifier,
-            )
+            CoursePage {
+                CourseRoutes(
+                    route = route,
+                    onRouteChange = onRouteChange,
+                    dependencies = course.dependencies,
+                    runtime = course.runtime,
+                    dueAyahs = snapshot.dueToday,
+                    onReviseAt = onReviseAt,
+                    barActions = barActions,
+                    tajweedLessons = summaries.map { TajweedLessonTitle(it.id, it.title) },
+                    modifier = modifier,
+                )
+            }
     }
+}
+
+/**
+ * The theme for the course screens. The older Learn screens set their own theme; the course screens
+ * had none, so nothing kept them clear of the status bar and their top bar drew under it.
+ */
+@Composable
+private fun CoursePage(content: @Composable () -> Unit) {
+    AwnTheme(field = AwnField.Paper, content = content)
 }
 
 @Composable
