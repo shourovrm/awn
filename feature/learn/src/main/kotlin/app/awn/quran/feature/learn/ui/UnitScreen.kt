@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -88,58 +87,75 @@ internal fun UnitScreen(
         }
     }
     Column(modifier = modifier.fillMaxSize()) {
-        LearnBar(
-            title = text.title,
-            startLinkLabel = stringResource(R.string.back),
-            onStartLinkClick = actions.onBack,
-            actions = {
-                Text(
-                    text =
-                        stringResource(
-                            R.string.unit_page_count,
-                            pagerState.currentPage + 1,
-                            pages.size,
-                        ),
-                    style = AwnTypography.small,
-                    color = Awn.field.mutedContent,
-                )
-            },
-        )
+        UnitBar(text.title, pagerState.currentPage, pages.size, actions.onBack)
         PageDots(pages, pagerState)
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f).testTag(UNIT_PAGER_TAG),
         ) { index ->
-            val pageModifier =
-                Modifier.fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.medium)
-            when (val page = pages[index]) {
-                is UnitPage.Reading ->
-                    Column(
-                        pageModifier,
-                        verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
-                    ) {
-                        RichText(page.screen.title, style = AwnTypography.title)
-                        LessonBlocks(page.screen.blocks)
-                    }
-                is UnitPage.Check ->
-                    CheckPage(
-                        check = page.check,
-                        chosen = answers.chosen[page.index],
-                        onChoose = { answers = answers.choose(page.index, it) },
-                        modifier = pageModifier,
-                    )
-                UnitPage.Done ->
-                    DonePage(
-                        rightCount = answers.rightCount(checks),
-                        checkCount = checks.size,
-                        place = place,
-                        actions = actions,
-                        modifier = pageModifier,
-                    )
-            }
+            UnitPageContent(
+                page = pages[index],
+                answers = answers,
+                onAnswersChange = { answers = it },
+                checks = checks,
+                place = place,
+                actions = actions,
+            )
         }
+    }
+}
+
+/** The unit's title with the back link, and which page of how many is on screen. */
+@Composable
+private fun UnitBar(title: String, currentPage: Int, pageCount: Int, onBack: () -> Unit) {
+    LearnBar(
+        title = title,
+        startLinkLabel = stringResource(R.string.back),
+        onStartLinkClick = onBack,
+        actions = {
+            Text(
+                text = stringResource(R.string.unit_page_count, currentPage + 1, pageCount),
+                style = AwnTypography.small,
+                color = Awn.field.mutedContent,
+            )
+        },
+    )
+}
+
+@Composable
+private fun UnitPageContent(
+    page: UnitPage,
+    answers: UnitAnswers,
+    onAnswersChange: (UnitAnswers) -> Unit,
+    checks: List<CheckWithAnswer>,
+    place: UnitPlace?,
+    actions: UnitActions,
+) {
+    val pageModifier =
+        Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.medium)
+    when (page) {
+        is UnitPage.Reading ->
+            Column(pageModifier, verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
+                RichText(page.screen.title, style = AwnTypography.title)
+                LessonBlocks(page.screen.blocks)
+            }
+        is UnitPage.Check ->
+            CheckPage(
+                check = page.check,
+                chosen = answers.chosen[page.index],
+                onChoose = { onAnswersChange(answers.choose(page.index, it)) },
+                modifier = pageModifier,
+            )
+        UnitPage.Done ->
+            DonePage(
+                rightCount = answers.rightCount(checks),
+                checkCount = checks.size,
+                place = place,
+                actions = actions,
+                modifier = pageModifier,
+            )
     }
 }
 
@@ -280,11 +296,11 @@ internal fun trackName(track: LearnTrack): String =
         },
     )
 
-private val DOT_SIZE = 8.dp
-private val CURRENT_DOT_WIDTH = 20.dp
+private val DOT_SIZE = AwnSpacing.small
+private val CURRENT_DOT_WIDTH = AwnSpacing.medium
 
 // Each dot is tappable; the touch area is wider than the dot so a row of them stays usable.
-private val DOT_TOUCH_SIZE = 24.dp
+private val DOT_TOUCH_SIZE = AwnSpacing.large
 
 internal const val UNIT_PAGER_TAG = "unit-pager"
 internal const val UNIT_NEXT_TAG = "unit-next"
