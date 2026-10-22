@@ -57,9 +57,9 @@ data class CatalogueState(
     val freeBytes: Long = 0L,
     val isLoaded: Boolean = false,
 ) {
-    /** The space the installed items take, bundled ones included: they are copied to the phone. */
+    /** The space the user's own downloads take; items that ship inside the app are left out. */
     val spaceUsedBytes: Long
-        get() = rows.sumOf { it.item.installedBytes ?: 0L }
+        get() = rows.filterNot { it.item.isBundled }.sumOf { it.item.installedBytes ?: 0L }
 
     fun rowsIn(group: CatalogueGroup): List<CatalogueRow> = rows.filter { it.item.group == group }
 
