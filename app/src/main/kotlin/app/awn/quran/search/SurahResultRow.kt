@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDirection
 import app.awn.quran.R
 import app.awn.quran.core.data.Chapter
@@ -44,7 +43,7 @@ internal fun SurahResultRow(chapter: Chapter, onClick: () -> Unit) {
             text = chapter.nameArabic,
             style =
                 AwnTypography.body.copy(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = AwnTypography.quran.fontFamily,
                     textDirection = TextDirection.Rtl,
                 ),
             color = field.content,
