@@ -3,6 +3,7 @@ package app.awn.quran.feature.read.quran
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.LineItem
@@ -11,6 +12,7 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
@@ -18,17 +20,22 @@ import app.awn.quran.feature.read.page.FontPackController
 import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
+import app.awn.quran.feature.read.page.pageTypeScripts
+import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.feature.read.settings.ScreenOrientation
 import app.awn.quran.feature.read.settings.TextLayer
+import app.awn.quran.feature.read.settings.installedWordLanguages
 import app.awn.quran.feature.read.settings.withTranslation
+import app.awn.quran.feature.read.settings.wordLanguageShown
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.WordProblem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -117,6 +124,8 @@ data class QuranUiState(
     val isPlaybackPaused: Boolean = false,
     /** The translations on the phone, for the layers menu of the line-by-line view. */
     val installedTranslations: List<TranslationInfo> = emptyList(),
+    /** The language of the word-by-word meanings the page shows, named by the layers menu. */
+    val wordLanguageShown: String = ENGLISH_WORD_LANGUAGE,
     /** The page the playing ayah starts on; null while nothing plays. */
     val playingPage: Int? = null,
     /**
@@ -257,6 +266,7 @@ class QuranViewModel(
         viewModelScope.launch { followFontStatus() }
         viewModelScope.launch { followInstalledPacks() }
         viewModelScope.launch { followWordAudioPack() }
+        viewModelScope.launch { followWordLanguage() }
     }
 
     /**
@@ -755,7 +765,11 @@ class QuranViewModel(
     }
 
     private fun dismissOrKeepReading(offer: PrintOfferState) {
-        if (offer.downloading != null) keepReadingDuringPrintDownload() else dismissPrintOffer()
+        if (offer.downloading.isNotEmpty()) {
+            keepReadingDuringPrintDownload()
+        } else {
+            dismissPrintOffer()
+        }
     }
 
     /** Tells the pages-read timer whether the screen is in front; it counts only then. */
@@ -898,6 +912,24 @@ class QuranViewModel(
         mutableState.update { it.copy(installedTranslations = layerTranslations(installed)) }
     }
 
+    /**
+     * Keeps [QuranUiState.wordLanguageShown] right when the choice or the installed packs change.
+     */
+    private suspend fun followWordLanguage() {
+        val catalogue = CatalogueModel(dependencies.packs, dependencies.downloads, viewModelScope)
+        combine(dependencies.settingsStore.settings, catalogue.state) { settings, catalogueState ->
+                wordLanguageShown(
+                    chosen = settings.wordByWordLanguage,
+                    appLanguage = appLanguage,
+                    installedLanguages =
+                        installedWordLanguages(catalogueState.rowsIn(CatalogueGroup.WordByWord))
+                            .toSet(),
+                )
+            }
+            .distinctUntilChanged()
+            .collect { shown -> mutableState.update { it.copy(wordLanguageShown = shown) } }
+    }
+
     private suspend fun followSettings() {
         dependencies.settingsStore.settings.distinctUntilChanged().collect { settings ->
             val previous = mutableState.value.settings
@@ -933,26 +965,35 @@ class QuranViewModel(
         mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = true)) }
     }
 
-    /** Ticks [script] in the print offer card; the Download label shows its size. */
+    /** Ticks or unticks [script] in the print offer card; the Download label shows the sum. */
     fun choosePrint(script: ScriptId) {
-        mutableState.update { it.copy(printOffer = it.printOffer.copy(choice = script)) }
+        mutableState.update {
+            val choices = it.printOffer.choices
+            val toggledChoices = if (script in choices) choices - script else choices + script
+            it.copy(printOffer = it.printOffer.copy(choices = toggledChoices))
+        }
     }
 
     /**
-     * Sets the chosen print as the page type and starts its download. The pages keep the bundled
-     * font until the pack is installed, then switch.
+     * Installs every ticked print and sets the first one in card order as the page type. The pages
+     * keep the bundled font until a pack is installed, then switch. Nothing ticked does nothing.
      */
     fun downloadPrint() {
         val offer = mutableState.value.printOffer
-        val choice = offer.choice
+        if (offer.choices.isEmpty()) return
+        val tickedPrints = pageTypeScripts.filter { it in offer.choices }
+        val firstTickedPrint = tickedPrints.first()
         markPrintOfferHandled()
         mutableState.update {
             it.copy(
-                printOffer = offer.copy(downloading = choice, previousScript = it.settings.script),
+                printOffer =
+                    offer.copy(downloading = offer.choices, previousScript = it.settings.script),
             )
         }
-        viewModelScope.launch { dependencies.settingsStore.update { it.copy(script = choice) } }
-        fontPacks.install(choice)
+        viewModelScope.launch {
+            dependencies.settingsStore.update { it.copy(script = firstTickedPrint) }
+        }
+        tickedPrints.forEach { fontPacks.install(it) }
     }
 
     /** Not now, or Back on the question: closes the card for good. */
@@ -969,16 +1010,22 @@ class QuranViewModel(
     /** Cancel: stops the download and shows the question again with the page type as before. */
     fun cancelPrintDownload() {
         val offer = mutableState.value.printOffer
-        val downloading = offer.downloading ?: return
-        fontPacks.cancel(downloading)
+        if (offer.downloading.isEmpty()) return
+        offer.downloading.forEach { fontPacks.cancel(it) }
         val previous = offer.previousScript
         viewModelScope.launch {
             dependencies.settingsStore.update {
-                if (previous != null && it.script == downloading) it.copy(script = previous) else it
+                if (previous != null && it.script in offer.downloading) {
+                    it.copy(script = previous)
+                } else {
+                    it
+                }
             }
         }
         mutableState.update {
-            it.copy(printOffer = it.printOffer.copy(downloading = null, previousScript = null))
+            it.copy(
+                printOffer = it.printOffer.copy(downloading = emptySet(), previousScript = null),
+            )
         }
     }
 
@@ -1002,22 +1049,27 @@ class QuranViewModel(
     }
 
     /**
-     * Follows the download started from the card: a finished one closes the card, a failed one
-     * shows its message in the open card or, when the card is closed, counts for the screen's note.
+     * Follows the downloads started from the card. An installed print leaves the set, a failed one
+     * leaves it too and, when the card is closed, counts for the screen's note. The card closes
+     * only when every chosen print is installed; a failure leaves it open on the question.
      */
     private fun settledOffer(
         offer: PrintOfferState,
         statuses: Map<ScriptId, FontPackStatus>,
     ): PrintOfferState {
-        val status = offer.downloading?.let { statuses[it] }
-        return when {
-            status == null -> offer
-            status.isInstalled -> offer.copy(isOpen = false, downloading = null)
-            status.failure == null -> offer
-            offer.isOpen -> offer.copy(downloading = null)
-            else ->
-                offer.copy(downloading = null, closedFailureCount = offer.closedFailureCount + 1)
-        }
+        if (offer.downloading.isEmpty()) return offer
+        val installedPrints = offer.downloading.filter { statuses[it]?.isInstalled == true }.toSet()
+        val failedPrints =
+            offer.downloading.filter { statuses[it]?.failed == true }.toSet() - installedPrints
+        val runningPrints = offer.downloading - installedPrints - failedPrints
+        val failuresCountedWhenClosed = if (offer.isOpen) 0 else failedPrints.size
+        val settled =
+            offer.copy(
+                downloading = runningPrints,
+                closedFailureCount = offer.closedFailureCount + failuresCountedWhenClosed,
+            )
+        val everyChosenPrintInstalled = runningPrints.isEmpty() && failedPrints.isEmpty()
+        return if (everyChosenPrintInstalled) settled.copy(isOpen = false) else settled
     }
 
     /**

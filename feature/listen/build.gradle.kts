@@ -15,5 +15,10 @@ dependencies {
     implementation(libs.androidx.lifecycleViewmodelCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)
 
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.testExtJunit)
+    testImplementation(libs.compose.uiTestJunit4)
+    // Supplies the activity that Robolectric Compose tests launch.
+    testImplementation(libs.compose.uiTestManifest)
     testImplementation(libs.kotlinx.coroutinesTest)
 }

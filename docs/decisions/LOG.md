@@ -158,3 +158,6 @@
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
 2026-10-22 | Hifz and revision runs hide words for the run only; Today revise passes a cap | saved recite setting stayed hidden and every due ayah was revised
 2026-10-22 | Hifz bar listens to a movable window; Memorised up to sets the cursor | the loop was stuck on the lesson and users could not say how far they know
+2026-10-22 | Print offer allows several ticked prints; Download installs all | the card showed many options but took one
+2026-10-22 | Audio bar gets a reciter button; a reciter change while playing continues from the same ayah | reciter was hard to reach from the page
+2026-10-22 | Arabic text styles use the bundled Hafs font through HafsFont installed by AwnTheme | generic serif drew marks badly (read.md)

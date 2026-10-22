@@ -90,7 +90,7 @@ abstract class CardsRenderChecks {
             statuses + (ScriptId.V2 to statuses.getValue(ScriptId.V2).copy(progress = 0.42f))
         show(mode, fontScale) {
             PrintOfferCard(
-                PrintOfferState(isOpen = true, downloading = ScriptId.V2),
+                PrintOfferState(isOpen = true, downloading = setOf(ScriptId.V2)),
                 running,
                 noActions,
             )

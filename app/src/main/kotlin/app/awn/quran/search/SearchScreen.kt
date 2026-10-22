@@ -30,7 +30,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDirection
@@ -148,7 +147,7 @@ private fun ResultRow(row: SearchRow, onClick: () -> Unit) {
             style =
                 if (isArabic) {
                     AwnTypography.body.copy(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = AwnTypography.quran.fontFamily,
                         textDirection = TextDirection.Rtl,
                     )
                 } else {

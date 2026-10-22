@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
@@ -58,11 +61,18 @@ const val REVIEW_CLOSE_TAG = "review-close"
 private const val CARD_MAX_HEIGHT_SHARE = 0.4f
 
 /**
+ * The smallest the flagged word shrinks to, as a share of the Quran font size. Below this share the
+ * word is too small to read, so a longer word is clipped rather than shrunk further.
+ */
+private const val MIN_WORD_FONT_SIZE_SHARE = 0.5f
+
+/**
  * The review of flagged words as a card above the recite bar, on the field of the colour mode. The
  * page stays visible and live above it: [focusedKey] is the word on the page that is ringed. The
- * word is large at the top right, Listen at the top left, then one block per finding. [reviews]
- * holds every flagged word in reading order; Previous and Next call [onFocus] with the neighbour,
- * so the page can turn to it. The card is not modal: nothing behind it is dimmed or blocked.
+ * top row holds Listen at the left and Close at the right; the word is large on its own full-width
+ * line under them, then one block per finding. [reviews] holds every flagged word in reading order;
+ * Previous and Next call [onFocus] with the neighbour, so the page can turn to it. The card is not
+ * modal: nothing behind it is dimmed or blocked.
  */
 @Composable
 fun ReciteReviewCard(
@@ -105,9 +115,11 @@ fun ReciteReviewCard(
                     modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
                     onClick = { onListen(review.key) },
                 )
-                Text(text = wordText, style = AwnTypography.title)
             }
             CloseButton(onDismiss)
+        }
+        if (review != null) {
+            ReviewWord(wordText)
         }
         review?.findings?.forEach { finding -> FindingBlock(finding) }
         if (reviews.size > 1) {
@@ -130,6 +142,26 @@ fun ReciteReviewCard(
             modifier = Modifier.padding(vertical = AwnSpacing.small),
         )
     }
+}
+
+/**
+ * The flagged word on its own line, in the Quran font. It shrinks to fit the width on one line
+ * instead of wrapping, because a wrapped word was hard to read in the small card.
+ */
+@Composable
+private fun ReviewWord(word: String) {
+    BasicText(
+        text = word,
+        modifier = Modifier.fillMaxWidth(),
+        style = AwnTypography.quran.copy(color = Awn.field.content, textAlign = TextAlign.Center),
+        maxLines = 1,
+        softWrap = false,
+        autoSize =
+            TextAutoSize.StepBased(
+                minFontSize = AwnTypography.quran.fontSize * MIN_WORD_FONT_SIZE_SHARE,
+                maxFontSize = AwnTypography.quran.fontSize,
+            ),
+    )
 }
 
 @Composable

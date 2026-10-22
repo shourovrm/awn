@@ -57,7 +57,8 @@ class QuranMenusRenderTest {
         composeRule.onNodeWithText("Arabic").assertIsDisplayed()
         composeRule.onNodeWithText("Saheeh International").assertIsDisplayed()
         composeRule.onNodeWithText("Transliteration").assertIsDisplayed()
-        composeRule.onNodeWithText("Word by word").assertIsDisplayed()
+        // Word by word names the language of its meanings; the fixture has only English.
+        composeRule.onNodeWithText("Word by word · English").assertIsDisplayed()
     }
 
     @Test

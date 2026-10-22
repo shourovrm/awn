@@ -12,6 +12,7 @@
   <string name="audio_speed">Speed</string>
   <string name="audio_speed_value">Speed, %1$s</string>
   <string name="audio_expand">Play options</string>
+  <string name="audio_choose_reciter">Choose reciter</string>
   <string name="audio_cancel">Cancel</string>
   <string name="audio_downloading">Downloading</string>
   <string name="audio_start_from">Start from</string>
