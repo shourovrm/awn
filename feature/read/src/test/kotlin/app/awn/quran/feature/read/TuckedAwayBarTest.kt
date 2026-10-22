@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.quran.BottomBarStack
 import app.awn.quran.feature.read.quran.BusyBarButton
+import app.awn.quran.feature.read.quran.BusyState
 import app.awn.quran.feature.read.quran.TuckedAwayWhenHidden
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,13 +58,13 @@ class TuckedAwayBarTest {
     }
 
     @Test
-    fun theCornerButtonBringsTheBarBack() {
+    fun theCornerButtonReportsATap() {
         var taps = 0
         composeRule.setContent {
-            AwnTheme { BusyBarButton(isReciting = false, onClick = { taps += 1 }) }
+            AwnTheme { BusyBarButton(state = BusyState.AudioPlaying, onToggle = { taps += 1 }) }
         }
 
-        composeRule.onNodeWithContentDescription("Show controls").performClick()
+        composeRule.onNodeWithContentDescription("Pause").performClick()
 
         assertEquals(1, taps)
     }

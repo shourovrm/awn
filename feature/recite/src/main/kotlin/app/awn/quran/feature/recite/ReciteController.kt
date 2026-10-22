@@ -276,15 +276,21 @@ class ReciteController(
      * microphone ([resumeReciting]) or stops it ([stopListening]).
      */
     fun listenOnward() {
-        val ayah = ayahToListenTo() ?: return
-        lastListenedAyah = ayah
+        if (session.words.value.isEmpty()) return
         onwardAudioHasStarted = false
         onwardAudioHasEnded = false
         mutableListeningOnward.value = true
-        // The tracker is not asked about the ayahs played, whatever the microphone hears later.
-        session.continueAt(ayah)
         pauseMicrophone()
         runAfterPendingWork {
+            // Found after the pending steps: a resume before this has moved the next word.
+            val ayah = ayahToListenTo()
+            if (ayah == null) {
+                mutableListeningOnward.value = false
+                return@runAfterPendingWork
+            }
+            lastListenedAyah = ayah
+            // The tracker is not asked about the ayahs played, whatever the microphone hears later.
+            session.continueAt(ayah)
             audioPlayer.play(settings.reciterId.first(), ayah, to = null)
             // Counted from the play call, not from a Playing state: a short ayah can go from
             // Playing to Idle between two looks at the player.
@@ -352,7 +358,7 @@ class ReciteController(
         return if (onwardAudioHasEnded) nextAyahAfter(last) else last
     }
 
-    private suspend fun nextAyahAfter(ayah: AyahRef): AyahRef? {
+    internal suspend fun nextAyahAfter(ayah: AyahRef): AyahRef? {
         val page = quranText.pageOf(ayah, pageScript)
         val onSamePage = quranText.ayahsOnPage(page, pageScript).firstOrNull { it > ayah }
         return onSamePage ?: ayahsOnPageAfter(ayah).firstOrNull()

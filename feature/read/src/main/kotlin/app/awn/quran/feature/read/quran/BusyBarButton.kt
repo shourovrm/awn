@@ -1,6 +1,7 @@
 package app.awn.quran.feature.read.quran
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -16,22 +17,21 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadIconButton
 
 /**
- * The corner button a busy bottom bar shrinks to: a pause icon while audio plays, a microphone
- * while reciting. A tap brings the full bar back. It floats over the page and is not part of the
- * bottom stack, so the lists do not make room for it.
+ * The corner button a busy bottom bar shrinks to. It does what its icon says: pause or play the
+ * audio, stop or start the microphone. A tap on the page brings the full bar back. It floats over
+ * the page and is not part of the bottom stack, so the lists do not make room for it.
  */
 @Composable
 internal fun BusyBarButton(
-    isReciting: Boolean,
-    onClick: () -> Unit,
+    state: BusyState,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
-    @DrawableRes val icon = if (isReciting) R.drawable.ic_read_recite else R.drawable.ic_read_pause
     ReadIconButton(
-        iconRes = icon,
-        description = stringResource(R.string.action_show_controls),
-        onClick = onClick,
+        iconRes = iconOf(state),
+        description = stringResource(descriptionOf(state)),
+        onClick = onToggle,
         modifier =
             modifier
                 .shadow(AwnSpacing.small, AwnShapes.control)
@@ -39,6 +39,24 @@ internal fun BusyBarButton(
         tint = field.onBar,
     )
 }
+
+@DrawableRes
+private fun iconOf(state: BusyState): Int =
+    when (state) {
+        BusyState.AudioPlaying -> R.drawable.ic_read_pause
+        BusyState.AudioPaused -> R.drawable.ic_read_play
+        BusyState.MicrophoneOn -> R.drawable.ic_read_stop
+        BusyState.MicrophoneOff -> R.drawable.ic_read_recite
+    }
+
+@StringRes
+private fun descriptionOf(state: BusyState): Int =
+    when (state) {
+        BusyState.AudioPlaying -> R.string.busy_pause
+        BusyState.AudioPaused -> R.string.busy_play
+        BusyState.MicrophoneOn -> R.string.busy_stop_microphone
+        BusyState.MicrophoneOff -> R.string.busy_start_microphone
+    }
 
 /**
  * Keeps [content] composed but neither drawn, touched nor read aloud when [isShown] is false and

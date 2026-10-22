@@ -27,7 +27,9 @@ class BusyBarButtonTest {
     private var toggles = 0
 
     private fun show(state: BusyState) {
-        composeRule.setContent { AwnTheme { BusyBarButton(state = state, onToggle = { toggles += 1 }) } }
+        composeRule.setContent {
+            AwnTheme { BusyBarButton(state = state, onToggle = { toggles += 1 }) }
+        }
         composeRule.waitForIdle()
     }
 

@@ -18,8 +18,8 @@ import org.junit.rules.TemporaryFolder
  *   restarts it starts from again." The bar's microphone stop must keep what was recited and the
  *   next start must go on from the next word.
  * - "If one switches from listening to reciting, then switches again, it starts from top of the
- *   page." Listening must start where the user is: the next word to recite, else the ayah after
- *   the last one recited, never the first loaded ayah once something was recited or resumed.
+ *   page." Listening must start where the user is: the next word to recite, else the ayah after the
+ *   last one recited, never the first loaded ayah once something was recited or resumed.
  *
  * The fixture holds 1:1 (indexes 0 and 1) and 1:2 (index 2) on page 1, 1:3 on page 2.
  */
