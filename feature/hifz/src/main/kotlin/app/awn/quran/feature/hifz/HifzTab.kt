@@ -23,11 +23,13 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.ui.components.AwnTopBar
+import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.ui.HifzActions
 import app.awn.quran.feature.hifz.ui.HifzMainContent
+import app.awn.quran.feature.hifz.ui.KnownUpToScreen
 import app.awn.quran.feature.hifz.ui.MarkKnownScreen
 import app.awn.quran.feature.hifz.ui.MethodChooser
 
@@ -35,6 +37,7 @@ private enum class HifzPage {
     Main,
     Method,
     Mark,
+    KnownUpTo,
 }
 
 /**
@@ -67,7 +70,7 @@ fun HifzTab(
     BackHandler(enabled = page != HifzPage.Main) { page = HifzPage.Main }
 
     Column(modifier.fillMaxSize().background(Awn.field.background)) {
-        if (showTopBar && page != HifzPage.Mark) {
+        if (showTopBar && page != HifzPage.Mark && page != HifzPage.KnownUpTo) {
             AwnTopBar(title = stringResource(R.string.hifz_title), actions = topBarActions)
         }
         when (val state = screenState) {
@@ -102,6 +105,11 @@ fun HifzTab(
                         }
                     HifzPage.Method ->
                         ScrollingPage {
+                            SettingsLinkRow(
+                                label = stringResource(R.string.known_up_to_title),
+                                onClick = { page = HifzPage.KnownUpTo },
+                                modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
+                            )
                             MethodChooser(
                                 initialMethod = state.state.plan.method,
                                 initialSettings = state.state.plan.settings,
@@ -116,6 +124,14 @@ fun HifzTab(
                             table = state.state.table,
                             surahName = surahName,
                             onSave = controller::markPages,
+                            onOpenKnownUpTo = { page = HifzPage.KnownUpTo },
+                            onBack = { page = HifzPage.Main },
+                        )
+                    HifzPage.KnownUpTo ->
+                        KnownUpToScreen(
+                            table = state.state.table,
+                            surahName = surahName,
+                            onSave = controller::setKnownUpTo,
                             onBack = { page = HifzPage.Main },
                         )
                 }

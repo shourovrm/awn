@@ -1,6 +1,7 @@
 package app.awn.quran.feature.hifz.data
 
 import androidx.room.withTransaction
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.LessonPart
@@ -71,6 +72,33 @@ class HifzRepository(
                     pages.map { PageProgressRules.markPage(it, status, day, nowMillis).toEntity() },
                 )
             }
+        }
+    }
+
+    /**
+     * Sets how far the user has memorised: the plan's next lesson starts after [ayah], and every
+     * page that ends at or before [ayah] becomes Memorised unless it already has a known status.
+     * The page [ayah] falls inside stays open because the rest of it is still to learn. Without a
+     * plan nothing is written.
+     */
+    suspend fun setKnownUpTo(table: PageTable, ayah: AyahRef) {
+        val nowMillis = clock()
+        val day = today()
+        database.withTransaction {
+            val plan = dao.findPlan() ?: return@withTransaction
+            val knownPages = records().filterValues { it.status.isKnown }.keys
+            val pagesBefore =
+                (1..table.pageCount).filter { page ->
+                    page !in knownPages && table.ayahsOn(page).all { it <= ayah }
+                }
+            dao.upsertPages(
+                pagesBefore.map {
+                    PageProgressRules.markPage(it, PageStatus.Memorised, day, nowMillis).toEntity()
+                },
+            )
+            // After the last ayah there is nothing left to learn, so the cursor stays where it is.
+            val next = table.ayahAfter(ayah) ?: return@withTransaction
+            dao.upsertPlan(plan.copy(cursorSurah = next.surah, cursorAyah = next.ayah))
         }
     }
 

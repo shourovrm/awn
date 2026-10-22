@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,8 @@ import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.hifz.method.HifzProgress
+import app.awn.quran.feature.hifz.method.ListenWindow
+import app.awn.quran.feature.hifz.method.PageTable
 import app.awn.quran.feature.hifz.method.PartGrade
 import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.hifz.ui.pagesText
@@ -64,6 +67,8 @@ import app.awn.quran.player.PlaybackState
 const val HIFZ_BAR_TAG = "hifz-bar"
 const val HIFZ_BAR_HIDE_TAG = "hifz-bar-hide-words"
 const val HIFZ_BAR_PLAY_TAG = "hifz-bar-play"
+const val HIFZ_BAR_PREVIOUS_TAG = "hifz-bar-previous"
+const val HIFZ_BAR_NEXT_TAG = "hifz-bar-next"
 const val HIFZ_BAR_REPEAT_TAG = "hifz-bar-repeat"
 const val HIFZ_BAR_MIC_TAG = "hifz-bar-mic"
 const val HIFZ_BAR_FINISH_TAG = "hifz-bar-finish"
@@ -98,8 +103,9 @@ private data class HifzBarColors(
 
 /**
  * The bar of the `hifzBar` slot of the Quran screen while a part is practised: show or hide words,
- * play the part with repeat, recite to check, and finish with a grade. Words and microphone are the
- * recite controller's own; the page, the word fills and following come from the Quran screen's
+ * play the listen window with repeat, recite to check, and finish with a grade. The window starts
+ * as the part and moves by its own length with Previous and Next ayahs. Words and microphone are
+ * the recite controller's own; the page, the word fills and following come from the Quran screen's
  * recite mode, which :app turns on together with the practice.
  *
  * [playRange] plays the ayahs with the chosen reciter; [onExit] leaves recite mode on the screen.
@@ -130,6 +136,35 @@ fun HifzBar(
     val isAudioActive = playback !is PlaybackState.Idle && playback !is PlaybackState.Error
     var repeatCount by remember(current) { mutableIntStateOf(current.repeatCount) }
     var isFinishing by remember(current) { mutableStateOf(false) }
+    var listenWindow by
+        remember(current) {
+            mutableStateOf(ListenWindow(current.firstAyah, current.lastAyah))
+        }
+    // The table is the print's pages; Previous and Next ayahs need it to find their neighbours.
+    val table by
+        produceState<PageTable?>(initialValue = null, controller) {
+            value = controller.pageTable()
+        }
+    val previousWindow = table?.let { listenWindow.previous(it) }
+    val nextWindow = table?.let { listenWindow.next(it) }
+
+    fun playWindow(window: ListenWindow) {
+        // The microphone would hear the reciter.
+        session.stop()
+        recite.audioPlayer.setOptions(
+            recite.audioPlayer.options.value.copy(repeatEachAyah = repeatCount),
+        )
+        playRange(window.first, window.last)
+    }
+
+    // While audio plays, moving the window plays the new one at once; otherwise Play uses it.
+    fun moveListenWindow(window: ListenWindow) {
+        listenWindow = window
+        if (isAudioActive) {
+            recite.audioPlayer.stop()
+            playWindow(window)
+        }
+    }
 
     // The player's repeat setting belongs to the user's listening; practice borrows it.
     DisposableEffect(recite) {
@@ -223,6 +258,14 @@ fun HifzBar(
                 colors = colors,
             )
             BarButton(
+                icon = R.drawable.ic_hifz_previous_ayahs,
+                description = stringResource(R.string.bar_previous_ayahs),
+                onClick = { previousWindow?.let { moveListenWindow(it) } },
+                tag = HIFZ_BAR_PREVIOUS_TAG,
+                colors = colors,
+                enabled = previousWindow != null,
+            )
+            BarButton(
                 icon = if (isAudioActive) R.drawable.ic_hifz_stop else R.drawable.ic_hifz_play,
                 description =
                     stringResource(if (isAudioActive) R.string.bar_stop else R.string.bar_play),
@@ -230,16 +273,19 @@ fun HifzBar(
                     if (isAudioActive) {
                         recite.audioPlayer.stop()
                     } else {
-                        // The microphone would hear the reciter.
-                        session.stop()
-                        recite.audioPlayer.setOptions(
-                            recite.audioPlayer.options.value.copy(repeatEachAyah = repeatCount),
-                        )
-                        playRange(current.firstAyah, current.lastAyah)
+                        playWindow(listenWindow)
                     }
                 },
                 tag = HIFZ_BAR_PLAY_TAG,
                 colors = colors,
+            )
+            BarButton(
+                icon = R.drawable.ic_hifz_next_ayahs,
+                description = stringResource(R.string.bar_next_ayahs),
+                onClick = { nextWindow?.let { moveListenWindow(it) } },
+                tag = HIFZ_BAR_NEXT_TAG,
+                colors = colors,
+                enabled = nextWindow != null,
             )
             RepeatButton(repeatCount, { repeatCount = it }, colors)
             MicrophoneButton(
@@ -483,12 +529,14 @@ private fun BarButton(
     onClick: () -> Unit,
     tag: String,
     colors: HifzBarColors,
+    enabled: Boolean = true,
 ) {
     Box(
         modifier =
             Modifier.requiredSize(AwnSpacing.touchTarget)
+                .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .semantics { contentDescription = description }
-                .clickable(role = Role.Button, onClick = onClick)
+                .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
                 .testTag(tag),
         contentAlignment = Alignment.Center,
     ) {

@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** The ayahs due for revision today; :app backs it with :feature:learn. */
@@ -90,7 +91,15 @@ class ReciteController(
     private var revisionQueueLeft: List<AyahRef> = emptyList()
     private var loadJob: Job? = null
 
-    /** True from [reciteFrom] until [exit]; the Quran screen shows the recite bar meanwhile. */
+    // True from [practiceFrom] or [reviseAt] until the run ends. While it is set, the hide-words
+    // choice belongs to the run and the saved setting does not reach the session. Volatile because
+    // the settings collector reads it on the scope while the screen writes it.
+    @Volatile private var runActive: Boolean = false
+
+    /**
+     * True from [reciteFrom], [practiceFrom] or [reviseAt] until [exit]; the recite bar shows
+     * meanwhile.
+     */
     val isActive: StateFlow<Boolean> = mutableActive.asStateFlow()
 
     /** True while the user works through the ayahs due for revision. */
@@ -113,7 +122,10 @@ class ReciteController(
         // The settings page and the bar both write the settings; the session follows them.
         scope.launch { settings.speed.distinctUntilChanged().collect { session.setSpeed(it) } }
         scope.launch {
-            settings.hifzEnabled.distinctUntilChanged().collect { session.setHifzEnabled(it) }
+            settings.hifzEnabled.distinctUntilChanged().collect { saved ->
+                // A run keeps its own hide-words choice; exit applies the saved one again.
+                if (!runActive) session.setHifzEnabled(saved)
+            }
         }
         scope.launch {
             combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
@@ -131,7 +143,25 @@ class ReciteController(
         // The microphone would hear the reciter, so audio never plays under a new recitation.
         audioPlayer.stop()
         mutableRevising.value = false
-        load(ayah)
+        val endedRun = runActive
+        runActive = false
+        load(ayah) {
+            // The collector skips the saved value while a run is on, and does not re-emit it
+            // after the run, so the saved choice is applied here.
+            if (endedRun) session.setHifzEnabled(settings.hifzEnabled.first())
+        }
+    }
+
+    /**
+     * Starts a Hifz practice run at [ayah]: recite mode with the words hidden when [hideWords] is
+     * true and shown when it is false. The choice lasts for this run only; the saved setting is not
+     * changed.
+     */
+    fun practiceFrom(ayah: AyahRef, hideWords: Boolean) {
+        audioPlayer.stop()
+        mutableRevising.value = false
+        runActive = true
+        load(ayah) { session.setHifzEnabled(hideWords) }
     }
 
     /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
@@ -144,36 +174,55 @@ class ReciteController(
         mutableFocusedWord.value = null
     }
 
-    private fun load(ayah: AyahRef) {
+    // [beforeLoad] runs after the previous load has finished and before the words are loaded, so
+    // a run can set the session's hide-words choice before its first word is shown.
+    private fun load(ayah: AyahRef, beforeLoad: suspend () -> Unit = {}) {
         clearFocus()
         mutableActive.value = true
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
+            beforeLoad()
             speech.prepare()
             session.load(ayahsFrom(ayah))
         }
     }
 
     /**
-     * Starts a revision run at [ayah], the first ayah due: recite mode with the words hidden. The
-     * due ayahs are read now; each grade given with [grade] moves on to the next one, opening it
-     * through `onOpenAyah` when it is not already loaded.
+     * Starts a revision run at [ayah], the first ayah due: recite mode with the words hidden for
+     * this run only. The due ayahs are read now and [selectRevisionQueue] keeps at most [limit] of
+     * them; each grade given with [grade] moves on to the next one, opening it through `onOpenAyah`
+     * when it is not already loaded.
      */
-    fun reviseAt(ayah: AyahRef) {
+    fun reviseAt(ayah: AyahRef, limit: Int? = null) {
         audioPlayer.stop()
         mutableRevising.value = true
-        mutableActive.value = true
-        val previous = loadJob
-        loadJob = scope.launch {
-            previous?.cancelAndJoin()
-            revisionQueueLeft = revisionQueue.dueAyahs().sorted()
+        runActive = true
+        load(ayah) {
+            revisionQueueLeft = selectRevisionQueue(revisionQueue.dueAyahs(), ayah, limit)
             mutableRevisionRemaining.value = revisionQueueLeft.size
-            settings.setHifzEnabled(true)
             session.setHifzEnabled(true)
-            speech.prepare()
-            session.load(ayahsFrom(ayah))
         }
+    }
+
+    /**
+     * The ayahs one revision run covers, in reading order. Without a [limit] that is every due
+     * ayah. With a limit it is [limit] ayahs counted from [start] and wrapping to the beginning of
+     * the Quran: [start] itself comes first even when it is not due. The Today row offers a day's
+     * worth of ayahs rather than every due one, so a run is capped and the rest wait for the next.
+     */
+    private fun selectRevisionQueue(
+        dueAyahs: List<AyahRef>,
+        start: AyahRef,
+        limit: Int?,
+    ): List<AyahRef> {
+        val readingOrder = dueAyahs.sorted()
+        if (limit == null) return readingOrder
+        require(limit >= 1) { "A revision run covers at least one ayah, got $limit." }
+        val others = readingOrder.filter { it != start }
+        val afterStart = others.filter { it > start }
+        val beforeStart = others.filter { it < start }
+        return (listOf(start) + afterStart + beforeStart).take(limit).sorted()
     }
 
     /**
@@ -233,9 +282,13 @@ class ReciteController(
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
+        val endedRun = runActive
+        runActive = false
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
+            // Before the unload: the session has no word to publish states for once it is empty.
+            if (endedRun) session.setHifzEnabled(settings.hifzEnabled.first())
             session.unload()
             // Only after the session let go of the recogniser: closing it earlier would free the
             // native model under a running recognition. The model stays for a grace period so a
@@ -264,8 +317,15 @@ class ReciteController(
         scope.launch { settings.setSpeed(speed) }
     }
 
-    /** Turns memorise mode (hidden words) on or off and keeps the choice. */
+    /**
+     * Turns memorise mode (hidden words) on or off. During a practice or revision run the choice
+     * lasts for that run only; outside a run it is kept as the saved setting.
+     */
     fun setHideWords(hide: Boolean) {
+        if (runActive) {
+            session.setHifzEnabled(hide)
+            return
+        }
         scope.launch { settings.setHifzEnabled(hide) }
     }
 }

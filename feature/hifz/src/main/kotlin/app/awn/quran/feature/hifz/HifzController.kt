@@ -1,5 +1,6 @@
 package app.awn.quran.feature.hifz
 
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.hifz.data.HifzRepository
 import app.awn.quran.feature.hifz.method.HifzMethodId
@@ -10,6 +11,7 @@ import app.awn.quran.feature.hifz.method.MethodSettings
 import app.awn.quran.feature.hifz.method.MistakeRecord
 import app.awn.quran.feature.hifz.method.PageLayoutFamily
 import app.awn.quran.feature.hifz.method.PageStatus
+import app.awn.quran.feature.hifz.method.PageTable
 import app.awn.quran.feature.hifz.method.PageTableLoader
 import app.awn.quran.feature.hifz.method.PartGrade
 import app.awn.quran.feature.hifz.method.PartKind
@@ -131,6 +133,16 @@ class HifzController(
         scope.launch { repository.markPages(pages, status) }
     }
 
+    /** Says the user has memorised everything up to [ayah]; see [HifzRepository.setKnownUpTo]. */
+    fun setKnownUpTo(ayah: AyahRef) {
+        scope.launch {
+            repository.setKnownUpTo(
+                tables.load(repository.plan()?.printLayout ?: return@launch),
+                ayah,
+            )
+        }
+    }
+
     /** Opens [kind] for practice and returns the request, or null when today has no such part. */
     @Suppress("ReturnCount") // Guards: tab not ready, no such part today.
     fun startPractice(kind: PartKind): PracticeRequest? {
@@ -173,6 +185,12 @@ class HifzController(
     }
 
     fun today(): LocalDate = repository.today()
+
+    /** The table of the print the plan follows, or of the reader's script before a plan exists. */
+    suspend fun pageTable(): PageTable {
+        val layout = repository.plan()?.printLayout ?: PageLayoutFamily.of(scripts.first())
+        return tables.load(layout)
+    }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

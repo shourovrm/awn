@@ -33,8 +33,11 @@ data class TodayItem(
 class TodayNavigation(
     val openLearnTab: () -> Unit,
     val openHifzTab: () -> Unit,
-    /** Opens the Quran screen at [AyahRef] in recite mode with the words hidden. */
-    val reviseAt: (AyahRef) -> Unit,
+    /**
+     * Opens the Quran screen at [AyahRef] in recite mode with the words hidden, for a revision run
+     * of at most the given number of ayahs; null means every due ayah.
+     */
+    val reviseAt: (AyahRef, Int?) -> Unit,
 )
 
 /**
@@ -82,7 +85,7 @@ object LearnTodayProvider : TodayProvider {
             onOpen = {
                 scope.launch {
                     val firstDue = learnFirstDueAyah(context)
-                    if (firstDue != null) navigation.reviseAt(firstDue)
+                    if (firstDue != null) navigation.reviseAt(firstDue, LEARN_TODAY_CAP)
                     else navigation.openLearnTab()
                 }
             },

@@ -9,6 +9,7 @@ import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.hifz.HifzServices
 import app.awn.quran.feature.hifz.PracticeRequest
+import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.listen.AudioFeature
@@ -165,13 +166,14 @@ class AwnServices(private val application: Application) {
         )
 
     /**
-     * Opens the Quran screen at the first ayah of [request] with the words hidden and recite mode
-     * on. The Hifz tab calls it after the practice is stored in `hifz.controller`.
+     * Opens the Quran screen at the first ayah of [request] in recite mode. A new lesson shows the
+     * ayah, and the user hides the words with the Hifz bar's eye button; revision parts start with
+     * the words hidden. The choice lasts for this practice only and leaves the saved recite setting
+     * alone. The Hifz tab calls it after the practice is stored in `hifz.controller`.
      */
     fun startHifzPractice(request: PracticeRequest) {
-        recite.setHideWords(true)
         openQuranAt(request.firstAyah)
-        recite.reciteFrom(request.firstAyah)
+        recite.practiceFrom(request.firstAyah, hideWords = request.kind != PartKind.NewLesson)
     }
 
     /**

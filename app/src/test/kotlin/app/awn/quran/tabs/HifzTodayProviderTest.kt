@@ -35,7 +35,7 @@ class HifzTodayProviderTest {
         TodayNavigation(
             openLearnTab = { events += "learn" },
             openHifzTab = { events += "hifz tab" },
-            reviseAt = { _: AyahRef -> events += "revise" },
+            reviseAt = { _: AyahRef, _: Int? -> events += "revise" },
         )
 
     private fun itemFor(line: HifzTodayLine?): TodayItem? {
