@@ -159,7 +159,22 @@ class RecitationSession(
 
     // Set by [pauseForListening]: the next [start] continues the recitation instead of clearing it.
     @Volatile private var continuesOnNextStart = false
+
+    // Set by [continueAt]: where the next continuing [start] picks up, instead of at the first
+    // word not yet recited. Cleared by that start.
+    @Volatile private var continuationAyah: AyahRef? = null
     private var revealedIndexes: MutableSet<Int> = mutableSetOf()
+
+    // Words the user only heard played. They count as passed, are drawn without a mark, and are
+    // never reported as left out.
+    private var listenedIndexes: MutableSet<Int> = mutableSetOf()
+
+    // The word where the last continuing start picked up, and whether the user's first confirmed
+    // word after it is still to come. Both only matter for [withoutListenedWords].
+    private var continuationIndex: Int? = null
+    private var continuationExpectedAyah: AyahRef? = null
+    private var awaitingFirstConfirmedWord = false
+    private var userSkippedContinuationAyah = false
 
     /** Why the last run ended in [RecitationPhase.Error], for diagnostics and tests. */
     @Volatile
@@ -210,7 +225,11 @@ class RecitationSession(
             hifzAyahsReported = mutableSetOf()
             nothingToAppend = false
             continuesOnNextStart = false
+            continuationAyah = null
             revealedIndexes = mutableSetOf()
+            listenedIndexes = mutableSetOf()
+            continuationIndex = null
+            continuationExpectedAyah = null
             mutableGradePrompt.value = null
             mutableWords.value = displayWords
             mutableStatus.value = null
@@ -249,11 +268,15 @@ class RecitationSession(
                 if (mutablePhase.value != RecitationPhase.Listening) return@launch
                 synchronized(lock) {
                     if (continuesOnNextStart) {
-                        tracker?.continueFrom(firstOpenIndex() ?: wordKeys.size)
-                    } else if (hasResults()) {
-                        clearResults()
+                        continueRecitation()
+                    } else {
+                        if (hasResults()) clearResults()
+                        // A fresh run has nothing it only listened to.
+                        listenedIndexes.clear()
+                        continuationIndex = null
                     }
                     continuesOnNextStart = false
+                    continuationAyah = null
                 }
                 val input = inputFactory()
                 activeInput = input
@@ -274,6 +297,41 @@ class RecitationSession(
     fun pauseForListening() {
         continuesOnNextStart = true
         stop()
+    }
+
+    /**
+     * Makes the next continuing [start] (after [pauseForListening]) pick up at the first word of
+     * [ayah] instead of at the first word not yet recited. The words in between were listened to,
+     * not recited, so they are never reported as left out.
+     */
+    fun continueAt(ayah: AyahRef) {
+        continuationAyah = ayah
+    }
+
+    /**
+     * Tells the tracker where to go on. Must be called with [lock] held.
+     *
+     * With [continuationAyah] set, every word before that ayah that is not recited yet counts as
+     * listened to. Without it the recitation goes on at the first word not yet recited.
+     */
+    private fun continueRecitation() {
+        val ayah = continuationAyah
+        val pickUpIndex =
+            if (ayah == null) {
+                firstOpenIndex() ?: wordKeys.size
+            } else {
+                wordKeys.indices.firstOrNull { ayahOf(it) >= ayah } ?: wordKeys.size
+            }
+        tracker?.continueFrom(pickUpIndex)
+        if (ayah == null) return
+        for (index in 0 until pickUpIndex) {
+            if (!isResolved(index)) listenedIndexes += index
+        }
+        continuationIndex = pickUpIndex
+        continuationExpectedAyah = wordKeys.getOrNull(pickUpIndex)?.let { AyahRef(it.surah, it.ayah) }
+        awaitingFirstConfirmedWord = true
+        userSkippedContinuationAyah = false
+        publishStates()
     }
 
     /** Closes the audio input; what was heard so far stays on screen. */
@@ -309,6 +367,9 @@ class RecitationSession(
         trackerStates.fill(WordState.Neutral)
         skippedIndexes.clear()
         revealedIndexes.clear()
+        listenedIndexes.clear()
+        continuationIndex = null
+        continuationExpectedAyah = null
         mutableGradePrompt.value = null
         durationFindings = emptyMap()
         substitutionFindings = emptyMap()
@@ -457,7 +518,7 @@ class RecitationSession(
         val notifications =
             synchronized(lock) {
                 val activeTracker = tracker ?: return
-                val events = activeTracker.onPhonemes(phonemes)
+                val events = withoutListenedWords(activeTracker.onPhonemes(phonemes))
                 events.forEach(::apply)
                 publishStates()
                 collectEventNotifications(events)
@@ -511,6 +572,53 @@ class RecitationSession(
         publishStates()
     }
 
+    /**
+     * Drops what the tracker reports about words the user only listened to. Those are the words
+     * before the point where reciting went on, and, when the user's first confirmed word after it
+     * lies in a later ayah, the words of the ayah reciting was expected to go on with: the user
+     * may start with the ayah after it. The tracker reports the skipped words in the same batch as
+     * that first confirmed word. Must be called with [lock] held.
+     */
+    private fun withoutListenedWords(events: List<TrackerEvent>): List<TrackerEvent> {
+        val pickUpIndex = continuationIndex ?: return events
+        val expectedAyah = continuationExpectedAyah
+        if (awaitingFirstConfirmedWord && expectedAyah != null) {
+            val firstConfirmed =
+                events.filterIsInstance<TrackerEvent.WordChanged>().firstOrNull {
+                    it.state == WordState.Confirmed
+                }
+            if (firstConfirmed != null) {
+                awaitingFirstConfirmedWord = false
+                userSkippedContinuationAyah = ayahOf(firstConfirmed.index) > expectedAyah
+            }
+        }
+        return events.filter { event ->
+            val index = wordIndexOfFinding(event)
+            if (index == null || !isListenedWord(index, pickUpIndex, expectedAyah)) {
+                true
+            } else {
+                listenedIndexes += index
+                false
+            }
+        }
+    }
+
+    // Must be called with [lock] held.
+    private fun isListenedWord(index: Int, pickUpIndex: Int, expectedAyah: AyahRef?): Boolean =
+        index < pickUpIndex || (userSkippedContinuationAyah && ayahOf(index) == expectedAyah)
+
+    // The word a finding is about, or null for events that do not flag a word. A confirmed word is
+    // never a finding.
+    private fun wordIndexOfFinding(event: TrackerEvent): Int? =
+        when (event) {
+            is TrackerEvent.WordChanged -> event.index.takeIf { event.state != WordState.Confirmed }
+            is TrackerEvent.Skipped -> event.index
+            is TrackerEvent.Duration -> event.check.wordIndex
+            is TrackerEvent.Substitution -> event.wordIndex
+            is TrackerEvent.Inserted,
+            is TrackerEvent.Anchored -> null
+        }
+
     private fun apply(event: TrackerEvent) {
         when (event) {
             is TrackerEvent.WordChanged -> trackerStates[event.index] = event.state
@@ -546,8 +654,8 @@ class RecitationSession(
         val hifz = mutableHifz.value
         val states = LinkedHashMap<WordKey, WordState>()
         wordKeys.forEachIndexed { index, key ->
-            states[key] =
-                HifzRules.displayState(trackerStates[index], hifz, index in revealedIndexes)
+            val isShown = index in revealedIndexes || index in listenedIndexes
+            states[key] = HifzRules.displayState(trackerStates[index], hifz, isShown)
         }
         mutableWordStates.value = states
         val current = firstOpenIndex()?.let { wordKeys[it] }
@@ -573,7 +681,8 @@ class RecitationSession(
         trackerStates[index] == WordState.Confirmed ||
             trackerStates[index] == WordState.Wrong ||
             index in skippedIndexes ||
-            index in revealedIndexes
+            index in revealedIndexes ||
+            index in listenedIndexes
 
     /**
      * Finds the ayahs that just became complete. An ayah is green when every word is confirmed. In

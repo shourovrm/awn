@@ -166,3 +166,4 @@
 2026-10-22 | Downloads space used leaves out bundled items | a fresh install showed 12 MB the user never downloaded
 2026-10-22 | Word course reachable: tab opens on first-open choices then the hub; Today row and word card use ports | the course screens had no route (learn.md)
 2026-10-22 | Robolectric tests in :app name a plain Application (RobolectricApplicationGateTest) | AwnApplication.onCreate WorkManager check threw after tests, failing a later test at random on CI
+2026-10-22 | Listening while reciting plays on until the microphone; the ayahs only heard are never marked left out | user rule for the combined bar (recite.md)
