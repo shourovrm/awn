@@ -60,9 +60,12 @@ object WordScore {
 
     /** The cost of hearing [heard] where [expected] was due: 0 when equal, 1 when unrelated. */
     fun substitutionCost(heard: String, expected: String): Double {
-        if (heard == expected) return 0.0
-        if (heard.length != 1 || expected.length != 1) return UNRELATED_COST
-        return nearSoundCosts[setOf(heard[0], expected[0])] ?: UNRELATED_COST
+        val isSingleCharacterEach = heard.length == 1 && expected.length == 1
+        return when {
+            heard == expected -> 0.0
+            isSingleCharacterEach -> nearSoundCosts[setOf(heard[0], expected[0])] ?: UNRELATED_COST
+            else -> UNRELATED_COST
+        }
     }
 
     /** The cost of a word: the sum of its differences divided by [referenceLength]. */
