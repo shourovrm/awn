@@ -101,7 +101,7 @@ def plan_downloads(repository_files):
 
 
 def main():
-    fonts_root = os.path.join(quran_com.DATA_ROOT, "fonts")
+    fonts_root = quran_com.FONTS_ROOT
     plan = plan_downloads(list_repository_files())
     manifest = {"source": f"https://github.com/{REPOSITORY}/tree/{COMMIT}/{FONT_ROOT}", "scripts": {}}
     with concurrent.futures.ThreadPoolExecutor(max_workers=PARALLEL_DOWNLOADS) as pool:

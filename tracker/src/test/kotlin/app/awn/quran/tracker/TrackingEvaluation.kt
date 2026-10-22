@@ -36,6 +36,23 @@ class TrackingResult(
     val durations: List<DurationCheck>
         get() = events.map { it.event }.filterIsInstance<TrackerEvent.Duration>().map { it.check }
 
+    /** Confirmed words with a substituted sound: the session shows them as mispronounced. */
+    val mispronouncedBySoundIndices: Set<Int>
+        get() =
+            substitutions
+                .map { it.wordIndex }
+                .filter { finalStates[it] == WordState.Confirmed }
+                .toSet()
+
+    /** Confirmed words with a vowel held too short or too long. */
+    val mispronouncedByDurationIndices: Set<Int>
+        get() =
+            durations
+                .filter { it.verdict != DurationVerdict.Ok }
+                .map { it.wordIndex }
+                .filter { finalStates[it] == WordState.Confirmed }
+                .toSet()
+
     val insertions: List<TimedEvent>
         get() = events.filter { it.event is TrackerEvent.Inserted }
 

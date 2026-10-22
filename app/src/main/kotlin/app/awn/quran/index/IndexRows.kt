@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import app.awn.quran.R
@@ -36,7 +37,9 @@ import java.text.NumberFormat
 private const val MAKKAH = "makkah"
 private const val DETAIL_SEPARATOR = " · "
 
-private val ArabicNameStyle = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl)
+// A getter: the Arabic font family exists only once the theme has installed it.
+private val ArabicNameStyle: TextStyle
+    get() = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl)
 
 /** Draws one row of the index list; [lastSurah] is marked in the Surahs list. */
 @Composable

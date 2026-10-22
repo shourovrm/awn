@@ -1,11 +1,6 @@
 package app.awn.quran
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,9 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,9 +39,12 @@ import app.awn.quran.feature.read.ReadField
 import app.awn.quran.feature.read.quran.QuranScreen
 import app.awn.quran.feature.read.quran.QuranScreenSlots
 import app.awn.quran.feature.read.quran.QuranTarget
+import app.awn.quran.feature.recite.MicrophoneAccess
+import app.awn.quran.feature.recite.rememberMicrophonePermission
 import app.awn.quran.feature.recite.rememberReciteCurrentAyah
 import app.awn.quran.feature.recite.rememberReciteCurrentWord
 import app.awn.quran.feature.recite.rememberReciteFocusedWord
+import app.awn.quran.feature.recite.rememberReciteHintLetters
 import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.BookmarksScreen
@@ -62,7 +58,6 @@ import app.awn.quran.language.FirstLaunchStep
 import app.awn.quran.language.firstLaunchStep
 import app.awn.quran.notice.NoticeScreen
 import app.awn.quran.onboarding.LanguageScreen
-import app.awn.quran.player.PlaybackState
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
 import app.awn.quran.services.AwnServices
@@ -118,7 +113,6 @@ fun AwnApp(
             FirstLaunchStep.AcceptNotice ->
                 NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
             FirstLaunchStep.Done -> {
-                AskForNotificationsWhenAudioStarts(services)
                 AwnNavigation(
                     services,
                     colourSettings,
@@ -142,29 +136,6 @@ private fun LanguageRoute(onContinue: (AppLanguage) -> Unit) {
         onSelect = { selectedTag = it.languageTag },
         onContinue = { onContinue(selected) },
     )
-}
-
-/**
- * Asks for the notification permission the first time audio plays, because the player's media
- * notification needs it on Android 13 and later. Playing works without it.
- */
-@Composable
-private fun AskForNotificationsWhenAudioStarts(services: AwnServices) {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
-    LaunchedEffect(Unit) {
-        // Before Android 13 the permission does not exist and notifications are always allowed.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@LaunchedEffect
-        // Downloads show a progress notification too, so ask when either starts.
-        services.audioPlayer.state.first {
-            it is PlaybackState.Playing || it is PlaybackState.Downloading
-        }
-        val permission = Manifest.permission.POST_NOTIFICATIONS
-        val isGranted =
-            ContextCompat.checkSelfPermission(context, permission) ==
-                PackageManager.PERMISSION_GRANTED
-        if (!isGranted) launcher.launch(permission)
-    }
 }
 
 /**
@@ -227,26 +198,6 @@ private fun AwnNavigation(
     }
 }
 
-/** Moves between the tabs and the screens that open above them. */
-private class TabNavigation(
-    private val navController: NavController,
-    val selectTab: (AwnTab) -> Unit,
-) {
-    fun openQuran(page: Int?, ayah: AyahRef?) = navController.openQuran(page, ayah)
-
-    fun openSettings() = navController.navigate(Routes.SETTINGS)
-
-    fun openSearch() = navController.navigate(Routes.SEARCH)
-
-    fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)
-
-    /** Closes everything above the tabs and shows [tab]. */
-    fun showTab(tab: AwnTab) {
-        selectTab(tab)
-        navController.popBackStack(Routes.TABS, inclusive = false)
-    }
-}
-
 @Composable
 private fun TabsRoute(
     services: AwnServices,
@@ -260,9 +211,9 @@ private fun TabsRoute(
         TodayNavigation(
             openLearnTab = { navigation.selectTab(AwnTab.Learn) },
             openHifzTab = { navigation.selectTab(AwnTab.Hifz) },
-            reviseAt = { ayah ->
+            reviseAt = { ayah, limit ->
                 navigation.openQuran(page = null, ayah = ayah)
-                services.recite.reviseAt(ayah)
+                services.recite.reviseAt(ayah, limit = limit)
             },
         )
     TabsHost(
@@ -286,6 +237,9 @@ private fun TabsRoute(
         learnTab = {
             LearnScreen(
                 quranText = services.coreData.quranText,
+                translations = services.coreData.translations,
+                packs = services.coreData.packs,
+                downloads = services.coreData.packDownloads,
                 onReviseAt = { ayah ->
                     navigation.openQuran(page = null, ayah = ayah)
                     services.recite.reviseAt(ayah)
@@ -313,7 +267,7 @@ private fun optionalIntArgument(name: String) =
  * Opens the Quran screen directly above the tabs and drops the screens between, so Back always
  * returns to the tab.
  */
-private fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
+internal fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
     navigate(Routes.quran(page, ayah)) {
         popUpTo(Routes.TABS) { inclusive = false }
         launchSingleTop = true
@@ -338,12 +292,18 @@ private fun NavGraphBuilder.indexDestinations(
         val viewModel: SearchViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
         val typedQuery by viewModel.typedQuery.collectAsStateWithLifecycle()
+        val coroutineScope = rememberCoroutineScope()
         SearchScreen(
             typedQuery = typedQuery,
             state = state,
             onQueryChange = viewModel::setQuery,
             onBack = { navController.popBackStack() },
             onOpen = navController::openQuran,
+            onOpenSurah = { surah ->
+                coroutineScope.launch {
+                    navController.openQuran(page = viewModel.firstPageOf(surah), ayah = null)
+                }
+            },
         )
     }
 }
@@ -360,19 +320,13 @@ private fun QuranRoute(
     entry: NavBackStackEntry,
     navigation: TabNavigation,
 ) {
-    val arguments = entry.arguments
-    val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val surah = arguments?.getInt(Routes.SURAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val ayah = arguments?.getInt(Routes.AYAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
-    val target =
-        when {
-            surah != null && ayah != null -> QuranTarget.Ayah(AyahRef(surah, ayah))
-            page != null -> QuranTarget.Page(page)
-            else -> null
-        }
+    val target = quranTargetOf(entry)
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
     val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()
+    val isAudioActive = rememberIsAudioActive(services)
+    val busyState = rememberBusyState(services)
+    val toggleBusy = rememberBusyToggle(services, busyState)
     // The audio bar maps a page to its ayahs in the print the reader shows.
     LaunchedEffect(services) {
         services.readDependencies.settingsStore.settings
@@ -382,7 +336,7 @@ private fun QuranRoute(
     }
     val slots =
         QuranScreenSlots(
-            audioBar = { currentPage -> AudioBar(services.audio, currentPage) },
+            audioBar = { currentPage -> QuranAudioBar(services, currentPage) },
             playPanel = { selected, currentPage ->
                 PlayRangePanel(services.audio, selected, currentPage)
             },
@@ -391,10 +345,11 @@ private fun QuranRoute(
             onReciteFrom = services.recite::reciteFrom,
             reciteWordStates = { rememberReciteWordStates(services.recite) },
             reciteWordProblems = { rememberReciteWordProblems(services.recite) },
+            reciteHintLetters = { rememberReciteHintLetters(services.recite) },
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navigation.showTab(AwnTab.Quran) },
-            onBackWhenIdle = { navigation.showTab(AwnTab.Quran) },
+            onBackWhenIdle = navigation::returnToTabs,
             onOpenSearch = navigation::openSearch,
             onOpenLearn = { navigation.showTab(AwnTab.Learn) },
             onOpenSettings = navigation::openSettings,
@@ -405,6 +360,9 @@ private fun QuranRoute(
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
             hifzBar = hifzBarSlot(services, isPracticing = practice != null),
+            isAudioActive = isAudioActive,
+            busyState = { busyState },
+            onToggleBusy = toggleBusy,
         )
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {
@@ -412,4 +370,43 @@ private fun QuranRoute(
             StarterOfferOverlay(services)
         }
     }
+}
+
+/** Where the Quran screen opens: an ayah, a page, or null for the last place read. */
+private fun quranTargetOf(entry: NavBackStackEntry): QuranTarget? {
+    val arguments = entry.arguments
+    val page = arguments?.getInt(Routes.PAGE_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val surah = arguments?.getInt(Routes.SURAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    val ayah = arguments?.getInt(Routes.AYAH_ARGUMENT)?.takeIf { it != Routes.NOT_GIVEN }
+    return when {
+        surah != null && ayah != null -> QuranTarget.Ayah(AyahRef(surah, ayah))
+        page != null -> QuranTarget.Page(page)
+        else -> null
+    }
+}
+
+/**
+ * The audio bar with its microphone: the recite bar takes the bar's place, and the Quran screen
+ * enters recite mode by itself when the controller turns active.
+ */
+@Composable
+private fun QuranAudioBar(services: AwnServices, currentPage: Int) {
+    val microphone = rememberMicrophonePermission()
+    AudioBar(
+        services.audio,
+        currentPage,
+        onRecite = { ayah ->
+            // Shown while reciting too: the microphone then goes back to the recitation where the
+            // listening left off instead of loading it again.
+            if (!services.recite.isActive.value) {
+                services.recite.reciteFrom(ayah)
+            } else {
+                when (microphone.access) {
+                    MicrophoneAccess.Granted -> services.recite.resumeReciting()
+                    MicrophoneAccess.CanAsk -> microphone.requestAccess()
+                    else -> microphone.openAppSettings()
+                }
+            }
+        },
+    )
 }

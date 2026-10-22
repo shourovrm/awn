@@ -5,13 +5,13 @@
   <string name="audio_play">Play</string>
   <string name="audio_pause">Pause</string>
   <string name="audio_stop">Stop</string>
+  <string name="audio_recite">Recite</string>
   <string name="audio_previous">Previous ayah</string>
   <string name="audio_next">Next ayah</string>
   <string name="audio_repeat">Repeat</string>
   <string name="audio_repeat_value">Repeat, %1$s</string>
-  <string name="audio_speed">Speed</string>
-  <string name="audio_speed_value">Speed, %1$s</string>
   <string name="audio_expand">Play options</string>
+  <string name="audio_choose_reciter">Choose reciter</string>
   <string name="audio_cancel">Cancel</string>
   <string name="audio_downloading">Downloading</string>
   <string name="audio_start_from">Start from</string>
@@ -32,6 +32,7 @@
   <string name="reciter_current">Selected</string>
   <string name="audio_settings_title">Audio</string>
   <string name="audio_setting_reciter">Reciter</string>
+  <string name="audio_setting_word_audio">Word audio</string>
   <string name="audio_setting_download_amount">Download by</string>
   <string name="audio_setting_wifi">Wi-Fi only</string>
   <string name="audio_setting_downloads">Downloads</string>

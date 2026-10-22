@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -215,7 +216,7 @@ private fun Modifier.plainCellTaps(
     onTap: () -> Unit,
     onAyahLongPress: () -> Unit,
 ): Modifier {
-    val isFlagged = state == WordState.Wrong || state == WordState.Tentative
+    val isFlagged = state == WordState.Wrong || state == WordState.Mispronounced
     return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else this
 }
 
@@ -242,6 +243,21 @@ private fun ArabicWord(
 ) {
     val field = Awn.field
     val ink = wordColor(state, field)
+    val hintLetter = environment.hintLetters[word.key].takeIf { state == WordState.Hidden }
+    // The word is still laid out, invisible, so its block keeps its size under the letter.
+    Box(contentAlignment = Alignment.Center) {
+        ArabicWordInk(word, style, ink, environment)
+        if (hintLetter != null) Text(text = hintLetter, style = style, color = field.content)
+    }
+}
+
+@Composable
+private fun ArabicWordInk(
+    word: AyahWord,
+    style: TextStyle,
+    ink: Color,
+    environment: ListPageEnvironment,
+) {
     val glyphs = word.glyphs
     if (glyphs == null) {
         Text(text = word.arabic, style = style, color = ink)
@@ -254,7 +270,7 @@ private fun ArabicWord(
             fontSize = style.fontSize,
             lineHeight = style.lineHeight,
             color = ink,
-            isNight = !field.isLight,
+            isNight = !Awn.field.isLight,
         )
     }
 }

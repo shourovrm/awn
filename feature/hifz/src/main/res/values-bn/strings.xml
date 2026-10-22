@@ -88,6 +88,10 @@
   <string name="mark_to_page">শেষ পৃষ্ঠা</string>
   <string name="mark_state">অবস্থা</string>
   <string name="mark_save">সংরক্ষণ</string>
+  <string name="known_up_to_title">এ পর্যন্ত মুখস্থ</string>
+  <string name="known_up_to_ayah">আয়াত</string>
+  <string name="ayah_stepper_decrease">আগের আয়াত</string>
+  <string name="ayah_stepper_increase">পরের আয়াত</string>
   <string name="juz_label">পারা %d</string>
   <string name="stepper_decrease">আগের পৃষ্ঠা</string>
   <string name="stepper_increase">পরের পৃষ্ঠা</string>
@@ -111,12 +115,15 @@
   <string name="bar_repeat_value">×%d</string>
   <string name="bar_recite">তিলাওয়াত</string>
   <string name="bar_stop_reciting">তিলাওয়াত থামান</string>
-  <string name="bar_finish">শেষ করুন</string>
+  <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">বন্ধ করুন</string>
+  <string name="bar_finish_part">অংশ শেষ করুন</string>
   <string name="bar_getting_ready">প্রস্তুত হচ্ছে</string>
   <string name="bar_ayah">আয়াত %d</string>
   <string name="bar_page">পৃষ্ঠা %d</string>
   <string name="bar_pick_grade">একটি গ্রেড বাছুন</string>
+  <string name="bar_previous_ayahs">আগের আয়াত</string>
+  <string name="bar_next_ayahs">পরের আয়াত</string>
   <string name="grade_easy">সহজ</string>
   <string name="grade_good">ভালো</string>
   <string name="grade_hard">কঠিন</string>

@@ -2,6 +2,7 @@ package app.awn.quran.feature.read.quran
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.InstalledPack
+import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.core.data.downloads.PackTransfer
@@ -34,7 +35,7 @@ internal sealed interface WordAudioState {
     /** The reciter's timings are on the phone: the card shows the play button. */
     data object Ready : WordAudioState
 
-    /** The reciter has no word timings, or none for this ayah: the card shows nothing. */
+    /** No reciter has word timings, or none for this ayah: the card shows nothing. */
     data object Unavailable : WordAudioState
 
     /** The reciter has word timings that are not ready yet. */
@@ -42,38 +43,53 @@ internal sealed interface WordAudioState {
 }
 
 /**
- * Single words of the selected reciter. They exist only when the reciter has word timings, which
- * are a small download (about 3 MB) per reciter: the "Word audio" pack. This class finds out
- * whether the timings are on the phone, and starts and watches their download.
+ * Single words of the word reciter (see [wordReciterFor]). Word timings are a small download (about
+ * 3 MB) per reciter: the "Word audio" pack. This class finds out whether the timings are on the
+ * phone, and starts and watches their download.
  */
 internal class WordAudio(private val dependencies: ReadDependencies, scope: CoroutineScope) {
     private val catalogue = CatalogueModel(dependencies.packs, dependencies.downloads, scope)
 
     /**
-     * The catalogue row of the selected reciter's word-timing pack, emitted again after each change
-     * of reciter, install or transfer. It is null for a reciter with no word timings (Basfar's
-     * timings mark ayahs only), and nothing is emitted before the catalogue is read.
+     * The catalogue row of the word reciter's timing pack, emitted again after each change of
+     * reciter, install or transfer. It is null when no reciter has word timings, and nothing is
+     * emitted before the catalogue is read.
      */
     val selectedPack: Flow<CatalogueRow?> =
-        combine(dependencies.selectedReciterId.distinctUntilChanged(), catalogue.state) {
-                reciterId,
-                state ->
-                reciterId to state
+        combine(
+                dependencies.selectedReciterId,
+                dependencies.wordReciterId,
+                catalogue.state,
+            ) { listeningReciterId, chosenReciterId, state ->
+                Triple(listeningReciterId, chosenReciterId, state)
             }
-            .filter { (_, state) -> state.isLoaded }
-            .map { (reciterId, state) -> timingPackIdOf(reciterId)?.let { state.rowFor(it) } }
+            .filter { (_, _, state) -> state.isLoaded }
+            .map { (listeningReciterId, _, state) ->
+                val wordReciter = wordReciterOf(listeningReciterId)
+                wordReciter?.timingPack?.let { state.rowFor(it) }
+            }
             .distinctUntilChanged()
 
-    private suspend fun timingPackIdOf(reciterId: String): String? =
-        dependencies.reciters
-            ?.reciters()
-            ?.firstOrNull { it.id == reciterId }
-            ?.takeIf { it.wordByWord }
-            ?.timingPack
+    /**
+     * The reciter whose voice plays single words: the one chosen in Settings > Audio when it has
+     * word timings, else the listening reciter, else the first reciter with timings. Null when no
+     * reciter has word timings.
+     */
+    private suspend fun wordReciterOf(listeningReciterId: String): Reciter? {
+        val reciters = dependencies.reciters?.reciters().orEmpty()
+        val wordReciters = reciters.filter { it.wordByWord && it.timingPack != null }
+        val chosenId =
+            wordReciterFor(
+                chosen = dependencies.wordReciterId.first(),
+                listening = listeningReciterId,
+                withTimings = wordReciters.map { it.id },
+            )
+        return wordReciters.firstOrNull { it.id == chosenId }
+    }
 
     /** The state of [ayah]'s words for the card; [packRow] is the latest of [selectedPack]. */
     suspend fun stateOf(ayah: AyahRef, packRow: CatalogueRow?): WordAudioState {
-        val reciterId = dependencies.selectedReciterId.first()
+        val reciterId = wordReciterIdNow()
         val hasTimings =
             dependencies.reciters?.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
         return when {
@@ -99,10 +115,32 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
     fun download(packId: String) = catalogue.install(packId)
 
     suspend fun play(ayah: AyahRef, position: Int) {
-        val reciterId = dependencies.selectedReciterId.first()
+        val reciterId = wordReciterIdNow()
         dependencies.audioPlayer.playWord(reciterId, ayah, position)
     }
+
+    // With no word reciter at all the listening id is kept, so the lookup finds no timings.
+    private suspend fun wordReciterIdNow(): String {
+        val selectedReciterId = dependencies.selectedReciterId.first()
+        return wordReciterOf(selectedReciterId)?.id ?: selectedReciterId
+    }
 }
+
+/**
+ * The reciter whose voice plays a single word: [chosen] (Settings > Audio) when it has word
+ * timings, else the [listening] reciter when it has them, else the first of [withTimings], else
+ * null.
+ */
+fun wordReciterFor(
+    chosen: String?,
+    listening: String,
+    withTimings: List<String>,
+): String? =
+    when {
+        chosen != null && chosen in withTimings -> chosen
+        listening in withTimings -> listening
+        else -> withTimings.firstOrNull()
+    }
 
 /**
  * True when the timing pack of [row] should download without being asked: it is not on the phone,

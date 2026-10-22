@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -29,6 +30,7 @@ import app.awn.quran.feature.read.ReadIconButton
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.TextLayer
 import app.awn.quran.feature.read.settings.TextScale
+import app.awn.quran.feature.read.settings.wordByWordMenuLabel
 
 private const val PERCENT = 100
 private val SIZE_LABEL_WIDTH = AwnSpacing.giant * 2
@@ -64,7 +66,12 @@ internal fun LayerTicks(state: QuranUiState, actions: TopBarActions) {
         onToggle = { actions.onToggleLayer(TextLayer.Transliteration) },
     )
     LayerTick(
-        label = stringResource(layerLabel(TextLayer.WordByWord)),
+        label =
+            wordByWordMenuLabel(
+                baseLabel = stringResource(layerLabel(TextLayer.WordByWord)),
+                languageCode = state.wordLanguageShown,
+                appLocale = LocalConfiguration.current.locales[0],
+            ),
         isTicked = settings.showWordByWord,
         onToggle = { actions.onToggleLayer(TextLayer.WordByWord) },
     )

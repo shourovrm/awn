@@ -13,6 +13,15 @@
     <item quantity="one">%d আয়াত পুনরাবৃত্তি</item>
     <item quantity="other">%d আয়াত পুনরাবৃত্তি</item>
   </plurals>
+  <string name="today_course_start">আজ শুরু করুন · %d মিনিট</string>
+  <plurals name="today_course_new">
+    <item quantity="one">%dটি নতুন শব্দ</item>
+    <item quantity="other">%dটি নতুন শব্দ</item>
+  </plurals>
+  <plurals name="today_course_reviews">
+    <item quantity="one">%dটি ঝালাই</item>
+    <item quantity="other">%dটি ঝালাই</item>
+  </plurals>
   <string name="index_show">দেখান</string>
   <string name="index_tab_pages">পৃষ্ঠা</string>
   <string name="index_bookmarks">বুকমার্ক</string>
@@ -128,7 +137,7 @@
   <string name="summary_word_by_word">শব্দে শব্দে</string>
   <string name="summary_arabic_only">শুধু আরবি</string>
   <string name="summary_words_hidden">শব্দ লুকানো</string>
-  <string name="summary_hint_on">ইঙ্গিত চালু</string>
+  <string name="summary_hint_on">আগে প্রথম অক্ষর</string>
   <string name="summary_memorised_after">মুখস্থ ধরা হবে %1$s</string>
   <string name="summary_space_used">%1$s ব্যবহৃত</string>
   <string name="summary_appearance">দিনে %1$s · রাতে %2$s · %3$s</string>

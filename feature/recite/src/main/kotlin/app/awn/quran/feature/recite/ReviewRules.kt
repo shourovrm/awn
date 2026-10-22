@@ -15,9 +15,6 @@ sealed interface ReviewFinding {
 
     data object WrongWord : ReviewFinding
 
-    /** Heard, but not clearly enough to call it right; the tracker marked it tentative. */
-    data object NotClear : ReviewFinding
-
     data class Pronunciation(val substitution: TrackerEvent.Substitution) : ReviewFinding
 
     data class Duration(val check: DurationCheck) : ReviewFinding
@@ -28,8 +25,8 @@ data class WordReview(val key: WordKey, val findings: List<ReviewFinding>)
 
 /**
  * The words the review card steps through, in reading order: every word of [reviews], plus every
- * word in [problems] that has no review entry (an unclear word has no sound finding), given the
- * finding that matches its problem. Each flagged word the page marks can then open the card.
+ * word in [problems] that has no review entry (a word with no sound finding), given the finding
+ * that matches its problem. Each flagged word the page marks can then open the card.
  */
 fun flaggedReviews(
     reviews: Map<AyahRef, List<WordReview>>,
@@ -40,15 +37,18 @@ fun flaggedReviews(
     val unreviewedWords =
         problems
             .filterKeys { it !in reviewedKeys }
-            .map { (key, problem) -> WordReview(key, listOf(findingOf(problem))) }
+            .mapNotNull { (key, problem) ->
+                findingOf(problem)?.let { finding -> WordReview(key, listOf(finding)) }
+            }
     return (reviewedWords + unreviewedWords).sortedBy { it.key }
 }
 
-private fun findingOf(problem: WordProblem): ReviewFinding =
+// A mispronounced word always has a sound or duration finding in its own review entry.
+private fun findingOf(problem: WordProblem): ReviewFinding? =
     when (problem) {
         WordProblem.Skipped -> ReviewFinding.Skipped
         WordProblem.DifferentWord -> ReviewFinding.WrongWord
-        WordProblem.NotClear -> ReviewFinding.NotClear
+        WordProblem.Mispronounced -> null
     }
 
 internal object ReviewRules {
@@ -87,12 +87,15 @@ internal object ReviewRules {
 
     /**
      * Names the problem of each word that is drawn red or yellow: skipped, a different word (wrong)
-     * or not clear (tentative). A word that is confirmed, hidden or untouched is left out.
+     * or mispronounced (confirmed, but with a substituted sound or a vowel held too short or too
+     * long). A word that is clean, still being recited, hidden or untouched is left out.
      */
     fun problemsByWord(
         keys: List<WordKey>,
         trackerStates: List<WordState>,
         skippedIndexes: Set<Int>,
+        substitutions: Map<WordKey, List<TrackerEvent.Substitution>>,
+        durations: Map<WordKey, List<DurationCheck>>,
     ): Map<WordKey, WordProblem> {
         val problems = LinkedHashMap<WordKey, WordProblem>()
         keys.forEachIndexed { index, key ->
@@ -100,13 +103,22 @@ internal object ReviewRules {
                 when {
                     index in skippedIndexes -> WordProblem.Skipped
                     trackerStates[index] == WordState.Wrong -> WordProblem.DifferentWord
-                    trackerStates[index] == WordState.Tentative -> WordProblem.NotClear
+                    trackerStates[index] == WordState.Confirmed &&
+                        hasSoundFinding(substitutions[key], durations[key]) ->
+                        WordProblem.Mispronounced
                     else -> null
                 }
             if (problem != null) problems[key] = problem
         }
         return problems
     }
+
+    private fun hasSoundFinding(
+        substitutions: List<TrackerEvent.Substitution>?,
+        durations: List<DurationCheck>?,
+    ): Boolean =
+        !substitutions.isNullOrEmpty() ||
+            durations.orEmpty().any { it.verdict != DurationVerdict.Ok }
 }
 
 /** Plays the reciter's recording of one flagged word so the user can hear it said correctly. */

@@ -17,6 +17,10 @@
   <string name="action_smaller">ছোট</string>
   <string name="action_larger">বড়</string>
   <string name="action_move_up">উপরে নিন</string>
+  <string name="busy_pause">থামান</string>
+  <string name="busy_play">চালান</string>
+  <string name="busy_stop_microphone">মাইক্রোফোন বন্ধ করুন</string>
+  <string name="busy_start_microphone">মাইক্রোফোন চালু করুন</string>
   <string name="action_go_to_playing_ayah">চলমান আয়াতে যান</string>
   <string name="size_percent">%1$d%%</string>
 
@@ -42,10 +46,14 @@
   <string name="ayah_select_action">আয়াত বাছুন</string>
   <string name="word_meaning_action">অর্থ দেখান</string>
   <string name="word_problem_skipped">বাদ পড়েছে</string>
-  <string name="word_problem_not_clear">স্পষ্ট নয়</string>
+  <string name="word_problem_mispronounced">ভুল উচ্চারণ</string>
   <string name="word_problem_different">অন্য শব্দ</string>
-  <string name="word_play">এই শব্দটি শুনুন</string>
-  <string name="word_stop">শব্দটি থামান</string>
+  <string name="word_save">শব্দ সংরক্ষণ</string>
+  <string name="word_saved">সংরক্ষিত</string>
+  <string name="word_play">শুনুন</string>
+  <string name="word_stop">থামান</string>
+  <string name="word_removed">আমার শব্দ থেকে সরানো হয়েছে</string>
+  <string name="word_undo">ফিরিয়ে আনুন</string>
   <string name="word_audio_download">শব্দের অডিও ডাউনলোড করুন</string>
 
   <string name="panel_translation">অনুবাদ</string>

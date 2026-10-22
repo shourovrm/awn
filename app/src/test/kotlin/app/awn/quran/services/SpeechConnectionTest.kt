@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
 
 /** The app's side of the calls to the speech process, against a stand-in service binder. */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], application = Application::class)
 class SpeechConnectionTest {
     private val application: Application = ApplicationProvider.getApplicationContext()
     private val paths = ModelPaths(File("model.onnx"), File("tokens.txt"), File("reference.json"))

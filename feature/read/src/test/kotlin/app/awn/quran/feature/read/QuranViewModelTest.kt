@@ -2,6 +2,7 @@ package app.awn.quran.feature.read
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.read.page.AyahRange
+import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.BARS_REVEAL_MS
 import app.awn.quran.feature.read.quran.Popup
 import app.awn.quran.feature.read.quran.QuranTarget
@@ -14,6 +15,8 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -91,6 +94,38 @@ class QuranViewModelTest {
         assertTrue(state.areBarsVisible)
         advanceTimeBy(BARS_REVEAL_MS + 1)
         assertFalse(viewModel.state.value.areBarsVisible)
+    }
+
+    @Test
+    fun openingAtAnAyahInReciteModeLeavesNothingSelectedSoTheFirstTapShowsTheBars() = runTest {
+        viewModel.enterReciteMode()
+
+        viewModel.open(QuranTarget.Ayah(AyahRef(1, 3)))
+        advanceTimeBy(BARS_REVEAL_MS + 1)
+        assertFalse(viewModel.state.value.areBarsVisible)
+        viewModel.onPageTapped()
+
+        assertEquals(null, viewModel.state.value.selection)
+        assertTrue(viewModel.state.value.areBarsVisible)
+    }
+
+    @Test
+    fun startingToReciteClosesTheWordCardSoAHiddenWordIsNotShownInFull() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        val word =
+            AyahWord(
+                key = ReadFixture.word(1, 1, 1, ReadFixture.FIRST_WORD).key,
+                arabic = ReadFixture.FIRST_WORD,
+                meaning = "In (the) name",
+                transliteration = "bismi",
+            )
+        viewModel.onWordTapped(AyahRef(1, 1), word)
+        assertNotNull(viewModel.state.value.wordPopup)
+
+        viewModel.enterReciteMode()
+
+        assertNull(viewModel.state.value.wordPopup)
+        assertFalse(viewModel.state.value.isPopupWordPlaying)
     }
 
     @Test

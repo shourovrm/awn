@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -44,7 +43,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 private const val PHONE_WIDTH = 360
-private const val TOUCH_TARGET = 48
+private const val COMPACT_BUTTON = 44
 private const val FRAME = "audio-bar-frame"
 private const val DURATION_MS = 4_000L
 
@@ -114,13 +113,11 @@ class ReciteBarAudioTest {
         show()
 
         composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).assert(hasDescription("Listen"))
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).assertDoesNotExist()
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_PROGRESS_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsEnabled()
     }
 
     @Test
-    fun listenPlaysTheCurrentAyahOnce() {
+    fun listenPlaysFromTheCurrentAyahWithNoEnd() {
         prepare()
         show()
 
@@ -129,21 +126,35 @@ class ReciteBarAudioTest {
 
         val call = fixture.audioPlayer.playCalls.single()
         assertEquals(ayah, call.second)
-        assertEquals(ayah, call.third)
+        assertEquals(null, call.third)
     }
 
     @Test
-    fun whileTheAyahPlaysListenIsPauseAndStopAndTheProgressLineShow() {
+    fun whileTheAyahPlaysListenIsPause() {
         prepare()
         show()
 
         setPlayback(playing())
 
         composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).assert(hasDescription("Pause audio"))
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).assertIsEnabled()
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_PROGRESS_TAG).assertExists()
-        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsNotEnabled()
-        composeRule.onNodeWithTag(RECITE_BAR_HINT_TAG).assertDoesNotExist()
+        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsEnabled()
+    }
+
+    @Test
+    fun theMicrophoneWhileAudioPlaysStopsTheAudioAndStartsReciting() {
+        prepare(microphone = { OpenMicrophone() })
+        show()
+        composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) { fixture.audioPlayer.playCalls.isNotEmpty() }
+        val stopsBefore = fixture.audioPlayer.stopCalls
+
+        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            fixture.controller.session.phase.value == RecitationPhase.Listening
+        }
+        assertEquals(stopsBefore + 1, fixture.audioPlayer.stopCalls)
+        assertEquals(PlaybackState.Idle, fixture.audioPlayer.currentState.value)
     }
 
     @Test
@@ -162,23 +173,6 @@ class ReciteBarAudioTest {
     }
 
     @Test
-    fun stopReturnsTheBarToNormalAndDoesNotRestartTheMicrophone() {
-        prepare()
-        show()
-        setPlayback(playing())
-        val stopsBefore = fixture.audioPlayer.stopCalls
-
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).performClick()
-        composeRule.waitForIdle()
-
-        assertEquals(stopsBefore + 1, fixture.audioPlayer.stopCalls)
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).assertDoesNotExist()
-        composeRule.onNodeWithTag(RECITE_BAR_LISTEN_TAG).assert(hasDescription("Listen"))
-        composeRule.onNodeWithTag(RECITE_BAR_MIC_TAG).assertIsEnabled()
-        assertTrue(fixture.controller.session.phase.value != RecitationPhase.Listening)
-    }
-
-    @Test
     fun audioThatEndsByItselfDoesNotRestartTheMicrophone() {
         prepare()
         show()
@@ -186,7 +180,6 @@ class ReciteBarAudioTest {
 
         setPlayback(PlaybackState.Idle)
 
-        composeRule.onNodeWithTag(RECITE_BAR_AUDIO_STOP_TAG).assertDoesNotExist()
         assertTrue(fixture.controller.session.phase.value != RecitationPhase.Listening)
     }
 
@@ -240,13 +233,12 @@ class ReciteBarAudioTest {
                 RECITE_BAR_LISTEN_TAG,
                 RECITE_BAR_MIC_TAG,
             )
-        val stopIsShown = fixture.audioPlayer.currentState.value != PlaybackState.Idle
-        for (tag in if (stopIsShown) tags + RECITE_BAR_AUDIO_STOP_TAG else tags) {
+        for (tag in tags) {
             val bounds = composeRule.onNodeWithTag(tag).getUnclippedBoundsInRoot()
             assertTrue("$situation $tag left ${bounds.left}", bounds.left >= 0.dp)
             assertTrue("$situation $tag right ${bounds.right}", bounds.right <= PHONE_WIDTH.dp)
-            assertTrue("$situation $tag width", bounds.width >= TOUCH_TARGET.dp)
-            assertTrue("$situation $tag height", bounds.height >= TOUCH_TARGET.dp)
+            assertTrue("$situation $tag width", bounds.width >= COMPACT_BUTTON.dp)
+            assertTrue("$situation $tag height", bounds.height >= COMPACT_BUTTON.dp)
         }
     }
 }

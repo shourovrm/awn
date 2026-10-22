@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.AwnSettingsPage
+import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.components.SettingsStepperRow
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.hifz.R
@@ -41,6 +42,7 @@ internal fun MarkKnownScreen(
     table: PageTable,
     surahName: (Int) -> String,
     onSave: (IntRange, PageStatus) -> Unit,
+    onOpenKnownUpTo: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -61,6 +63,10 @@ internal fun MarkKnownScreen(
             Modifier.fillMaxWidth().padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
+            SettingsLinkRow(
+                label = stringResource(R.string.known_up_to_title),
+                onClick = onOpenKnownUpTo,
+            )
             AwnChoiceRow(
                 label = stringResource(R.string.mark_by),
                 options = MarkBy.entries,

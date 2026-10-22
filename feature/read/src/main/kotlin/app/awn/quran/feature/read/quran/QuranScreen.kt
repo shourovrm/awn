@@ -16,7 +16,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,8 +70,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWords
+import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.ui.components.UndoMessage
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -107,6 +111,8 @@ data class QuranScreenSlots(
      * opens a card with it.
      */
     val reciteWordProblems: @Composable () -> Map<WordKey, WordProblem> = { emptyMap() },
+    /** Optional. The first letter of the next word, shown inside the word's hidden block. */
+    val reciteHintLetters: @Composable () -> Map<WordKey, String> = { emptyMap() },
     val isNight: Boolean,
     val onToggleNight: () -> Unit,
     val onOpenIndex: () -> Unit,
@@ -151,6 +157,22 @@ data class QuranScreenSlots(
      * and following, is started by the host through [isReciteActive].
      */
     val hifzBar: (@Composable (onExit: () -> Unit) -> Unit)? = null,
+    /**
+     * Optional. True while audio plays or is paused. A tap on the page then shrinks the audio bar
+     * to a corner button instead of hiding it.
+     */
+    val isAudioActive: Boolean = false,
+    /**
+     * Optional. What the corner button of a busy bar shows: whether audio plays or is paused, or
+     * whether the microphone is on or off. Null draws no button.
+     */
+    val busyState: @Composable () -> BusyState? = { null },
+    /**
+     * Optional. Runs when the corner button is tapped: pauses or resumes the audio, stops or starts
+     * the microphone. It calls its argument to open the full bar when it cannot act by itself, for
+     * example when the microphone permission is missing.
+     */
+    val onToggleBusy: (openFullBar: () -> Unit) -> Unit = {},
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -334,7 +356,9 @@ private fun QuranContent(
         val reciteWordBounds = trackedWordBounds
         val barShiftTarget =
             when {
+                // The stack leaves the composition under the panel, so its height is stale there.
                 state.isReciting &&
+                    !state.isPanelOpen &&
                     isMushaf &&
                     reciteWordBounds != null &&
                     barClearance.reciteBarPx > 0 ->
@@ -369,6 +393,7 @@ private fun QuranContent(
                 ReciteMarks(
                     states = slots.reciteWordStates(),
                     problems = slots.reciteWordProblems(),
+                    hintLetters = slots.reciteHintLetters(),
                     // A mistake under review keeps its ayah in view in the lists.
                     currentAyah =
                         focusedWord?.let { AyahRef(it.surah, it.ayah) }
@@ -432,8 +457,20 @@ private fun QuranContent(
                     Modifier.onSizeChanged { size -> barClearance.onTopBarMeasured(size.height) },
             )
         }
+        val bottomBar =
+            bottomBarDisplay(
+                isBusy = state.isReciting || slots.isAudioActive,
+                areBarsVisible = state.areBarsVisible,
+            )
         if (!state.isPanelOpen) {
-            Column(Modifier.align(Alignment.BottomCenter)) {
+            BottomBarStack(
+                onHeightChanged = { height ->
+                    // Outside reciting the stack also holds prompts and the back-to-playing
+                    // button, which must not leave a permanent gap; the audio bar is measured alone.
+                    if (state.isReciting) barClearance.onBottomBarMeasured(height, true)
+                },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
                 // An enabled translation is missing: say so and offer it, instead of showing none.
                 if (!isMushaf) {
                     MissingTranslationPrompt(dependencies, state.settings.translations)
@@ -452,21 +489,55 @@ private fun QuranContent(
                     }
                 }
                 val hifzBar = slots.hifzBar
-                val measureBar = Modifier.onSizeChanged { size ->
-                    barClearance.onBottomBarMeasured(size.height, state.isReciting)
-                }
-                if (state.isReciting && hifzBar != null) {
-                    Box(measureBar) { hifzBar(viewModel::exitReciteMode) }
-                } else if (state.isReciting) {
-                    Box(measureBar) { slots.reciteBar(viewModel::exitReciteMode) }
+                if (state.isReciting) {
+                    // While audio plays the reader gets the playing bar (previous, next, reciter,
+                    // repeat) with the microphone at its end. The recite bar stays composed under
+                    // it, because leaving the composition would end the recitation.
+                    val isPlayingBarShown =
+                        slots.isAudioActive && bottomBar == BottomBarDisplay.Full
+                    TuckedAwayWhenHidden(
+                        isShown = bottomBar == BottomBarDisplay.Full && !slots.isAudioActive,
+                    ) {
+                        if (hifzBar != null) {
+                            hifzBar(viewModel::exitReciteMode)
+                        } else {
+                            slots.reciteBar(viewModel::exitReciteMode)
+                        }
+                    }
+                    if (isPlayingBarShown) slots.audioBar(state.currentPage)
                 } else {
                     AnimatedVisibility(
-                        visible = state.areBarsVisible,
+                        visible = bottomBar != BottomBarDisplay.None,
                         enter = fadeIn(tween(BAR_FADE_MS)),
                         exit = fadeOut(tween(BAR_FADE_MS)),
                     ) {
-                        Box(measureBar) { slots.audioBar(state.currentPage) }
+                        TuckedAwayWhenHidden(isShown = bottomBar == BottomBarDisplay.Full) {
+                            Box(
+                                Modifier.onSizeChanged { size ->
+                                    barClearance.onBottomBarMeasured(size.height, false)
+                                },
+                            ) {
+                                slots.audioBar(state.currentPage)
+                            }
+                        }
                     }
+                }
+            }
+        }
+        if (!state.isPanelOpen && bottomBar == BottomBarDisplay.Mini) {
+            val busyState = slots.busyState()
+            if (busyState != null) {
+                // The tooltip wrapper of the button ignores a placement given to it, so the
+                // placement is on this box; the button once landed at the top of the page.
+                Box(
+                    Modifier.align(Alignment.BottomStart)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(AwnSpacing.screenMargin),
+                ) {
+                    BusyBarButton(
+                        state = busyState,
+                        onToggle = { slots.onToggleBusy(viewModel::showBars) },
+                    )
                 }
             }
         }
@@ -526,6 +597,8 @@ private fun QuranContent(
             )
         }
 
+        // Held only until the message goes away: it is what Undo puts back.
+        var removedWord by remember { mutableStateOf<RemovedMyWord?>(null) }
         state.wordPopup?.let { popup ->
             WordPopupCard(
                 popup = popup,
@@ -536,8 +609,36 @@ private fun QuranContent(
                 onPlay = viewModel::playPopupWord,
                 onStop = viewModel::stopPopupWord,
                 onDownloadAudio = viewModel::downloadWordAudio,
+                myWordState = myWordStateOf(dependencies.myWords, popup.word.key),
+                onAddToMyWords = {
+                    dependencies.myWords?.let { myWords ->
+                        scope.launch { myWords.add(popup.word.key) }
+                    }
+                },
+                onRemoveFromMyWords = {
+                    dependencies.myWords?.let { myWords ->
+                        scope.launch { removedWord = myWords.remove(popup.word.key) }
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
             )
+        }
+        removedWord?.let { removed ->
+            key(removed) {
+                UndoMessage(
+                    message = stringResource(R.string.word_removed),
+                    actionLabel = stringResource(R.string.word_undo),
+                    onAction = {
+                        scope.launch { removed.restore() }
+                        removedWord = null
+                    },
+                    onTimeout = { removedWord = null },
+                    modifier =
+                        Modifier.align(Alignment.BottomCenter)
+                            .padding(horizontal = AwnSpacing.screenMargin)
+                            .padding(bottom = AwnSpacing.dockHeight + AwnSpacing.medium),
+                )
+            }
         }
 
         if (state.printOffer.isOpen) {
@@ -759,6 +860,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteMarks.states,
+                                    hintLetters = reciteMarks.hintLetters,
                                     focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,
@@ -801,6 +903,7 @@ private fun QuranPager(
                         arabicFamily = arabicLookup.family,
                         fontCache = fontCache,
                         wordStates = reciteMarks.states,
+                        hintLetters = reciteMarks.hintLetters,
                         isReciting = state.isReciting,
                         recitedAyah = reciteMarks.currentAyah,
                         focusedWord = focusedWord,
@@ -850,8 +953,17 @@ private class ReciteMarks(
     val problems: Map<WordKey, WordProblem>,
     /** The ayah of the word the reciter is on. */
     val currentAyah: AyahRef?,
+    val hintLetters: Map<WordKey, String> = emptyMap(),
 ) {
     companion object {
         val None = ReciteMarks(emptyMap(), emptyMap(), currentAyah = null)
     }
+}
+
+/** The word card's state for [key]: null without a word list, else whether the word is in it. */
+@Composable
+private fun myWordStateOf(myWords: MyWords?, key: WordKey): MyWordState? {
+    if (myWords == null) return null
+    val isAdded by remember(myWords, key) { myWords.isAdded(key) }.collectAsState(initial = false)
+    return if (isAdded) MyWordState.Added else MyWordState.NotAdded
 }

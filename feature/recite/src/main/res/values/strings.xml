@@ -2,29 +2,29 @@
 <resources>
   <string name="recite_start">Start</string>
   <string name="recite_stop">Stop</string>
-  <string name="recite_hint">Hint</string>
   <string name="recite_speed">Speed</string>
   <string name="recite_slower">Slower</string>
   <string name="recite_faster">Faster</string>
 
-  <string name="recite_status_ready">Ready</string>
-  <string name="recite_status_listening">Listening</string>
-  <string name="recite_status_stopped">Stopped</string>
   <string name="recite_status_no_text">Can\'t load these ayahs</string>
   <string name="recite_status_no_microphone">Can\'t use the microphone. Close other recording apps.</string>
-  <string name="recite_status_skipped">Skipped: ayah %1$d, word %2$d</string>
+  <string name="recite_status_skipped">Missed: ayah %1$d, word %2$d</string>
   <string name="recite_status_inserted">Extra words: ayah %1$d, after word %2$d</string>
   <string name="recite_status_anchored">Found your place: ayah %1$d, word %2$d</string>
 
 
   <string name="recite_review">Review</string>
-  <string name="recite_verdict_skipped">Skipped</string>
-  <string name="recite_listen">Listen</string>
+  <string name="recite_verdict_skipped">Missed</string>
+  <string name="recite_word_play">Play this word</string>
+  <string name="recite_word_stop">Stop this word</string>
+  <string name="recite_word_save">Add to my words</string>
+  <string name="recite_word_saved">Added to my words</string>
+  <string name="recite_word_removed">Removed from my words</string>
+  <string name="recite_word_undo">Undo</string>
   <string name="recite_previous">Previous</string>
   <string name="recite_next">Next</string>
   <string name="recite_finding_madd">Madd</string>
-  <string name="recite_finding_wrong_word">Wrong word</string>
-  <string name="recite_finding_not_clear">Not clear</string>
+  <string name="recite_finding_wrong_word">Another word</string>
   <string name="recite_duration">%1$.2f s of %2$.2f s</string>
   <string name="recite_hint_say_again">Say the word again</string>
   <string name="recite_hint_hold_longer">Hold it a little longer</string>
@@ -41,7 +41,7 @@
 
   <string name="recite_settings_title">Recite and memorise</string>
   <string name="recite_settings_hide_words">Hide words</string>
-  <string name="recite_settings_hint">Hint button</string>
+  <string name="recite_settings_hint">Show first letter first</string>
 
   <string name="recite_close">Close</string>
   <string name="recite_hide_words">Hide words</string>
@@ -49,12 +49,12 @@
   <string name="recite_speed_normal">Normal</string>
   <string name="recite_speed_fastest">Fastest</string>
   <string name="recite_status_preparing">Preparing…</string>
-  <string name="recite_status_hint">Next word starts with %1$s</string>
   <string name="recite_status_allow_microphone">Allow the microphone to recite</string>
   <string name="recite_status_microphone_off">Microphone is off for Awn</string>
   <string name="recite_review_empty">Nothing to review</string>
   <string name="recite_review_note">Experimental feedback on likely mistakes</string>
   <string name="recite_reveal_word">Show next word</string>
+  <string name="recite_reveal_letter">Show first letter</string>
   <string name="recite_reveal_ayah">Show ayah</string>
   <string name="recite_grade_easy">Easy</string>
   <string name="recite_grade_good">Good</string>
@@ -65,11 +65,7 @@
     <item quantity="one">%1$d ayah left to revise</item>
     <item quantity="other">%1$d ayahs left to revise</item>
   </plurals>
-  <string name="recite_listen_ayah">Listen to this ayah</string>
+  <string name="recite_listen_ayah">Listen</string>
   <string name="recite_listen_pause">Pause audio</string>
   <string name="recite_listen_resume">Resume audio</string>
-  <string name="recite_listen_stop">Stop audio</string>
-  <string name="recite_status_audio_loading">Getting the audio…</string>
-  <string name="recite_status_audio_playing">Playing ayah %1$d</string>
-  <string name="recite_status_audio_paused">Audio paused</string>
 </resources>

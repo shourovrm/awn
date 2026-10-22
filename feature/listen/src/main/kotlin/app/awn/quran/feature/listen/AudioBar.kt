@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -26,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,11 +43,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.player.PlayStep
+import kotlinx.coroutines.launch
 
 /** What the buttons of the audio bar do. */
 @Suppress("LongParameterList") // One lambda per button.
@@ -63,15 +69,19 @@ internal class AudioBarActions(
     val onDismissStartChoices: () -> Unit,
     val onDownload: () -> Unit,
     val onStream: () -> Unit,
+    /** Starts reciting; null when the screen has no recite mode, which hides the microphone. */
+    val onRecite: (() -> Unit)? = null,
 )
 
 /**
  * The audio bar for the `audioBar` slot of the Quran screen: idle (play, reciter, expand), playing
- * (stop, previous, pause, next, repeat, speed) or downloading (cancel, progress, size).
+ * (stop, previous, pause, next, repeat, reciter) or downloading (cancel, progress, size). The idle
+ * and playing bars end with a microphone that calls [onRecite] with the ayah to recite from: the
+ * one playing, else the first of [page].
  *
- * [page] is the page on screen; Play starts at its first ayah. The reciter name opens the reciter
- * sheet. Expand calls [onExpand]; when that is null the bar opens the play options itself in a
- * bottom sheet.
+ * [page] is the page on screen; Play starts at its first ayah. The reciter name and the reciter
+ * button open the reciter sheet. Expand calls [onExpand]; when that is null the bar opens the play
+ * options itself in a bottom sheet.
  */
 @Composable
 fun AudioBar(
@@ -79,6 +89,7 @@ fun AudioBar(
     page: Int,
     modifier: Modifier = Modifier,
     onExpand: (() -> Unit)? = null,
+    onRecite: ((AyahRef) -> Unit)? = null,
 ) {
     val viewModel: AudioBarViewModel = viewModel(factory = feature.viewModelFactory)
     LaunchedEffect(Unit) { viewModel.warmUp() }
@@ -90,9 +101,12 @@ fun AudioBar(
     var optionsSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     val currentOnExpand by rememberUpdatedState(onExpand)
+    val currentOnRecite by rememberUpdatedState(onRecite)
+    val scope = rememberCoroutineScope()
+    val canRecite = onRecite != null
     // One instance for the life of the view model, so a state change does not rebuild every button.
     val actions =
-        remember(viewModel) {
+        remember(viewModel, canRecite) {
             AudioBarActions(
                 onPlay = viewModel::play,
                 onPause = viewModel::pause,
@@ -108,6 +122,18 @@ fun AudioBar(
                 onDismissStartChoices = viewModel::dismissStartChoices,
                 onDownload = { viewModel.answerDownload(true) },
                 onStream = { viewModel.answerDownload(false) },
+                onRecite =
+                    if (canRecite) {
+                        {
+                            scope.launch {
+                                viewModel.reciteStart()?.let { ayah ->
+                                    currentOnRecite?.invoke(ayah)
+                                }
+                            }
+                        }
+                    } else {
+                        null
+                    },
             )
         }
     AudioBarContent(state, startChoices, actions, modifier)
@@ -177,11 +203,49 @@ private fun RowScope.IdleBar(
                 .padding(horizontal = AwnSpacing.small),
     )
     IconAction(
+        R.drawable.ic_listen_reciter,
+        stringResource(R.string.audio_choose_reciter),
+        actions.onOpenReciters,
+        tint = tint,
+    )
+    IconAction(
         R.drawable.ic_listen_expand,
         stringResource(R.string.audio_expand),
         actions.onExpand,
         tint = tint,
     )
+    ReciteAction(actions)
+}
+
+/**
+ * The microphone at the end of the bar; absent when the screen gives no recite action. The touch
+ * target is a full cell like the other buttons; the ochre square inside is smaller, so it sits in
+ * the bar with the same room around it as the other buttons' icons and is not cut by its edge.
+ */
+@Composable
+private fun ReciteAction(actions: AudioBarActions, modifier: Modifier = Modifier) {
+    val onRecite = actions.onRecite ?: return
+    Box(
+        modifier =
+            modifier
+                .defaultMinSize(AwnSpacing.touchTarget, AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onRecite),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier =
+                Modifier.size(AwnSpacing.touchTarget - AwnSpacing.small)
+                    .clip(AwnShapes.control)
+                    .background(AwnColors.ochre),
+            contentAlignment = Alignment.Center,
+        ) {
+            ListenIcon(
+                icon = R.drawable.ic_listen_mic,
+                description = stringResource(R.string.audio_recite),
+                tint = AwnColors.ink,
+            )
+        }
+    }
 }
 
 @Composable
@@ -305,6 +369,22 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         evenly,
         tint,
     )
+    RepeatAndReciterButtons(state, actions)
+    state.step?.let { StepCounter(it, tint) }
+    ReciteAction(actions, evenly)
+}
+
+/**
+ * The buttons that change how and with whom the audio plays, as evenly weighted as the rest. The
+ * speed button is not here: seven buttons fill 360 dp, and the speed is in the play options.
+ */
+@Composable
+private fun RowScope.RepeatAndReciterButtons(
+    state: AudioBarState.Active,
+    actions: AudioBarActions,
+) {
+    val tint = Awn.field.onBar
+    val evenly = Modifier.weight(1f)
     ValueButton(
         icon = R.drawable.ic_listen_repeat,
         plainDescription = stringResource(R.string.audio_repeat),
@@ -313,15 +393,13 @@ private fun RowScope.ActiveBar(state: AudioBarState.Active, actions: AudioBarAct
         onClick = actions.onRepeat,
         modifier = evenly,
     )
-    ValueButton(
-        icon = R.drawable.ic_listen_speed,
-        plainDescription = stringResource(R.string.audio_speed),
-        valueText = state.speed?.let { formatSpeed(it) },
-        valueDescriptionRes = R.string.audio_speed_value,
-        onClick = actions.onSpeed,
-        modifier = evenly,
+    IconAction(
+        R.drawable.ic_listen_reciter,
+        stringResource(R.string.audio_choose_reciter),
+        actions.onOpenReciters,
+        evenly,
+        tint,
     )
-    state.step?.let { StepCounter(it, tint) }
 }
 
 /** "3/7": where the cumulative drill is, read aloud as "Step 3 of 7". */

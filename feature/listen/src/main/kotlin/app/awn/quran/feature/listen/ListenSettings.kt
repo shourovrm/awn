@@ -27,6 +27,9 @@ class ListenSettings(private val dataStore: DataStore<Preferences>) {
     val selectedReciterId: Flow<String> =
         dataStore.data.map { it[SELECTED_RECITER_KEY] ?: DEFAULT_RECITER_ID }
 
+    /** The reciter chosen for single words on the word card; null until the user chooses. */
+    val wordReciterId: Flow<String?> = dataStore.data.map { it[WORD_RECITER_KEY] }
+
     /** How much audio is fetched when the audio at the start of a range is missing. */
     val downloadAmount: Flow<DownloadAmount> =
         dataStore.data.map { preferences ->
@@ -72,6 +75,10 @@ class ListenSettings(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[SELECTED_RECITER_KEY] = reciterId }
     }
 
+    suspend fun setWordReciter(reciterId: String) {
+        dataStore.edit { it[WORD_RECITER_KEY] = reciterId }
+    }
+
     suspend fun setDownloadAmount(amount: DownloadAmount) {
         dataStore.edit { it[DOWNLOAD_AMOUNT_KEY] = amount.name }
     }
@@ -81,6 +88,7 @@ class ListenSettings(private val dataStore: DataStore<Preferences>) {
 
         private val WIFI_ONLY_KEY = booleanPreferencesKey("wifi_only")
         private val SELECTED_RECITER_KEY = stringPreferencesKey("selected_reciter_id")
+        private val WORD_RECITER_KEY = stringPreferencesKey("word_reciter_id")
         private val DOWNLOAD_AMOUNT_KEY = stringPreferencesKey("download_amount")
         private val REPEAT_EACH_KEY = intPreferencesKey("repeat_each_ayah")
         private val REPEAT_RANGE_KEY = intPreferencesKey("repeat_range")

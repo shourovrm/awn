@@ -37,7 +37,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 private const val PHONE_WIDTH_DP = 360
-private const val TOUCH_TARGET_DP = 48
+private const val TOUCH_TARGET_DP = 44
 private const val LARGEST_FONT_SCALE = 2f
 private const val FRAME_TAG = "bar-frame"
 
@@ -95,7 +95,6 @@ class ReciteBarLayoutTest {
                 RECITE_BAR_CLOSE_TAG,
                 RECITE_BAR_SPEED_TAG,
                 RECITE_BAR_HIDE_TAG,
-                RECITE_BAR_HINT_TAG,
                 RECITE_BAR_LISTEN_TAG,
                 RECITE_BAR_MIC_TAG,
                 RECITE_BAR_REVEAL_WORD_TAG,

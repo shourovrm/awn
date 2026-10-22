@@ -9,9 +9,9 @@ internal object HifzRules {
 
     /**
      * Returns how a word is drawn. Outside hifz that is what the tracker reports. In hifz a word
-     * stays hidden until it is confirmed or the user revealed it; a wrong word is shown too,
-     * because the user needs to see what they missed. A tentative word is still hidden since it may
-     * turn out wrong.
+     * stays hidden until it is confirmed or the user revealed it; a mispronounced or wrong word is
+     * shown too, because the user needs to see what they missed. A tentative word is still hidden
+     * since it may turn out wrong.
      */
     fun displayState(
         trackerState: WordState,
@@ -21,6 +21,7 @@ internal object HifzRules {
         if (!hifzEnabled) return trackerState
         return when (trackerState) {
             WordState.Confirmed,
+            WordState.Mispronounced,
             WordState.Wrong -> trackerState
             WordState.Neutral,
             WordState.Tentative,

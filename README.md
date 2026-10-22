@@ -78,6 +78,12 @@ English: This app is an artificial-intelligence model that may make mistakes. It
 - QuranicAudio and EveryAyah, reciter audio (used from milestone 3).
 - Google, Jetpack Compose, Room, DataStore, Navigation and Media3 (Apache-2.0).
 
+### Learn
+
+- Qari Noor Muhammad, *Al-Qaida An-Nooraniyya* (Noorani Qaida): the Reading units follow its order and practice, used for non-commercial purposes: https://archive.org/details/noorani-qaida_202011
+- Islamic Home Schooling Academy of New Zealand, Noorani Qaida video lessons 1 to 17, letter and practice audio, under CC BY: https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng
+- Wikibooks, *Arabic* (CC BY-SA 4.0), and William Wright, *A Grammar of the Arabic Language* (public domain): lesson facts and examples. Details in `content/lessons/README.md`.
+
 ### Translations
 
 - Saheeh International, English, via Quran.com / Quran Foundation API: https://quran.com

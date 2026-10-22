@@ -5,7 +5,7 @@ Prints one PASS or FAIL line per check and exits with status 1 when any check fa
 The packs to expect come from tools/pack_catalogue.py and tools/reciter_catalogue.py, so a pack added to
 a catalogue is checked without editing this file.
 
-AWN_BASELINE_DATA names an older data folder (default: awn-data next to awn-data-v2). When its manifests
+AWN_BASELINE_DATA names an older data folder (default: awn-data/published, the files the app pins). When its manifests
 exist, every pack that is in both folders must have the same SHA-256 and size, so a rebuild cannot change
 a published pack unnoticed.
 
@@ -21,12 +21,14 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 import pack_catalogue
 import quran_com
 import reciter_catalogue
 
 DATA_ROOT = quran_com.DATA_ROOT
-BASELINE_ROOT = os.environ.get("AWN_BASELINE_DATA", "/home/rms/repos/awn/awn-data")
+BASELINE_ROOT = os.environ.get("AWN_BASELINE_DATA", str(data_paths.published()))
+FONTS_ROOT = quran_com.FONTS_ROOT
 ISO_DOCUMENTED_TERMS = {"yes", "no", "unclear"}
 DOCUMENTED_PUBLISHABLE = {"yes", "conditional", "no"}
 CHAPTERS, AYAHS, PAGES = quran_com.CHAPTER_COUNT, quran_com.AYAH_COUNT, quran_com.PAGE_COUNT
@@ -150,7 +152,7 @@ def verify_quran_text():
 
 
 def verify_fonts():
-    fonts_root = os.path.join(DATA_ROOT, "fonts")
+    fonts_root = FONTS_ROOT
     manifest_path = os.path.join(fonts_root, "fonts.json")
     if not os.path.exists(manifest_path):
         check(False, "fonts/fonts.json exists")
@@ -352,7 +354,7 @@ def verify_manifests():
         for entry in entries:
             if entry["file"] is None:
                 continue
-            path_on_disk = os.path.join(DATA_ROOT, entry["file"])
+            path_on_disk = str(data_paths.pack_file_path(entry["file"]))
             ok = (os.path.exists(path_on_disk) and os.path.getsize(path_on_disk) == entry["bytes"]
                   and sha256_of_file(path_on_disk) == entry["sha256"])
             check(ok, f"{name}: {entry['file']} matches its sha256 and byte count")
@@ -383,7 +385,7 @@ def verify_manifests():
                   "every ayah pack states rights holder, terms_known and publishable")
             check(all(entry.get("language") and entry.get("language_name") for entry in entries if entry["id"] != "bn_quantum"),
                   "every pack has language and language_name")
-            check(all(entry.get("terms_file") and os.path.exists(os.path.join(DATA_ROOT, entry["terms_file"]))
+            check(all(entry.get("terms_file") and os.path.exists(data_paths.pack_file_path(entry["terms_file"]))
                       for entry in entries if entry["id"] != "bn_quantum"), "every pack has its TERMS.md")
         if name == "reciters.json":
             flags = {e["id"]: e["word_by_word"] for e in entries}

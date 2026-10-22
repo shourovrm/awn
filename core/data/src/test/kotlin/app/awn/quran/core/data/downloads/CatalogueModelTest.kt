@@ -141,6 +141,31 @@ class CatalogueModelTest {
             assertEquals(5_000_000L, model.state.value.spaceUsedBytes)
         }
 
+    /**
+     * The Downloads page said "12 MB used" on a fresh install: the space counted the items that
+     * ship with the app. The user reads the figure as what their own downloads take.
+     */
+    @Test
+    fun spaceUsedLeavesOutItemsThatShipWithTheApp() =
+        runTest(UnconfinedTestDispatcher()) {
+            packs.catalogueItems +=
+                item("bundled", installed = true, bundled = true, installedBytes = 12_000_000L)
+            packs.catalogueItems += item("chosen", installed = true, installedBytes = 2_000_000L)
+            val model = model()
+
+            assertEquals(2_000_000L, model.state.value.spaceUsedBytes)
+        }
+
+    @Test
+    fun spaceUsedIsZeroWhenOnlyItemsThatShipWithTheAppAreOnThePhone() =
+        runTest(UnconfinedTestDispatcher()) {
+            packs.catalogueItems +=
+                item("bundled", installed = true, bundled = true, installedBytes = 12_000_000L)
+            val model = model()
+
+            assertEquals(0L, model.state.value.spaceUsedBytes)
+        }
+
     @Test
     fun rowsInAGroupKeepTheManifestOrder() =
         runTest(UnconfinedTestDispatcher()) {

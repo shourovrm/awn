@@ -8,8 +8,9 @@ import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -23,7 +24,10 @@ class FirstLaunchTest {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    @After fun cancelScope() = scope.cancel()
+    // Joined, not just cancelled: DataStore keeps writing until its job completes, and a failure
+    // after
+    // the test ends is reported against whichever test runs next in the same JVM.
+    @After fun cancelScope() = runBlocking { scope.coroutineContext.job.cancelAndJoin() }
 
     private fun newDataStore(): DataStore<Preferences> =
         PreferenceDataStoreFactory.create(

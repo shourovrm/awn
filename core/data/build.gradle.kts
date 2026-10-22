@@ -22,7 +22,7 @@ androidComponents {
 
 // The only content that ships inside the APK: the Quran text and layout, the Hafs font and the
 // three manifests. Everything else (translations, word packs, audio, the speech model) is
-// downloaded after install. A machine with a built `awn-data/` supplies the files directly; every
+// downloaded after install. A machine with `awn-data/published/` supplies the files directly; every
 // other machine downloads them from the data release. Either way the files must match
 // bundled-packs.sha256, so a rebuilt pack needs its pin updated in the same commit.
 fun packNamesIn(checksumFileName: String): List<String> =
@@ -31,18 +31,20 @@ fun packNamesIn(checksumFileName: String): List<String> =
         .filter { it.isNotBlank() }
         .map { it.trim().split(Regex("\\s+"))[1] }
 
-// A git worktree has no awn-data of its own unless one is built there. Its own folder is searched
-// first, then AWN_DATA_DIR (the main checkout's), so a pack rebuilt in the worktree wins.
+// The pinned files sit in awn-data/published/. A git worktree has no awn-data of its own unless one
+// is
+// built there, so its own folder is searched first, then AWN_DATA_DIR (the main checkout's awn-data
+// folder, the one that holds published/ and fonts/), so a pack rebuilt in the worktree wins.
 val localDataDirectories =
     listOfNotNull(
-            rootProject.file("awn-data"),
-            providers.environmentVariable("AWN_DATA_DIR").map { file(it) }.orNull,
+            rootProject.file("awn-data/published"),
+            providers.environmentVariable("AWN_DATA_DIR").map { file("$it/published") }.orNull,
         )
         .filter { it.isDirectory }
 
 fun registerCopyLocalPacks(taskName: String, names: List<String>, target: Directory) =
     tasks.register<Copy>(taskName) {
-        description = "Copies $names from awn-data/ when that folder exists."
+        description = "Copies $names from awn-data/published/ when that folder exists."
         group = "awn"
         val hasLocalData = localDataDirectories.isNotEmpty()
         onlyIf { hasLocalData }

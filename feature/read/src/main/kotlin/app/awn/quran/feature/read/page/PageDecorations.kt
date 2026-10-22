@@ -16,6 +16,7 @@ import app.awn.quran.tracker.WordState
  * @property bookmarkedAyahs ayahs that carry a bookmark; empty when "Highlight bookmarks" is off.
  * @property focusedWord the flagged word the reciter is reviewing; drawn with a ring and a fill.
  * @property wordStates the recitation state of each word; Hidden words are drawn as a block.
+ * @property hintLetter the first letter shown inside the block of a Hidden word, or null.
  */
 @Immutable
 data class PageDecorations(
@@ -25,6 +26,7 @@ data class PageDecorations(
     val bookmarkedAyahs: Set<AyahRef> = emptySet(),
     val focusedWord: WordKey? = null,
     val wordStates: (WordKey) -> WordState = { WordState.Neutral },
+    val hintLetter: (WordKey) -> String? = { null },
 )
 
 /** Where the ring of the word being reviewed goes, or null when it is not on this page. */

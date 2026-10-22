@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,11 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
@@ -51,6 +50,9 @@ const val REVIEW_CARD_TAG = "review-card"
 /** The test tag of the Listen action in the review card. */
 const val REVIEW_LISTEN_TAG = "review-listen"
 
+/** The test tag of the save-word (bookmark) button in the review card. */
+const val REVIEW_SAVE_TAG = "review-save"
+
 /** The test tag of the close button of the review card. */
 const val REVIEW_CLOSE_TAG = "review-close"
 
@@ -58,11 +60,20 @@ const val REVIEW_CLOSE_TAG = "review-close"
 private const val CARD_MAX_HEIGHT_SHARE = 0.4f
 
 /**
+ * The smallest the flagged word shrinks to, as a share of the Quran font size. Below this share the
+ * word is too small to read, so a longer word is clipped rather than shrunk further.
+ */
+private const val MIN_WORD_FONT_SIZE_SHARE = 0.5f
+
+/**
  * The review of flagged words as a card above the recite bar, on the field of the colour mode. The
  * page stays visible and live above it: [focusedKey] is the word on the page that is ringed. The
- * word is large at the top right, Listen at the top left, then one block per finding. [reviews]
- * holds every flagged word in reading order; Previous and Next call [onFocus] with the neighbour,
- * so the page can turn to it. The card is not modal: nothing behind it is dimmed or blocked.
+ * top row holds the play and save-word buttons (as on the word card) at the left and Close at the
+ * right; the word is large on its own full-width line under them, then one block per finding.
+ * [reviews] holds every flagged word in reading order; Previous and Next call [onFocus] with the
+ * neighbour, so the page can turn to it. [isSaved] is null when there is no word list, so no save
+ * button shows; that button calls [onSave], or [onRemove] when the word is saved. The card is not
+ * modal: nothing behind it is dimmed or blocked.
  */
 @Composable
 fun ReciteReviewCard(
@@ -73,6 +84,11 @@ fun ReciteReviewCard(
     onListen: (WordKey) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    isPlaying: Boolean = false,
+    onStop: () -> Unit = {},
+    isSaved: Boolean? = null,
+    onSave: (WordKey) -> Unit = {},
+    onRemove: (WordKey) -> Unit = {},
 ) {
     // An empty list still shows the card: a card that silently stays closed looked like a bug.
     val position = reviews.indexOfFirst { it.key == focusedKey }.coerceAtLeast(0)
@@ -89,65 +105,75 @@ fun ReciteReviewCard(
             .background(field.background, AwnShapes.control)
             .heightIn(max = maxHeight)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small)
+            .padding(horizontal = AwnSpacing.medium, vertical = TIGHT_GAP)
             .testTag(REVIEW_CARD_TAG),
     ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (review == null) {
-                FindingTitle(stringResource(R.string.recite_review_empty))
-            } else {
-                SheetAction(
-                    label = stringResource(R.string.recite_listen),
-                    modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
-                    onClick = { onListen(review.key) },
-                )
-                Text(text = wordText, style = AwnTypography.title)
-            }
-            CloseButton(onDismiss)
+        ReviewCardHeader(
+            review = review,
+            isPlaying = isPlaying,
+            isSaved = isSaved,
+            onListen = onListen,
+            onStop = onStop,
+            onSave = onSave,
+            onRemove = onRemove,
+            onDismiss = onDismiss,
+        )
+        if (review != null) {
+            ReviewWord(wordText)
         }
         review?.findings?.forEach { finding -> FindingBlock(finding) }
         if (reviews.size > 1) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                SheetAction(
-                    label = stringResource(R.string.recite_previous),
-                    enabled = position > 0,
-                    onClick = { onFocus(reviews[position - 1].key) },
-                )
-                SheetAction(
-                    label = stringResource(R.string.recite_next),
-                    enabled = position < reviews.lastIndex,
-                    onClick = { onFocus(reviews[position + 1].key) },
-                )
-            }
+            ReviewNavigation(reviews = reviews, position = position, onFocus = onFocus)
         }
         Text(
             text = stringResource(R.string.recite_review_note),
             style = AwnTypography.small,
-            modifier = Modifier.padding(vertical = AwnSpacing.small),
+            modifier = Modifier.padding(bottom = TIGHT_GAP),
         )
     }
 }
 
 @Composable
-private fun CloseButton(onClick: () -> Unit) {
-    val description = stringResource(R.string.recite_close)
-    Box(
-        Modifier.requiredSize(AwnSpacing.touchTarget)
-            .semantics { contentDescription = description }
-            .clickable(role = Role.Button, onClick = onClick)
-            .testTag(REVIEW_CLOSE_TAG),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            painterResource(R.drawable.ic_recite_close),
-            contentDescription = null,
-            tint = Awn.field.content,
+private fun ReviewNavigation(
+    reviews: List<WordReview>,
+    position: Int,
+    onFocus: (WordKey) -> Unit,
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        SheetAction(
+            label = stringResource(R.string.recite_previous),
+            enabled = position > 0,
+            onClick = { onFocus(reviews[position - 1].key) },
+        )
+        SheetAction(
+            label = stringResource(R.string.recite_next),
+            enabled = position < reviews.lastIndex,
+            onClick = { onFocus(reviews[position + 1].key) },
         )
     }
+}
+
+/** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
+internal val TIGHT_GAP = AwnSpacing.small / 2
+
+/**
+ * The flagged word on its own line, in the Quran font. It shrinks to fit the width on one line
+ * instead of wrapping, because a wrapped word was hard to read in the small card.
+ */
+@Composable
+private fun ReviewWord(word: String) {
+    BasicText(
+        text = word,
+        modifier = Modifier.fillMaxWidth(),
+        style = AwnTypography.quran.copy(color = Awn.field.content, textAlign = TextAlign.Center),
+        maxLines = 1,
+        softWrap = false,
+        autoSize =
+            TextAutoSize.StepBased(
+                minFontSize = AwnTypography.quran.fontSize * MIN_WORD_FONT_SIZE_SHARE,
+                maxFontSize = AwnTypography.quran.fontSize,
+            ),
+    )
 }
 
 @Composable
@@ -166,23 +192,19 @@ private fun SheetAction(
             modifier
                 .defaultMinSize(minHeight = AwnSpacing.touchTarget)
                 .clickable(enabled = enabled, onClick = onClick)
-                .padding(vertical = AwnSpacing.small),
+                .wrapContentHeight(Alignment.CenterVertically),
     )
 }
 
 @Composable
 private fun FindingBlock(finding: ReviewFinding) {
-    Column(Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = TIGHT_GAP)) {
         when (finding) {
             ReviewFinding.Skipped -> {
                 FindingTitle(stringResource(R.string.recite_verdict_skipped))
             }
             ReviewFinding.WrongWord -> {
                 FindingTitle(stringResource(R.string.recite_finding_wrong_word))
-                FindingHint(stringResource(R.string.recite_hint_say_again))
-            }
-            ReviewFinding.NotClear -> {
-                FindingTitle(stringResource(R.string.recite_finding_not_clear))
                 FindingHint(stringResource(R.string.recite_hint_say_again))
             }
             is ReviewFinding.Pronunciation -> PronunciationBlock(finding.substitution)
@@ -192,7 +214,7 @@ private fun FindingBlock(finding: ReviewFinding) {
 }
 
 @Composable
-private fun FindingTitle(title: String) {
+internal fun FindingTitle(title: String) {
     Text(text = title, style = AwnTypography.lead)
 }
 
@@ -205,7 +227,7 @@ private fun FindingHint(hint: String) {
 private fun PronunciationBlock(substitution: TrackerEvent.Substitution) {
     FindingTitle(stringResource(R.string.recite_finding_pronunciation))
     Row(
-        Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small),
+        Modifier.fillMaxWidth().padding(vertical = TIGHT_GAP),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {
         SoundBox(

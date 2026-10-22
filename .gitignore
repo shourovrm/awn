@@ -68,7 +68,6 @@ __pycache__/
 # model files and data packs (mirrored in the models and data releases, not in git)
 awn-models/
 awn-data/
-awn-data-v2/
 
 # Gradle and Android build outputs
 .gradle/
@@ -84,5 +83,3 @@ captures/
 
 # Browser automation scratch
 .playwright-mcp/
-awn-data-next/
-awn-data-unbundle/

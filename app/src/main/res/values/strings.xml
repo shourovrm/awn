@@ -15,6 +15,15 @@
     <item quantity="one">Revise %d ayah</item>
     <item quantity="other">Revise %d ayahs</item>
   </plurals>
+  <string name="today_course_start">Start today · %d min</string>
+  <plurals name="today_course_new">
+    <item quantity="one">%d new word</item>
+    <item quantity="other">%d new words</item>
+  </plurals>
+  <plurals name="today_course_reviews">
+    <item quantity="one">%d to revise</item>
+    <item quantity="other">%d to revise</item>
+  </plurals>
   <string name="index_show">Show</string>
   <string name="index_tab_pages">Pages</string>
   <string name="index_bookmarks">Bookmarks</string>
@@ -55,6 +64,7 @@
     <item quantity="one">%d result</item>
     <item quantity="other">%d results</item>
   </plurals>
+  <string name="search_surah_title" translatable="false">%1$d. %2$s</string>
   <string name="search_result_reference">%1$s %2$d:%3$d · page %4$d</string>
 
   <string name="settings_title">Settings</string>
@@ -148,7 +158,7 @@
   <string name="summary_word_by_word">word by word</string>
   <string name="summary_arabic_only">Arabic only</string>
   <string name="summary_words_hidden">Words hidden</string>
-  <string name="summary_hint_on">Hint on</string>
+  <string name="summary_hint_on">First letter first</string>
   <string name="summary_memorised_after">Memorised after %1$s</string>
   <string name="summary_space_used">%1$s used</string>
   <string name="summary_appearance">%1$s by day · %2$s at night · %3$s</string>

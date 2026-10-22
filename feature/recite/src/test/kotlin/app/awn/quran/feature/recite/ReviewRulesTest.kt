@@ -113,14 +113,26 @@ class ReviewRulesTest {
 
     @Test
     fun problemsNameWhatWentWrongWithEachFlaggedWord() {
-        val states = listOf(WordState.Wrong, WordState.Tentative, WordState.Wrong)
+        val states = listOf(WordState.Wrong, WordState.Confirmed, WordState.Wrong)
+        val substitutions =
+            mapOf(
+                keys[1] to
+                    listOf(
+                        TrackerEvent.Substitution(
+                            wordIndex = 1,
+                            phonemeIndex = 0,
+                            heard = "س",
+                            expected = "ص",
+                        ),
+                    ),
+            )
 
-        val problems = ReviewRules.problemsByWord(keys, states, setOf(0))
+        val problems = ReviewRules.problemsByWord(keys, states, setOf(0), substitutions, emptyMap())
 
         assertEquals(
             mapOf(
                 keys[0] to WordProblem.Skipped,
-                keys[1] to WordProblem.NotClear,
+                keys[1] to WordProblem.Mispronounced,
                 keys[2] to WordProblem.DifferentWord,
             ),
             problems,
@@ -131,7 +143,7 @@ class ReviewRulesTest {
     fun aWrongWordNeitherSkippedNorSubstitutedIsADifferentWord() {
         val states = listOf(WordState.Wrong, WordState.Confirmed, WordState.Neutral)
 
-        val problems = ReviewRules.problemsByWord(keys, states, emptySet())
+        val problems = ReviewRules.problemsByWord(keys, states, emptySet(), emptyMap(), emptyMap())
 
         assertEquals(mapOf(keys[0] to WordProblem.DifferentWord), problems)
     }
@@ -140,6 +152,8 @@ class ReviewRulesTest {
     fun confirmedHiddenAndUntouchedWordsHaveNoProblem() {
         val states = listOf(WordState.Confirmed, WordState.Hidden, WordState.Neutral)
 
-        assertTrue(ReviewRules.problemsByWord(keys, states, emptySet()).isEmpty())
+        assertTrue(
+            ReviewRules.problemsByWord(keys, states, emptySet(), emptyMap(), emptyMap()).isEmpty(),
+        )
     }
 }

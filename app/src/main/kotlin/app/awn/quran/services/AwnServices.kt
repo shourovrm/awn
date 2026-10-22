@@ -4,17 +4,24 @@ import android.app.Application
 import app.awn.quran.AppPreferences
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.hifz.HifzServices
 import app.awn.quran.feature.hifz.PracticeRequest
+import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.learn.LearnServices
+import app.awn.quran.feature.learn.learnAddWord
 import app.awn.quran.feature.learn.learnProgressEvents
+import app.awn.quran.feature.learn.learnRemoveWord
+import app.awn.quran.feature.learn.learnWordIsAdded
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.quran.PrintOfferStore
+import app.awn.quran.feature.read.quran.wordReciterFor
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.recite.AyahGrade
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
@@ -121,6 +128,7 @@ class AwnServices(private val application: Application) {
             downloads = coreData.packDownloads,
             reciters = coreData.reciters,
             selectedReciterId = listenSettings.selectedReciterId,
+            wordReciterId = listenSettings.wordReciterId,
             printOffer =
                 object : PrintOfferStore {
                     override val isPending = preferences.printOfferPending
@@ -128,6 +136,14 @@ class AwnServices(private val application: Application) {
                     override suspend fun markHandled() = preferences.markPrintOfferHandled()
                 },
             isNetworkMetered = networkStatus::isMetered,
+            myWords =
+                object : MyWords {
+                    override fun isAdded(word: WordKey) = learnWordIsAdded(application, word)
+
+                    override suspend fun add(word: WordKey) = learnAddWord(application, word)
+
+                    override suspend fun remove(word: WordKey) = learnRemoveWord(application, word)
+                },
         )
 
     /** The speech model is downloaded after install; recite offers the download first. */
@@ -153,6 +169,19 @@ class AwnServices(private val application: Application) {
             hasWordTimings = { reciterId, ayah ->
                 coreData.reciters.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
             },
+            wordReciterId = { listeningReciterId ->
+                val withTimings =
+                    coreData.reciters
+                        .reciters()
+                        .filter { it.wordByWord && it.timingPack != null }
+                        .map { it.id }
+                wordReciterFor(
+                    listenSettings.wordReciterId.first(),
+                    listeningReciterId,
+                    withTimings,
+                ) ?: listeningReciterId
+            },
+            myWords = readDependencies.myWords,
         )
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
@@ -165,13 +194,14 @@ class AwnServices(private val application: Application) {
         )
 
     /**
-     * Opens the Quran screen at the first ayah of [request] with the words hidden and recite mode
-     * on. The Hifz tab calls it after the practice is stored in `hifz.controller`.
+     * Opens the Quran screen at the first ayah of [request] in recite mode. A new lesson shows the
+     * ayah, and the user hides the words with the Hifz bar's eye button; revision parts start with
+     * the words hidden. The choice lasts for this practice only and leaves the saved recite setting
+     * alone. The Hifz tab calls it after the practice is stored in `hifz.controller`.
      */
     fun startHifzPractice(request: PracticeRequest) {
-        recite.setHideWords(true)
         openQuranAt(request.firstAyah)
-        recite.reciteFrom(request.firstAyah)
+        recite.practiceFrom(request.firstAyah, hideWords = request.kind != PartKind.NewLesson)
     }
 
     /**

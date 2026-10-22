@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntOffset
@@ -206,12 +207,14 @@ private fun PageBody(
     )
     ReportTrackedWordBounds(geometry, trackedWord, bodyTop, scrollOffsetPx, onTrackedWordBounds)
     val playingFade = rememberPlayingFade(decorations.playingAyah)
+    val textMeasurer = rememberTextMeasurer()
     val gestures =
         rememberWordTapGestures(touchActions, geometry, bodyTop, scrollOffsetPx, onWordTap)
 
     Box(
         Modifier.fillMaxSize().pageGestures(geometry, gestures).drawBehind {
             drawFills(geometry, decorations, field, playingFade.snapshot())
+            drawHintLetters(geometry, decorations, field, textMeasurer, plainFamily)
         },
     ) {
         PageRowsLayer(

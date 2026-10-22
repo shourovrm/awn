@@ -30,9 +30,12 @@ internal class BarClearance(topFloorPx: Int, bottomFloorPx: Int) {
 
     private var audioBarPx by mutableIntStateOf(bottomFloorPx)
 
-    /** The height of the recite or Hifz bar; 0 until one is measured in this reciting session. */
+    /** The height of everything stacked at the bottom now while reciting; 0 otherwise. */
     var reciteBarPx by mutableIntStateOf(0)
         private set
+
+    /** The tallest that stack was in this reciting session: bars, pill and mistake card. */
+    private var tallestReciteBarPx by mutableIntStateOf(0)
 
     fun onTopBarMeasured(heightPx: Int) {
         topPx = maxOf(topPx, heightPx)
@@ -40,7 +43,8 @@ internal class BarClearance(topFloorPx: Int, bottomFloorPx: Int) {
 
     fun onBottomBarMeasured(heightPx: Int, isReciting: Boolean) {
         if (isReciting) {
-            reciteBarPx = maxOf(reciteBarPx, heightPx)
+            reciteBarPx = heightPx
+            tallestReciteBarPx = maxOf(tallestReciteBarPx, heightPx)
         } else {
             audioBarPx = maxOf(audioBarPx, heightPx)
         }
@@ -48,11 +52,12 @@ internal class BarClearance(topFloorPx: Int, bottomFloorPx: Int) {
 
     fun onReciteEnded() {
         reciteBarPx = 0
+        tallestReciteBarPx = 0
     }
 
     /** The room under the page: the tallest bar that can show in the current mode. */
     fun bottomPx(isReciting: Boolean): Int =
-        if (isReciting) maxOf(audioBarPx, reciteBarPx) else audioBarPx
+        if (isReciting) maxOf(audioBarPx, tallestReciteBarPx) else audioBarPx
 
     fun insets(isReciting: Boolean): PageBarInsets = PageBarInsets(topPx, bottomPx(isReciting))
 }

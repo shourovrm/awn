@@ -1,6 +1,6 @@
 """Shared access to the Quran.com API v4 for the pack builders in tools/.
 
-Every response is cached on disk under awn-data/raw/quran.com/, so a second
+Every response is cached on disk under awn-data/raw/quran.com/ (data_paths.raw()), so a second
 run of any builder makes no network calls. Live requests are limited to four
 per second and retried with exponential backoff on HTTP 429 and 5xx.
 
@@ -17,6 +17,8 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
+import data_paths
+
 API_BASE = "https://api.quran.com/api/v4"
 # The "qdc" API of the same service serves the IndoPak page layouts (mushaf=6 and 7); v4 ignores that parameter.
 QDC_API_BASE = "https://api.quran.com/api/qdc"
@@ -24,8 +26,9 @@ USER_AGENT = "awn-pack-builder/1.0 (https://github.com/awn-quran; free Quran app
 MINIMUM_SECONDS_BETWEEN_REQUESTS = 0.26  # a little over 1/4 s keeps us under 4 requests per second
 MAXIMUM_ATTEMPTS = 6
 
-DATA_ROOT = os.environ.get("AWN_DATA", "/home/rms/repos/awn/awn-data")
-RAW_CACHE_DIRECTORY = os.path.join(DATA_ROOT, "raw", "quran.com")
+DATA_ROOT = str(data_paths.workspace())
+FONTS_ROOT = str(data_paths.fonts())
+RAW_CACHE_DIRECTORY = str(data_paths.raw() / "quran.com")
 
 CHAPTER_COUNT = 114
 AYAH_COUNT = 6236

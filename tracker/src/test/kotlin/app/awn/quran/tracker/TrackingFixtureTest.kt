@@ -245,6 +245,38 @@ class TrackingFixtureTest {
         )
     }
 
+    @Test
+    fun wordOutcomesOnCleanRecitations() {
+        assumeTrue(TestPaths.fixturesAvailable())
+        var wordCount = 0
+        var bySound = 0
+        var byDuration = 0
+        var red = 0
+        var tentative = 0
+        for (result in resultsOf(FixtureKind.Full) + resultsOf(FixtureKind.Stretch)) {
+            val soundWords = result.mispronouncedBySoundIndices
+            val durationWords = result.mispronouncedByDurationIndices
+            val redWords =
+                result.recitedWordIndices.count { result.finalStates[it] == WordState.Wrong }
+            val tentativeWords =
+                result.recitedWordIndices.count { result.finalStates[it] == WordState.Tentative }
+            println(
+                "${result.fixture.name}: yellow by sound ${soundWords.size}, by madd " +
+                    "${durationWords.size}, red $redWords, tentative $tentativeWords of " +
+                    "${result.recitedWordIndices.size}",
+            )
+            wordCount += result.recitedWordIndices.size
+            bySound += soundWords.size
+            byDuration += (durationWords - soundWords).size
+            red += redWords
+            tentative += tentativeWords
+        }
+        println(
+            "GATE clean recitations: $wordCount words, yellow by sound $bySound, yellow by madd " +
+                "only $byDuration, red $red, tentative at the end $tentative",
+        )
+    }
+
     private companion object {
         // Recorded results; see docs/decisions/tracker.md for the plan's gates.
         const val RECORDED_GREEN_SHORT_SURAHS = 87

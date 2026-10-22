@@ -42,7 +42,7 @@ class WordStateFillTest {
     @Test
     fun eachRecitedWordGetsOneFillTheSizeOfItsSlot() {
         val decorations =
-            statesOf(1 to WordState.Confirmed, 2 to WordState.Tentative, 3 to WordState.Wrong)
+            statesOf(1 to WordState.Confirmed, 2 to WordState.Mispronounced, 3 to WordState.Wrong)
 
         val fills = wordStateFills(geometry, decorations, awnField)
 

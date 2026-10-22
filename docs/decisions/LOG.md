@@ -156,6 +156,31 @@
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
+2026-10-22 | Hifz and revision runs hide words for the run only; Today revise passes a cap | saved recite setting stayed hidden and every due ayah was revised
+2026-10-22 | Hifz bar listens to a movable window; Memorised up to sets the cursor | the loop was stuck on the lesson and users could not say how far they know
+2026-10-22 | Print offer allows several ticked prints; Download installs all | the card showed many options but took one
+2026-10-22 | Audio bar gets a reciter button; a reciter change while playing continues from the same ayah | reciter was hard to reach from the page
+2026-10-22 | Arabic text styles use the bundled Hafs font through HafsFont installed by AwnTheme | generic serif drew marks badly (read.md)
+2026-10-22 | Do not ask for notifications when audio starts | The dialog stopped the first Listen; media notifications show without it (player.md)
+2026-10-22 | Search lists surahs by number or name above ayah results | users typed a surah name and found nothing
+2026-10-22 | Downloads space used leaves out bundled items | a fresh install showed 12 MB the user never downloaded
+2026-10-22 | Word course reachable: tab opens on first-open choices then the hub; Today row and word card use ports | the course screens had no route (learn.md)
+2026-10-22 | Robolectric tests in :app name a plain Application (RobolectricApplicationGateTest) | AwnApplication.onCreate WorkManager check threw after tests, failing a later test at random on CI
+2026-10-22 | Listening while reciting plays on until the microphone; the ayahs only heard are never marked left out | user rule for the combined bar (recite.md)
+2026-10-22 | Recite bar is ochre; the microphone works while audio plays and Listen is listen-onward | combined bar (recite.md)
+2026-10-22 | Audio bar ends with a Recite microphone; the playing bar drops the speed button | combined bar needs room for it (player.md)
+2026-10-22 | A page tap shrinks a busy bottom bar to a corner button instead of hiding or ending it | combined bar (read.md)
+2026-10-22 | :app gives the audio bar onRecite and the screen isAudioActive | the combined bar needs both (player.md, read.md)
+2026-10-22 | Hub row "Letters and daily time" reopens the first-open choices; saving keeps cards and progress | users could not undo "I cannot read letters" (learn.md)
+2026-10-22 | Counted Learn strings are plurals; PluralsCandidate ignores removed | English read "1 words" (learn.md)
+2026-10-22 | Listen-onward end and resume ayah are read from the player before our own stop, not only from observed states | conflated StateFlow made a test fail (recite.md)
+2026-10-22 | Green by weighted WordScore (near sounds cheaper, length budget); passed words end green or red | Awn said unknown; see tracker.md
+2026-10-22 | Yellow Mispronounced = sound or madd finding on a green word; no Tentative fill; not a Hifz mistake | name the problem, not unclear
+2026-10-22 | Microphone stop keeps marks; corner button acts; Listen after the last word goes to the next ayah | phone bugs, build 227 (recite.md, read.md)
+2026-10-22 | Leaving the app and Hifz Play stop the microphone with stopMicrophone() | plain session.stop() cleared the marks on next start
+2026-10-22 | Word card: add is an icon in the heading; words get their own reciter setting (Word audio) | listening reciter had no word timings, play button vanished
+2026-10-22 | One local data folder awn-data/ with published/, next/, fonts/, raw/; tools find it through tools/data_paths.py; AWN_DATA_DIR now names the folder that holds published/ | four folders held duplicates and the build read a stale one
+2026-10-23 | Reading track in Noorani Qaida order, drills folded into checks, new unit 8 | maintainer: shorter Qaida, non-commercial use
 2026-10-23 | Mushaf size is 0.7 to 2.0 times the default; too-wide printed lines are re-broken by greedy fill | the old control did almost nothing (read.md)
 2026-10-23 | Mushaf page reserves bar-height strips top and bottom, measured from the bars; scrolling pages pad their content | no text under a bar (read.md)
 2026-10-23 | Pages built ahead of a swipe reveal two rows per frame | one 36 ms frame per swipe was the likely jank (read.md)

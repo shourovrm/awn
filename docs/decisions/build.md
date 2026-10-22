@@ -14,7 +14,7 @@
 - :tracker tests set java.library.path and LD_LIBRARY_PATH to libs/linux-x64 and depend on both fetch tasks.
 - Third-party coordinates (okhttp, media3-datasource-okhttp, coroutines-android and -test, espresso, ui-test-manifest) are in the catalog; lint rule UseTomlInstead is on in every module.
 - App assets: only the Learn lessons and snippets JSON. The model is no asset any more; `fetchModels` serves the `:tracker` tests only.
-- `:core:data` asset and lint tasks depend on `fetchBundledPacks` (quran.sqlite, Hafs font, three manifests); its unit-test tasks also depend on `fetchTestPacks` (five translation and word packs into build/test-packs). A worktree's own `awn-data/` wins over `$AWN_DATA_DIR`.
+- `:core:data` asset and lint tasks depend on `fetchBundledPacks` (quran.sqlite, Hafs font, three manifests); its unit-test tasks also depend on `fetchTestPacks` (five translation and word packs into build/test-packs). A worktree's own `awn-data/published/` wins over `$AWN_DATA_DIR/published`.
 - Gates: Spotless with ktfmt 0.65 kotlinlang style, detekt 1.23.8 (config/detekt/detekt.yml), Android Lint with warningsAsErrors. Disabled lint checks: GradleDependency, NewerVersionAvailable, AndroidGradlePluginVersion (network-dependent, Dependabot covers them); in :app also OldTargetApi (target 36 on purpose) and ObsoleteSdkInt (aapt2 does not resolve mipmap-anydpi without -v26).
 - Robolectric tests need --add-exports java.base/jdk.internal.access=ALL-UNNAMED, set in the library convention.
 

@@ -10,6 +10,7 @@ import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.core.data.packs.PackFailureReason
 import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.quran.QuranViewModel
+import app.awn.quran.feature.read.quran.printOfferDownloadBytes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -69,7 +70,7 @@ class PrintOfferTest {
         viewModel.open(null)
 
         assertTrue(viewModel.state.value.printOffer.isOpen)
-        assertEquals(ScriptId.V2, viewModel.state.value.printOffer.choice)
+        assertEquals(setOf(ScriptId.V2), viewModel.state.value.printOffer.choices)
         assertEquals(137_000_000L, viewModel.state.value.printStatuses[ScriptId.V2]?.downloadBytes)
     }
 
@@ -117,15 +118,95 @@ class PrintOfferTest {
     }
 
     @Test
-    fun tickingAPrintChangesTheChoice() = runTest {
+    fun tickingAPrintAddsItToTheChoices() = runTest {
         val (viewModel, _) = viewModelWith(isPending = true)
         viewModel.open(null)
 
         viewModel.choosePrint(ScriptId.V4Tajweed)
 
         val state = viewModel.state.value
-        assertEquals(ScriptId.V4Tajweed, state.printOffer.choice)
-        assertEquals(69_000_000L, state.printStatuses[state.printOffer.choice]?.downloadBytes)
+        assertEquals(setOf(ScriptId.V2, ScriptId.V4Tajweed), state.printOffer.choices)
+        assertEquals(
+            (137L + 69L) * 1_000_000L,
+            printOfferDownloadBytes(state.printOffer, state.printStatuses),
+        )
+    }
+
+    @Test
+    fun tickingATickedPrintAgainTakesItOut() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+
+        viewModel.choosePrint(ScriptId.V2)
+        viewModel.choosePrint(ScriptId.V1)
+
+        val state = viewModel.state.value
+        assertEquals(setOf(ScriptId.V1), state.printOffer.choices)
+        assertEquals(55_000_000L, printOfferDownloadBytes(state.printOffer, state.printStatuses))
+    }
+
+    @Test
+    fun withNothingTickedDownloadDoesNothing() = runTest {
+        val (viewModel, store) = viewModelWith(isPending = true)
+        viewModel.open(null)
+        viewModel.choosePrint(ScriptId.V2)
+
+        viewModel.downloadPrint()
+
+        assertTrue(viewModel.state.value.printOffer.choices.isEmpty())
+        assertTrue(scheduler.enqueued.isEmpty())
+        assertTrue(viewModel.state.value.printOffer.isOpen)
+        assertTrue(store.pending.value)
+    }
+
+    @Test
+    fun downloadingSeveralPrintsInstallsEachAndShowsTheFirstInCardOrder() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+        viewModel.choosePrint(ScriptId.V4Tajweed)
+        viewModel.choosePrint(ScriptId.V1)
+
+        viewModel.downloadPrint()
+
+        assertEquals(setOf("v2", "v1", "v4-tajweed"), scheduler.enqueued.toSet())
+        assertEquals(3, scheduler.enqueued.size)
+        // The card lists 1421 (V2) first, so the page shows it while the others download.
+        assertEquals(ScriptId.V2, fixture.store.settings.first().script)
+        assertEquals(
+            setOf(ScriptId.V2, ScriptId.V1, ScriptId.V4Tajweed),
+            viewModel.state.value.printOffer.downloading,
+        )
+    }
+
+    @Test
+    fun theCardClosesOnlyWhenEveryChosenPrintIsInstalled() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+        viewModel.choosePrint(ScriptId.V1)
+        viewModel.downloadPrint()
+
+        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "v2" }.entry) {}
+
+        assertTrue(viewModel.state.value.printOffer.isOpen)
+
+        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "v1" }.entry) {}
+
+        assertFalse(viewModel.state.value.printOffer.isOpen)
+        assertTrue(viewModel.state.value.printOffer.downloading.isEmpty())
+    }
+
+    @Test
+    fun cancelStopsEveryChosenDownload() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+        viewModel.choosePrint(ScriptId.V1)
+        viewModel.downloadPrint()
+
+        viewModel.cancelPrintDownload()
+
+        assertEquals(setOf("v2", "v1"), scheduler.cancelled.toSet())
+        assertTrue(viewModel.state.value.printOffer.downloading.isEmpty())
+        assertTrue(viewModel.state.value.printOffer.isOpen)
     }
 
     @Test
@@ -133,12 +214,13 @@ class PrintOfferTest {
         val (viewModel, store) = viewModelWith(isPending = true)
         viewModel.open(null)
         viewModel.choosePrint(ScriptId.V4Tajweed)
+        viewModel.choosePrint(ScriptId.V2)
 
         viewModel.downloadPrint()
 
         assertEquals(ScriptId.V4Tajweed, fixture.store.settings.first().script)
         assertEquals(listOf("v4-tajweed"), scheduler.enqueued)
-        assertEquals(ScriptId.V4Tajweed, viewModel.state.value.printOffer.downloading)
+        assertEquals(setOf(ScriptId.V4Tajweed), viewModel.state.value.printOffer.downloading)
         assertFalse(store.pending.value)
     }
 
@@ -172,13 +254,14 @@ class PrintOfferTest {
         val (viewModel, _) = viewModelWith(isPending = true)
         viewModel.open(null)
         viewModel.choosePrint(ScriptId.V1)
+        viewModel.choosePrint(ScriptId.V2)
         viewModel.downloadPrint()
 
         viewModel.cancelPrintDownload()
 
         assertEquals(listOf("v1"), scheduler.cancelled)
         assertEquals(ScriptId.V2, fixture.store.settings.first().script)
-        assertEquals(null, viewModel.state.value.printOffer.downloading)
+        assertTrue(viewModel.state.value.printOffer.downloading.isEmpty())
         assertTrue(viewModel.state.value.printOffer.isOpen)
     }
 
@@ -192,7 +275,7 @@ class PrintOfferTest {
             mapOf("v2" to PackTransfer.Failed(PackFailureReason.NoInternet))
 
         val offer = viewModel.state.value.printOffer
-        assertEquals(null, offer.downloading)
+        assertTrue(offer.downloading.isEmpty())
         assertTrue(offer.isOpen)
         assertEquals(0, offer.closedFailureCount)
         assertEquals(

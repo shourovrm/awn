@@ -88,6 +88,10 @@
   <string name="mark_to_page">To page</string>
   <string name="mark_state">State</string>
   <string name="mark_save">Save</string>
+  <string name="known_up_to_title">Memorised up to</string>
+  <string name="known_up_to_ayah">Ayah</string>
+  <string name="ayah_stepper_decrease">Previous ayah</string>
+  <string name="ayah_stepper_increase">Next ayah</string>
   <string name="juz_label">Juz %d</string>
   <string name="stepper_decrease">Previous page</string>
   <string name="stepper_increase">Next page</string>
@@ -111,12 +115,15 @@
   <string name="bar_repeat_value">×%d</string>
   <string name="bar_recite">Recite</string>
   <string name="bar_stop_reciting">Stop reciting</string>
-  <string name="bar_finish">Finish</string>
+  <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">Close</string>
+  <string name="bar_finish_part">Finish part</string>
   <string name="bar_getting_ready">Getting ready</string>
   <string name="bar_ayah">Ayah %d</string>
   <string name="bar_page">Page %d</string>
   <string name="bar_pick_grade">Pick a grade</string>
+  <string name="bar_previous_ayahs">Previous ayahs</string>
+  <string name="bar_next_ayahs">Next ayahs</string>
   <string name="grade_easy">Easy</string>
   <string name="grade_good">Good</string>
   <string name="grade_hard">Hard</string>

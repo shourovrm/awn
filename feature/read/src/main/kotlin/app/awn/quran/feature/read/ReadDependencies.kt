@@ -1,6 +1,7 @@
 package app.awn.quran.feature.read
 
 import app.awn.quran.core.data.BookmarkRepository
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
@@ -31,6 +32,11 @@ data class ReadDependencies(
     val reciters: ReciterRepository? = null,
     /** The id of the reciter chosen in the audio settings, emitted again after each change. */
     val selectedReciterId: Flow<String> = flowOf(DEFAULT_RECITER_ID),
+    /**
+     * The reciter chosen for single words in Settings > Audio, or null before a choice; the word
+     * card falls back to the listening reciter, then to any reciter with word timings.
+     */
+    val wordReciterId: Flow<String?> = flowOf(null),
     /** The one-time offer of a printed Mushaf on the first Quran screen. */
     val printOffer: PrintOfferStore = PrintOfferStore.Never,
     /**
@@ -38,6 +44,8 @@ data class ReadDependencies(
      * only when this is false, the same rule as the audio downloads; otherwise the word card asks.
      */
     val isNetworkMetered: () -> Boolean = { false },
+    /** The word list of the Learn course; null hides "Add to my words" on the word card. */
+    val myWords: MyWords? = null,
 ) {
     companion object {
         /** The reciter :feature:listen starts with. */

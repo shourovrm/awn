@@ -12,14 +12,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,11 +30,8 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.IntOffset
@@ -112,7 +105,10 @@ internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): 
             viewModel.closePopup()
             slots.onOpenLearn()
         },
-        onSettings = slots.onOpenSettings,
+        onSettings = {
+            viewModel.closePopup()
+            slots.onOpenSettings()
+        },
     )
 }
 
@@ -122,6 +118,7 @@ internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): 
  * word is under the top bar ([topClearancePx]), and at the bottom when the word's place is unknown.
  * It takes the colours of the bars, which are readable in every mode.
  */
+@Suppress("LongMethod") // The card is one column of optional lines.
 @Composable
 internal fun WordPopupCard(
     popup: WordPopup,
@@ -133,6 +130,9 @@ internal fun WordPopupCard(
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
     onDownloadAudio: () -> Unit = {},
+    myWordState: MyWordState? = null,
+    onAddToMyWords: () -> Unit = {},
+    onRemoveFromMyWords: () -> Unit = {},
 ) {
     val field = Awn.field
     Box(
@@ -173,13 +173,28 @@ internal fun WordPopupCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            WordHeading(popup = popup, isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
+            Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
+                Text(
+                    text = popup.word.arabic,
+                    style = AwnTypography.quranLead,
+                    color = field.onBar,
+                )
+            }
             popup.word.meaning?.let {
                 Text(text = it, style = AwnTypography.body.ltr(), color = field.onBar)
             }
             popup.word.transliteration?.let {
                 Text(text = it, style = AwnTypography.small.ltr(), color = field.onBar)
             }
+            WordActions(
+                canPlay = popup.canPlay,
+                isPlaying = isPlaying,
+                onPlay = onPlay,
+                onStop = onStop,
+                myWordState = myWordState,
+                onAddToMyWords = onAddToMyWords,
+                onRemoveFromMyWords = onRemoveFromMyWords,
+            )
             popup.audioOffer?.let { offer -> WordAudioOfferLine(offer, onDownloadAudio) }
             popup.problem?.let { problem ->
                 Text(
@@ -197,48 +212,39 @@ internal fun WordPopupCard(
 private fun WordProblem.messageRes(): Int =
     when (this) {
         WordProblem.Skipped -> R.string.word_problem_skipped
-        WordProblem.NotClear -> R.string.word_problem_not_clear
+        WordProblem.Mispronounced -> R.string.word_problem_mispronounced
         WordProblem.DifferentWord -> R.string.word_problem_different
     }
 
 /**
- * The Arabic word with the play button at the end corner of the card. A spacer of the same size
- * sits at the start, so the word stays centred over the meaning below it.
+ * The round icon buttons under the meaning: Play (Stop while the word plays), shown only for a
+ * reciter with word timings, and the save button, shown only when the course can hold words.
  */
 @Composable
-private fun WordHeading(
-    popup: WordPopup,
+private fun WordActions(
+    canPlay: Boolean,
     isPlaying: Boolean,
     onPlay: () -> Unit,
     onStop: () -> Unit,
+    myWordState: MyWordState?,
+    onAddToMyWords: () -> Unit,
+    onRemoveFromMyWords: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.Top) {
-        if (popup.canPlay) Spacer(Modifier.size(AwnSpacing.touchTarget))
-        Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
-            Text(text = popup.word.arabic, style = AwnTypography.lead, color = Awn.field.onBar)
+    if (!canPlay && myWordState == null) return
+    Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+        if (canPlay) {
+            WordRoundButton(
+                description =
+                    stringResource(if (isPlaying) R.string.word_stop else R.string.word_play),
+                icon = if (isPlaying) R.drawable.ic_read_stop else R.drawable.ic_read_play,
+                style = WordButtonStyle.Soft,
+                onClick = if (isPlaying) onStop else onPlay,
+                modifier = Modifier.testTag(WORD_PLAY_TAG),
+            )
         }
-        if (popup.canPlay) {
-            PlayWordButton(isPlaying = isPlaying, onPlay = onPlay, onStop = onStop)
+        if (myWordState != null) {
+            SaveWordButton(myWordState, onAddToMyWords, onRemoveFromMyWords)
         }
-    }
-}
-
-/**
- * Plays the reciter's recording of the word on the card, or stops it while it plays. The card shows
- * it only for a reciter with word timings.
- */
-@Composable
-private fun PlayWordButton(isPlaying: Boolean, onPlay: () -> Unit, onStop: () -> Unit) {
-    val icon = if (isPlaying) R.drawable.ic_read_stop else R.drawable.ic_read_play
-    val description = stringResource(if (isPlaying) R.string.word_stop else R.string.word_play)
-    Box(
-        Modifier.requiredSize(AwnSpacing.touchTarget)
-            .semantics { contentDescription = description }
-            .clickable(role = Role.Button, onClick = if (isPlaying) onStop else onPlay)
-            .testTag(WORD_PLAY_TAG),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(painterResource(icon), contentDescription = null, tint = Awn.field.onBar)
     }
 }
 

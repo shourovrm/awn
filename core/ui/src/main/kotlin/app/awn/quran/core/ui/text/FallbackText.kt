@@ -1,4 +1,4 @@
-package app.awn.quran.feature.read.page
+package app.awn.quran.core.ui.text
 
 private const val RIGHT_TO_LEFT_MARK = 0x200F
 private const val LEFT_TO_RIGHT_MARK = 0x200E
@@ -9,7 +9,7 @@ private const val LEFT_TO_RIGHT_MARK = 0x200E
  * silent-letter circle trade places, so the map is applied one character at a time, never as two
  * replacements in a row. U+06E3 and U+06EB each occur once (52:37, 12:11).
  */
-private val HAFS_FONT_CODES =
+internal val HAFS_FONT_CODES =
     mapOf(
         '\u0652' to '\u06E1', // sukun
         '\u06DF' to '\u0652', // silent-letter circle
@@ -21,7 +21,7 @@ private val HAFS_FONT_CODES =
  * True when [char] is a combining mark: it draws on the letter before it and, with no letter to sit
  * on, Android draws it on a dotted circle (U+25CC).
  */
-internal fun isCombiningMark(char: Char): Boolean =
+fun isCombiningMark(char: Char): Boolean =
     when (Character.getType(char)) {
         Character.NON_SPACING_MARK.toInt(),
         Character.ENCLOSING_MARK.toInt(),
@@ -37,7 +37,7 @@ internal fun isCombiningMark(char: Char): Boolean =
  * the start of 199 words is a symbol, not a mark, and stays: the Hafs font has a glyph for it.
  * Marks the font codes differently are swapped through [HAFS_FONT_CODES].
  */
-internal fun normalizeFallbackText(text: String): String {
+fun normalizeFallbackText(text: String): String {
     val builder = StringBuilder()
     for (char in text) {
         when {
@@ -55,5 +55,5 @@ internal fun normalizeFallbackText(text: String): String {
 }
 
 /** True when the text would start with a combining mark and so draw it on a dotted circle. */
-internal fun startsWithCombiningMark(text: String): Boolean =
+fun startsWithCombiningMark(text: String): Boolean =
     text.firstOrNull()?.let(::isCombiningMark) == true

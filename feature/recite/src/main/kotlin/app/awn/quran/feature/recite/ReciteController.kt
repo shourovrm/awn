@@ -3,12 +3,15 @@ package app.awn.quran.feature.recite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.player.AudioPlayer
+import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.AlignmentTracker
 import app.awn.quran.tracker.Tracker
 import app.awn.quran.tracker.TrackerConfig
@@ -18,6 +21,7 @@ import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** The ayahs due for revision today; :app backs it with :feature:learn. */
@@ -65,6 +70,14 @@ class ReciteController(
     internal val hasWordTimings: suspend (reciterId: String, AyahRef) -> Boolean = { _, _ ->
         false
     },
+    /**
+     * The reciter whose voice plays a single word, given the recite reciter. The app passes the
+     * Word audio choice of Settings; :feature:recite cannot see :feature:read, which holds the
+     * rule.
+     */
+    internal val wordReciterId: suspend (reciterId: String) -> String = { it },
+    /** The user's own word list, or null when the course is not available. */
+    val myWords: MyWords? = null,
 ) {
     val session: RecitationSession =
         RecitationSession(
@@ -84,13 +97,32 @@ class ReciteController(
     private val mutableRevising = MutableStateFlow(false)
     private val mutableRevisionRemaining = MutableStateFlow(0)
     private val mutableFocusedWord = MutableStateFlow<WordKey?>(null)
+    private val mutableListeningOnward = MutableStateFlow(false)
 
     // The ayahs still to revise in this run, in reading order; only touched on the controller's
     // scope.
     private var revisionQueueLeft: List<AyahRef> = emptyList()
     private var loadJob: Job? = null
 
-    /** True from [reciteFrom] until [exit]; the Quran screen shows the recite bar meanwhile. */
+    // The last ayah the player reported since [listenOnward], and whether the audio has ended since
+    // it started. Together they say where reciting goes on.
+    @Volatile private var lastListenedAyah: AyahRef? = null
+    @Volatile private var onwardAudioHasStarted = false
+    @Volatile private var onwardAudioHasEnded = false
+
+    // Set when this controller stopped the audio itself: the player still reports Playing for a
+    // moment after stop(), and that last report must not read as the user starting to listen.
+    @Volatile private var ignoreAudioUntilSilent = false
+
+    // True from [practiceFrom] or [reviseAt] until the run ends. While it is set, the hide-words
+    // choice belongs to the run and the saved setting does not reach the session. Volatile because
+    // the settings collector reads it on the scope while the screen writes it.
+    @Volatile private var runActive: Boolean = false
+
+    /**
+     * True from [reciteFrom], [practiceFrom] or [reviseAt] until [exit]; the recite bar shows
+     * meanwhile.
+     */
     val isActive: StateFlow<Boolean> = mutableActive.asStateFlow()
 
     /** True while the user works through the ayahs due for revision. */
@@ -106,15 +138,20 @@ class ReciteController(
      */
     val focusedWord: StateFlow<WordKey?> = mutableFocusedWord.asStateFlow()
 
+    /**
+     * True from [listenOnward] until the user goes back to reciting with [resumeReciting], stops
+     * with [stopListening], or leaves recite mode. The audio may have ended by itself meanwhile;
+     * the microphone is off all that time.
+     */
+    val isListeningOnward: StateFlow<Boolean> = mutableListeningOnward.asStateFlow()
+
     /** Whether the speech files are ready; the bar waits on this. */
     val speechState: StateFlow<SpeechState> = speech.state
 
     init {
-        // The settings page and the bar both write the settings; the session follows them.
+        // The settings page and the bar both write the speed; the session follows it.
         scope.launch { settings.speed.distinctUntilChanged().collect { session.setSpeed(it) } }
-        scope.launch {
-            settings.hifzEnabled.distinctUntilChanged().collect { session.setHifzEnabled(it) }
-        }
+        scope.launch { audioPlayer.state.collect(::followAudioWhileListeningOnward) }
         scope.launch {
             combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
                 val focused = mutableFocusedWord.value
@@ -129,9 +166,27 @@ class ReciteController(
      */
     fun reciteFrom(ayah: AyahRef) {
         // The microphone would hear the reciter, so audio never plays under a new recitation.
-        audioPlayer.stop()
+        stopAudioForNewRun()
         mutableRevising.value = false
-        load(ayah)
+        runActive = false
+        load(ayah) {
+            // Read here, once per run, and not followed while reciting: a follower fed by the
+            // store echoed the bar's own writes back, and its first read, taken before the user's
+            // tap, switched the words back.
+            session.setHifzEnabled(settings.hifzEnabled.first())
+        }
+    }
+
+    /**
+     * Starts a Hifz practice run at [ayah]: recite mode with the words hidden when [hideWords] is
+     * true and shown when it is false. The choice lasts for this run only; the saved setting is not
+     * changed.
+     */
+    fun practiceFrom(ayah: AyahRef, hideWords: Boolean) {
+        stopAudioForNewRun()
+        mutableRevising.value = false
+        runActive = true
+        load(ayah) { session.setHifzEnabled(hideWords) }
     }
 
     /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
@@ -144,36 +199,56 @@ class ReciteController(
         mutableFocusedWord.value = null
     }
 
-    private fun load(ayah: AyahRef) {
+    // [beforeLoad] runs after the previous load has finished and before the words are loaded, so
+    // a run can set the session's hide-words choice before its first word is shown.
+    private fun load(ayah: AyahRef, beforeLoad: suspend () -> Unit = {}) {
         clearFocus()
         mutableActive.value = true
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
+            // Before the settings read of [beforeLoad], so the model starts loading at once.
             speech.prepare()
+            beforeLoad()
             session.load(ayahsFrom(ayah))
         }
     }
 
     /**
-     * Starts a revision run at [ayah], the first ayah due: recite mode with the words hidden. The
-     * due ayahs are read now; each grade given with [grade] moves on to the next one, opening it
-     * through `onOpenAyah` when it is not already loaded.
+     * Starts a revision run at [ayah], the first ayah due: recite mode with the words hidden for
+     * this run only. The due ayahs are read now and [selectRevisionQueue] keeps at most [limit] of
+     * them; each grade given with [grade] moves on to the next one, opening it through `onOpenAyah`
+     * when it is not already loaded.
      */
-    fun reviseAt(ayah: AyahRef) {
-        audioPlayer.stop()
+    fun reviseAt(ayah: AyahRef, limit: Int? = null) {
+        stopAudioForNewRun()
         mutableRevising.value = true
-        mutableActive.value = true
-        val previous = loadJob
-        loadJob = scope.launch {
-            previous?.cancelAndJoin()
-            revisionQueueLeft = revisionQueue.dueAyahs().sorted()
+        runActive = true
+        load(ayah) {
+            revisionQueueLeft = selectRevisionQueue(revisionQueue.dueAyahs(), ayah, limit)
             mutableRevisionRemaining.value = revisionQueueLeft.size
-            settings.setHifzEnabled(true)
             session.setHifzEnabled(true)
-            speech.prepare()
-            session.load(ayahsFrom(ayah))
         }
+    }
+
+    /**
+     * The ayahs one revision run covers, in reading order. Without a [limit] that is every due
+     * ayah. With a limit it is [limit] ayahs counted from [start] and wrapping to the beginning of
+     * the Quran: [start] itself comes first even when it is not due. The Today row offers a day's
+     * worth of ayahs rather than every due one, so a run is capped and the rest wait for the next.
+     */
+    private fun selectRevisionQueue(
+        dueAyahs: List<AyahRef>,
+        start: AyahRef,
+        limit: Int?,
+    ): List<AyahRef> {
+        val readingOrder = dueAyahs.sorted()
+        if (limit == null) return readingOrder
+        require(limit >= 1) { "A revision run covers at least one ayah, got $limit." }
+        val others = readingOrder.filter { it != start }
+        val afterStart = others.filter { it > start }
+        val beforeStart = others.filter { it < start }
+        return (listOf(start) + afterStart + beforeStart).take(limit).sorted()
     }
 
     /**
@@ -204,6 +279,204 @@ class ReciteController(
         load(next)
     }
 
+    /**
+     * Plays the reciter from the ayah the user is on to the end of its surah, with the repeat
+     * setting of the player, and keeps the microphone off. It goes on until the user presses the
+     * microphone ([resumeReciting]) or stops it ([stopListening]).
+     */
+    fun listenOnward() {
+        if (session.words.value.isEmpty()) return
+        onwardAudioHasStarted = false
+        onwardAudioHasEnded = false
+        ignoreAudioUntilSilent = false
+        mutableListeningOnward.value = true
+        pauseMicrophone()
+        runAfterPendingWork {
+            // Found after the pending steps: a resume before this has moved the next word.
+            val ayah = ayahToListenTo()
+            if (ayah == null) {
+                mutableListeningOnward.value = false
+                return@runAfterPendingWork
+            }
+            lastListenedAyah = ayah
+            // The tracker is not asked about the ayahs played, whatever the microphone hears later.
+            session.continueAt(ayah)
+            audioPlayer.play(settings.reciterId.first(), ayah, to = null)
+            // Counted from the play call, not from a Playing state: a short ayah can go from
+            // Playing to Idle between two looks at the player.
+            onwardAudioHasStarted = true
+        }
+    }
+
+    /**
+     * Stops the audio and starts the microphone again where the listening left off: at the ayah
+     * that was playing, or after the last one played when the audio had ended. The ayahs only
+     * listened to are not marked as left out.
+     */
+    fun resumeReciting() {
+        mutableListeningOnward.value = false
+        ignoreAudioUntilSilent = true
+        noteAudioEndedBeforeStopping()
+        stopAudio()
+        runAfterPendingWork {
+            settleContinuationPoint()
+            session.start()
+        }
+    }
+
+    /** Stops the audio and leaves the microphone off; the next start goes on where it left off. */
+    fun stopListening() {
+        mutableListeningOnward.value = false
+        ignoreAudioUntilSilent = true
+        noteAudioEndedBeforeStopping()
+        stopAudio()
+        runAfterPendingWork { settleContinuationPoint() }
+    }
+
+    // Reads the player as it is before our own stop() makes it Idle: Idle then, after the play
+    // call,
+    // means the audio ran out. A state flow answers at once, so this runs before the caller goes
+    // on.
+    private fun noteAudioEndedBeforeStopping() {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            val playback = audioPlayer.state.first()
+            // The collector may have missed the last ayah too, so the player's own answer wins.
+            if (playback is PlaybackState.Playing) lastListenedAyah = playback.ayah
+            if (playback is PlaybackState.Paused) lastListenedAyah = playback.ayah
+            if (onwardAudioHasStarted && playback.isSilent()) onwardAudioHasEnded = true
+        }
+    }
+
+    // Stops the audio for a new run and forgets any listening that was going on.
+    private fun stopAudioForNewRun() {
+        mutableListeningOnward.value = false
+        onwardAudioHasStarted = false
+        onwardAudioHasEnded = false
+        lastListenedAyah = null
+        stopAudio()
+    }
+
+    // The player goes on reporting Playing for a moment after stop(). Those reports, and the Idle
+    // that ends them, are ours and must not read as the user starting or ending a listening. When
+    // nothing was playing there is no Idle to wait for, so the flag is lifted at once.
+    private fun stopAudio() {
+        ignoreAudioUntilSilent = true
+        audioPlayer.stop()
+        if (isSilentNow()) ignoreAudioUntilSilent = false
+    }
+
+    // The player's own answer, which a collector that lags behind cannot give.
+    private fun isSilentNow(): Boolean {
+        var isSilent = true
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            isSilent = audioPlayer.state.first().isSilent()
+        }
+        return isSilent
+    }
+
+    private fun PlaybackState.isSilent(): Boolean =
+        this is PlaybackState.Idle || this is PlaybackState.Error
+
+    // Tells the session where the next start goes on. An ayah that is not loaded (the audio ran on
+    // past the loaded words) is loaded fresh, which also ends the old marks: the page has moved on.
+    private suspend fun settleContinuationPoint() {
+        val ayah = continuationAyah() ?: return
+        // Used once: a later listening of another kind must not go back to this ayah.
+        lastListenedAyah = null
+        val isLoaded =
+            session.words.value.any { it.key.surah == ayah.surah && it.key.ayah == ayah.ayah }
+        if (isLoaded) {
+            session.continueAt(ayah)
+        } else {
+            session.load(ayahsFrom(ayah))
+        }
+    }
+
+    // The ayah where reciting goes on after listening: the one playing when the audio was stopped,
+    // or the one after the last played when the audio had ended. Null when nothing was played.
+    private suspend fun continuationAyah(): AyahRef? {
+        val last = lastListenedAyah ?: return null
+        return if (onwardAudioHasEnded) nextAyahAfter(last) else last
+    }
+
+    internal suspend fun nextAyahAfter(ayah: AyahRef): AyahRef? {
+        val page = quranText.pageOf(ayah, pageScript)
+        val onSamePage = quranText.ayahsOnPage(page, pageScript).firstOrNull { it > ayah }
+        return onSamePage ?: ayahsOnPageAfter(ayah).firstOrNull()
+    }
+
+    // Follows the audio whoever started it: the Listen button, the ayah bar or a word. Audio that
+    // the Listen button did not start only counts once it plays an ayah past the one the reciter
+    // is on; the review card plays the ayah of a mistake, and reciting then goes on where it was.
+    private fun followAudioWhileListeningOnward(playback: PlaybackState) {
+        if (ignoreAudioUntilSilent) {
+            if (playback.isSilent()) ignoreAudioUntilSilent = false
+            return
+        }
+        if (isFollowingAudio(playback)) noteAudioState(playback)
+    }
+
+    private fun isFollowingAudio(playback: PlaybackState): Boolean =
+        mutableActive.value && (mutableListeningOnward.value || beginsListeningOnward(playback))
+
+    private fun noteAudioState(playback: PlaybackState) {
+        when (playback) {
+            is PlaybackState.Playing -> noteListenedAyah(playback.ayah)
+            is PlaybackState.Paused -> noteListenedAyah(playback.ayah)
+            is PlaybackState.Downloading -> onwardAudioHasStarted = true
+            is PlaybackState.Idle,
+            is PlaybackState.Error -> if (onwardAudioHasStarted) endListeningOnward()
+        }
+    }
+
+    // Audio the Listen button did not start counts as listening only when it plays an ayah past the
+    // one the reciter is on, and the player still plays it now: a collector that lags can deliver
+    // a Playing report for audio that has already stopped.
+    private fun beginsListeningOnward(playback: PlaybackState): Boolean {
+        val ayah = playedAyahOf(playback)
+        val isNewListening = ayah != null && isPastTheReciter(ayah) && !isSilentNow()
+        if (isNewListening) {
+            onwardAudioHasStarted = false
+            onwardAudioHasEnded = false
+            mutableListeningOnward.value = true
+        }
+        return isNewListening
+    }
+
+    private fun playedAyahOf(playback: PlaybackState): AyahRef? =
+        when (playback) {
+            is PlaybackState.Playing -> playback.ayah
+            is PlaybackState.Paused -> playback.ayah
+            else -> null
+        }
+
+    private fun isPastTheReciter(ayah: AyahRef): Boolean {
+        val current = session.currentWord.value ?: return true
+        return ayah > AyahRef(current.surah, current.ayah)
+    }
+
+    private fun noteListenedAyah(ayah: AyahRef) {
+        lastListenedAyah = ayah
+        onwardAudioHasStarted = true
+    }
+
+    // The audio ran out by itself: the microphone button goes back to its normal job, and a plain
+    // start goes on after the last ayah played.
+    private fun endListeningOnward() {
+        onwardAudioHasEnded = true
+        mutableListeningOnward.value = false
+        runAfterPendingWork { settleContinuationPoint() }
+    }
+
+    // Runs [work] after the load, exit or listening step before it, so the steps stay in order.
+    private fun runAfterPendingWork(work: suspend () -> Unit) {
+        val previous = loadJob
+        loadJob = scope.launch {
+            previous?.join()
+            work()
+        }
+    }
+
     /** Waits until the last [reciteFrom] or [exit] has finished; for tests. */
     internal suspend fun joinPendingWork() {
         loadJob?.join()
@@ -230,12 +503,19 @@ class ReciteController(
 
     /** Stops the microphone, forgets the loaded words and leaves recite mode. */
     fun exit() {
+        mutableListeningOnward.value = false
+        onwardAudioHasStarted = false
+        lastListenedAyah = null
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
+        val endedRun = runActive
+        runActive = false
         val previous = loadJob
         loadJob = scope.launch {
             previous?.cancelAndJoin()
+            // Before the unload: the session has no word to publish states for once it is empty.
+            if (endedRun) session.setHifzEnabled(settings.hifzEnabled.first())
             session.unload()
             // Only after the session let go of the recogniser: closing it earlier would free the
             // native model under a running recognition. The model stays for a grace period so a
@@ -264,9 +544,16 @@ class ReciteController(
         scope.launch { settings.setSpeed(speed) }
     }
 
-    /** Turns memorise mode (hidden words) on or off and keeps the choice. */
+    /**
+     * Turns memorise mode (hidden words) on or off. During a practice or revision run the choice
+     * lasts for that run only; outside a run it is kept as the saved setting.
+     */
     fun setHideWords(hide: Boolean) {
-        scope.launch { settings.setHifzEnabled(hide) }
+        // The session changes at once. Waiting for the saved value to come back made two quick taps
+        // read the same old state and send the same choice, so the second tap seemed to do nothing.
+        // The saved value is only the next run's starting point.
+        session.setHifzEnabled(hide)
+        if (!runActive) scope.launch { settings.setHifzEnabled(hide) }
     }
 }
 
@@ -303,4 +590,17 @@ internal object DefaultTrackerFactory : TrackerFactory {
 fun rememberReciteWordStates(controller: ReciteController): Map<WordKey, WordState> {
     val states by controller.session.wordStates.collectAsState()
     return states
+}
+
+/**
+ * The first letter of the next word when the user asked for it with "Show next word": the page
+ * draws it inside that word's hidden box. Empty when no letter is shown.
+ */
+@Composable
+fun rememberReciteHintLetters(controller: ReciteController): Map<WordKey, String> {
+    val hint by controller.session.hint.collectAsState()
+    return remember(hint) {
+        val shown = hint
+        if (shown == null) emptyMap() else mapOf(shown.key to shown.letter)
+    }
 }

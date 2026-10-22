@@ -107,6 +107,76 @@ class AudioViewModelsTest {
         assertEquals(false, (viewModel.state.value as AudioBarState.Active).isPlaying)
     }
 
+    /**
+     * Choosing another reciter from the page while audio plays goes on with the new voice from the
+     * ayah that was playing, to the same end; it does not wait for the next Play.
+     */
+    @Test
+    fun choosingAnotherReciterWhilePlayingGoesOnWithTheNewVoiceFromTheSameAyah() = runTest {
+        barViewModel()
+        val controller = controller()
+        settle()
+        controller.playRange(AyahRef(2, 10), AyahRef(2, 11))
+        settle()
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertEquals(Triple("husary", AyahRef(2, 10), AyahRef(2, 11)), player.playCalls.last())
+    }
+
+    @Test
+    fun choosingAnotherReciterWhilePausedStaysPaused() = runTest {
+        barViewModel()
+        val controller = controller()
+        settle()
+        controller.playRange(AyahRef(2, 10), null)
+        settle()
+        player.pause()
+        val callsBefore = player.playCalls.size
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertEquals(callsBefore, player.playCalls.size)
+        assertTrue(player.currentState.value is PlaybackState.Paused)
+    }
+
+    @Test
+    fun choosingAReciterWhileIdleStartsNothing() = runTest {
+        barViewModel()
+        controller()
+        settle()
+
+        settings.selectReciter("husary")
+        settle()
+
+        assertTrue(player.playCalls.isEmpty())
+    }
+
+    /** The microphone on the audio bar recites from the ayah that is playing. */
+    @Test
+    fun recitingWhileAudioPlaysStartsAtThePlayingAyah() = runTest {
+        val viewModel = barViewModel()
+        settle()
+        viewModel.showPage(5)
+        settle()
+        player.play("alafasy", AyahRef(2, 11), null)
+
+        assertEquals(AyahRef(2, 11), viewModel.reciteStart())
+    }
+
+    /** When nothing plays, the microphone recites from the first ayah of the page on screen. */
+    @Test
+    fun recitingWhileIdleStartsAtTheFirstAyahOfThePage() = runTest {
+        val viewModel = barViewModel()
+        settle()
+        viewModel.showPage(5)
+        settle()
+
+        assertEquals(AyahRef(2, 10), viewModel.reciteStart())
+    }
+
     @Test
     fun barShowsDownloadingBytesAndError() = runTest {
         val viewModel = barViewModel()
@@ -311,6 +381,29 @@ class AudioViewModelsTest {
         viewModel.setDownloadAmount(app.awn.quran.player.DownloadAmount.Juz)
         settle()
         assertEquals(app.awn.quran.player.DownloadAmount.Juz, settings.downloadAmount.first())
+    }
+
+    @Test
+    fun theWordReciterIsKeptAndOffersOnlyRecitersWithWordTimings() = runTest {
+        val basfar = Reciter("basfar", "Basfar", "s{SSS}", "a{SSS}{AAA}", false, "basfar")
+        val withBasfar = FakeReciterRepository(reciterList = mutableListOf(basfar, alafasy, husary))
+        val viewModel =
+            AudioSettingsViewModel(withBasfar, FakeAudioDownloads(), settings, player).also {
+                backgroundScope.launch { it.state.collect {} }
+            }
+        settings.selectReciter("basfar")
+        settle()
+
+        assertNull(settings.wordReciterId.first())
+        assertEquals(listOf(alafasy, husary), viewModel.state.value.wordReciters)
+        assertEquals("alafasy", viewModel.state.value.wordReciterId)
+
+        viewModel.setWordReciter(husary)
+        settle()
+
+        assertEquals("husary", settings.wordReciterId.first())
+        assertEquals("husary", viewModel.state.value.wordReciterId)
+        assertEquals("Basfar", viewModel.state.value.reciterName)
     }
 
     @Test

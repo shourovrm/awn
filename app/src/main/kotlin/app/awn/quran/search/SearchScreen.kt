@@ -30,7 +30,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDirection
@@ -56,23 +55,37 @@ fun SearchScreen(
     onQueryChange: (String) -> Unit,
     onBack: () -> Unit,
     onOpen: (page: Int, ayah: AyahRef?) -> Unit,
+    onOpenSurah: (surah: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
         Column(modifier.fillMaxSize()) {
             SearchBar(typedQuery, onQueryChange, onBack)
             val rows = state.rows
-            if (rows != null) {
-                Text(
-                    text =
-                        pluralStringResource(R.plurals.search_result_count, rows.size, rows.size),
-                    style = AwnTypography.small,
-                    color = Awn.field.content,
-                    modifier = Modifier.padding(AwnSpacing.screenMargin),
-                )
+            if (rows != null || state.surahs.isNotEmpty()) {
+                if (rows != null) {
+                    Text(
+                        text =
+                            pluralStringResource(
+                                R.plurals.search_result_count,
+                                rows.size,
+                                rows.size,
+                            ),
+                        style = AwnTypography.small,
+                        color = Awn.field.content,
+                        modifier = Modifier.padding(AwnSpacing.screenMargin),
+                    )
+                }
+                val ayahRows = rows.orEmpty()
                 LazyColumn(Modifier.fillMaxSize()) {
-                    items(rows.size) { index ->
-                        ResultRow(rows[index]) { onOpen(rows[index].page, rows[index].hit.ayah) }
+                    items(state.surahs.size) { index ->
+                        val chapter = state.surahs[index]
+                        SurahResultRow(chapter) { onOpenSurah(chapter.number) }
+                    }
+                    items(ayahRows.size) { index ->
+                        ResultRow(ayahRows[index]) {
+                            onOpen(ayahRows[index].page, ayahRows[index].hit.ayah)
+                        }
                     }
                 }
             }
@@ -148,7 +161,7 @@ private fun ResultRow(row: SearchRow, onClick: () -> Unit) {
             style =
                 if (isArabic) {
                     AwnTypography.body.copy(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = AwnTypography.quran.fontFamily,
                         textDirection = TextDirection.Rtl,
                     )
                 } else {

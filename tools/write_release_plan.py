@@ -18,6 +18,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_paths
 import quran_com
 
 DATA_ROOT = quran_com.DATA_ROOT
@@ -31,6 +32,10 @@ HOLD_REASONS = {
 def load(name, key):
     with open(os.path.join(DATA_ROOT, "manifests", name), encoding="utf-8") as handle:
         return json.load(handle)[key]
+
+
+def path_from_workspace(manifest_file):
+    return os.path.relpath(data_paths.pack_file_path(manifest_file), data_paths.workspace())
 
 
 def megabytes(size):
@@ -60,7 +65,7 @@ def main():
         raise SystemExit("two packs share a file name; release assets are flat")
 
     lines = [f"# Release plan for {tag}", "",
-             f"Generated from awn-data-v2/manifests. Nothing has been uploaded and no release exists. The app builds "
+             f"Generated from awn-data/next/manifests. Nothing has been uploaded and no release exists. The app builds "
              f"download URLs as `https://github.com/{REPOSITORY}/releases/download/<tag>/<file name>` where the file name is the "
              "last part of the manifest `file` path (ManifestCatalog.DATA_RELEASE_URL, currently `data-v1`), so the "
              f"app must point at `{tag}` before the new packs can be installed.", ""]
@@ -77,14 +82,17 @@ def main():
     for entry, reason in held:
         lines.append(f"| {entry['file'].rsplit('/', 1)[-1]} | {megabytes(entry['bytes'])} | {entry['id']} | {reason} |")
     excluded_ids = ",".join(entry["id"] for entry, _ in held)
-    pack_paths = " ".join(entry["file"] for entry, _ in published)
-    terms_paths = " ".join(entry["terms_file"] for entry, _ in published if entry.get("terms_file"))
+    # The commands run inside the workspace, but the font zips sit in awn-data/fonts beside it.
+    pack_paths = " ".join(path_from_workspace(entry["file"]) for entry, _ in published)
+    terms_paths = " ".join(path_from_workspace(entry["terms_file"]) for entry, _ in published if entry.get("terms_file"))
+    workspace = data_paths.workspace()
+    repository = data_paths.REPOSITORY
     lines += ["", "## Commands", "",
               "The maintainer runs these; the first block writes manifests without the held packs, the second creates the release.",
-              "", "```sh", "cd /home/rms/repos/awn",
-              f"AWN_DATA=/home/rms/repos/awn/awn-data-v2 python3 -I tools/build_manifests.py --exclude={excluded_ids}",
-              "AWN_DATA=/home/rms/repos/awn/awn-data-v2 python3 -I tools/verify_packs.py", "```", "",
-              "```sh", "cd /home/rms/repos/awn/awn-data-v2",
+              "", "```sh", f"cd {repository}",
+              f"python3 -I tools/build_manifests.py --exclude={excluded_ids}",
+              "python3 -I tools/verify_packs.py", "```", "",
+              "```sh", f"cd {workspace}",
               f"gh release create {tag} --repo {REPOSITORY} --prerelease --title \"Data packs {tag}\" "
               f"--notes \"Quran text, fonts, translations and word timings. Checksums are in manifests/*.json.\" "
               "manifests/scripts.json manifests/translations.json manifests/reciters.json",

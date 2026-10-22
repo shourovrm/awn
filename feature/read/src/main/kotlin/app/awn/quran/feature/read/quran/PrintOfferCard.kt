@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -57,8 +57,8 @@ internal class PrintOfferActions(
 
 /**
  * The one-time card that offers the printed Mushaf over the dimmed first Quran page. It asks which
- * of the three prints to download, then, once the download runs, shows its progress with Keep
- * reading and Cancel. A failure of the chosen print shows in the asking state.
+ * of the prints to download, then, once the download runs, shows its progress with Keep reading and
+ * Cancel. A failure of a ticked print shows in the asking state.
  */
 @Composable
 internal fun PrintOfferCard(
@@ -69,17 +69,17 @@ internal fun PrintOfferCard(
 ) {
     FloatingCard(onDismiss = {}, modifier = modifier) {
         val downloading = offer.downloading
-        if (downloading != null) {
-            DownloadingContent(downloading, statuses[downloading], actions)
+        if (downloading.isNotEmpty()) {
+            DownloadingContent(downloading, statuses, actions)
         } else {
-            ChoiceContent(offer.choice, statuses, actions)
+            ChoiceContent(offer, statuses, actions)
         }
     }
 }
 
 @Composable
 private fun ChoiceContent(
-    choice: ScriptId,
+    offer: PrintOfferState,
     statuses: Map<ScriptId, FontPackStatus>,
     actions: PrintOfferActions,
 ) {
@@ -98,19 +98,22 @@ private fun ChoiceContent(
         pageTypeScripts.forEach { script ->
             PrintRow(
                 script = script,
-                isSelected = script == choice,
+                isSelected = script in offer.choices,
                 sizeBytes = statuses[script]?.downloadBytes,
-                onClick = { actions.onChoose(script) },
+                onToggle = { actions.onChoose(script) },
             )
         }
     }
-    val failure = statuses[choice]?.failure
+    val failure =
+        pageTypeScripts
+            .filter { it in offer.choices }
+            .firstNotNullOfOrNull { statuses[it]?.failure }
     if (failure != null) {
         Text(text = failureMessage(failure), style = AwnTypography.small, color = field.wrongWord)
     }
-    val sizeBytes = statuses[choice]?.downloadBytes
+    val sizeBytes = printOfferDownloadBytes(offer, statuses)
     val downloadLabel =
-        if (sizeBytes == null) {
+        if (sizeBytes == 0L) {
             stringResource(R.string.print_offer_download)
         } else {
             stringResource(R.string.print_offer_download_sized, megabytesText(sizeBytes))
@@ -120,6 +123,7 @@ private fun ChoiceContent(
             label = downloadLabel,
             onClick = actions.onDownload,
             modifier = Modifier.fillMaxWidth(),
+            enabled = offer.choices.isNotEmpty(),
         )
         CardTextButton(
             label = stringResource(R.string.print_offer_not_now),
@@ -129,7 +133,12 @@ private fun ChoiceContent(
 }
 
 @Composable
-private fun PrintRow(script: ScriptId, isSelected: Boolean, sizeBytes: Long?, onClick: () -> Unit) {
+private fun PrintRow(
+    script: ScriptId,
+    isSelected: Boolean,
+    sizeBytes: Long?,
+    onToggle: () -> Unit,
+) {
     val field = Awn.field
     Row(
         modifier =
@@ -137,7 +146,11 @@ private fun PrintRow(script: ScriptId, isSelected: Boolean, sizeBytes: Long?, on
                 .heightIn(min = AwnSpacing.giant)
                 .clip(AwnShapes.menu)
                 .then(if (isSelected) Modifier.background(field.softFill) else Modifier)
-                .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+                .toggleable(
+                    value = isSelected,
+                    role = Role.Checkbox,
+                    onValueChange = { onToggle() },
+                )
                 .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
         verticalAlignment = Alignment.CenterVertically,
@@ -195,17 +208,19 @@ private fun TickBox(isSelected: Boolean) {
 
 @Composable
 private fun DownloadingContent(
-    script: ScriptId,
-    status: FontPackStatus?,
+    downloading: Set<ScriptId>,
+    statuses: Map<ScriptId, FontPackStatus>,
     actions: PrintOfferActions,
 ) {
     val field = Awn.field
-    val progress = status?.progress ?: 0f
+    val titlePrint = pageTypeScripts.first { it in downloading }
+    // The bar averages the prints so it moves while several downloads run at once.
+    val progress = downloading.map { statuses[it]?.progress ?: 0f }.average().toFloat()
     Text(
         text =
             stringResource(
                 R.string.print_offer_downloading,
-                stringResource(pageTypeText(script).name),
+                stringResource(pageTypeText(titlePrint).name),
             ),
         style = AwnTypography.lead,
         color = field.content,
@@ -216,9 +231,9 @@ private fun DownloadingContent(
         color = field.buttonFill,
         trackColor = field.softFill,
     )
-    val sizeBytes = status?.downloadBytes
+    val sizeBytes = downloading.sumOf { statuses[it]?.downloadBytes ?: 0L }
     val progressLine =
-        if (sizeBytes == null) {
+        if (sizeBytes == 0L) {
             stringResource(R.string.print_offer_percent, (progress * PERCENT).toInt())
         } else {
             stringResource(
