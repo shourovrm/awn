@@ -60,18 +60,38 @@ class ReciterSheetViewModel(
     private val idsDownloadedForPage = MutableStateFlow<Set<String>>(emptySet())
     private val idsWithDownloads = MutableStateFlow<Set<String>>(emptySet())
     private val query = MutableStateFlow("")
+    private val choosesWordReciter = MutableStateFlow(false)
+
+    private val shownReciters =
+        combine(reciterList, choosesWordReciter) { list, forWords ->
+            if (forWords) list.filter { it.wordByWord && it.timingPack != null } else list
+        }
+
+    private val selectedId =
+        combine(
+            shownReciters,
+            choosesWordReciter,
+            settings.selectedReciterId,
+            settings.wordReciterId,
+        ) { list, forWords, listeningId, chosenWordId ->
+            if (forWords) {
+                wordReciterIdInUse(chosenWordId, listeningId, list.map { it.id }).orEmpty()
+            } else {
+                listeningId
+            }
+        }
 
     val state: StateFlow<ReciterSheetState> =
         combine(
-                reciterList,
+                shownReciters,
                 idsDownloadedForPage,
                 idsWithDownloads,
                 query,
-                settings.selectedReciterId,
-            ) { list, forPage, withDownloads, text, selectedId ->
+                selectedId,
+            ) { list, forPage, withDownloads, text, selected ->
                 ReciterSheetState(
                     groups = groupReciters(list, forPage, withDownloads, text),
-                    selectedId = selectedId,
+                    selectedId = selected,
                     query = text,
                 )
             }
@@ -81,8 +101,12 @@ class ReciterSheetViewModel(
                 ReciterSheetState(ReciterGroups(emptyList(), emptyList(), emptyList()), "", ""),
             )
 
-    /** Reads the reciters and what each has downloaded; [page] is null outside the Quran page. */
-    fun load(page: Int?) {
+    /**
+     * Reads the reciters and what each has downloaded; [page] is null outside the Quran page. With
+     * [forWords] the sheet lists only reciters with word timings and chooses the word reciter.
+     */
+    fun load(page: Int?, forWords: Boolean = false) {
+        choosesWordReciter.value = forWords
         viewModelScope.launch {
             val list = reciters.reciters()
             reciterList.value = list
@@ -106,7 +130,13 @@ class ReciterSheetViewModel(
     }
 
     fun select(reciterId: String) {
-        viewModelScope.launch { settings.selectReciter(reciterId) }
+        viewModelScope.launch {
+            if (choosesWordReciter.value) {
+                settings.setWordReciter(reciterId)
+            } else {
+                settings.selectReciter(reciterId)
+            }
+        }
     }
 
     private companion object {

@@ -1,6 +1,8 @@
 package app.awn.quran.feature.recite
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -26,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
@@ -38,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -54,6 +61,9 @@ const val REVIEW_CARD_TAG = "review-card"
 /** The test tag of the Listen action in the review card. */
 const val REVIEW_LISTEN_TAG = "review-listen"
 
+/** The test tag of the save-word (bookmark) button in the review card. */
+const val REVIEW_SAVE_TAG = "review-save"
+
 /** The test tag of the close button of the review card. */
 const val REVIEW_CLOSE_TAG = "review-close"
 
@@ -69,9 +79,11 @@ private const val MIN_WORD_FONT_SIZE_SHARE = 0.5f
 /**
  * The review of flagged words as a card above the recite bar, on the field of the colour mode. The
  * page stays visible and live above it: [focusedKey] is the word on the page that is ringed. The
- * top row holds Listen at the left and Close at the right; the word is large on its own full-width
- * line under them, then one block per finding. [reviews] holds every flagged word in reading order;
- * Previous and Next call [onFocus] with the neighbour, so the page can turn to it. The card is not
+ * top row holds the play and save-word buttons (as on the word card) at the left and Close at the
+ * right; the word is large on its own full-width line under them, then one block per finding.
+ * [reviews] holds every flagged word in reading order; Previous and Next call [onFocus] with the
+ * neighbour, so the page can turn to it. [isSaved] is null when there is no word list, so no save
+ * button shows; that button calls [onSave], or [onRemove] when the word is saved. The card is not
  * modal: nothing behind it is dimmed or blocked.
  */
 @Composable
@@ -83,6 +95,11 @@ fun ReciteReviewCard(
     onListen: (WordKey) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    isPlaying: Boolean = false,
+    onStop: () -> Unit = {},
+    isSaved: Boolean? = null,
+    onSave: (WordKey) -> Unit = {},
+    onRemove: (WordKey) -> Unit = {},
 ) {
     // An empty list still shows the card: a card that silently stays closed looked like a bug.
     val position = reviews.indexOfFirst { it.key == focusedKey }.coerceAtLeast(0)
@@ -99,7 +116,7 @@ fun ReciteReviewCard(
             .background(field.background, AwnShapes.control)
             .heightIn(max = maxHeight)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small)
+            .padding(horizontal = AwnSpacing.medium, vertical = TIGHT_GAP)
             .testTag(REVIEW_CARD_TAG),
     ) {
         Row(
@@ -110,11 +127,40 @@ fun ReciteReviewCard(
             if (review == null) {
                 FindingTitle(stringResource(R.string.recite_review_empty))
             } else {
-                SheetAction(
-                    label = stringResource(R.string.recite_listen),
-                    modifier = Modifier.testTag(REVIEW_LISTEN_TAG),
-                    onClick = { onListen(review.key) },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CardIconButton(
+                        style = CardIconStyle.Soft,
+                        icon =
+                            if (isPlaying) R.drawable.ic_recite_stop else R.drawable.ic_recite_play,
+                        description =
+                            stringResource(
+                                if (isPlaying) R.string.recite_word_stop
+                                else R.string.recite_word_play,
+                            ),
+                        tag = REVIEW_LISTEN_TAG,
+                        onClick = if (isPlaying) onStop else ({ onListen(review.key) }),
+                    )
+                    if (isSaved != null) {
+                        CardIconButton(
+                            style = if (isSaved) CardIconStyle.Filled else CardIconStyle.Ring,
+                            icon =
+                                if (isSaved) {
+                                    R.drawable.ic_recite_bookmark_filled
+                                } else {
+                                    R.drawable.ic_recite_bookmark
+                                },
+                            description =
+                                stringResource(
+                                    if (isSaved) R.string.recite_word_saved
+                                    else R.string.recite_word_save,
+                                ),
+                            tag = REVIEW_SAVE_TAG,
+                            onClick =
+                                if (isSaved) ({ onRemove(review.key) })
+                                else ({ onSave(review.key) }),
+                        )
+                    }
+                }
             }
             CloseButton(onDismiss)
         }
@@ -139,10 +185,73 @@ fun ReciteReviewCard(
         Text(
             text = stringResource(R.string.recite_review_note),
             style = AwnTypography.small,
-            modifier = Modifier.padding(vertical = AwnSpacing.small),
+            modifier = Modifier.padding(bottom = TIGHT_GAP),
         )
     }
 }
+
+/** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
+private val TIGHT_GAP = AwnSpacing.small / 2
+
+/** How a round icon button of the card is drawn; see the mock-up q1-a-corners. */
+private enum class CardIconStyle {
+    /** A soft tint of the card ink: play. */
+    Soft,
+
+    /** An outline in the card ink: save word. */
+    Ring,
+
+    /** Ochre with an ink icon: the word is saved. */
+    Filled,
+}
+
+@Composable
+private fun CardIconButton(
+    style: CardIconStyle,
+    icon: Int,
+    description: String,
+    tag: String,
+    onClick: () -> Unit,
+) {
+    val ink = Awn.field.content
+    val isLightCard = Awn.field.background.luminance() >= LIGHT_CARD_LUMINANCE
+    val circle = CircleShape
+    val styled =
+        when (style) {
+            CardIconStyle.Soft -> Modifier.background(ink.copy(alpha = SOFT_ALPHA), circle)
+            CardIconStyle.Ring -> Modifier.border(BorderStroke(RING_WIDTH, ink), circle)
+            // Ochre on a light card is 2:1, so the circle gets an ink edge there.
+            CardIconStyle.Filled ->
+                Modifier.background(AwnColors.ochre, circle)
+                    .then(
+                        if (isLightCard) {
+                            Modifier.border(BorderStroke(RING_WIDTH, ink), circle)
+                        } else {
+                            Modifier
+                        },
+                    )
+        }
+    Box(
+        Modifier.requiredSize(AwnSpacing.touchTarget)
+            .semantics { contentDescription = description }
+            .clickable(role = Role.Button, onClick = onClick)
+            .testTag(tag),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(Modifier.size(ROUND_BUTTON_SIZE).then(styled), contentAlignment = Alignment.Center) {
+            Icon(
+                painterResource(icon),
+                contentDescription = null,
+                tint = if (style == CardIconStyle.Filled) AwnColors.ink else ink,
+            )
+        }
+    }
+}
+
+private const val LIGHT_CARD_LUMINANCE = 0.5f
+private const val SOFT_ALPHA = 0.14f
+private val RING_WIDTH = AwnSpacing.small / 4
+private val ROUND_BUTTON_SIZE = AwnSpacing.touchTarget - AwnSpacing.small / 2
 
 /**
  * The flagged word on its own line, in the Quran font. It shrinks to fit the width on one line
@@ -198,13 +307,13 @@ private fun SheetAction(
             modifier
                 .defaultMinSize(minHeight = AwnSpacing.touchTarget)
                 .clickable(enabled = enabled, onClick = onClick)
-                .padding(vertical = AwnSpacing.small),
+                .wrapContentHeight(Alignment.CenterVertically),
     )
 }
 
 @Composable
 private fun FindingBlock(finding: ReviewFinding) {
-    Column(Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = TIGHT_GAP)) {
         when (finding) {
             ReviewFinding.Skipped -> {
                 FindingTitle(stringResource(R.string.recite_verdict_skipped))
@@ -233,7 +342,7 @@ private fun FindingHint(hint: String) {
 private fun PronunciationBlock(substitution: TrackerEvent.Substitution) {
     FindingTitle(stringResource(R.string.recite_finding_pronunciation))
     Row(
-        Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small),
+        Modifier.fillMaxWidth().padding(vertical = TIGHT_GAP),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {
         SoundBox(

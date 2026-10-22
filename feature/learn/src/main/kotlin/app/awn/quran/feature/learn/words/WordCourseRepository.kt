@@ -133,6 +133,26 @@ class WordCourseRepository(
     }
 
     /**
+     * Takes a word out of the course: its queue entry and, when the user has already met it, its
+     * card. The rows are returned unchanged so [restoreWord] can put them back exactly. Lesson
+     * steps and set records stay, because they describe what happened and not what is scheduled.
+     */
+    suspend fun removeWord(rank: Int): RemovedWordRows = database.withTransaction {
+        val removed = RemovedWordRows(dao.findQueuedWord(rank), dao.findWordCard(rank))
+        dao.unqueueWord(rank)
+        dao.deleteWordCard(rank)
+        removed
+    }
+
+    /** Puts back the rows [removeWord] took out. */
+    suspend fun restoreWord(removed: RemovedWordRows) {
+        database.withTransaction {
+            removed.queued?.let { dao.queueWord(it) }
+            removed.card?.let { dao.upsertWordCard(it) }
+        }
+    }
+
+    /**
      * Rates one answer about [rank] in a session and logs the step. Returns the epoch milliseconds
      * at which the word is due next.
      */
@@ -278,3 +298,6 @@ object LearnSets {
 
     fun ranksOf(number: Int): IntRange = ((number - 1) * SET_SIZE + 1)..(number * SET_SIZE)
 }
+
+/** The rows [WordCourseRepository.removeWord] deleted; either is null when the word had none. */
+class RemovedWordRows(val queued: QueuedWordEntity?, val card: WordCardEntity?)

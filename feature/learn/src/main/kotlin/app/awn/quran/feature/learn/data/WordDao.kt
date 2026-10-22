@@ -39,6 +39,11 @@ interface WordDao {
 
     @Query("DELETE FROM queued_word WHERE rank = :rank") suspend fun unqueueWord(rank: Int)
 
+    @Query("SELECT * FROM queued_word WHERE rank = :rank")
+    suspend fun findQueuedWord(rank: Int): QueuedWordEntity?
+
+    @Query("DELETE FROM word_card WHERE rank = :rank") suspend fun deleteWordCard(rank: Int)
+
     @Query("SELECT * FROM queued_word ORDER BY added_at ASC, rank ASC")
     fun observeQueuedWords(): Flow<List<QueuedWordEntity>>
 

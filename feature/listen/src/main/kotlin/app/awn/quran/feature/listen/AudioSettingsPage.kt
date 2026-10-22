@@ -68,6 +68,7 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
     val viewModel: AudioSettingsViewModel = viewModel(factory = feature.viewModelFactory)
     val state by viewModel.state.collectAsStateWithLifecycle()
     var reciterSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var wordSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     SettingsGroupHeading(stringResource(R.string.audio_group_playback), isFirst = true)
     SettingsLinkRow(
@@ -78,12 +79,10 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
     )
     val wordReciterInUse = state.wordReciters.firstOrNull { it.id == state.wordReciterId }
     if (wordReciterInUse != null) {
-        AwnChoiceRow(
+        SettingsLinkRow(
             label = stringResource(R.string.audio_setting_word_audio),
-            options = state.wordReciters,
-            selected = wordReciterInUse,
-            optionLabel = { it.name },
-            onSelect = viewModel::setWordReciter,
+            value = wordReciterInUse.name,
+            onClick = { wordSheetOpen = true },
             rowKey = SettingRowKeys.AUDIO_WORD_RECITER,
         )
     }
@@ -123,6 +122,14 @@ private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) 
     )
     if (reciterSheetOpen) {
         ReciterSheet(feature, page = null, onDismiss = { reciterSheetOpen = false })
+    }
+    if (wordSheetOpen) {
+        ReciterSheet(
+            feature,
+            page = null,
+            onDismiss = { wordSheetOpen = false },
+            forWords = true,
+        )
     }
 }
 

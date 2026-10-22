@@ -41,13 +41,19 @@ private sealed interface SheetRow {
 /**
  * The reciter sheet: a search field, then "Downloaded for this page" (only when [page] is given),
  * "With downloads" and "All", with a tick on the current reciter. Choosing a reciter selects it and
- * closes the sheet.
+ * closes the sheet. With [forWords] the same sheet lists the reciters that have word timings and
+ * chooses the Word audio reciter.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReciterSheet(feature: AudioFeature, page: Int?, onDismiss: () -> Unit) {
+fun ReciterSheet(
+    feature: AudioFeature,
+    page: Int?,
+    onDismiss: () -> Unit,
+    forWords: Boolean = false,
+) {
     val viewModel: ReciterSheetViewModel = viewModel(factory = feature.viewModelFactory)
-    LaunchedEffect(page) { viewModel.load(page) }
+    LaunchedEffect(page, forWords) { viewModel.load(page, forWords) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val field = Awn.field
     ModalBottomSheet(

@@ -131,7 +131,7 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
  * timings, else the [listening] reciter when it has them, else the first of [withTimings], else
  * null.
  */
-internal fun wordReciterFor(
+fun wordReciterFor(
     chosen: String?,
     listening: String,
     withTimings: List<String>,

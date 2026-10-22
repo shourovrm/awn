@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn
 
 import android.content.Context
+import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.session.TodayPlan
@@ -71,6 +72,17 @@ fun learnWordIsAdded(context: Context, word: WordKey): Flow<Boolean> {
             },
         )
     }
+}
+
+/**
+ * Takes the form of [word] out of the course, queue entry and card alike, and returns the handle
+ * that puts the exact rows back. The rows are held in memory by the handle only.
+ */
+suspend fun learnRemoveWord(context: Context, word: WordKey): RemovedMyWord {
+    val services = LearnServices.get(context)
+    val repository = services.courseRepository
+    val removed = repository.removeWord(services.courseAssets().forms.rankOf(word))
+    return RemovedMyWord { repository.restoreWord(removed) }
 }
 
 /** Queues the form of [word] among the words taught next. */

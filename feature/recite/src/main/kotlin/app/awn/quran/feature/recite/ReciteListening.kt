@@ -23,15 +23,16 @@ suspend fun ReciteController.ayahToListenTo(): AyahRef? {
 }
 
 /**
- * Plays once with the reciter chosen in the settings: the focused word when the reciter has word
- * timings, otherwise [ayahToListenTo].
+ * Plays once: the focused word with the Word audio reciter when it has word timings for the ayah,
+ * otherwise [ayahToListenTo] with the recite reciter.
  */
 suspend fun ReciteController.listenToAyah() {
     val ayah = ayahToListenTo() ?: return
     val reciterId = settings.reciterId.first()
+    val wordReciter = wordReciterId(reciterId)
     val focused = focusedWord.value
-    if (focused != null && hasWordTimings(reciterId, ayah)) {
-        playWord(audioPlayer, reciterId, focused)
+    if (focused != null && hasWordTimings(wordReciter, ayah)) {
+        playWord(audioPlayer, wordReciter, focused)
     } else {
         audioPlayer.play(reciterId, ayah, ayah)
     }

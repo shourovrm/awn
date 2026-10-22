@@ -15,11 +15,13 @@ import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.learnAddWord
 import app.awn.quran.feature.learn.learnProgressEvents
+import app.awn.quran.feature.learn.learnRemoveWord
 import app.awn.quran.feature.learn.learnWordIsAdded
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.quran.PrintOfferStore
+import app.awn.quran.feature.read.quran.wordReciterFor
 import app.awn.quran.feature.read.settings.DataStoreReadSettingsStore
 import app.awn.quran.feature.recite.AyahGrade
 import app.awn.quran.feature.recite.MicrophoneTrackerInput
@@ -139,6 +141,8 @@ class AwnServices(private val application: Application) {
                     override fun isAdded(word: WordKey) = learnWordIsAdded(application, word)
 
                     override suspend fun add(word: WordKey) = learnAddWord(application, word)
+
+                    override suspend fun remove(word: WordKey) = learnRemoveWord(application, word)
                 },
         )
 
@@ -165,6 +169,19 @@ class AwnServices(private val application: Application) {
             hasWordTimings = { reciterId, ayah ->
                 coreData.reciters.ayahAudio(reciterId, ayah)?.words.orEmpty().isNotEmpty()
             },
+            wordReciterId = { listeningReciterId ->
+                val withTimings =
+                    coreData.reciters
+                        .reciters()
+                        .filter { it.wordByWord && it.timingPack != null }
+                        .map { it.id }
+                wordReciterFor(
+                    listenSettings.wordReciterId.first(),
+                    listeningReciterId,
+                    withTimings,
+                ) ?: listeningReciterId
+            },
+            myWords = readDependencies.myWords,
         )
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
