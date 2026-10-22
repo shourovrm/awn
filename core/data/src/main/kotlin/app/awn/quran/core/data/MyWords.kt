@@ -13,6 +13,14 @@ interface MyWords {
     /** Adds the form of [word] to the words taught next. */
     suspend fun add(word: WordKey)
 
-    /** Takes the form of [word] out of the words taught next; a word already learned stays. */
-    suspend fun remove(word: WordKey)
+    /**
+     * Takes the form of [word] out of the course, also when the user has already met it. The result
+     * puts it back exactly as it was.
+     */
+    suspend fun remove(word: WordKey): RemovedMyWord
+}
+
+/** What [MyWords.remove] took out, kept in memory so the user can undo the removal. */
+fun interface RemovedMyWord {
+    suspend fun restore()
 }
