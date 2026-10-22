@@ -156,3 +156,5 @@
 2026-10-21 | Hifz tab built from the approved mocks; Method row opens the chooser page, not a menu | the chooser holds the method's settings (hifz.md)
 2026-10-21 | Hifz practice runs in the Quran screen's recite mode through a hifzBar slot | one reader, no second screen (hifz.md)
 2026-10-21 | Hifz tab and Today row wired into the tab host; practice returns to the Hifz tab | the placeholder is gone (hifz.md)
+2026-10-22 | Hifz and revision runs hide words for the run only; Today revise passes a cap | saved recite setting stayed hidden and every due ayah was revised
+2026-10-22 | Hifz bar listens to a movable window; Memorised up to sets the cursor | the loop was stuck on the lesson and users could not say how far they know

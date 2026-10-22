@@ -194,6 +194,7 @@ class HifzScreensTest {
                 table = fatihahOnly,
                 surahName = { "Al-Fatihah" },
                 onSave = { range, status -> saved = range to status },
+                onOpenKnownUpTo = {},
                 onBack = {},
             )
         }

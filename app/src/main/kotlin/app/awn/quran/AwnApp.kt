@@ -260,9 +260,9 @@ private fun TabsRoute(
         TodayNavigation(
             openLearnTab = { navigation.selectTab(AwnTab.Learn) },
             openHifzTab = { navigation.selectTab(AwnTab.Hifz) },
-            reviseAt = { ayah ->
+            reviseAt = { ayah, limit ->
                 navigation.openQuran(page = null, ayah = ayah)
-                services.recite.reviseAt(ayah)
+                services.recite.reviseAt(ayah, limit = limit)
             },
         )
     TabsHost(

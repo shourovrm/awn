@@ -16,7 +16,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -330,7 +329,9 @@ private fun QuranContent(
         val reciteWordBounds = trackedWordBounds
         val barShiftTarget =
             when {
+                // The stack leaves the composition under the panel, so its height is stale there.
                 state.isReciting &&
+                    !state.isPanelOpen &&
                     isMushaf &&
                     reciteWordBounds != null &&
                     bottomStackHeightPx > 0 ->
@@ -426,7 +427,10 @@ private fun QuranContent(
             )
         }
         if (!state.isPanelOpen) {
-            Column(Modifier.align(Alignment.BottomCenter)) {
+            BottomBarStack(
+                onHeightChanged = { bottomStackHeightPx = it },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
                 // An enabled translation is missing: say so and offer it, instead of showing none.
                 if (!isMushaf) {
                     MissingTranslationPrompt(dependencies, state.settings.translations)
