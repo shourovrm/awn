@@ -17,6 +17,8 @@ import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -32,6 +34,7 @@ class LearnProgressTest {
     private val zone = ZoneId.of("Asia/Dhaka")
     private var now: Instant = Instant.parse("2026-03-10T03:00:00Z")
     private lateinit var database: LearnDatabase
+    private lateinit var settingsScope: CoroutineScope
     private lateinit var settings: LearnSettings
     private lateinit var progress: LearnProgress
     private val ayah = AyahRef(1, 2)
@@ -43,11 +46,12 @@ class LearnProgressTest {
             Room.inMemoryDatabaseBuilder(context, LearnDatabase::class.java)
                 .allowMainThreadQueries()
                 .build()
+        settingsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val file = File.createTempFile("learn_settings", ".preferences_pb").also { it.delete() }
         settings =
             LearnSettings(
                 PreferenceDataStoreFactory.create(
-                    scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+                    scope = settingsScope,
                 ) {
                     file
                 },
@@ -57,6 +61,8 @@ class LearnProgressTest {
 
     @After
     fun tearDown() {
+        // Joined so the settings store stops writing before the next test starts.
+        runBlocking { settingsScope.coroutineContext.job.cancelAndJoin() }
         database.close()
     }
 

@@ -21,8 +21,10 @@ import app.awn.quran.feature.hifz.method.PageTableLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -74,7 +76,8 @@ class HifzTabWiringTest {
 
     @After
     fun close() {
-        scope.cancel()
+        // Joined so no controller coroutine outlives the test and fails a later one.
+        runBlocking { scope.coroutineContext.job.cancelAndJoin() }
         database.close()
     }
 
