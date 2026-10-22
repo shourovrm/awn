@@ -219,10 +219,8 @@ class AlignmentTrackerTest {
     fun defaultSpeedGivesTheThresholdsOfThePlan() {
         val thresholds = AlignmentThresholds.forSpeed(0.5f)
 
-        assertEquals(0.8f, thresholds.greenCoverage, 0.001f)
         assertEquals(6, thresholds.insertionPhonemes)
         assertEquals(12, thresholds.reanchorPhonemes)
-        assertEquals(1, thresholds.maximumGreenSubstitutions)
         assertEquals(2, thresholds.wrongSubstitutions)
     }
 
@@ -231,7 +229,6 @@ class AlignmentTrackerTest {
         val patient = AlignmentThresholds.forSpeed(0f)
         val eager = AlignmentThresholds.forSpeed(1f)
 
-        assertTrue(eager.greenCoverage < patient.greenCoverage)
         assertTrue(eager.insertionPhonemes < patient.insertionPhonemes)
         assertTrue(eager.reanchorPhonemes < patient.reanchorPhonemes)
         assertTrue(eager.skipEvidencePhonemes < patient.skipEvidencePhonemes)

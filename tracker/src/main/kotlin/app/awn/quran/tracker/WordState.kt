@@ -5,6 +5,13 @@ enum class WordState {
     Neutral,
     Confirmed,
     Tentative,
+
+    /**
+     * The word was said (the tracker confirmed it) but with a wrong sound or a vowel held too
+     * short or too long. For display only: the tracker never reports it, the recite session
+     * publishes it.
+     */
+    Mispronounced,
     Wrong,
     Hidden,
 }
@@ -17,8 +24,8 @@ enum class WordProblem {
     /** The word was never heard. */
     Skipped,
 
-    /** The word was heard but not clearly enough to confirm. */
-    NotClear,
+    /** The word was said, but with a wrong sound or a vowel held too short or too long. */
+    Mispronounced,
 
     /** Something other than this word was heard in its place. */
     DifferentWord,

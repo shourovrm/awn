@@ -6,12 +6,11 @@ import kotlin.math.roundToInt
  * The numbers the tracker judges with, all derived from one [TrackerConfig.speed] value.
  *
  * Every threshold is a straight line between a patient value (speed 0) and an eager value (speed
- * 1). The default speed 0.5 gives the values in docs/plan.md: green at 80 % of a word, insertion at
- * 6 unmatched phonemes, re-anchoring at 12. "Phoneme" here is one character of a model token, after
- * runs of one repeated character are merged into one.
+ * 1). The default speed 0.5 gives the values in docs/plan.md: insertion at 6 unmatched phonemes,
+ * re-anchoring at 12. Whether a word is green is decided by [WordScore], not by the speed.
+ * "Phoneme" here is one character of a model token, after runs of one repeated character are
+ * merged into one.
  *
- * @property greenCoverage fraction of a word's phonemes that must be aligned for it to turn green
- * @property maximumGreenSubstitutions substitutions a green word may contain
  * @property wrongSubstitutions substitutions that make a word red
  * @property skipEvidencePhonemes matched phonemes needed after a left-out word before it is flagged
  * @property insertionPhonemes consecutive unmatched heard phonemes that count as an insertion
@@ -21,8 +20,6 @@ import kotlin.math.roundToInt
  *   sounds do not colour words
  */
 internal data class AlignmentThresholds(
-    val greenCoverage: Float,
-    val maximumGreenSubstitutions: Int,
     val wrongSubstitutions: Int,
     val skipEvidencePhonemes: Int,
     val insertionPhonemes: Int,
@@ -30,8 +27,6 @@ internal data class AlignmentThresholds(
     val entryMatches: Int,
 ) {
     companion object {
-        private const val GREEN_COVERAGE_PATIENT = 0.9f
-        private const val GREEN_COVERAGE_EAGER = 0.7f
         private const val SKIP_EVIDENCE_PATIENT = 8f
         private const val SKIP_EVIDENCE_EAGER = 3f
         private const val INSERTION_PATIENT = 8f
@@ -40,14 +35,11 @@ internal data class AlignmentThresholds(
         private const val REANCHOR_EAGER = 8f
         private const val ENTRY_PATIENT = 7f
         private const val ENTRY_EAGER = 5f
-        private const val MAXIMUM_GREEN_SUBSTITUTIONS = 1
         private const val WRONG_SUBSTITUTIONS = 2
 
         fun forSpeed(speed: Float): AlignmentThresholds {
             val clampedSpeed = speed.coerceIn(0f, 1f)
             return AlignmentThresholds(
-                greenCoverage = between(GREEN_COVERAGE_PATIENT, GREEN_COVERAGE_EAGER, clampedSpeed),
-                maximumGreenSubstitutions = MAXIMUM_GREEN_SUBSTITUTIONS,
                 wrongSubstitutions = WRONG_SUBSTITUTIONS,
                 skipEvidencePhonemes =
                     between(SKIP_EVIDENCE_PATIENT, SKIP_EVIDENCE_EAGER, clampedSpeed).roundToInt(),
