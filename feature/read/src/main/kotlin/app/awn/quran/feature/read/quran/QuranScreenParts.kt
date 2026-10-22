@@ -125,6 +125,7 @@ internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): 
  * word is under the top bar ([topClearancePx]), and at the bottom when the word's place is unknown.
  * It takes the colours of the bars, which are readable in every mode.
  */
+@Suppress("LongMethod") // The card is one column of optional lines.
 @Composable
 internal fun WordPopupCard(
     popup: WordPopup,
@@ -136,6 +137,8 @@ internal fun WordPopupCard(
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
     onDownloadAudio: () -> Unit = {},
+    myWordState: MyWordState? = null,
+    onAddToMyWords: () -> Unit = {},
 ) {
     val field = Awn.field
     Box(
@@ -184,6 +187,7 @@ internal fun WordPopupCard(
                 Text(text = it, style = AwnTypography.small.ltr(), color = field.onBar)
             }
             popup.audioOffer?.let { offer -> WordAudioOfferLine(offer, onDownloadAudio) }
+            myWordState?.let { MyWordLine(it, onAddToMyWords) }
             popup.problem?.let { problem ->
                 Text(
                     text = stringResource(problem.messageRes()),

@@ -164,3 +164,4 @@
 2026-10-22 | Do not ask for notifications when audio starts | The dialog stopped the first Listen; media notifications show without it (player.md)
 2026-10-22 | Search lists surahs by number or name above ayah results | users typed a surah name and found nothing
 2026-10-22 | Downloads space used leaves out bundled items | a fresh install showed 12 MB the user never downloaded
+2026-10-22 | Word course reachable: tab opens on first-open choices then the hub; Today row and word card use ports | the course screens had no route (learn.md)

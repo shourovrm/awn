@@ -15,6 +15,15 @@
     <item quantity="one">Revise %d ayah</item>
     <item quantity="other">Revise %d ayahs</item>
   </plurals>
+  <string name="today_course_start">Start today · %d min</string>
+  <plurals name="today_course_new">
+    <item quantity="one">%d new word</item>
+    <item quantity="other">%d new words</item>
+  </plurals>
+  <plurals name="today_course_reviews">
+    <item quantity="one">%d to revise</item>
+    <item quantity="other">%d to revise</item>
+  </plurals>
   <string name="index_show">Show</string>
   <string name="index_tab_pages">Pages</string>
   <string name="index_bookmarks">Bookmarks</string>

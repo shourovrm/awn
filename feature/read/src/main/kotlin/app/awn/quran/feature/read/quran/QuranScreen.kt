@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
@@ -530,6 +532,12 @@ private fun QuranContent(
                 onPlay = viewModel::playPopupWord,
                 onStop = viewModel::stopPopupWord,
                 onDownloadAudio = viewModel::downloadWordAudio,
+                myWordState = myWordStateOf(dependencies.myWords, popup.word.key),
+                onAddToMyWords = {
+                    dependencies.myWords?.let { myWords ->
+                        scope.launch { myWords.add(popup.word.key) }
+                    }
+                },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -844,4 +852,12 @@ private class ReciteMarks(
     companion object {
         val None = ReciteMarks(emptyMap(), emptyMap(), currentAyah = null)
     }
+}
+
+/** The word card's state for [key]: null without a word list, else whether the word is in it. */
+@Composable
+private fun myWordStateOf(myWords: MyWords?, key: WordKey): MyWordState? {
+    if (myWords == null) return null
+    val isAdded by remember(myWords, key) { myWords.isAdded(key) }.collectAsState(initial = false)
+    return if (isAdded) MyWordState.Added else MyWordState.NotAdded
 }

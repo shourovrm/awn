@@ -3,6 +3,9 @@ package app.awn.quran.feature.learn
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,31 +21,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.QuranTextRepository
+import app.awn.quran.core.data.TranslationRepository
+import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Lesson
-import app.awn.quran.feature.learn.content.Snippet
-import app.awn.quran.feature.learn.content.SnippetRepository
+import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
-import java.time.LocalDate
+import app.awn.quran.feature.learn.ui.CourseDependencies
+import app.awn.quran.feature.learn.ui.CourseLessonScreen
+import app.awn.quran.feature.learn.ui.CourseRoutes
+import app.awn.quran.feature.learn.ui.CourseRuntime
+import app.awn.quran.feature.learn.ui.LearnEnvironment
+import app.awn.quran.feature.learn.ui.LearnRoute
+import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
+import app.awn.quran.feature.learn.ui.learnBackFrom
+import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-private sealed interface LearnRoute {
-    data object Home : LearnRoute
-
-    data object Progress : LearnRoute
-
-    data object Lessons : LearnRoute
-
-    data object Revision : LearnRoute
-
-    data class OneLesson(val id: String) : LearnRoute
-}
 
 private val EMPTY_SNAPSHOT =
     ProgressSnapshot(
@@ -57,18 +59,22 @@ private val EMPTY_SNAPSHOT =
     )
 
 /**
- * The Learn tab: owns the database and moves between Learn, Revision, Progress and the lessons.
- * [quranText] supplies ayah text and surah names; without it the screens show references only.
+ * The Learn tab: owns the database and moves between the word course, Revision, the progress pages
+ * and the lessons. [quranText], [translations], [packs] and [downloads] supply the Arabic, the
+ * meanings and the word-meaning download of the course.
  *
  * When [onReviseAt] is set, "Revise" calls it with the first due ayah in reading order, and :app
  * opens the Quran screen there in recite mode with words hidden; the Revision screen of this tab is
  * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
- * end of the bar on the Learn home (:app puts Settings there).
+ * end of the bar on the hub (:app puts Settings there).
  */
 @Composable
 fun LearnScreen(
+    quranText: QuranTextRepository,
+    translations: TranslationRepository,
+    packs: PackRepository,
+    downloads: PackDownloads,
     modifier: Modifier = Modifier,
-    quranText: QuranTextRepository? = null,
     onReviseAt: ((AyahRef) -> Unit)? = null,
     barActions: @Composable RowScope.() -> Unit = {},
 ) {
@@ -79,10 +85,8 @@ fun LearnScreen(
     val language = LearnLanguage.of(locale)
     val scope = rememberCoroutineScope()
 
-    var route by remember { mutableStateOf<LearnRoute>(LearnRoute.Home) }
-    BackHandler(enabled = route != LearnRoute.Home) {
-        route = if (route is LearnRoute.OneLesson) LearnRoute.Lessons else LearnRoute.Home
-    }
+    val routeState = rememberStartRoute(services)
+    val route = routeState.value
 
     val snapshot by remember {
         services.progress.observeSnapshot()
@@ -92,53 +96,135 @@ fun LearnScreen(
         produceState(emptyList<Lesson>()) {
             value = withContext(Dispatchers.IO) { services.lessons.all() }
         }
-    val snippets by
-        produceState(emptyList<Snippet>()) {
-            value = withContext(Dispatchers.IO) { services.snippets.all() }
-        }
-    val chapters by
-        produceState(emptyList<Chapter>(), quranText) { value = quranText?.chapters().orEmpty() }
+    val chapters by produceState(emptyList<Chapter>(), quranText) { value = quranText.chapters() }
     val surahName = { surah: Int ->
         surahNameOf(chapters, surah, language) { resources.getString(R.string.surah_number, surah) }
     }
 
-    LearnRoutes(
-        route = route,
-        onRouteChange = { route = it },
-        content =
-            LearnRouteContent(
-                snapshot = snapshot,
-                lessons = lessons,
-                snippets = snippets,
-                locale = locale,
-                quranText = quranText,
-                surahName = surahName,
-            ),
-        rate = { ayah, rating -> scope.launch { services.progress.gradeAyah(ayah, rating) } },
-        onReviseAt = onReviseAt,
-        barActions = barActions,
-        modifier = modifier,
-    )
+    val languageCode = if (language == LearnLanguage.Bangla) "bn" else "en"
+    val arabic = remember(quranText, packs) { LearningArabic(quranText, packs) }
+    val environment =
+        rememberLearnEnvironment(arabic, quranText, translations, languageCode, chapters)
+    val courseDependencies =
+        rememberCourseDependencies(services, translations, packs, downloads, arabic, languageCode)
+    val assets by produceState<CourseAssets?>(null) { value = services.courseAssets() }
+    val runtime =
+        remember(assets, courseDependencies) {
+            assets?.let { CourseRuntime(it, courseDependencies) }
+        }
+
+    val current = route ?: return
+    CompositionLocalProvider(LocalLearnEnvironment provides environment) {
+        LearnRoutes(
+            route = current,
+            onRouteChange = { routeState.value = it },
+            content =
+                LearnRouteContent(
+                    snapshot = snapshot,
+                    lessons = lessons,
+                    locale = locale,
+                    quranText = quranText,
+                    surahName = surahName,
+                ),
+            course = CourseRouteContext(courseDependencies, runtime),
+            rate = { ayah, rating -> scope.launch { services.progress.gradeAyah(ayah, rating) } },
+            onReviseAt = onReviseAt,
+            barActions = barActions,
+            modifier = modifier,
+        )
+    }
 }
 
 /** What the screens of the Learn tab read; loaded once by [LearnScreen]. */
 private class LearnRouteContent(
     val snapshot: ProgressSnapshot,
     val lessons: List<Lesson>,
-    val snippets: List<Snippet>,
     val locale: Locale,
-    val quranText: QuranTextRepository?,
+    val quranText: QuranTextRepository,
     val surahName: (Int) -> String,
 ) {
     val language: LearnLanguage
         get() = LearnLanguage.of(locale)
 }
 
+/** The path lessons of the course and the older tajweed lessons share the OneLesson route. */
+@Composable
+private fun OneLessonRoute(
+    id: String,
+    content: LearnRouteContent,
+    course: CourseRouteContext,
+    onBack: () -> Unit,
+    modifier: Modifier,
+) {
+    val courseLesson = course.runtime?.assets?.content?.lesson(id)
+    if (courseLesson != null) {
+        CourseLessonScreen(courseLesson, course.dependencies.languageCode, onBack, modifier)
+    } else {
+        LessonRoute(content.lessons.firstOrNull { it.id == id }, content, onBack, modifier)
+    }
+}
+
+/**
+ * The route on screen, null until the setting that says whether the course started is read. Back
+ * walks towards the hub and leaves the tab from the hub.
+ */
+@Composable
+private fun rememberStartRoute(services: LearnServices): MutableState<LearnRoute?> {
+    val courseStarted by
+        produceState<Boolean?>(null) { value = services.settings.courseStarted.first() }
+    val route = remember { mutableStateOf<LearnRoute?>(null) }
+    LaunchedEffect(courseStarted) {
+        val started = courseStarted
+        if (route.value == null && started != null) route.value = learnStartRoute(started)
+    }
+    BackHandler(enabled = route.value?.let(::learnBackFrom) != null) {
+        route.value = route.value?.let(::learnBackFrom)
+    }
+    return route
+}
+
+@Composable
+private fun rememberLearnEnvironment(
+    arabic: LearningArabic,
+    quranText: QuranTextRepository,
+    translations: TranslationRepository,
+    languageCode: String,
+    chapters: List<Chapter>,
+): LearnEnvironment {
+    val resources = LocalResources.current
+    return remember(arabic, quranText, translations, languageCode, chapters) {
+        LearnEnvironment(
+            arabic = arabic,
+            quranText = quranText,
+            translations = translations,
+            languageCode = languageCode,
+            chapters = chapters,
+            fallbackSurahName = { surah -> resources.getString(R.string.surah_number, surah) },
+        )
+    }
+}
+
+@Composable
+private fun rememberCourseDependencies(
+    services: LearnServices,
+    translations: TranslationRepository,
+    packs: PackRepository,
+    downloads: PackDownloads,
+    arabic: LearningArabic,
+    languageCode: String,
+): CourseDependencies =
+    remember(services, translations, packs, downloads, arabic, languageCode) {
+        CourseDependencies(services, translations, packs, downloads, arabic, languageCode)
+    }
+
+private class CourseRouteContext(val dependencies: CourseDependencies, val runtime: CourseRuntime?)
+
 @Composable
 private fun LearnRoutes(
     route: LearnRoute,
     onRouteChange: (LearnRoute) -> Unit,
     content: LearnRouteContent,
+    course: CourseRouteContext,
     rate: (AyahRef, FsrsRating) -> Unit,
     onReviseAt: ((AyahRef) -> Unit)?,
     barActions: @Composable RowScope.() -> Unit,
@@ -147,25 +233,9 @@ private fun LearnRoutes(
     val summaries = LearnUiMapper.lessonSummaries(content.lessons, content.language)
     val snapshot = content.snapshot
     val surahName = content.surahName
-    when (val current = route) {
-        LearnRoute.Home -> {
-            val today = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
-            val snippet = SnippetRepository.forDay(content.snippets, today)
-            LearnScreen(
-                state = LearnUiMapper.learnState(snapshot, summaries, snippet),
-                onLessonClick = { onRouteChange(LearnRoute.OneLesson(it)) },
-                onAllLessonsClick = { onRouteChange(LearnRoute.Lessons) },
-                onProgressClick = { onRouteChange(LearnRoute.Progress) },
-                onReviseClick = {
-                    reviseOrOpenRevision(snapshot.dueToday, onReviseAt) {
-                        onRouteChange(LearnRoute.Revision)
-                    }
-                },
-                modifier = modifier,
-                barActions = barActions,
-            )
-        }
-        LearnRoute.Progress ->
+    val goHub = { onRouteChange(LearnRoute.Hub) }
+    when (route) {
+        LearnRoute.ReadingProgress ->
             ProgressScreen(
                 state =
                     LearnUiMapper.progressState(
@@ -174,44 +244,38 @@ private fun LearnRoutes(
                         ZoneId.systemDefault(),
                         content.locale,
                     ),
-                onBackClick = { onRouteChange(LearnRoute.Home) },
+                onBackClick = goHub,
                 modifier = modifier,
             )
         LearnRoute.Lessons ->
             LessonsListScreen(
                 lessons = summaries,
                 onLessonClick = { onRouteChange(LearnRoute.OneLesson(it)) },
-                onBackClick = { onRouteChange(LearnRoute.Home) },
+                onBackClick = goHub,
                 modifier = modifier,
             )
-        is LearnRoute.OneLesson ->
-            LessonRoute(
-                lesson = content.lessons.firstOrNull { it.id == current.id },
-                content = content,
-                onBackClick = { onRouteChange(LearnRoute.Lessons) },
-                modifier = modifier,
-            )
+        is LearnRoute.OneLesson -> OneLessonRoute(route.id, content, course, goHub, modifier)
         LearnRoute.Revision ->
             RevisionHost(
                 dueToday = snapshot.dueToday,
                 quranText = content.quranText,
                 surahName = surahName,
                 rate = rate,
-                onBackClick = { onRouteChange(LearnRoute.Home) },
+                onBackClick = goHub,
+                modifier = modifier,
+            )
+        else ->
+            CourseRoutes(
+                route = route,
+                onRouteChange = onRouteChange,
+                dependencies = course.dependencies,
+                runtime = course.runtime,
+                dueAyahs = snapshot.dueToday,
+                onReviseAt = onReviseAt,
+                barActions = barActions,
                 modifier = modifier,
             )
     }
-}
-
-// Hands the first due ayah in reading order to :app when it handles revision, else opens the
-// Revision screen of this tab.
-private fun reviseOrOpenRevision(
-    dueToday: List<AyahRef>,
-    onReviseAt: ((AyahRef) -> Unit)?,
-    openRevision: () -> Unit,
-) {
-    val firstDue = dueToday.minOrNull()
-    if (onReviseAt != null && firstDue != null) onReviseAt(firstDue) else openRevision()
 }
 
 @Composable
@@ -236,7 +300,7 @@ private fun LessonRoute(
 @Composable
 private fun RevisionHost(
     dueToday: List<AyahRef>,
-    quranText: QuranTextRepository?,
+    quranText: QuranTextRepository,
     surahName: (Int) -> String,
     rate: (AyahRef, FsrsRating) -> Unit,
     onBackClick: () -> Unit,
@@ -250,15 +314,9 @@ private fun RevisionHost(
     val currentAyah = queue.getOrNull(index)
     val text by
         produceState<String?>(null, currentAyah, quranText) {
-            value =
-                if (currentAyah == null || quranText == null) {
-                    null
-                } else {
-                    quranText
-                        .wordsOfAyah(currentAyah)
-                        .joinToString(" ") { it.textUthmani }
-                        .ifEmpty { null }
-                }
+            value = currentAyah?.let { ayah ->
+                quranText.wordsOfAyah(ayah).joinToString(" ") { it.textUthmani }.ifEmpty { null }
+            }
         }
     val card = currentAyah?.let { RevisionCard(it, "${surahName(it.surah)} $it", text) }
     RevisionScreen(

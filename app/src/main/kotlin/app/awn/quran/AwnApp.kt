@@ -234,6 +234,9 @@ private fun TabsRoute(
         learnTab = {
             LearnScreen(
                 quranText = services.coreData.quranText,
+                translations = services.coreData.translations,
+                packs = services.coreData.packs,
+                downloads = services.coreData.packDownloads,
                 onReviseAt = { ayah ->
                     navigation.openQuran(page = null, ayah = ayah)
                     services.recite.reviseAt(ayah)

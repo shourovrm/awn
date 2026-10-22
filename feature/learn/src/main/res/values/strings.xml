@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <string name="learn_title">Learn</string>
   <string name="learn_progress_link">Progress</string>
   <string name="learn_streak_caption">days in a row</string>
@@ -59,4 +59,179 @@
   <string name="reminder_permission">Allow notifications to get the reminder</string>
   <string name="reminder_time_set">Set</string>
   <string name="reminder_time_cancel">Cancel</string>
+  <!-- Word course: hub -->
+  <string name="course_today_heading">Today · %d min</string>
+  <string name="course_today_done_heading">Today</string>
+  <string name="course_today_done">Nothing due</string>
+  <string name="course_start">Start</string>
+  <plurals name="course_today_reviews">
+    <item quantity="one">%d word to revise</item>
+    <item quantity="other">%d words to revise</item>
+  </plurals>
+  <string name="course_today_new" tools:ignore="PluralsCandidate">%d new</string>
+  <string name="course_today_lesson">one short lesson</string>
+  <string name="course_heading">Course</string>
+  <string name="course_progress_heading">Progress</string>
+  <string name="course_more_heading">More</string>
+  <string name="course_today_tag">Today</string>
+  <string name="course_folded_sets">Sets %1$d to %2$d</string>
+  <string name="course_folded_set">Set %d</string>
+  <plurals name="course_folded_detail">
+    <item quantity="one">%d step done</item>
+    <item quantity="other">%d steps done</item>
+  </plurals>
+  <string name="course_set_title">Set %d · 10 words</string>
+  <string name="course_set_known" tools:ignore="PluralsCandidate">%d known</string>
+  <string name="course_set_left" tools:ignore="PluralsCandidate">%d left to start</string>
+  <string name="course_lesson_title">Lesson · %s</string>
+  <string name="course_lesson_reason" tools:ignore="PluralsCandidate">Set %1$d brought %2$s, %3$s</string>
+  <string name="course_basics">Basics</string>
+  <string name="course_later">Later</string>
+  <string name="course_later_from">From set %d</string>
+  <plurals name="course_words_known">
+    <item quantity="one">word known, of %d met</item>
+    <item quantity="other">words known, of %d met</item>
+  </plurals>
+  <string name="course_legend_known">Known %d</string>
+  <string name="course_legend_met">Met, not yet known %d</string>
+  <string name="course_coverage_title">%d%% of the Quran</string>
+  <string name="course_coverage_detail">Covered by the words you know</string>
+  <string name="course_word_list">Word list</string>
+  <string name="course_word_list_detail" tools:ignore="PluralsCandidate">%1$d met · %2$d known</string>
+  <string name="course_quiz">Quiz on my own</string>
+  <string name="course_tajweed">Tajweed lessons</string>
+  <string name="course_reading_progress">Reading progress</string>
+  <string name="course_revise_ayahs">Revise ayahs</string>
+  <plurals name="course_ayahs_due">
+    <item quantity="one">%d ayah due</item>
+    <item quantity="other">%d ayahs due</item>
+  </plurals>
+  <string name="course_session_length">Time each day</string>
+  <string name="course_minutes">%d min</string>
+  <string name="course_sources">Sources</string>
+  <string name="course_meanings_title">Word meanings</string>
+  <string name="course_meanings_download">Download</string>
+  <string name="course_meanings_waiting">Downloading</string>
+
+  <!-- Word course: first open -->
+  <string name="first_title">Quran words</string>
+  <string name="first_intro">Short sets of the words you meet most in the Quran, each one shown in its ayah.</string>
+  <string name="first_letters_heading">Arabic letters</string>
+  <string name="first_letters_yes">I can read them</string>
+  <string name="first_letters_yes_detail">Start with the words</string>
+  <string name="first_letters_no">Not yet</string>
+  <string name="first_letters_no_detail">Start with letter lessons</string>
+  <string name="first_time_heading">Time each day</string>
+  <string name="first_time_5_detail">Mostly reviews</string>
+  <string name="first_time_10_detail">Reviews and new words</string>
+  <string name="first_time_15_detail">Reviews, new words and lessons</string>
+  <string name="first_continue">Continue</string>
+
+  <!-- Daily steps -->
+  <string name="session_close">Close</string>
+  <string name="session_minutes_left">%d min left</string>
+  <string name="session_under_a_minute">Under 1 min left</string>
+  <string name="session_label_new_word">New word %1$d of %2$d</string>
+  <string name="session_label_check">Check, %1$d of %2$d</string>
+  <string name="session_label_lesson">Lesson, %1$d of %2$d</string>
+  <string name="question_meaning">Choose the meaning</string>
+  <string name="question_reverse">Choose the word</string>
+  <string name="question_fill">Choose the missing word</string>
+  <string name="question_dont_know">I don\'t know</string>
+  <string name="question_check">Check</string>
+  <string name="answer_next">Next</string>
+  <plurals name="answer_back_in">
+    <item quantity="one">Back in %d day</item>
+    <item quantity="other">Back in %d days</item>
+  </plurals>
+  <string name="answer_right">Right</string>
+  <string name="answer_your_choice">You chose</string>
+  <string name="new_word_in_quran">In the Quran</string>
+
+  <!-- End of a day -->
+  <string name="end_title">Done for today</string>
+  <string name="end_quiz_title">Quiz finished</string>
+  <string name="end_summary" tools:ignore="PluralsCandidate">%1$d words revised, %2$d new words.</string>
+  <string name="end_quiz_summary" tools:ignore="PluralsCandidate">%1$d of %2$d right.</string>
+  <string name="end_known">words known. They make up %d%% of all words in the Quran.</string>
+  <string name="end_last_ayah">Your last ayah, %s</string>
+  <string name="end_last_ayah_known" tools:ignore="PluralsCandidate">You know %1$d of %2$d words here.</string>
+  <string name="end_words_met">Words met</string>
+  <string name="end_words_known">Words known</string>
+  <string name="end_range">%1$d to %2$d</string>
+  <string name="end_tomorrow">Tomorrow</string>
+  <string name="end_tomorrow_detail" tools:ignore="PluralsCandidate">%1$d words to revise, then %2$d new words.</string>
+  <string name="end_done">Done</string>
+
+  <!-- Word list and word page -->
+  <string name="words_title">My words</string>
+  <string name="words_search">Search words</string>
+  <string name="words_search_clear">Clear search</string>
+  <string name="words_show">Show</string>
+  <string name="words_filter_all">All words</string>
+  <string name="words_filter_known">Known</string>
+  <string name="words_filter_learning">Learning</string>
+  <string name="words_filter_not_met">Not yet</string>
+  <plurals name="words_count">
+    <item quantity="one">%d word</item>
+    <item quantity="other">%d words</item>
+  </plurals>
+  <string name="words_status_rank">%1$s, word %2$d</string>
+  <string name="word_title">Word</string>
+  <string name="word_appears">Appears</string>
+  <plurals name="word_appears_times">
+    <item quantity="one">%d time</item>
+    <item quantity="other">%d times</item>
+  </plurals>
+  <string name="word_rank">Rank</string>
+  <string name="word_state">State</string>
+  <string name="word_state_known_back" tools:ignore="PluralsCandidate">Known, back in %d days</string>
+  <string name="word_state_known">Known</string>
+  <string name="word_state_learning">Learning</string>
+  <string name="word_state_not_met">Not yet</string>
+  <string name="word_revise_now">Revise now</string>
+  <string name="word_add">Add to my words</string>
+  <string name="word_added">Added to my words</string>
+
+  <!-- Quiz on my own -->
+  <string name="quiz_title">Quiz</string>
+  <string name="quiz_practise">Practise</string>
+  <string name="quiz_all">All my words</string>
+  <string name="quiz_week">This week</string>
+  <string name="quiz_weak">Weak words</string>
+  <plurals name="quiz_words">
+    <item quantity="one">%d word</item>
+    <item quantity="other">%d words</item>
+  </plurals>
+  <plurals name="quiz_weak_detail">
+    <item quantity="one">%d word you often forget</item>
+    <item quantity="other">%d words you often forget</item>
+  </plurals>
+  <string name="quiz_length">Length</string>
+  <string name="quiz_10">10 questions</string>
+  <string name="quiz_20">20 questions</string>
+  <string name="quiz_until_stop">Until I stop</string>
+  <string name="quiz_start">Start quiz</string>
+  <string name="quiz_nothing">No words yet</string>
+
+  <!-- Progress -->
+  <string name="progress_words_title">Progress</string>
+  <string name="progress_known_share">They make up %d%% of all words in the Quran.</string>
+  <string name="progress_chart_title">Share of the Quran covered</string>
+  <string name="progress_chart_axis">Words known, most frequent first</string>
+  <string name="progress_chart_you" tools:ignore="PluralsCandidate">You: %1$d words, %2$d%%</string>
+  <string name="progress_known_caption">words known</string>
+
+  <!-- Sources -->
+  <string name="sources_title">Sources</string>
+  <string name="sources_lessons">Lessons</string>
+  <string name="sources_lessons_licence">Lesson text is licensed under Creative Commons Attribution-ShareAlike 4.0.</string>
+  <string name="sources_words">Words</string>
+  <string name="sources_quran_com">Quran.com</string>
+  <string name="sources_quran_com_detail">Word meanings and the Quran text.</string>
+  <string name="sources_font">KFGQPC Uthmanic Hafs</string>
+  <string name="sources_font_detail">The font that draws the Arabic in lessons.</string>
+  <string name="sources_wright_note">Public domain.</string>
+  <string name="sources_wikibooks_note">Creative Commons Attribution-ShareAlike 4.0.</string>
+  <string name="sources_open_link">Open %s</string>
 </resources>

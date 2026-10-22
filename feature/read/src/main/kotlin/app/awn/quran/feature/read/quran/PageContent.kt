@@ -9,7 +9,7 @@ import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.isGlyphScript
-import app.awn.quran.feature.read.page.normalizeFallbackText
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 
 /**

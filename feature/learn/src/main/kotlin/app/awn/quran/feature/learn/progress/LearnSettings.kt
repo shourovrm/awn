@@ -43,7 +43,37 @@ class LearnSettings(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    /** The minutes of one day's session: 5, 10 or 15. */
+    val sessionMinutes: Flow<Int> =
+        dataStore.data.map { it[SESSION_MINUTES_KEY] ?: DEFAULT_SESSION_MINUTES }
+
+    suspend fun setSessionMinutes(minutes: Int) {
+        require(minutes in SESSION_MINUTE_CHOICES) {
+            "Session length must be one of $SESSION_MINUTE_CHOICES."
+        }
+        dataStore.edit { it[SESSION_MINUTES_KEY] = minutes }
+    }
+
+    /** Whether the user said they cannot read the letters yet, which starts the letters course. */
+    val includeLetters: Flow<Boolean> = dataStore.data.map { it[INCLUDE_LETTERS_KEY] ?: false }
+
+    suspend fun setIncludeLetters(include: Boolean) {
+        dataStore.edit { it[INCLUDE_LETTERS_KEY] = include }
+    }
+
+    /** Whether the user has been through the first-open choices of the word course. */
+    val courseStarted: Flow<Boolean> = dataStore.data.map { it[COURSE_STARTED_KEY] ?: false }
+
+    suspend fun setCourseStarted() {
+        dataStore.edit { it[COURSE_STARTED_KEY] = true }
+    }
+
     companion object {
+        val SESSION_MINUTE_CHOICES = listOf(5, 10, 15)
+        const val DEFAULT_SESSION_MINUTES = 10
+        private val SESSION_MINUTES_KEY = intPreferencesKey("session_minutes")
+        private val INCLUDE_LETTERS_KEY = booleanPreferencesKey("include_letters")
+        private val COURSE_STARTED_KEY = booleanPreferencesKey("course_started")
         const val DEFAULT_REMINDER_HOUR = 20
         private const val MAX_HOUR = 23
         private const val MAX_MINUTE = 59

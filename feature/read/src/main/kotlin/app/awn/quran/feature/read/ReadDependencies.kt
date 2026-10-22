@@ -1,6 +1,7 @@
 package app.awn.quran.feature.read
 
 import app.awn.quran.core.data.BookmarkRepository
+import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
@@ -38,6 +39,8 @@ data class ReadDependencies(
      * only when this is false, the same rule as the audio downloads; otherwise the word card asks.
      */
     val isNetworkMetered: () -> Boolean = { false },
+    /** The word list of the Learn course; null hides "Add to my words" on the word card. */
+    val myWords: MyWords? = null,
 ) {
     companion object {
         /** The reciter :feature:listen starts with. */
