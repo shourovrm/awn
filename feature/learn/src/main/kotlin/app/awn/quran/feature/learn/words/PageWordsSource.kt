@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn.words
 
+import android.util.Log
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
@@ -27,12 +28,15 @@ class PageWordsSource(private val quranText: QuranTextRepository) {
         try {
             quranText.ayahsOnPage(page, script)
         } catch (missingLayouts: UnsupportedOperationException) {
+            Log.w(LOG_TAG, "Page $page of $script has no layout on this phone", missingLayouts)
             null
         } catch (outOfRange: IllegalArgumentException) {
+            Log.w(LOG_TAG, "Page $page is not in $script", outOfRange)
             null
         }
 
     companion object {
         val DEFAULT_PRINT = ScriptId.V2
+        private const val LOG_TAG = "PageWordsSource"
     }
 }

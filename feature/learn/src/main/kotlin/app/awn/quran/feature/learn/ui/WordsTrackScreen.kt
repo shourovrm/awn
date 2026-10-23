@@ -50,13 +50,6 @@ import app.awn.quran.feature.learn.course.PathState
 import app.awn.quran.feature.learn.words.LearnSets
 import kotlin.math.roundToInt
 
-/** What a tap on the Quran words page can do besides the hub's own actions. */
-internal class WordsTrackActions(
-    val hub: HubActions,
-    val onOpenSet: (Int) -> Unit,
-    val onOpenPageWords: (Int) -> Unit,
-)
-
 private const val PERCENT = 100
 private const val GRID_COLUMNS = 5
 private val RING_WIDTH = 2.dp

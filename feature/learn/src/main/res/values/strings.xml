@@ -312,7 +312,7 @@
   <string name="sources_tajweed_book">Usama Mahida and the teachers of SMA, Tajweed Made Easy (2018)</string>
   <string name="sources_tajweed_book_detail">Order and facts of the Tajweed units.</string>
   <!-- Quran words page, set page and words on a page -->
-  <string name="words_summary_counts">%1$d known · %2$d met</string>
+  <string name="words_summary_counts">Known %1$d · met %2$d</string>
   <string name="words_start_minutes">Start · %d min</string>
   <string name="words_today_set">Set %d</string>
   <string name="words_pages_heading">From your pages</string>
@@ -323,11 +323,11 @@
     <item quantity="other">%1$d words · %2$d you know</item>
   </plurals>
   <string name="words_sets_heading">Sets</string>
-  <string name="words_set_known">Set %1$d · %2$d of %3$d known</string>
+  <string name="words_set_known">Set %1$d · known %2$d of %3$d</string>
   <string name="words_set_plain">Set %d</string>
   <string name="words_grammar_after">Grammar · %1$s, after set %2$d</string>
   <string name="set_page_title">Set %d</string>
-  <string name="page_words_title">Page %d words</string>
+  <string name="page_words_title">Words on page %d</string>
   <plurals name="page_words_subtitle">
     <item quantity="one">%1$s · %2$d word · %3$d you know</item>
     <item quantity="other">%1$s · %2$d words · %3$d you know</item>

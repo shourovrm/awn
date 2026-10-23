@@ -130,7 +130,7 @@ class WordsTrackTest {
         waitForText("Last read · page $PAGE")
         composeRule.onNodeWithText("Last read · page $PAGE").performScrollTo().performClick()
 
-        waitForText("Page $PAGE words")
+        waitForText("Words on page $PAGE")
         waitForText("All $SET_SIZE")
     }
 

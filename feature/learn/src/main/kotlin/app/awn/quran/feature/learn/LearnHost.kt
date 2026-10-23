@@ -45,8 +45,8 @@ import app.awn.quran.feature.learn.ui.LearnPageLinks
 import app.awn.quran.feature.learn.ui.LearnRoute
 import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
-import app.awn.quran.feature.learn.ui.LocalOpenAyah
 import app.awn.quran.feature.learn.ui.LocalLearnPageLinks
+import app.awn.quran.feature.learn.ui.LocalOpenAyah
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId

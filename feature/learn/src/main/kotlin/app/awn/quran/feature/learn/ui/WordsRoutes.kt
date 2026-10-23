@@ -51,7 +51,6 @@ internal fun WordsTrackRoute(
                     buildWordsTrackState(
                         context.runtime.lookups,
                         snapshot,
-                        context.choices,
                         hub,
                         links,
                         quranText,

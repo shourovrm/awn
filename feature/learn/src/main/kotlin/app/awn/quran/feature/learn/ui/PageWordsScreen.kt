@@ -129,8 +129,8 @@ private fun Subtitle(content: PageWordsContent) {
 /** "Al-Baqarah 157–163", or both surahs when the page crosses a surah boundary. */
 @Composable
 private fun rangeText(first: AyahRef?, last: AyahRef?): String? {
-    val environment = LocalLearnEnvironment.current ?: return null
-    if (first == null || last == null) return null
+    val environment = LocalLearnEnvironment.current
+    if (environment == null || first == null || last == null) return null
     return if (first.surah == last.surah) {
         stringResource(
             R.string.page_words_range,

@@ -2,7 +2,6 @@ package app.awn.quran.feature.learn.ui
 
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CoursePath
 import app.awn.quran.feature.learn.course.PageWords
 import app.awn.quran.feature.learn.course.PathInput
@@ -51,7 +50,6 @@ private const val PREVIEW_WORD_COUNT = 5
 internal suspend fun buildWordsTrackState(
     lookups: CourseLookups,
     snapshot: CourseSnapshot,
-    choices: CourseChoices,
     hub: HubState,
     links: LearnPageLinks,
     quranText: QuranTextRepository?,
@@ -64,7 +62,8 @@ internal suspend fun buildWordsTrackState(
                 metRanks = snapshot.wordCards.keys,
                 knownRanks = snapshot.knownRanks.toSet(),
                 doneLessonIds = snapshot.doneLessonIds,
-                includeLetters = choices.includeLetters,
+                // The words page lists no start lessons, so the letters choice changes nothing.
+                includeLetters = false,
                 plan = hub.plan,
                 includeStartLessons = false,
             ),
