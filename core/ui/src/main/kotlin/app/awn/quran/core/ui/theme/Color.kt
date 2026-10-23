@@ -51,3 +51,30 @@ object AwnReciteFills {
     val nightTentative = Color(0x4DFACC15)
     val nightWrong = Color(0x4DF87171)
 }
+
+/**
+ * Inks for the letters a lesson colours in a Quran word: one per tajweed rule, close to the hues of
+ * the colour-coded tajweed Mushaf, plus the grammar ending. Day inks keep at least 3:1 on paper and
+ * white at the large size lesson words are drawn; night inks do the same on #121212 and black.
+ */
+object AwnLessonMarks {
+    val dayGhunnah = Color(0xFFB45300)
+    val dayQalqalah = Color(0xFF1A6E9E)
+    val dayMadd = Color(0xFFB02A1E)
+    val dayIkhfa = Color(0xFF8A3A9A)
+    val dayIdgham = Color(0xFF2F7D3A)
+    val dayIqlab = Color(0xFF2F55B8)
+    val dayHeavy = Color(0xFF233C8C)
+    val daySilent = Color(0xFF8A857A)
+    val dayEnding = AwnColors.green
+
+    val nightGhunnah = Color(0xFFFFA24C)
+    val nightQalqalah = Color(0xFF6CC3F0)
+    val nightMadd = Color(0xFFFF8A7A)
+    val nightIkhfa = Color(0xFFD49BE0)
+    val nightIdgham = Color(0xFF7CD98A)
+    val nightIqlab = Color(0xFF8FA8FF)
+    val nightHeavy = Color(0xFFA9B9F5)
+    val nightSilent = Color(0xFF8F8A80)
+    val nightEnding = AwnColors.ochre
+}

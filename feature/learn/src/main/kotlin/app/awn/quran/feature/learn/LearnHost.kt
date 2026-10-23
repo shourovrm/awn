@@ -44,6 +44,7 @@ import app.awn.quran.feature.learn.ui.LearnEnvironment
 import app.awn.quran.feature.learn.ui.LearnRoute
 import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
+import app.awn.quran.feature.learn.ui.LocalOpenAyah
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
@@ -73,6 +74,7 @@ private val EMPTY_SNAPSHOT =
  * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
  * end of the bar on the hub (:app puts Settings there). [wordSound] plays a Quran word of a
  * practice item with the word reciter the user chose; the recorded lesson sounds come from [packs].
+ * [onOpenAyah] opens an ayah in the Quran, from the surah name under a lesson word.
  */
 @Composable
 fun LearnScreen(
@@ -84,6 +86,7 @@ fun LearnScreen(
     onReviseAt: ((AyahRef) -> Unit)? = null,
     barActions: @Composable RowScope.() -> Unit = {},
     wordSound: WordSound = WordSound.Silent,
+    onOpenAyah: ((AyahRef) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -126,6 +129,7 @@ fun LearnScreen(
     CompositionLocalProvider(
         LocalLearnEnvironment provides environment,
         LocalUnitSounds provides unitSounds,
+        LocalOpenAyah provides onOpenAyah,
     ) {
         LearnRoutes(
             route = current,

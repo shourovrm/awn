@@ -244,6 +244,7 @@ private fun TabsRoute(
                         navigation.openQuran(page = null, ayah = ayah)
                         services.recite.reviseAt(ayah)
                     },
+                    onOpenAyah = { ayah -> navigation.openQuran(page = null, ayah = ayah) },
                     barActions = {
                         AwnIconButton(
                             icon = R.drawable.ic_app_settings,

@@ -61,6 +61,9 @@ object AwnSpacing {
     // Learn practice: an answer tile holds one large Arabic cell (mock A, 88 dp).
     val practiceTileHeight: Dp = 88.dp
 
+    // Learn word tiles: two to a row, three rows fill most of a phone screen (mock A, 136 dp).
+    val wordTileHeight: Dp = 136.dp
+
     // Six buttons and a part pill share a 360 dp bar, which 48 dp buttons would not fit.
     val compactButton: Dp = 44.dp
 

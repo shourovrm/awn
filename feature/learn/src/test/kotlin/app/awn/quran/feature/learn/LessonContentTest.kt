@@ -81,6 +81,8 @@ class LessonContentTest {
             is LessonBlock.Bullets -> block.items.joinToString(" ")
             is LessonBlock.Table -> (block.header + block.rows.flatten()).joinToString(" ")
             is LessonBlock.Equation -> block.parts.joinToString(" ") { it.text + it.gloss }
+            is LessonBlock.Words -> block.items.joinToString(" ") { it.caption }
+            is LessonBlock.Tip -> block.text
             is LessonBlock.Ayah,
             is LessonBlock.Letters -> ""
         }

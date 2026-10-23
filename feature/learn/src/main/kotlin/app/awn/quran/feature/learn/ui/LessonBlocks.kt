@@ -38,6 +38,8 @@ internal fun LessonBlocks(blocks: List<LessonBlock>, modifier: Modifier = Modifi
                 is LessonBlock.Ayah -> AyahCard(block.ayah)
                 is LessonBlock.Equation -> EquationView(block)
                 is LessonBlock.Letters -> LetterGrid(block.items)
+                is LessonBlock.Words -> WordTiles(block)
+                is LessonBlock.Tip -> TipView(block)
             }
         }
     }

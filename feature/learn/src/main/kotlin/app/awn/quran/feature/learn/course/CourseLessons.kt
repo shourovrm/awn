@@ -38,6 +38,34 @@ sealed interface LessonBlock {
     data class Letters(val items: List<LetterName>) : LessonBlock
 
     data class LetterName(val letter: String, val name: String)
+
+    /** Quran words as tiles that play when tapped; [mark] colours the letters each tile names. */
+    data class Words(val mark: WordMark?, val items: List<WordTile>) : LessonBlock
+
+    /** A short aside on a soft fill: something the reader can try. */
+    data class Tip(val text: String) : LessonBlock
+}
+
+/** A word of a [LessonBlock.Words]; [letters] are 1-based letter positions to colour. */
+data class WordTile(val key: WordKey, val caption: String, val letters: List<Int>)
+
+/** What the coloured letters of a word tile show: a tajweed rule, or a grammar ending. */
+enum class WordMark(val stored: String) {
+    Ghunnah("ghunnah"),
+    Qalqalah("qalqalah"),
+    Madd("madd"),
+    Ikhfa("ikhfa"),
+    Idgham("idgham"),
+    Iqlab("iqlab"),
+    Heavy("heavy"),
+    Silent("silent"),
+    Ending("ending");
+
+    companion object {
+        fun ofStored(stored: String): WordMark =
+            entries.firstOrNull { it.stored == stored }
+                ?: error("Unknown word mark $stored in the lesson data.")
+    }
 }
 
 /**
@@ -277,8 +305,25 @@ object CourseContentReader {
                         LessonBlock.LetterName(it.getString("letter"), it.getString("name"))
                     },
                 )
+            "words" -> parseWords(block)
+            "tip" -> LessonBlock.Tip(block.getString("text"))
             else -> error("Unknown lesson block type $type.")
         }
+
+    private fun parseWords(block: JSONObject): LessonBlock.Words {
+        // optString turns a JSON null into "null", so the absent mark is checked first.
+        val mark = if (block.isNull("mark")) null else WordMark.ofStored(block.getString("mark"))
+        val items =
+            block.getJSONArray("items").objects().map { item ->
+                val letters = item.getJSONArray("letters")
+                WordTile(
+                    key = WordKey.parse(item.getString("key")),
+                    caption = item.getString("caption"),
+                    letters = (0 until letters.length()).map { letters.getInt(it) },
+                )
+            }
+        return LessonBlock.Words(mark, items)
+    }
 
     private fun parseCell(cell: JSONObject) =
         GridCell(
