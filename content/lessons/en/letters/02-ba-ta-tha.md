@@ -12,7 +12,7 @@ version: 2026-10-23
 
 ## Screen 1: The letter [[ب]] in four shapes
 
-[[ب]] is the letter baa. It sounds like b in book and has one dot below.
+[[ب]] is the letter bā. It sounds like b in book and has one dot below.
 
 A letter changes shape with its place in a word. [[ب]] has four shapes: alone [[ب]], at the start [[بـ]], in the middle [[ـبـ]] and at the end [[ـب]].
 

@@ -43,6 +43,24 @@ class LessonContentTest {
         }
     }
 
+    /**
+     * A letters table looks like the tappable sound grid but plays nothing, so a Reading unit
+     * shows its letters in a Grid screen only.
+     */
+    @Test
+    fun noReadingUnitShowsASilentLettersTable() {
+        val units = CourseContentReader.read(assets).inCourse(LessonCourse.Letters)
+
+        assertTrue(units.isNotEmpty())
+        units.forEach { unit ->
+            listOf("en", "bn").forEach { languageCode ->
+                val silentTables =
+                    unit.text(languageCode).screens.flatMap { it.blocks }.filterIsInstance<LessonBlock.Letters>()
+                assertTrue("${unit.id} ($languageCode) has a letters table", silentTables.isEmpty())
+            }
+        }
+    }
+
     private fun textOf(lessonText: LessonText): String =
         lessonText.screens.joinToString(" ") { screen ->
             val blockText = screen.blocks.joinToString(" ") { block -> textOf(block) }
