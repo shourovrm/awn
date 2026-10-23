@@ -196,3 +196,4 @@
 2026-10-23 | Lesson sounds row in Settings > Downloads, credits for Qaida, academy and tajweed book, Bangla Reading units added | completes the guide (learn.md)
 2026-10-23 | Lesson language is its own Learn setting (follow app, English, Bangla) in Settings > Recite; chrome stays in the app language | lessons and UI can differ (learn.md)
 2026-10-23 | Page top strip no longer adds the status bar height; audio bar clearance is measured to the area bottom | screen is already inset, 100 px gap (read.md)
+2026-10-23 | IndoPak 16-line removed, IndoPak 15 in print card, uninstalled IndoPak never saved | v0.1.0 force close: layouts missing (read.md)

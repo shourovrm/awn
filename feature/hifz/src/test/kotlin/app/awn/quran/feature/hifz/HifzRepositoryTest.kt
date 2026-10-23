@@ -129,10 +129,9 @@ class HifzRepositoryTest {
         assertEquals(listOf(ayah(3)), table.ayahsOn(2))
         assertEquals(PageLayoutFamily.Madani1405, PageLayoutFamily.of(ScriptId.V1))
         assertEquals(PageLayoutFamily.IndoPak15Lines, PageLayoutFamily.of(ScriptId.IndoPak15))
-        assertEquals(PageLayoutFamily.IndoPak16Lines, PageLayoutFamily.of(ScriptId.IndoPak16))
         assertEquals(
-            ScriptId.IndoPak16,
-            PageLayoutFamily.scriptFor(PageLayoutFamily.IndoPak16Lines),
+            ScriptId.IndoPak15,
+            PageLayoutFamily.scriptFor(PageLayoutFamily.IndoPak15Lines),
         )
     }
 }

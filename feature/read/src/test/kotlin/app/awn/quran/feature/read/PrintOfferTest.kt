@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -54,6 +55,7 @@ class PrintOfferTest {
                 printItem(ScriptId.V2, 137, ScriptId.V2 in installed),
                 printItem(ScriptId.V1, 55, ScriptId.V1 in installed),
                 printItem(ScriptId.V4Tajweed, 69, ScriptId.V4Tajweed in installed),
+                printItem(ScriptId.IndoPak15, 6, ScriptId.IndoPak15 in installed),
             )
         val dependencies =
             fixture.dependencies.copy(
@@ -176,6 +178,35 @@ class PrintOfferTest {
             setOf(ScriptId.V2, ScriptId.V1, ScriptId.V4Tajweed),
             viewModel.state.value.printOffer.downloading,
         )
+    }
+
+    @Test
+    fun theCardOffersTheIndoPakPrintWithItsSize() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+
+        viewModel.open(null)
+
+        val indoPakStatus = viewModel.state.value.printStatuses.getValue(ScriptId.IndoPak15)
+        assertEquals(6_000_000L, indoPakStatus.downloadBytes)
+        assertFalse(indoPakStatus.isInstalled)
+    }
+
+    @Test
+    fun anIndoPakPrintOnItsOwnIsUsedOnlyOnceItIsInstalled() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+        viewModel.choosePrint(ScriptId.V2)
+        viewModel.choosePrint(ScriptId.IndoPak15)
+
+        viewModel.downloadPrint()
+
+        assertEquals(listOf("indopak-15"), scheduler.enqueued)
+        // Its pages cannot be read before the layouts are on the phone.
+        assertNotEquals(ScriptId.IndoPak15, fixture.store.settings.first().script)
+
+        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "indopak-15" }.entry) {}
+
+        assertEquals(ScriptId.IndoPak15, fixture.store.settings.first().script)
     }
 
     @Test

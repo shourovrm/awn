@@ -10,9 +10,9 @@ private const val FIRST_PAGE = 1
 
 /**
  * The page that shows the text the reader is on after the print changes from [from] to [to]. The
- * IndoPak prints have their own page numbers (610 and 548 pages), so the number cannot stay; the
- * Madani prints share theirs. When the first ayah of the page cannot be found in one of the prints
- * the page number stays, kept inside the new print.
+ * IndoPak print has its own page numbers (610 pages), so the number cannot stay; the Madani prints
+ * share theirs. When the first ayah of the page cannot be found in one of the prints the page
+ * number stays, kept inside the new print.
  */
 internal suspend fun pageAfterPrintChange(
     quranText: QuranTextRepository,

@@ -65,7 +65,9 @@ class ManifestCatalog(
 ) {
 
     private val scriptsManifestRecords: List<PackRecord> by lazy {
-        packsOf("scripts.json").map { json -> recordOf(json, scriptKindLabel(json)) }
+        packsOf("scripts.json")
+            .filter { json -> json.getString("id") !in RETIRED_SCRIPT_PACK_IDS }
+            .map { json -> recordOf(json, scriptKindLabel(json)) }
     }
 
     val scriptPacks: List<PackRecord> by lazy {
@@ -225,6 +227,12 @@ class ManifestCatalog(
 
     companion object {
         const val SUPPORTED_FORMAT_VERSION = 1
+
+        /**
+         * Packs the manifest bundled with older builds still lists but the app no longer offers:
+         * the 16-line IndoPak print, which has no script of its own any more.
+         */
+        val RETIRED_SCRIPT_PACK_IDS = setOf("indopak-16")
 
         /** The manifest `kind` and the label of the Learn sounds pack. */
         const val LEARN_AUDIO_KIND = "learn-audio"

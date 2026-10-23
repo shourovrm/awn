@@ -32,8 +32,8 @@ class IndopakEntriesTest(unittest.TestCase):
     def setUp(self):
         self.entries = {entry["id"]: entry for entry in build_manifests.indopak_entries()}
 
-    def test_one_layout_pack_and_one_font_entry_per_line_count(self):
-        self.assertEqual({"indopak-layouts", "indopak-15", "indopak-16"}, set(self.entries))
+    def test_one_layout_pack_and_one_font_entry(self):
+        self.assertEqual({"indopak-layouts", "indopak-15"}, set(self.entries))
 
     def test_layout_pack_names_the_file_in_the_data_release_and_both_layouts(self):
         layouts = self.entries["indopak-layouts"]
@@ -46,7 +46,7 @@ class IndopakEntriesTest(unittest.TestCase):
             layouts["layouts"])
 
     def test_fonts_are_downloaded_from_quran_com_and_checked_by_hash_and_size(self):
-        for pack_id in ("indopak-15", "indopak-16"):
+        for pack_id in ("indopak-15",):
             font = self.entries[pack_id]
             self.assertEqual(hashlib.sha256(FONT_BYTES).hexdigest(), font["sha256"])
             self.assertEqual(len(FONT_BYTES), font["bytes"])
@@ -55,9 +55,8 @@ class IndopakEntriesTest(unittest.TestCase):
             self.assertTrue(font["download_url"].endswith("indopak-nastaleeq-waqf-lazim-v4.2.1.ttf"))
             self.assertEqual(["indopak-layouts"], font["requires"])
 
-    def test_fonts_differ_in_lines_and_pages(self):
+    def test_the_font_states_its_lines_and_pages(self):
         self.assertEqual((15, 610), (self.entries["indopak-15"]["lines_per_page"], self.entries["indopak-15"]["pages"]))
-        self.assertEqual((16, 548), (self.entries["indopak-16"]["lines_per_page"], self.entries["indopak-16"]["pages"]))
 
     def test_fonts_credit_quran_com_and_quranwbw(self):
         credit = self.entries["indopak-15"]["credit"]
@@ -81,7 +80,14 @@ class AddIndopakToManifestTest(unittest.TestCase):
 
         build_manifests.add_indopak_to_manifest(path)
 
-        self.assertEqual(["quran-text", "v1", "indopak-layouts", "indopak-15", "indopak-16"], self.read_ids(path))
+        self.assertEqual(["quran-text", "v1", "indopak-layouts", "indopak-15"], self.read_ids(path))
+
+    def test_an_entry_of_the_retired_16_line_print_is_dropped(self):
+        path = self.write_manifest([{"id": "quran-text"}, {"id": "indopak-16"}])
+
+        build_manifests.add_indopak_to_manifest(path)
+
+        self.assertNotIn("indopak-16", self.read_ids(path))
 
     def test_running_twice_does_not_repeat_entries_and_drops_the_old_single_font_entry(self):
         path = self.write_manifest([{"id": "quran-text"}, {"id": "indopak"}])
@@ -89,7 +95,7 @@ class AddIndopakToManifestTest(unittest.TestCase):
         build_manifests.add_indopak_to_manifest(path)
         build_manifests.add_indopak_to_manifest(path)
 
-        self.assertEqual(["quran-text", "indopak-layouts", "indopak-15", "indopak-16"], self.read_ids(path))
+        self.assertEqual(["quran-text", "indopak-layouts", "indopak-15"], self.read_ids(path))
 
 
 class LearnAudioEntryTest(unittest.TestCase):

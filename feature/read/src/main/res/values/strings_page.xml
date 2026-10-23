@@ -12,6 +12,8 @@
   <string name="mushaf_year_v2">1421 print</string>
   <string name="mushaf_year_v1">1405 print</string>
   <string name="mushaf_year_v4">1421 print with tajweed colours</string>
+  <string name="mushaf_type_indopak">IndoPak</string>
+  <string name="mushaf_year_indopak">15-line print</string>
   <string name="mushaf_show_page_info">Page details</string>
   <string name="mushaf_preview_description">%1$s, preview of page %2$d</string>
   <string name="ayah_spoken_with_text">%1$s. %2$s</string>
@@ -22,6 +24,7 @@
   <string name="print_offer_detail_v2">Exact printed pages</string>
   <string name="print_offer_detail_v1">Older print</string>
   <string name="print_offer_detail_v4">Rules in colour</string>
+  <string name="print_offer_detail_indopak">Nastaleeq lettering</string>
   <string name="print_offer_size">%1$d MB</string>
   <string name="print_offer_download">Download</string>
   <string name="print_offer_download_sized">Download %1$s</string>

@@ -13,10 +13,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * The page types a reader can choose, in the order the Mushaf settings page shows them: the 1421
- * print first because it is the default.
+ * The prints a reader can choose and the first-launch card offers, in card order: the 1421 print
+ * first because it is the default.
  */
-val pageTypeScripts: List<ScriptId> = listOf(ScriptId.V2, ScriptId.V1, ScriptId.V4Tajweed)
+val pageTypeScripts: List<ScriptId> =
+    listOf(ScriptId.V2, ScriptId.V1, ScriptId.V4Tajweed, ScriptId.IndoPak15)
 
 /**
  * The state of the font of one page type. [downloadBytes] is the size to download and
@@ -36,9 +37,6 @@ data class FontPackStatus(
         get() = failure != null
 }
 
-/** Every print with a status: the three of the print offer, and the IndoPak prints of the list. */
-private val statusScripts = pageTypeScripts + indoPakScripts
-
 /**
  * Tracks, installs and removes the page fonts through the download catalogue. An install runs in
  * the background, so a font keeps downloading when the user leaves the app. The installed list is
@@ -56,14 +54,14 @@ class FontPackController(
     val statuses: StateFlow<Map<ScriptId, FontPackStatus>> =
         catalogue.state
             .map { state ->
-                statusScripts.associateWith { script ->
+                pageTypeScripts.associateWith { script ->
                     statusOf(script, state.rowFor(script.packId))
                 }
             }
             .stateIn(
                 scope,
                 SharingStarted.Eagerly,
-                statusScripts.associateWith { FontPackStatus(it, isInstalled = false) },
+                pageTypeScripts.associateWith { FontPackStatus(it, isInstalled = false) },
             )
 
     /** Downloads and installs the font of [script]; progress and failure show in [statuses]. */

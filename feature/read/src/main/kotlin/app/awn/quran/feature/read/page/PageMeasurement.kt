@@ -211,7 +211,7 @@ internal data class PagePlacement(
     val bodyHeightPx: Float,
     val sizeFactor: Float,
     val isCentredBlock: Boolean,
-    /** The slots the page height is divided into: 15, 16 or more for some IndoPak pages. */
+    /** The slots the page height is divided into: 15, or more for some IndoPak pages. */
     val slotCount: Int = PageGeometry.SLOTS,
 )
 

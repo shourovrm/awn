@@ -56,16 +56,10 @@ class IndoPakPageTest {
     @Test
     fun aPageWithAnExtraHeaderLineDividesItsHeightIntoMoreSlots() {
         val fifteenLines = headerAbovePage.copy(lines = (1..15).map { PageLine(it, emptyList()) })
-        val sixteenLines =
-            fifteenLines.copy(
-                script = ScriptId.IndoPak16,
-                lines = (1..16).map { PageLine(it, emptyList()) },
-            )
         val withExtraLines =
             headerAbovePage.copy(lines = listOf(PageLine(-1, emptyList())) + fifteenLines.lines)
 
         assertEquals(15, frameSlotCountOf(fifteenLines))
-        assertEquals(16, frameSlotCountOf(sixteenLines))
         assertEquals(17, frameSlotCountOf(withExtraLines))
     }
 
@@ -107,13 +101,13 @@ class IndoPakPageTest {
         val text =
             object : QuranTextRepository by madani {
                 override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int =
-                    if (script == ScriptId.IndoPak16) 250 else madani.pageOf(ayah, script)
+                    if (script == ScriptId.IndoPak15) 250 else madani.pageOf(ayah, script)
 
                 override fun pageCount(script: ScriptId): Int =
-                    if (script == ScriptId.IndoPak16) 548 else madani.pageCount(script)
+                    if (script == ScriptId.IndoPak15) 610 else madani.pageCount(script)
             }
 
-        assertEquals(250, pageAfterPrintChange(text, 300, ScriptId.V2, ScriptId.IndoPak16))
+        assertEquals(250, pageAfterPrintChange(text, 300, ScriptId.V2, ScriptId.IndoPak15))
         assertEquals(300, pageAfterPrintChange(text, 300, ScriptId.V2, ScriptId.V1))
     }
 }

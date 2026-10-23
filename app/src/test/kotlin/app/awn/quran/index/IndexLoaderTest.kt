@@ -69,21 +69,21 @@ class IndexLoaderTest {
         val indoPakText =
             object : QuranTextRepository by fakeText {
                 override suspend fun pageOf(ayah: AyahRef, script: ScriptId): Int =
-                    if (script == ScriptId.IndoPak16) ayah.surah * 4 - 3
+                    if (script == ScriptId.IndoPak15) ayah.surah * 4 - 3
                     else fakeText.pageOf(ayah, script)
 
                 override fun pageCount(script: ScriptId): Int =
-                    if (script == ScriptId.IndoPak16) INDOPAK_16_PAGES
+                    if (script == ScriptId.IndoPak15) INDOPAK_15_PAGES
                     else fakeText.pageCount(script)
             }
 
-        val content = IndexLoader(indoPakText).loadContent(ScriptId.IndoPak16)
+        val content = IndexLoader(indoPakText).loadContent(ScriptId.IndoPak15)
 
-        assertEquals(ScriptId.IndoPak16, content.script)
+        assertEquals(ScriptId.IndoPak15, content.script)
         val baqarah =
             content.surahRows.filterIsInstance<SurahRow>().first { it.chapter.number == 2 }
         assertEquals(5, baqarah.page)
-        assertEquals(INDOPAK_16_PAGES, content.pageRows.count { it is PageRow })
+        assertEquals(INDOPAK_15_PAGES, content.pageRows.count { it is PageRow })
     }
 
     @Test
@@ -127,6 +127,6 @@ class IndexLoaderTest {
     }
 
     private companion object {
-        const val INDOPAK_16_PAGES = 548
+        const val INDOPAK_15_PAGES = 610
     }
 }

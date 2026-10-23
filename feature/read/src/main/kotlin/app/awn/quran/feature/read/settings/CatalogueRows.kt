@@ -115,20 +115,12 @@ fun catalogueItemName(item: CatalogueItem): String {
     val script = ScriptId.entries.firstOrNull { it.packId == item.id }
     val baseName =
         if (item.group == CatalogueGroup.PageType && script != null) {
-            stringResource(pageTypeNameOf(script))
+            stringResource(pageTypeText(script).name)
         } else {
             item.name
         }
     return translationNameWithNote(baseName, item.id)
 }
-
-@StringRes
-private fun pageTypeNameOf(script: ScriptId): Int =
-    when (script) {
-        ScriptId.IndoPak15 -> R.string.print_name_indopak_15
-        ScriptId.IndoPak16 -> R.string.print_name_indopak_16
-        else -> pageTypeText(script).name
-    }
 
 /** The line under an item name: its size, its progress or why the download failed. */
 @Composable

@@ -43,6 +43,12 @@ data class PrintOfferState(
     val downloading: Set<ScriptId> = emptySet(),
     /** The script the page showed before the card changed it, restored by Cancel. */
     val previousScript: ScriptId? = null,
+    /**
+     * The print that becomes the page type once it is installed. Only an IndoPak print waits: its
+     * pages cannot be read before its layouts arrive, unlike a Madani print, which shows the
+     * bundled Hafs text meanwhile.
+     */
+    val scriptWhenInstalled: ScriptId? = null,
     /** Counts failures that happened after the card was closed, so the screen says so once. */
     val closedFailureCount: Int = 0,
 )
