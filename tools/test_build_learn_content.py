@@ -177,6 +177,75 @@ class ParsingTest(unittest.TestCase):
         )
 
 
+WORDS_LESSON = ENGLISH_LESSON.replace(
+    "{{1:1}}\n\n## Check",
+    "{{1:1}}\n\nwords: ghunnah\n- {{1:1:1}} | bismi | 2-3\n- {{1:1:1}} | in the name\n\ntip: Say it slowly.\n\n## Check",
+)
+
+
+class WordsBlockTest(unittest.TestCase):
+    def build_screen(self, text):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", text)
+        return fixture.build()["lessons"][0]["languages"]["en"]["screens"][0]
+
+    def test_a_words_block_lists_keys_captions_and_marked_letters(self):
+        blocks = self.build_screen(WORDS_LESSON)["blocks"]
+
+        words = blocks[4]
+        self.assertEqual("words", words["type"])
+        self.assertEqual("ghunnah", words["mark"])
+        self.assertEqual(
+            [
+                {"key": "1:1:1", "caption": "bismi", "letters": [2, 3]},
+                {"key": "1:1:1", "caption": "in the name", "letters": []},
+            ],
+            words["items"],
+        )
+
+    def test_a_tip_line_becomes_a_tip_block(self):
+        blocks = self.build_screen(WORDS_LESSON)["blocks"]
+
+        self.assertEqual({"type": "tip", "text": "Say it slowly."}, blocks[5])
+
+    def test_a_words_block_without_a_mark_colours_nothing_special(self):
+        text = WORDS_LESSON.replace("words: ghunnah", "words:")
+
+        self.assertIsNone(self.build_screen(text)["blocks"][4]["mark"])
+
+    def test_letters_past_the_end_of_the_word_are_refused(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", WORDS_LESSON.replace("2-3", "3-4"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("has 3 letters", str(raised.exception))
+
+    def test_an_unknown_mark_is_refused(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", WORDS_LESSON.replace("ghunnah", "glow"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("glow", str(raised.exception))
+
+    def test_a_caption_may_not_hold_arabic(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", WORDS_LESSON.replace("| bismi", "| بسم"))
+        with self.assertRaises(build_learn_content.LessonError):
+            fixture.build()
+
+    def test_a_words_line_must_start_with_a_word_key(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", WORDS_LESSON.replace("- {{1:1:1}} | bismi", "- bismi"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("word key", str(raised.exception))
+
+    def test_the_letters_count_skips_vowel_marks(self):
+        self.assertEqual(3, build_learn_content.letter_count("بِسْمِ"))
+        self.assertEqual(4, build_learn_content.letter_count("رَّبِّهِمْ ۖ"))
+        self.assertEqual(5, build_learn_content.letter_count("ٱلنَّاسِ"))
+
+
 class ValidationTest(unittest.TestCase):
     def assert_build_fails(self, text, message_part, language="en", course="basics"):
         fixture = LessonFixture(self)
