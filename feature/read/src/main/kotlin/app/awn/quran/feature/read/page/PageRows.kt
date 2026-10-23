@@ -31,8 +31,8 @@ internal sealed interface PageRow {
 /** The scripts whose words are glyph codes of a font made for each page. */
 internal val pageGlyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
 
-/** The IndoPak prints: Nastaleeq text in one Unicode font, laid out by their own line counts. */
-internal val indoPakScripts = setOf(ScriptId.IndoPak15, ScriptId.IndoPak16)
+/** The IndoPak print: Nastaleeq text in one Unicode font, laid out in its own 15-line pages. */
+internal val indoPakScripts = setOf(ScriptId.IndoPak15)
 
 /** The scripts the page draws with their own font; the others draw the Hafs text. */
 internal val glyphScripts = pageGlyphScripts + indoPakScripts
@@ -48,8 +48,7 @@ internal fun textToDraw(word: Word, script: ScriptId, hasGlyphFont: Boolean): St
             ScriptId.V1 -> word.codeV1
             ScriptId.V2,
             ScriptId.V4Tajweed -> word.codeV2
-            ScriptId.IndoPak15,
-            ScriptId.IndoPak16 -> word.textNastaleeq
+            ScriptId.IndoPak15 -> word.textNastaleeq
             ScriptId.QpcHafs -> null
         }
     return glyphCode ?: word.textUthmani
@@ -104,16 +103,11 @@ internal fun isCentredBlockPage(layout: PageLayout): Boolean =
 internal fun slotCountOf(layout: PageLayout): Int = layout.lines.maxOfOrNull { it.line } ?: 0
 
 /**
- * The slots the page frame is divided into: the lines of the print (15, or 16 for the IndoPak
- * 16-line print), or more when extra header lines were added above slot 1.
+ * The slots the page frame is divided into: the 15 lines of the print, or more when extra header
+ * lines were added above slot 1.
  */
-internal fun frameSlotCountOf(layout: PageLayout): Int {
-    val printedLines =
-        if (layout.script == ScriptId.IndoPak16) INDOPAK_16_LINES else PageGeometry.SLOTS
-    return maxOf(printedLines, slotCountOf(layout) + slotShiftOf(layout))
-}
-
-private const val INDOPAK_16_LINES = 16
+internal fun frameSlotCountOf(layout: PageLayout): Int =
+    maxOf(PageGeometry.SLOTS, slotCountOf(layout) + slotShiftOf(layout))
 
 /** True when [script] is drawn with one font per page. */
 internal fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts

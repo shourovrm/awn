@@ -9,8 +9,9 @@ import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 
 /**
- * The two page layouts stored in `indopak.sqlite` (docs/packs.md, "IndoPak"): the column names that
- * hold the page and line of each word and ayah-end marker, and the size of the layout.
+ * The page layout stored in `indopak.sqlite` (docs/packs.md, "IndoPak"): the column names that hold
+ * the page and line of each word and ayah-end marker, and the size of the layout. The file also
+ * holds a 16-line layout (`page_16`), which the app does not offer.
  */
 internal enum class IndoPakPrint(
     val script: ScriptId,
@@ -19,8 +20,7 @@ internal enum class IndoPakPrint(
     val pageCount: Int,
     val linesPerPage: Int,
 ) {
-    Lines15(ScriptId.IndoPak15, "page_15", "line_15", pageCount = 610, linesPerPage = 15),
-    Lines16(ScriptId.IndoPak16, "page_16", "line_16", pageCount = 548, linesPerPage = 16);
+    Lines15(ScriptId.IndoPak15, "page_15", "line_15", pageCount = 610, linesPerPage = 15);
 
     companion object {
         /** The layout of [script], or null when [script] is not an IndoPak print. */

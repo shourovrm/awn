@@ -56,8 +56,16 @@ class MushafSettingsViewModel(private val dependencies: ReadDependencies) : View
         fontPacks.remove(script)
     }
 
-    /** Draws pages in [script]; it must be installed, or pages fall back to the Hafs text. */
+    /**
+     * Draws pages in [script]. A Madani print that is not installed draws the Hafs text until it
+     * is. An IndoPak print cannot draw without its downloaded layouts, so it downloads first and
+     * becomes the page type when it is installed.
+     */
     fun use(script: ScriptId) {
+        if (script in indoPakScripts && statuses.value[script]?.isInstalled != true) {
+            install(script)
+            return
+        }
         viewModelScope.launch { dependencies.settingsStore.update { it.copy(script = script) } }
     }
 

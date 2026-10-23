@@ -198,3 +198,4 @@
 2026-10-23 | Page top strip no longer adds the status bar height; audio bar clearance is measured to the area bottom | screen is already inset, 100 px gap (read.md)
 2026-10-23 | Hifz bar gets a second row with show next word and show ayah while words are hidden | one row has no room for two more 44 dp buttons (hifz.md)
 2026-10-23 | Home Show choice is Surahs and Juz only; Pages list, PageRow, buildPageRows removed | Go to page covers pages (architecture.md)
+2026-10-23 | IndoPak 16-line removed, IndoPak 15 in print card, uninstalled IndoPak never saved | v0.1.0 force close: layouts missing (read.md)

@@ -2,8 +2,7 @@ package app.awn.quran.core.data
 
 /**
  * A print of the Quran text. [packId] is the pack id of the script in `scripts.json`. The IndoPak
- * print has one font and one layout pack but two page layouts, so each line count is its own
- * script.
+ * print has its own font and a layout pack that holds its 15-line page layout.
  */
 enum class ScriptId(val packId: String) {
     QpcHafs("qpc-hafs"),
@@ -11,7 +10,6 @@ enum class ScriptId(val packId: String) {
     V2("v2"),
     V4Tajweed("v4-tajweed"),
     IndoPak15("indopak-15"),
-    IndoPak16("indopak-16"),
 }
 
 /** One surah. [nameBangla] is null when the pack has no Bangla name. */
@@ -58,10 +56,9 @@ sealed interface LineItem {
 }
 
 /**
- * One slot (1..15) of a page; an IndoPak page has 15 or 16. Slots that hold only a header or the
- * bismillah are included. On the 14 IndoPak pages where a surah starts too near the top for its
- * header, the header comes first as extra lines numbered 0 and below (the previous page has no free
- * slot to take it).
+ * One slot (1..15) of a page. Slots that hold only a header or the bismillah are included. On the
+ * 14 IndoPak pages where a surah starts too near the top for its header, the header comes first as
+ * extra lines numbered 0 and below (the previous page has no free slot to take it).
  */
 data class PageLine(val line: Int, val items: List<LineItem>)
 

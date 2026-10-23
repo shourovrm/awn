@@ -41,9 +41,8 @@ class IndoPakLayoutTest {
     private fun lineOf(layout: PageLayout, number: Int) = layout.lines.first { it.line == number }
 
     @Test
-    fun theLayoutsHave610And548Pages() {
+    fun theLayoutHas610Pages() {
         assertEquals(610, repository.pageCount(ScriptId.IndoPak15))
-        assertEquals(548, repository.pageCount(ScriptId.IndoPak16))
     }
 
     @Test
@@ -79,16 +78,6 @@ class IndoPakLayoutTest {
     }
 
     @Test
-    fun theSixteenLineFirstPageStartsOneLineLower() = runBlocking {
-        val layout = repository.pageLayout(1, ScriptId.IndoPak16)
-
-        assertEquals((1..16).toList(), layout.lines.map { it.line })
-        assertEquals(listOf(LineItem.SurahHeader(1)), lineOf(layout, 10).items)
-        val firstWord = lineOf(layout, 11).items.first() as LineItem.WordItem
-        assertEquals("1:1:1", firstWord.word.key.toString())
-    }
-
-    @Test
     fun aSurahStartGetsItsBannerAndBismillahOnTheTwoLinesAboveTheFirstWord() = runBlocking {
         val layout = repository.pageLayout(2, ScriptId.IndoPak15)
 
@@ -110,29 +99,18 @@ class IndoPakLayoutTest {
         )
         assertEquals(AyahRef(114, 6), (lastLine.items.last() as LineItem.AyahEnd).ayah)
         assertEquals(43, wordKeys(layout).size)
-        assertEquals(43, wordKeys(repository.pageLayout(548, ScriptId.IndoPak16)).size)
     }
 
     @Test
     fun aHeaderWithNoFreeSlotAbovePageStartComesFirstAsExtraLinesZeroAndBelow() = runBlocking {
-        val fifteen = repository.pageLayout(502, ScriptId.IndoPak15)
+        val layout = repository.pageLayout(502, ScriptId.IndoPak15)
 
-        assertEquals(listOf(-1, 0, 1), fifteen.lines.take(3).map { it.line })
-        assertEquals(listOf(LineItem.SurahHeader(46)), fifteen.lines[0].items)
-        assertEquals(listOf(LineItem.Basmala(46)), fifteen.lines[1].items)
+        assertEquals(listOf(-1, 0, 1), layout.lines.take(3).map { it.line })
+        assertEquals(listOf(LineItem.SurahHeader(46)), layout.lines[0].items)
+        assertEquals(listOf(LineItem.Basmala(46)), layout.lines[1].items)
         assertEquals(
             "46:1:1",
-            (fifteen.lines[2].items.first() as LineItem.WordItem).word.key.toString(),
-        )
-
-        val sixteen = repository.pageLayout(136, ScriptId.IndoPak16)
-
-        assertEquals(listOf(0, 1, 2), sixteen.lines.take(3).map { it.line })
-        assertEquals(listOf(LineItem.SurahHeader(7)), sixteen.lines[0].items)
-        assertEquals(listOf(LineItem.Basmala(7)), sixteen.lines[1].items)
-        assertEquals(
-            "7:1:1",
-            (sixteen.lines[2].items.first() as LineItem.WordItem).word.key.toString(),
+            (layout.lines[2].items.first() as LineItem.WordItem).word.key.toString(),
         )
     }
 
@@ -140,13 +118,12 @@ class IndoPakLayoutTest {
     fun pageOfAndAyahsOnPageUseTheIndoPakPageNumbers() = runBlocking {
         assertEquals(2, repository.pageOf(AyahRef(2, 1), ScriptId.IndoPak15))
         assertEquals(610, repository.pageOf(AyahRef(114, 1), ScriptId.IndoPak15))
-        assertEquals(548, repository.pageOf(AyahRef(114, 1), ScriptId.IndoPak16))
-        assertEquals((1..7).map { AyahRef(1, it) }, repository.ayahsOnPage(1, ScriptId.IndoPak16))
+        assertEquals((1..7).map { AyahRef(1, it) }, repository.ayahsOnPage(1, ScriptId.IndoPak15))
     }
 
     @Test
-    fun everyWordAndEveryAyahEndIsPrintedOnceInBothLayouts() = runBlocking {
-        for ((script, pageCount) in listOf(ScriptId.IndoPak15 to 610, ScriptId.IndoPak16 to 548)) {
+    fun everyWordAndEveryAyahEndIsPrintedOnce() = runBlocking {
+        for ((script, pageCount) in listOf(ScriptId.IndoPak15 to 610)) {
             val words = mutableListOf<String>()
             var ayahEnds = 0
             var banners = 0
@@ -178,9 +155,6 @@ class IndoPakLayoutTest {
     fun aPageOutsideTheLayoutIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { repository.pageLayout(611, ScriptId.IndoPak15) }
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repository.pageLayout(549, ScriptId.IndoPak16) }
         }
     }
 

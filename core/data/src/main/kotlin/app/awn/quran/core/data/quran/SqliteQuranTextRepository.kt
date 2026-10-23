@@ -291,8 +291,7 @@ internal enum class LayoutPrint(
                 ScriptId.V2,
                 ScriptId.QpcHafs,
                 ScriptId.V4Tajweed -> V2
-                ScriptId.IndoPak15,
-                ScriptId.IndoPak16 ->
+                ScriptId.IndoPak15 ->
                     throw IllegalArgumentException(
                         "$script is laid out by indopak.sqlite, not by quran.sqlite.",
                     )

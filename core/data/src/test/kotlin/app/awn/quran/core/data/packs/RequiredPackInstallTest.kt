@@ -14,7 +14,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -80,6 +79,7 @@ class RequiredPackInstallTest {
               |${manifestEntry("quran-text", "text", quranText, "quran/quran.sqlite")},
               |${manifestEntry("indopak-layouts", "text", layouts, "quran/indopak.sqlite", extraFields = ""","requires":["quran-text"]""")},
               |${manifestEntry("indopak-15", "font", font, "fonts/indopak/indopak-font.ttf", extraFields = fontFields)},
+              |${manifestEntry("second-font", "font", font, "fonts/indopak/indopak-font.ttf", extraFields = fontFields)},
               |${manifestEntry("indopak-16", "font", font, "fonts/indopak/indopak-font.ttf", extraFields = fontFields)}]}"""
                 .trimMargin()
         val assets =
@@ -136,22 +136,27 @@ class RequiredPackInstallTest {
 
         repository.install(entryOf("indopak-15")) {}
 
-        assertEquals(fontBytes.size.toLong(), rowOf("indopak-16").downloadBytes)
-        assertFalse(rowOf("indopak-16").isInstalled)
+        assertEquals(fontBytes.size.toLong(), rowOf("second-font").downloadBytes)
+        assertFalse(rowOf("second-font").isInstalled)
         assertTrue(rowOf("indopak-15").isInstalled)
+    }
+
+    @Test
+    fun theRetiredSixteenLinePrintIsNotListedEvenWhenTheManifestHasIt() = runBlocking {
+        assertNull(catalog.findPack("indopak-16"))
+        assertFalse("indopak-16" in repository.catalogue().map { it.id })
     }
 
     @Test
     fun theLayoutsStayWhileAnotherPrintNeedsThemAndGoWithTheLast() = runBlocking {
         repository.install(entryOf("indopak-15")) {}
-        repository.install(entryOf("indopak-16")) {}
+        repository.install(entryOf("second-font")) {}
 
         repository.remove("indopak-15")
         assertTrue("indopak-layouts" in repository.installed().first().map { it.id })
         assertNull(repository.fontFile(ScriptId.IndoPak15, 1))
-        assertNotNull(repository.fontFile(ScriptId.IndoPak16, 1))
 
-        repository.remove("indopak-16")
+        repository.remove("second-font")
         assertFalse("indopak-layouts" in repository.installed().first().map { it.id })
     }
 
