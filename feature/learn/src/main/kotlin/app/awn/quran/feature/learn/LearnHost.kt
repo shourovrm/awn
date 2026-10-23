@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,6 +42,7 @@ import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
 import app.awn.quran.feature.learn.ui.LearnEnvironment
 import app.awn.quran.feature.learn.ui.LearnRoute
+import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
@@ -160,7 +162,8 @@ internal class LearnRouteContent(
 private fun rememberStartRoute(services: LearnServices): MutableState<LearnRoute?> {
     val courseStarted by
         produceState<Boolean?>(null) { value = services.settings.courseStarted.first() }
-    val route = remember { mutableStateOf<LearnRoute?>(null) }
+    // Saved so that turning the phone keeps the open unit instead of returning to the hub.
+    val route = rememberSaveable(stateSaver = LearnRouteSaver) { mutableStateOf<LearnRoute?>(null) }
     LaunchedEffect(courseStarted) {
         val started = courseStarted
         if (route.value == null && started != null) route.value = learnStartRoute(started)
