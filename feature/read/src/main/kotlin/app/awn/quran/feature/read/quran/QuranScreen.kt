@@ -93,6 +93,7 @@ import app.awn.quran.feature.read.page.rememberFontLookup
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /**
@@ -514,8 +515,12 @@ private fun QuranContent(
                     ) {
                         TuckedAwayWhenHidden(isShown = bottomBar == BottomBarDisplay.Full) {
                             Box(
-                                Modifier.onSizeChanged { size ->
-                                    barClearance.onBottomBarMeasured(size.height, false)
+                                Modifier.onGloballyPositioned { coordinates ->
+                                    // From the top of the bar to the bottom of the screen area,
+                                    // so a margin or inset under the bar counts as well as the bar.
+                                    val areaBottom = rootOrigin.y + fullHeightPx
+                                    val coveredPx = areaBottom - coordinates.positionInWindow().y
+                                    barClearance.onBottomBarMeasured(coveredPx.roundToInt(), false)
                                 },
                             ) {
                                 slots.audioBar(state.currentPage)

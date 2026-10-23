@@ -195,3 +195,4 @@
 2026-10-23 | Reading units use the ten Qaida-order files; unit pages show grids and a seeded 10-item practice; read-aloud items count as done | matches mock A (learn.md)
 2026-10-23 | Lesson sounds row in Settings > Downloads, credits for Qaida, academy and tajweed book, Bangla Reading units added | completes the guide (learn.md)
 2026-10-23 | Lesson language is its own Learn setting (follow app, English, Bangla) in Settings > Recite; chrome stays in the app language | lessons and UI can differ (learn.md)
+2026-10-23 | Page top strip no longer adds the status bar height; audio bar clearance is measured to the area bottom | screen is already inset, 100 px gap (read.md)
