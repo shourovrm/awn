@@ -64,7 +64,7 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
             chapters = chapters,
             surahRows = buildSurahRows(chapters, surahPages, juzPages),
             juzRows = buildJuzRows(chapters, juzPages),
-            pageRows = buildPageRows(chapters, surahPages, juzPages, pageCount = 604),
+            pageCount = 604,
             juzStartPages = juzPages,
         )
 

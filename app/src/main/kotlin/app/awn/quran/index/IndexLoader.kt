@@ -21,7 +21,8 @@ class IndexContent(
     val chapters: List<Chapter>,
     val surahRows: List<IndexRow>,
     val juzRows: List<IndexRow>,
-    val pageRows: List<IndexRow>,
+    /** How many pages [script] has, for the Go to page dialog. */
+    val pageCount: Int,
     /** The first page of each juz, keyed by juz number, in [script]. */
     val juzStartPages: Map<Int, Int>,
 )
@@ -74,7 +75,7 @@ class IndexLoader(private val quranText: QuranTextRepository) {
             chapters = chapters,
             surahRows = buildSurahRows(chapters, surahPages, juzPages),
             juzRows = buildJuzRows(chapters, juzPages),
-            pageRows = buildPageRows(chapters, surahPages, juzPages, quranText.pageCount(script)),
+            pageCount = quranText.pageCount(script),
             juzStartPages = juzPages,
         )
     }

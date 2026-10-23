@@ -65,11 +65,10 @@ class QuranTabActions(
     val onOpen: (page: Int, ayah: AyahRef?) -> Unit,
 )
 
-/** The three lists the Show choice offers. */
+/** The two lists the Show choice offers. */
 internal enum class IndexMode(val labelResource: Int) {
     Surahs(R.string.index_tab_surahs),
     Juz(R.string.index_tab_juz),
-    Pages(R.string.index_tab_pages),
 }
 
 /**
@@ -138,13 +137,13 @@ private fun QuranTabBody(
     actions: QuranTabActions,
 ) {
     var modeOrdinal by rememberSaveable { mutableIntStateOf(IndexMode.Surahs.ordinal) }
-    val mode = IndexMode.entries[modeOrdinal]
+    // A saved ordinal from a build that had a third list falls back to Surahs.
+    val mode = IndexMode.entries.getOrElse(modeOrdinal) { IndexMode.Surahs }
     var isGoToPageOpen by remember { mutableStateOf(false) }
     val rows =
         when (mode) {
             IndexMode.Surahs -> content.surahRows
             IndexMode.Juz -> content.juzRows
-            IndexMode.Pages -> content.pageRows
         }
     val language = LearnLanguage.of(LocalConfiguration.current.locales[0])
     val snippet =
@@ -181,7 +180,7 @@ private fun QuranTabBody(
     }
     if (isGoToPageOpen) {
         GoToPageDialog(
-            pageCount = content.pageRows.count { it is PageRow },
+            pageCount = content.pageCount,
             onGo = { page ->
                 isGoToPageOpen = false
                 actions.onOpen(page, null)
@@ -283,7 +282,6 @@ private fun rowKey(row: IndexRow): String =
         is JuzHeading -> "heading-${row.juz}"
         is SurahRow -> "surah-${row.chapter.number}"
         is JuzStartRow -> "juz-${row.juz}"
-        is PageRow -> "page-${row.page}"
     }
 
 @Composable

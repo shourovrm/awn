@@ -100,28 +100,6 @@ class IndexModelsTest {
     }
 
     @Test
-    fun everyPageHasARowAndTheSurahOfAPageIsTheOneStartingOnItElseTheOneBefore() {
-        val rows = buildPageRows(chapters, surahPages, juzPages, pageCount = 604)
-        val pageRows = rows.filterIsInstance<PageRow>()
-
-        assertEquals((1..604).toList(), pageRows.map { it.page })
-        assertEquals(1, pageRows[0].chapter.number)
-        assertTrue(pageRows[0].startsSurah)
-        assertEquals(1, pageRows[1].chapter.number)
-        assertFalse(pageRows[1].startsSurah)
-        assertEquals(2, pageRows[5].chapter.number)
-    }
-
-    @Test
-    fun theRowsOfAPageListFollowTheirJuzHeading() {
-        val rows = buildPageRows(chapters, surahPages, juzPages, pageCount = 604)
-
-        val heading = rows.indexOfFirst { it is JuzHeading && it.juz == 3 }
-        assertEquals(3, rows[heading + 1].juz)
-        assertEquals(41, (rows[heading + 1] as PageRow).page)
-    }
-
-    @Test
     fun theRowOfTheLastReadSurahIsTheSurahRowNotItsHeading() {
         val row = surahRows[checkNotNull(rowIndexOfSurah(surahRows, surah = 18))]
 

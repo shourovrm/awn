@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.androidx.coreKtx)
 
     testImplementation(libs.kotlinx.coroutinesTest)
+    testImplementation(libs.androidx.datastorePreferences)
     testImplementation(libs.androidx.roomTesting)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.testExtJunit)
