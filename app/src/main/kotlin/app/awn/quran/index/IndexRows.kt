@@ -93,16 +93,6 @@ internal fun IndexRowItem(
                 isMarked = false,
                 onClick = { onOpen(row.page) },
             )
-        is PageRow ->
-            ListRow(
-                badge = row.page,
-                title = row.chapter.nameSimple,
-                detail = if (row.startsSurah) stringResource(R.string.index_surah_starts) else null,
-                arabicName = row.chapter.nameArabic,
-                page = null,
-                isMarked = false,
-                onClick = { onOpen(row.page) },
-            )
     }
 }
 
@@ -150,13 +140,11 @@ private fun JuzHeadingRow(heading: JuzHeading) {
             color = field.buttonFill,
             modifier = Modifier.weight(1f).semantics { heading() },
         )
-        if (heading.showPage) {
-            Text(
-                text = stringResource(R.string.index_page_lower, heading.startPage),
-                style = AwnTypography.bodyStrong,
-                color = field.buttonFill,
-            )
-        }
+        Text(
+            text = stringResource(R.string.index_page_lower, heading.startPage),
+            style = AwnTypography.bodyStrong,
+            color = field.buttonFill,
+        )
     }
 }
 

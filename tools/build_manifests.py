@@ -74,11 +74,13 @@ INDOPAK_FONT_CREDIT = ("AlQuran IndoPak by QuranWBW 4.2.1-WL, Ayman Siddiqui (qu
 INDOPAK_FONT_DOWNLOAD_URL = (
     "https://raw.githubusercontent.com/quran/quran.com-frontend-next/aff1a035b09b66f28047b3216edcae4c5c949a49/"
     "public/fonts/quran/hafs/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf")
-# pack id, name, lines per page, pages
+# pack id, name, lines per page, pages. Only the 15-line print is offered.
 INDOPAK_PRINTS = [
-    ("indopak-15", "IndoPak, 15 lines", 15, 610),
-    ("indopak-16", "IndoPak, 16 lines", 16, 548),
+    ("indopak-15", "IndoPak", 15, 610),
 ]
+# The layouts the file holds, offered or not: id, pages, lines per page.
+INDOPAK_FILE_LAYOUTS = [("15", 610, 15), ("16", 548, 16)]
+# "indopak-16" is listed so that a manifest written by an older build loses its entry.
 INDOPAK_PACK_IDS = {"indopak-layouts", "indopak-15", "indopak-16"}
 INDOPAK_LAYOUT_CREDIT = (f"{QURAN_COM_ATTRIBUTION} (QDC API, mushaf 6 and 7): IndoPak 15-line layout "
                          "(Qudratullah, Lahore, 610 pages) and IndoPak 16-line layout (Taj Company, 548 pages)")
@@ -145,17 +147,18 @@ def write_manifest(name, key, entries):
 
 
 def indopak_entries():
-    """The IndoPak layout pack and one font entry per line count.
+    """The IndoPak layout pack and the font entry of the 15-line print.
 
-    Both prints use the same font file, so each print is its own entry (its own install folder) and
-    both require the one layout pack. The font is downloaded from `download_url`, never from our release.
+    The font entry requires the layout pack. The font is downloaded from `download_url`, never from
+    our release.
     """
     entries = [pack_entry(
         os.path.join(DATA_ROOT, "quran", "indopak.sqlite"), id="indopak-layouts", kind="text",
-        name="IndoPak layouts (15-line and 16-line)", credit=INDOPAK_LAYOUT_CREDIT,
+        name="IndoPak layouts", credit=INDOPAK_LAYOUT_CREDIT,
         source_url=f"{QURAN_COM_URL.replace('/v4', '/qdc')}/verses/by_page",
         requires=["quran-text"],
-        layouts=[{"id": str(lines), "pages": pages, "lines_per_page": lines} for _, _, lines, pages in INDOPAK_PRINTS])]
+        layouts=[{"id": layout_id, "pages": pages, "lines_per_page": lines}
+                 for layout_id, pages, lines in INDOPAK_FILE_LAYOUTS])]
     font_path = os.path.join(FONTS_ROOT, "indopak", "indopak-nastaleeq-waqf-lazim-v4.2.1.ttf")
     for pack_id, name, lines, pages in INDOPAK_PRINTS:
         entries.append(pack_entry(

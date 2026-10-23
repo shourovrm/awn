@@ -265,6 +265,7 @@ private fun printDetailOf(script: ScriptId): Int =
     when (script) {
         ScriptId.V1 -> R.string.print_offer_detail_v1
         ScriptId.V4Tajweed -> R.string.print_offer_detail_v4
+        ScriptId.IndoPak15 -> R.string.print_offer_detail_indopak
         else -> R.string.print_offer_detail_v2
     }
 

@@ -65,7 +65,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
 
     private fun readSettings(preferences: Preferences): ReadSettings {
         val defaults = ReadSettings()
-        val script = ScriptId.entries.firstOrNull { it.name == preferences[SCRIPT_KEY] }
+        val script = scriptOf(preferences[SCRIPT_KEY])
         val storedViewName = preferences[PAGE_VIEW_KEY]
         val steps = sizeStepsOf(preferences, defaults)
         return ReadSettings(
@@ -166,11 +166,19 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             else -> null
         }
 
+    /** The 16-line IndoPak print of version 0.1.0 is gone; its readers get the 15-line print. */
+    private fun scriptOf(storedName: String?): ScriptId? {
+        val currentName =
+            if (storedName == RETIRED_INDOPAK_16_SCRIPT) ScriptId.IndoPak15.name else storedName
+        return ScriptId.entries.firstOrNull { it.name == currentName }
+    }
+
     private fun orientationOf(storedName: String?): ScreenOrientation? =
         ScreenOrientation.entries.firstOrNull { it.name == storedName }
 
     private companion object {
         const val SEPARATOR = ","
+        const val RETIRED_INDOPAK_16_SCRIPT = "IndoPak16"
         const val LEGACY_AYAH_LIST_VIEW = "AyahList"
         const val LEGACY_TRANSLATION_VIEW = "Translation"
         const val LEGACY_WORD_BY_WORD_VIEW = "WordByWord"

@@ -50,9 +50,8 @@ internal object PageLayoutBuilder {
      * line 1 or 2 of the next page, so this page can draw the banner that belongs to it.
      *
      * [bismillahPreBySurah] maps a surah number to whether it has a separate bismillah line.
-     * [placement] has 15 slots for the Madani prints and 15 or 16 for IndoPak. With
-     * [HeaderOverflow.ExtraLinesAbove] a header that runs off the top becomes lines 0, -1 of this
-     * page instead of lines of the previous page.
+     * [placement] has 15 slots for every print. With [HeaderOverflow.ExtraLinesAbove] a header that
+     * runs off the top becomes lines 0, -1 of this page instead of lines of the previous page.
      */
     fun build(
         words: List<PlacedWord>,

@@ -90,6 +90,21 @@ class ReadSettingsTest {
     }
 
     @Test
+    fun theRetiredSixteenLinePrintIsReadAsTheFifteenLinePrint() = runTest {
+        val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
+        val dataStore =
+            PreferenceDataStoreFactory.create(scope = scope) {
+                File(folder.root, "indopak16.preferences_pb")
+            }
+        dataStore.edit { it[stringPreferencesKey("script")] = "IndoPak16" }
+
+        val loaded = DataStoreReadSettingsStore(dataStore).settings.first()
+        scope.coroutineContext.job.cancelAndJoin()
+
+        assertEquals(ScriptId.IndoPak15, loaded.script)
+    }
+
+    @Test
     fun theOldWordByWordViewBecomesLineByLineWithTheWordByWordLayerTicked() = runTest {
         val scope = CoroutineScope(UnconfinedTestDispatcher() + Job())
         val dataStore =

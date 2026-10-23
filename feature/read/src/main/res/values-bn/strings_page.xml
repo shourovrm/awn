@@ -12,6 +12,8 @@
   <string name="mushaf_year_v2">১৪২১ ছাপা</string>
   <string name="mushaf_year_v1">১৪০৫ ছাপা</string>
   <string name="mushaf_year_v4">তাজবিদ রঙসহ ১৪২১ মুদ্রণ</string>
+  <string name="mushaf_type_indopak">ইন্দোপাক</string>
+  <string name="mushaf_year_indopak">১৫ লাইনের ছাপা</string>
   <string name="mushaf_show_page_info">পৃষ্ঠার তথ্য</string>
   <string name="mushaf_preview_description">%1$s, %2$d নম্বর পৃষ্ঠার প্রিভিউ</string>
   <string name="ayah_spoken_with_text">%1$s। %2$s</string>
@@ -22,6 +24,7 @@
   <string name="print_offer_detail_v2">হুবহু ছাপা পাতা</string>
   <string name="print_offer_detail_v1">পুরোনো ছাপা</string>
   <string name="print_offer_detail_v4">নিয়ম রঙে</string>
+  <string name="print_offer_detail_indopak">নাস্তালিক হরফ</string>
   <string name="print_offer_size">%1$d এমবি</string>
   <string name="print_offer_download">ডাউনলোড</string>
   <string name="print_offer_download_sized">ডাউনলোড %1$s</string>

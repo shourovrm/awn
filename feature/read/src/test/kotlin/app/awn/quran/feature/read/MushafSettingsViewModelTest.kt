@@ -2,11 +2,15 @@ package app.awn.quran.feature.read
 
 import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.downloads.PackDownloads
+import app.awn.quran.core.data.fakes.InMemoryWantedPackStore
+import app.awn.quran.core.data.fakes.RecordingPackWorkScheduler
 import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.feature.read.page.MushafSettingsViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -48,6 +52,33 @@ class MushafSettingsViewModelTest {
 
         assertTrue(viewModel.statuses.value.getValue(ScriptId.V1).isInstalled)
         assertEquals(ScriptId.V1, viewModel.settings.value.script)
+    }
+
+    @Test
+    fun usingAnIndoPakPrintBeforeItIsInstalledDownloadsItInsteadOfSwitching() = runTest {
+        fixture.packs.catalogueItems += pageType("indopak-15", 6_336_000)
+
+        viewModel.use(ScriptId.IndoPak15)
+
+        // The print becomes the one in use when the install ends, not before.
+        assertTrue(viewModel.statuses.value.getValue(ScriptId.IndoPak15).isInstalled)
+        assertEquals(ScriptId.IndoPak15, viewModel.settings.value.script)
+    }
+
+    @Test
+    fun anIndoPakPrintThatIsNotInstalledIsNeverTheOneInUseWhileItDownloads() = runTest {
+        fixture.packs.catalogueItems += pageType("indopak-15", 6_336_000)
+        val scheduler = RecordingPackWorkScheduler()
+        val dependencies =
+            fixture.dependencies.copy(
+                downloads = PackDownloads(InMemoryWantedPackStore(), scheduler),
+            )
+        val slowViewModel = MushafSettingsViewModel(dependencies)
+
+        slowViewModel.use(ScriptId.IndoPak15)
+
+        assertEquals(listOf("indopak-15"), scheduler.enqueued)
+        assertNotEquals(ScriptId.IndoPak15, slowViewModel.settings.value.script)
     }
 
     @Test

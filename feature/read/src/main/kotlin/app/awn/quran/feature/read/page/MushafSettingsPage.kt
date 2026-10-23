@@ -33,7 +33,8 @@ private const val PREVIEW_PAGE = 50
 internal data class PageTypeText(
     @StringRes val name: Int,
     @StringRes val year: Int,
-    @DrawableRes val preview: Int,
+    /** The picture of page 50, or null for a print without one. */
+    @DrawableRes val preview: Int?,
 )
 
 /** The name of the print [script] as the app shows it, for summaries outside this module. */
@@ -53,6 +54,8 @@ internal fun pageTypeText(script: ScriptId): PageTypeText =
                 R.string.mushaf_year_v4,
                 R.drawable.mushaf_preview_v4,
             )
+        ScriptId.IndoPak15 ->
+            PageTypeText(R.string.mushaf_type_indopak, R.string.mushaf_year_indopak, preview = null)
         else ->
             PageTypeText(
                 R.string.mushaf_type_v2,
@@ -81,16 +84,18 @@ fun MushafSettingsPage(
     val name = stringResource(text.name)
 
     Column(modifier.fillMaxWidth()) {
-        Image(
-            painter = painterResource(text.preview),
-            contentDescription =
-                stringResource(R.string.mushaf_preview_description, name, PREVIEW_PAGE),
-            contentScale = ContentScale.Fit,
-            modifier =
-                Modifier.fillMaxWidth()
-                    .height(AwnSpacing.previewHeight)
-                    .padding(top = AwnSpacing.medium),
-        )
+        if (text.preview != null) {
+            Image(
+                painter = painterResource(text.preview),
+                contentDescription =
+                    stringResource(R.string.mushaf_preview_description, name, PREVIEW_PAGE),
+                contentScale = ContentScale.Fit,
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .height(AwnSpacing.previewHeight)
+                        .padding(top = AwnSpacing.medium),
+            )
+        }
         SettingsLinkRow(
             label = stringResource(R.string.mushaf_print),
             value = stringResource(R.string.mushaf_print_value, name, stringResource(text.year)),

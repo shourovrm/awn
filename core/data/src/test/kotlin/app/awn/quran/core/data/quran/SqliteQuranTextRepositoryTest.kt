@@ -39,7 +39,7 @@ class SqliteQuranTextRepositoryTest {
 
     @Test
     fun everyScriptWithALayoutHas604Pages() {
-        for (script in ScriptId.entries - setOf(ScriptId.IndoPak15, ScriptId.IndoPak16)) {
+        for (script in ScriptId.entries - setOf(ScriptId.IndoPak15)) {
             assertEquals(script.name, 604, repository.pageCount(script))
         }
     }
@@ -70,7 +70,7 @@ class SqliteQuranTextRepositoryTest {
     @Test
     fun everySurahHasOneBannerAndOneBismillahBeforeItsFirstWordInEveryScript() = runBlocking {
         val chapters = repository.chapters()
-        for (script in ScriptId.entries - setOf(ScriptId.IndoPak15, ScriptId.IndoPak16)) {
+        for (script in ScriptId.entries - setOf(ScriptId.IndoPak15)) {
             val banners = mutableMapOf<Int, MutableList<Pair<Int, Int>>>()
             val bismillahs = mutableMapOf<Int, MutableList<Pair<Int, Int>>>()
             val firstWords = mutableMapOf<Int, Pair<Int, Int>>()

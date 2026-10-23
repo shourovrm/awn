@@ -281,7 +281,7 @@ class QuranViewModel(
         openedTarget = target
         viewModelScope.launch {
             // The saved settings come first, so every entry opens in the saved view and print.
-            val saved = dependencies.settingsStore.settings.first()
+            val saved = readSavedSettings()
             mutableState.update {
                 it.copy(
                     settings = saved,
@@ -1007,6 +1007,19 @@ class QuranViewModel(
         }
     }
 
+    /**
+     * The saved settings, with the default print in place of an IndoPak print that is not on the
+     * phone; the saved print is corrected too, so no other screen reads it either.
+     */
+    private suspend fun readSavedSettings(): ReadSettings {
+        val stored = dependencies.settingsStore.settings.first()
+        val installedPackIds = dependencies.packs.installed().first().map { it.id }.toSet()
+        val readablePrint = readablePrintOf(stored.script, installedPackIds)
+        if (readablePrint == stored.script) return stored
+        dependencies.settingsStore.update { it.copy(script = readablePrint) }
+        return stored.copy(script = readablePrint)
+    }
+
     /** Opens the print offer card once, on a new installation that has no print yet. */
     private suspend fun openPrintOfferIfPending() {
         val isPending = dependencies.printOffer.isPending.first()
@@ -1033,15 +1046,22 @@ class QuranViewModel(
         if (offer.choices.isEmpty()) return
         val tickedPrints = pageTypeScripts.filter { it in offer.choices }
         val firstTickedPrint = tickedPrints.first()
+        val isReadableAtOnce = firstTickedPrint !in indoPakScripts
         markPrintOfferHandled()
         mutableState.update {
             it.copy(
                 printOffer =
-                    offer.copy(downloading = offer.choices, previousScript = it.settings.script),
+                    offer.copy(
+                        downloading = offer.choices,
+                        previousScript = it.settings.script,
+                        scriptWhenInstalled = firstTickedPrint.takeUnless { isReadableAtOnce },
+                    ),
             )
         }
-        viewModelScope.launch {
-            dependencies.settingsStore.update { it.copy(script = firstTickedPrint) }
+        if (isReadableAtOnce) {
+            viewModelScope.launch {
+                dependencies.settingsStore.update { it.copy(script = firstTickedPrint) }
+            }
         }
         tickedPrints.forEach { fontPacks.install(it) }
     }
@@ -1074,7 +1094,12 @@ class QuranViewModel(
         }
         mutableState.update {
             it.copy(
-                printOffer = it.printOffer.copy(downloading = emptySet(), previousScript = null),
+                printOffer =
+                    it.printOffer.copy(
+                        downloading = emptySet(),
+                        previousScript = null,
+                        scriptWhenInstalled = null,
+                    ),
             )
         }
     }
@@ -1095,6 +1120,16 @@ class QuranViewModel(
                     printOffer = settledOffer(it.printOffer, statuses),
                 )
             }
+            useOfferedPrintOnceInstalled(statuses)
+        }
+    }
+
+    private fun useOfferedPrintOnceInstalled(statuses: Map<ScriptId, FontPackStatus>) {
+        val waitingPrint = mutableState.value.printOffer.scriptWhenInstalled ?: return
+        if (statuses[waitingPrint]?.isInstalled != true) return
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(scriptWhenInstalled = null)) }
+        viewModelScope.launch {
+            dependencies.settingsStore.update { it.copy(script = waitingPrint) }
         }
     }
 

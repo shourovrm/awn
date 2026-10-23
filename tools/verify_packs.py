@@ -361,23 +361,23 @@ def verify_manifests():
         if name == "scripts.json":
             by_id = {entry["id"]: entry for entry in entries}
             check(set(by_id) == {"quran-text", "qpc-hafs", "v1", "v2", "v4-tajweed", "indopak-layouts", "indopak-15",
-                                 "indopak-16", "tajweed-text"},
+                                 "tajweed-text"},
                   "scripts.json lists the text packs and the font scripts")
             check(all(by_id[i]["installed_bytes"] > by_id[i]["bytes"] for i in ("v1", "v2", "v4-tajweed")),
                   "font zips state installed_bytes")
             check(by_id["v4-tajweed"].get("min_sdk") == 33, "v4-tajweed has min_sdk 33 (COLRv1 needs Android 13)")
             check(all("min_sdk" not in by_id[i] for i in by_id if i != "v4-tajweed"), "only v4-tajweed has min_sdk")
-            check(all(by_id[i].get("requires") == ["indopak-layouts"] for i in ("indopak-15", "indopak-16"))
+            check(all(by_id[i].get("requires") == ["indopak-layouts"] for i in ("indopak-15",))
                   and by_id["indopak-layouts"].get("requires") == ["quran-text"],
-                  "both IndoPak prints require indopak-layouts, which requires quran-text")
-            check(all(by_id[i].get("download_url", "").startswith("https://") for i in ("indopak-15", "indopak-16"))
-                  and all("download_url" not in by_id[i] for i in by_id if i not in ("indopak-15", "indopak-16")),
-                  "only the IndoPak fonts are downloaded from another host")
-            check([(by_id[i]["lines_per_page"], by_id[i]["pages"]) for i in ("indopak-15", "indopak-16")]
-                  == [(15, 610), (16, 548)], "the IndoPak prints state their lines per page and pages")
+                  "the IndoPak print requires indopak-layouts, which requires quran-text")
+            check(all(by_id[i].get("download_url", "").startswith("https://") for i in ("indopak-15",))
+                  and all("download_url" not in by_id[i] for i in by_id if i != "indopak-15"),
+                  "only the IndoPak font is downloaded from another host")
+            check([(by_id[i]["lines_per_page"], by_id[i]["pages"]) for i in ("indopak-15",)]
+                  == [(15, 610)], "the IndoPak print states its lines per page and pages")
             layouts = {layout["id"]: (layout["pages"], layout["lines_per_page"])
                        for layout in by_id["indopak-layouts"]["layouts"]}
-            check(layouts == INDOPAK_LAYOUTS, "indopak-layouts lists the 15-line and 16-line layouts")
+            check(layouts == INDOPAK_LAYOUTS, "indopak-layouts lists the layouts the file holds")
         if name == "translations.json":
             expected_ids = set(TRANSLATION_FILES) | set(WORD_FILES) | set(WORD_TRANSLITERATION_FILES)
             ids = {entry["id"] for entry in entries}

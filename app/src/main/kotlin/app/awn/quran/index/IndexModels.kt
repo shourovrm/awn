@@ -56,14 +56,13 @@ sealed interface IndexRow {
 
 /**
  * The heading of a juz. [continuedChapter] is set when the juz begins inside a surah and no surah
- * begins in it, which the heading says ("Juz 2 · Al-Baqarah continues"). [startPage] is written
- * only when [showPage] is true.
+ * begins in it, which the heading says ("Juz 2 · Al-Baqarah continues"). [startPage] is the page
+ * the juz starts on.
  */
 data class JuzHeading(
     override val juz: Int,
     val startPage: Int,
     val continuedChapter: Chapter?,
-    val showPage: Boolean = true,
 ) : IndexRow
 
 /**
@@ -83,14 +82,6 @@ data class JuzStartRow(
     val startAyah: AyahRef,
     val chapter: Chapter,
     val page: Int,
-) : IndexRow
-
-/** A row of the Pages list. [startsSurah] is true when [chapter] begins on this page. */
-data class PageRow(
-    override val juz: Int,
-    val page: Int,
-    val chapter: Chapter,
-    val startsSurah: Boolean,
 ) : IndexRow
 
 /**
@@ -135,31 +126,6 @@ fun buildJuzRows(chapters: List<Chapter>, juzPages: Map<Int, Int>): List<IndexRo
             page = juzPages.getValue(juz),
         )
     }
-
-/**
- * Every page with its surah, under juz headings. The surah of a page is the first one that begins
- * on it, else the one that continues from an earlier page.
- */
-fun buildPageRows(
-    chapters: List<Chapter>,
-    surahPages: Map<Int, Int>,
-    juzPages: Map<Int, Int>,
-    pageCount: Int,
-): List<IndexRow> {
-    val juzStartingOnPage = juzPages.entries.associate { (juz, page) -> page to juz }
-    var currentJuz = 1
-    val rows = mutableListOf<IndexRow>()
-    for (page in 1..pageCount) {
-        juzStartingOnPage[page]?.let { juz ->
-            currentJuz = juz
-            rows += JuzHeading(juz, page, continuedChapter = null, showPage = false)
-        }
-        val startingHere = chapters.firstOrNull { surahPages.getValue(it.number) == page }
-        val chapter = startingHere ?: chapters.last { surahPages.getValue(it.number) < page }
-        rows += PageRow(currentJuz, page, chapter, startsSurah = startingHere != null)
-    }
-    return rows
-}
 
 /** The list position of [surah]'s row, or null when nothing was read yet or it is not listed. */
 fun rowIndexOfSurah(rows: List<IndexRow>, surah: Int?): Int? {

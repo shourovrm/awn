@@ -17,10 +17,7 @@ enum class PageLayoutFamily(val storedName: String) {
     Madani1405("madani_1405"),
 
     /** The IndoPak print of 15 lines a page: 610 pages. */
-    IndoPak15Lines("indopak_15"),
-
-    /** The IndoPak print of 16 lines a page: 548 pages. */
-    IndoPak16Lines("indopak_16");
+    IndoPak15Lines("indopak_15");
 
     companion object {
         fun fromStoredName(name: String): PageLayoutFamily =
@@ -35,7 +32,6 @@ enum class PageLayoutFamily(val storedName: String) {
                 ScriptId.QpcHafs,
                 ScriptId.V4Tajweed -> Madani1421
                 ScriptId.IndoPak15 -> IndoPak15Lines
-                ScriptId.IndoPak16 -> IndoPak16Lines
             }
 
         /** The script whose pages the repository reads for this family. */
@@ -44,7 +40,6 @@ enum class PageLayoutFamily(val storedName: String) {
                 Madani1405 -> ScriptId.V1
                 Madani1421 -> ScriptId.QpcHafs
                 IndoPak15Lines -> ScriptId.IndoPak15
-                IndoPak16Lines -> ScriptId.IndoPak16
             }
     }
 }

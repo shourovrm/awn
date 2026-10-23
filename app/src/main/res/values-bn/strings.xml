@@ -23,10 +23,8 @@
     <item quantity="other">%dটি ঝালাই</item>
   </plurals>
   <string name="index_show">দেখান</string>
-  <string name="index_tab_pages">পৃষ্ঠা</string>
   <string name="index_bookmarks">বুকমার্ক</string>
   <string name="index_read_last">শেষ পড়া</string>
-  <string name="index_surah_starts">সূরা শুরু</string>
   <string name="index_page_short">পৃ. %1$s</string>
   <string name="index_page_lower">পৃষ্ঠা %1$d</string>
   <string name="index_juz_continues">পারা %1$d · %2$s চলছে</string>
