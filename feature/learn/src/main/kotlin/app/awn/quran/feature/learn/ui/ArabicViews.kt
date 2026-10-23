@@ -17,6 +17,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
@@ -33,7 +34,9 @@ import app.awn.quran.feature.learn.course.LessonMarkup
 
 /**
  * Lesson text with its Quran words and Arabic runs drawn in the learning font. [highlight] marks
- * one word with the selected-ayah fill.
+ * one word with the selected-ayah fill. An Arabic run is drawn at [arabicSize]: never smaller than
+ * the lead size, and as large as [style] when that is larger, so a title-sized answer tile does not
+ * hold a lead-sized letter.
  */
 @Composable
 internal fun RichText(
@@ -43,18 +46,19 @@ internal fun RichText(
     color: Color = Awn.field.content,
     highlight: WordKey? = null,
     textAlign: TextAlign = TextAlign.Start,
+    arabicSize: TextUnit = arabicSizeFor(style),
 ) {
     val environment = LocalLearnEnvironment.current
     val keys = remember(text, highlight) { LessonMarkup.wordKeys(text) }
     val texts = rememberWordTexts(keys)
     val fill = Awn.field.selectedAyahFill
     val annotated =
-        remember(text, texts, highlight, environment, fill) {
+        remember(text, texts, highlight, environment, fill, arabicSize) {
             LessonMarkup.build(
                 text = text,
                 wordTexts = texts,
                 arabicFont = environment?.arabic?.fontFamily,
-                arabicSize = AwnTypography.lead.fontSize,
+                arabicSize = arabicSize,
                 highlight = highlight,
                 highlightStyle = SpanStyle(background = fill),
             )
@@ -65,6 +69,11 @@ internal fun RichText(
         color = color,
         modifier = modifier,
     )
+}
+
+private fun arabicSizeFor(style: TextStyle): TextUnit {
+    val leadSize = AwnTypography.lead.fontSize
+    return if (style.fontSize > leadSize) style.fontSize else leadSize
 }
 
 /** One Quran word at the size of [style], centred: the word of a question or a new word. */

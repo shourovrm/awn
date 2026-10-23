@@ -43,13 +43,22 @@ internal fun LessonBlocks(blocks: List<LessonBlock>, modifier: Modifier = Modifi
     }
 }
 
+/**
+ * Each bullet sits on the first baseline of its item. Aligned to the top, a line that holds a
+ * larger Arabic run starts lower than the bullet's own line, so the bullet drew above its text.
+ */
 @Composable
-private fun BulletList(items: List<String>) {
+internal fun BulletList(items: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
         items.forEach { item ->
             Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-                Text(text = BULLET, style = AwnTypography.body, color = Awn.field.content)
-                RichText(item, modifier = Modifier.weight(1f))
+                Text(
+                    text = BULLET,
+                    style = AwnTypography.body,
+                    color = Awn.field.content,
+                    modifier = Modifier.alignByBaseline(),
+                )
+                RichText(item, modifier = Modifier.weight(1f).alignByBaseline())
             }
         }
     }

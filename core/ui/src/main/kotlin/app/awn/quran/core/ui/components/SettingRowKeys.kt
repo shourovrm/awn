@@ -43,6 +43,7 @@ object SettingRowKeys {
     const val RECITE_HINT = "recite.hint"
     const val RECITE_REMINDER = "recite.reminder"
     const val RECITE_REMINDER_TIME = "recite.reminder_time"
+    const val RECITE_LESSON_LANGUAGE = "recite.lesson_language"
     const val RECITE_MEMORISED_AFTER = "recite.memorised_after"
 
     const val APPEARANCE_DAY = "appearance.day"

@@ -201,6 +201,11 @@ private val SETTINGS: List<RegisteredSetting> =
             ),
             RegisteredSetting(
                 SettingsSection.Recite,
+                SettingRowKeys.RECITE_LESSON_LANGUAGE,
+                LearnR.string.lesson_language,
+            ),
+            RegisteredSetting(
+                SettingsSection.Recite,
                 SettingRowKeys.RECITE_MEMORISED_AFTER,
                 R.string.recite_memorised_after,
             ),

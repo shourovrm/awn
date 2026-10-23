@@ -55,6 +55,10 @@
   <string name="reminder_time">Reminder time</string>
   <string name="reminder_permission">Allow notifications to get the reminder</string>
   <string name="reminder_time_set">Set</string>
+  <string name="lesson_language">Lesson language</string>
+  <string name="lesson_language_follow_app">Same as app</string>
+  <string name="lesson_language_english">English</string>
+  <string name="lesson_language_bangla">বাংলা</string>
   <string name="reminder_time_cancel">Cancel</string>
   <!-- Word course: hub -->
   <string name="course_today_heading">Today · %d min</string>

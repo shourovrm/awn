@@ -1,7 +1,5 @@
 package app.awn.quran.feature.read.quran
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -17,7 +15,7 @@ import app.awn.quran.feature.read.page.PageBarInsets
  * height they were laid out with, and the clearance keeps the tallest height seen, so a bar that
  * grows (a top bar on two rows at a large font, a recite bar of three rows) moves the page once and
  * a bar that hides or shrinks does not move it back. Until a bar has been measured the clearance is
- * a floor: the height of the top bar under the status bar, and of the audio bar's dock.
+ * a floor: the height of the top bar, and of the audio bar's dock.
  *
  * The top and the audio bar are measured while they show, which they do for two seconds when the
  * screen opens. The recite and Hifz bars have their own height while reciting and are forgotten
@@ -66,8 +64,9 @@ internal class BarClearance(topFloorPx: Int, bottomFloorPx: Int) {
 @Composable
 internal fun rememberBarClearance(): BarClearance {
     val density = LocalDensity.current
-    val statusBarPx = WindowInsets.statusBars.getTop(density)
-    val topFloorPx = statusBarPx + with(density) { AwnSpacing.topBarHeight.roundToPx() }
+    // The screen sits inside AwnTheme's safe-drawing padding, so the top bar already starts below
+    // the status bar: adding the status bar height again left a gap of that height above the page.
+    val topFloorPx = with(density) { AwnSpacing.topBarHeight.roundToPx() }
     val bottomFloorPx = with(density) { AwnSpacing.dockHeight.roundToPx() }
     return remember(topFloorPx, bottomFloorPx) { BarClearance(topFloorPx, bottomFloorPx) }
 }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -29,6 +30,7 @@ import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
+import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
@@ -40,6 +42,7 @@ import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
 import app.awn.quran.feature.learn.ui.LearnEnvironment
 import app.awn.quran.feature.learn.ui.LearnRoute
+import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
@@ -86,7 +89,9 @@ fun LearnScreen(
     val resources = LocalResources.current
     val services = remember { LearnServices.get(context) }
     val locale = LocalConfiguration.current.locales[0]
-    val language = LearnLanguage.of(locale)
+    val lessonLanguageChoice by
+        services.settings.lessonLanguage.collectAsState(initial = LessonLanguageChoice.FollowApp)
+    val language = LearnLanguage.resolve(lessonLanguageChoice, locale)
     val scope = rememberCoroutineScope()
 
     val routeState = rememberStartRoute(services)
@@ -147,10 +152,7 @@ internal class LearnRouteContent(
     val locale: Locale,
     val quranText: QuranTextRepository,
     val surahName: (Int) -> String,
-) {
-    val language: LearnLanguage
-        get() = LearnLanguage.of(locale)
-}
+)
 
 /**
  * The route on screen, null until the setting that says whether the course started is read. Back
@@ -160,7 +162,8 @@ internal class LearnRouteContent(
 private fun rememberStartRoute(services: LearnServices): MutableState<LearnRoute?> {
     val courseStarted by
         produceState<Boolean?>(null) { value = services.settings.courseStarted.first() }
-    val route = remember { mutableStateOf<LearnRoute?>(null) }
+    // Saved so that turning the phone keeps the open unit instead of returning to the hub.
+    val route = rememberSaveable(stateSaver = LearnRouteSaver) { mutableStateOf<LearnRoute?>(null) }
     LaunchedEffect(courseStarted) {
         val started = courseStarted
         if (route.value == null && started != null) route.value = learnStartRoute(started)

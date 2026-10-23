@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
@@ -157,7 +158,7 @@ internal fun AnswerRow(
         val isArabic = isArabicAnswer(markup)
         RichText(
             text = markup,
-            style = if (isArabic) AwnTypography.lead else AwnTypography.bodyStrong,
+            style = if (isArabic) ARABIC_ANSWER_STYLE else AwnTypography.bodyStrong,
             color = content,
             modifier = Modifier.weight(1f),
             textAlign = if (isArabic) TextAlign.Center else TextAlign.Start,
@@ -179,6 +180,16 @@ internal fun AnswerRow(
  */
 internal fun isArabicAnswer(markup: String): Boolean =
     markup.contains("{{") || ARABIC_FRAGMENT_ONLY.matches(markup.trim())
+
+// The letter is as large as in a grid cell; the taller line keeps the dots and marks from clipping.
+private val ARABIC_ANSWER_STYLE
+    get() =
+        AwnTypography.lead.copy(
+            fontSize = AwnTypography.quran.fontSize,
+            lineHeight = ARABIC_ANSWER_LINE_HEIGHT,
+        )
+
+private val ARABIC_ANSWER_LINE_HEIGHT = 1.6.em
 
 private val ARABIC_FRAGMENT_ONLY = Regex("""^\[\[[^\]]+]]$""")
 

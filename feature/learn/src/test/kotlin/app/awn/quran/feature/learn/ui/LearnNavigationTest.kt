@@ -66,4 +66,26 @@ class LearnNavigationTest {
             ),
         )
     }
+
+    @Test
+    fun routesSurviveSavingForATurnedScreen() {
+        val routes =
+            listOf(
+                LearnRoute.FirstOpen,
+                LearnRoute.Hub,
+                LearnRoute.WordPage(rank = 12),
+                LearnRoute.Track(LearnTrack.Tajweed),
+                LearnRoute.CourseUnit("letters-01", LearnTrack.Reading),
+                LearnRoute.CourseUnit("letters-01", track = null),
+            )
+        for (route in routes) {
+            assertEquals(route, decodeLearnRoute(encodeLearnRoute(route)))
+        }
+    }
+
+    @Test
+    fun aRunningSessionComesBackAsTheHub() {
+        val saved = encodeLearnRoute(LearnRoute.Session(isOwnQuiz = false))
+        assertEquals(LearnRoute.Hub, decodeLearnRoute(saved))
+    }
 }
