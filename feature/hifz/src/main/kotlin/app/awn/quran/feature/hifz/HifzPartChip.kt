@@ -36,6 +36,7 @@ import app.awn.quran.feature.hifz.ui.pagesText
 import app.awn.quran.feature.hifz.ui.partTitle
 
 const val HIFZ_BAR_PART_TAG = "hifz-bar-part"
+const val HIFZ_BAR_WORDS_TAG = "hifz-bar-words"
 
 private const val CHIP_ALPHA = 0.14f
 private const val HEADER_ALPHA = 0.7f
@@ -53,6 +54,7 @@ internal fun PartChip(
     onFinish: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    onWordsOnPage: (() -> Unit)? = null,
 ) {
     var isOpen by remember { mutableStateOf(false) }
     val title = partTitle(request.kind, request.method)
@@ -81,6 +83,13 @@ internal fun PartChip(
                 isOpen = false
                 onClose()
             },
+            onWordsOnPage =
+                onWordsOnPage?.let { openWords ->
+                    {
+                        isOpen = false
+                        openWords()
+                    }
+                },
         )
     }
 }
@@ -134,6 +143,7 @@ private fun PartMenu(
     onDismiss: () -> Unit,
     onFinish: () -> Unit,
     onClose: () -> Unit,
+    onWordsOnPage: (() -> Unit)?,
 ) {
     DropdownMenu(
         expanded = isOpen,
@@ -151,6 +161,15 @@ private fun PartMenu(
             onClick = onFinish,
             modifier = Modifier.testTag(HIFZ_BAR_FINISH_TAG),
         )
+        onWordsOnPage?.let { openWords ->
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(R.string.bar_words_on_page), style = AwnTypography.body)
+                },
+                onClick = openWords,
+                modifier = Modifier.testTag(HIFZ_BAR_WORDS_TAG),
+            )
+        }
         DropdownMenuItem(
             text = { Text(stringResource(R.string.bar_close), style = AwnTypography.body) },
             onClick = onClose,

@@ -117,6 +117,7 @@
   <string name="bar_stop_reciting">তিলাওয়াত থামান</string>
   <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">বন্ধ করুন</string>
+  <string name="bar_words_on_page">এই পৃষ্ঠার শব্দ</string>
   <string name="bar_finish_part">অংশ শেষ করুন</string>
   <string name="bar_getting_ready">প্রস্তুত হচ্ছে</string>
   <string name="bar_ayah">আয়াত %d</string>
