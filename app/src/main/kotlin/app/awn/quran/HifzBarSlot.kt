@@ -16,6 +16,7 @@ import app.awn.quran.services.AwnServices
 internal fun hifzBarSlot(
     services: AwnServices,
     isPracticing: Boolean,
+    onOpenPageWords: (page: Int) -> Unit,
 ): (@Composable (onExit: () -> Unit) -> Unit)? {
     if (!isPracticing) return null
     return { onExit ->
@@ -32,6 +33,7 @@ internal fun hifzBarSlot(
                     recite = services.recite,
                     playRange = { first, last -> services.audio.controller.playRange(first, last) },
                     onExit = onExit,
+                    onOpenPageWords = onOpenPageWords,
                 )
             }
         }

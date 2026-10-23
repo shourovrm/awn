@@ -8,6 +8,7 @@ import app.awn.quran.tabs.AwnTab
 internal class TabNavigation(
     private val navController: NavController,
     val selectTab: (AwnTab) -> Unit,
+    private val requestPageWords: (Int) -> Unit = {},
 ) {
     fun openQuran(page: Int?, ayah: AyahRef?) = navController.openQuran(page, ayah)
 
@@ -21,6 +22,12 @@ internal class TabNavigation(
     fun showTab(tab: AwnTab) {
         selectTab(tab)
         returnToTabs()
+    }
+
+    /** Closes everything above the tabs and shows the Learn tab at the words of [page]. */
+    fun showPageWords(page: Int) {
+        requestPageWords(page)
+        showTab(AwnTab.Learn)
     }
 
     /** Closes everything above the tabs and leaves the selected tab as it is. */
