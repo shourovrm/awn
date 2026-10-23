@@ -18,7 +18,10 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 
-/** Shown before anything else until the user taps the button. */
+/**
+ * The short notice in the app's language, shown in place of Learn until the user taps the button.
+ * The full three-language text stays in About, NOTICE and the README.
+ */
 @Composable
 fun NoticeScreen(onAccept: () -> Unit) {
     AwnTheme(field = AwnField.Paper) {
@@ -30,8 +33,13 @@ fun NoticeScreen(onAccept: () -> Unit) {
                 modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(AwnSpacing.large),
             ) {
-                Text(text = stringResource(R.string.notice_title), style = AwnTypography.title)
-                NoticeContent()
+                Text(
+                    text = stringResource(R.string.notice_learn_title),
+                    style = AwnTypography.title,
+                )
+                NoticeParagraph(R.string.notice_learn_teacher)
+                NoticeParagraph(R.string.notice_learn_practice)
+                NoticeParagraph(R.string.notice_learn_listening)
             }
             AwnButton(
                 label = stringResource(R.string.notice_accept),
@@ -40,4 +48,9 @@ fun NoticeScreen(onAccept: () -> Unit) {
             )
         }
     }
+}
+
+@Composable
+private fun NoticeParagraph(textResource: Int) {
+    Text(text = stringResource(textResource), style = AwnTypography.lead)
 }

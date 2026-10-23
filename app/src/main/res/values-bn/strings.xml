@@ -116,7 +116,10 @@
   <string name="credits_recogniser">তিলাওয়াত যাচাই</string>
   <string name="credits_libraries">লাইব্রেরি ও আইকন</string>
 
-  <string name="notice_title">বিজ্ঞপ্তি</string>
+  <string name="notice_learn_title">শিক্ষকের কাছে শিখুন</string>
+  <string name="notice_learn_teacher">কুরআন শেখা হয় শিক্ষকের কাছে: তাঁর তিলাওয়াত শুনে, তাঁকে পড়ে শুনিয়ে (মুশাফাহা)।</string>
+  <string name="notice_learn_practice">আওন পাঠের ফাঁকে অনুশীলনে সাহায্য করে। এটি আপনার শিক্ষকের বিকল্প নয়।</string>
+  <string name="notice_learn_listening">আওন যখন আপনার তিলাওয়াত শোনে, তখন একটি কম্পিউটার মডেল শোনে, আর তা ভুল করতে পারে। সন্দেহ হলে শিক্ষককে জিজ্ঞেস করুন।</string>
   <string name="notice_accept">আমি বুঝেছি</string>
   <string name="downloads_page_types">ছাপা</string>
   <string name="settings_group_reading">পড়া</string>

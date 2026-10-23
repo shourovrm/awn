@@ -56,7 +56,7 @@ import app.awn.quran.language.AppLanguage
 import app.awn.quran.language.AppLanguageApplier
 import app.awn.quran.language.FirstLaunchStep
 import app.awn.quran.language.firstLaunchStep
-import app.awn.quran.notice.NoticeScreen
+import app.awn.quran.notice.LearnNoticeGate
 import app.awn.quran.onboarding.LanguageScreen
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
@@ -110,8 +110,6 @@ fun AwnApp(
                         }
                     },
                 )
-            FirstLaunchStep.AcceptNotice ->
-                NoticeScreen(onAccept = { coroutineScope.launch { preferences.acceptNotice() } })
             FirstLaunchStep.Done -> {
                 AwnNavigation(
                     services,
@@ -235,24 +233,26 @@ private fun TabsRoute(
             )
         },
         learnTab = {
-            LearnScreen(
-                quranText = services.coreData.quranText,
-                translations = services.coreData.translations,
-                packs = services.coreData.packs,
-                downloads = services.coreData.packDownloads,
-                wordSound = services.learnWordSound,
-                onReviseAt = { ayah ->
-                    navigation.openQuran(page = null, ayah = ayah)
-                    services.recite.reviseAt(ayah)
-                },
-                barActions = {
-                    AwnIconButton(
-                        icon = R.drawable.ic_app_settings,
-                        contentDescription = stringResource(R.string.index_settings),
-                        onClick = navigation::openSettings,
-                    )
-                },
-            )
+            LearnNoticeGate(services.preferences) {
+                LearnScreen(
+                    quranText = services.coreData.quranText,
+                    translations = services.coreData.translations,
+                    packs = services.coreData.packs,
+                    downloads = services.coreData.packDownloads,
+                    wordSound = services.learnWordSound,
+                    onReviseAt = { ayah ->
+                        navigation.openQuran(page = null, ayah = ayah)
+                        services.recite.reviseAt(ayah)
+                    },
+                    barActions = {
+                        AwnIconButton(
+                            icon = R.drawable.ic_app_settings,
+                            contentDescription = stringResource(R.string.index_settings),
+                            onClick = navigation::openSettings,
+                        )
+                    },
+                )
+            }
         },
         hifzTab = { tabSlots.hifzTab(tabActions) },
     )

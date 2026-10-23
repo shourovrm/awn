@@ -15,8 +15,8 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 
 /**
- * The AI-advisory notice in English, Bangla and Arabic. All three are always shown, whatever the
- * interface language, because the licence of the speech model requires it.
+ * The full AI-advisory notice in English, Bangla and Arabic, shown in About. Condition 4 of the
+ * LICENSE keeps all three there, whatever the interface language.
  */
 @Composable
 fun NoticeContent(modifier: Modifier = Modifier) {

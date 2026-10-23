@@ -32,9 +32,10 @@ of it, in addition to the MIT License above.
 3. No charges. The app and its derivatives take no payment of any kind: no
    price, no subscription, no in-app purchase and no paid unlock.
 4. Notice kept. The artificial-intelligence advisory notice in the file NOTICE
-   (English, Bangla and Arabic) must be kept in any derivative: shown on first
-   launch, available in the About screen, and included in NOTICE and the
-   README.
+   (English, Bangla and Arabic) must be kept in any derivative: a short form
+   in the interface language shown before the learning features are first
+   used, the full text available in the About screen, and included in NOTICE
+   and the README.
 5. Pass-through. These conditions must be included, unchanged, in every fork
    and derivative, and bind its recipients in the same way.
 

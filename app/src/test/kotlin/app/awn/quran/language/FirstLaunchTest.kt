@@ -42,15 +42,14 @@ class FirstLaunchTest {
         )
 
     @Test
-    fun aFreshInstallationGoesFromLanguageToNoticeToTheQuran() = runBlocking {
+    fun aFreshInstallationGoesFromLanguageStraightToTheQuran() = runBlocking {
+        // The notice now waits for the first visit to Learn, so it is no longer a launch step.
         val preferences = AppPreferences(newDataStore())
         assertEquals(FirstLaunchStep.ChooseLanguage, stepOf(preferences))
 
         preferences.markLanguageChosen()
-        assertEquals(FirstLaunchStep.AcceptNotice, stepOf(preferences))
-
-        preferences.acceptNotice()
         assertEquals(FirstLaunchStep.Done, stepOf(preferences))
+        assertEquals(false, preferences.noticeAccepted.first())
     }
 
     @Test
@@ -66,7 +65,7 @@ class FirstLaunchTest {
     @Test
     fun theRoutingTableCoversEveryCombination() {
         assertEquals(FirstLaunchStep.ChooseLanguage, firstLaunchStep(false, false))
-        assertEquals(FirstLaunchStep.AcceptNotice, firstLaunchStep(false, true))
+        assertEquals(FirstLaunchStep.Done, firstLaunchStep(false, true))
         assertEquals(FirstLaunchStep.Done, firstLaunchStep(true, false))
         assertEquals(FirstLaunchStep.Done, firstLaunchStep(true, true))
     }
