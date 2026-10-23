@@ -46,8 +46,14 @@ sealed interface LessonBlock {
     data class Tip(val text: String) : LessonBlock
 }
 
-/** A word of a [LessonBlock.Words]; [letters] are 1-based letter positions to colour. */
-data class WordTile(val key: WordKey, val caption: String, val letters: List<Int>)
+/**
+ * A tile of a [LessonBlock.Words]: one Quran word, or two neighbouring words for a rule that joins
+ * them. [letters] are 1-based letter positions to colour, counted across the words.
+ */
+data class WordTile(val keys: List<WordKey>, val caption: String, val letters: List<Int>) {
+    val ayah: AyahRef
+        get() = keys.first().let { AyahRef(it.surah, it.ayah) }
+}
 
 /** What the coloured letters of a word tile show: a tajweed rule, or a grammar ending. */
 enum class WordMark(val stored: String) {
@@ -317,7 +323,7 @@ object CourseContentReader {
             block.getJSONArray("items").objects().map { item ->
                 val letters = item.getJSONArray("letters")
                 WordTile(
-                    key = WordKey.parse(item.getString("key")),
+                    keys = item.getJSONArray("keys").strings().map(WordKey::parse),
                     caption = item.getString("caption"),
                     letters = (0 until letters.length()).map { letters.getInt(it) },
                 )

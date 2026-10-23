@@ -48,8 +48,9 @@ class WordTilesTest {
             "languages":{"en":{"title":"Nasal sound","screens":[
             {"kind":"screen","title":"Held","blocks":[
               {"type":"words","mark":"ghunnah","items":[
-                {"key":"2:6:1","caption":"inna","letters":[2]},
-                {"key":"78:1:1","caption":"amma","letters":[]}]},
+                {"keys":["2:6:1"],"caption":"inna","letters":[2]},
+                {"keys":["78:1:1"],"caption":"amma","letters":[]},
+                {"keys":["2:8:3","2:8:4"],"caption":"may-yaqulu","letters":[3,4]}]},
               {"type":"tip","text":"Pinch your nose."}]}]}}}]}""",
             )
             .lessons
@@ -98,7 +99,20 @@ class WordTilesTest {
         composeRule.onNodeWithText("Play all").performClick()
         composeRule.waitForIdle()
 
-        assertEquals(listOf(WordKey(2, 6, 1), WordKey(78, 1, 1)), playedWords)
+        assertEquals(
+            listOf(WordKey(2, 6, 1), WordKey(78, 1, 1), WordKey(2, 8, 3), WordKey(2, 8, 4)),
+            playedWords,
+        )
+    }
+
+    @Test
+    fun aTileOfTwoWordsPlaysBoth() {
+        show()
+
+        composeRule.onNodeWithText("may-yaqulu").performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(listOf(WordKey(2, 8, 3), WordKey(2, 8, 4)), playedWords)
     }
 
     @Test

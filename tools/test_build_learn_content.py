@@ -197,8 +197,8 @@ class WordsBlockTest(unittest.TestCase):
         self.assertEqual("ghunnah", words["mark"])
         self.assertEqual(
             [
-                {"key": "1:1:1", "caption": "bismi", "letters": [2, 3]},
-                {"key": "1:1:1", "caption": "in the name", "letters": []},
+                {"keys": ["1:1:1"], "caption": "bismi", "letters": [2, 3]},
+                {"keys": ["1:1:1"], "caption": "in the name", "letters": []},
             ],
             words["items"],
         )
@@ -239,6 +239,21 @@ class WordsBlockTest(unittest.TestCase):
         with self.assertRaises(build_learn_content.LessonError) as raised:
             fixture.build()
         self.assertIn("word key", str(raised.exception))
+
+    def test_a_tile_may_hold_two_words_and_count_letters_across_both(self):
+        text = WORDS_LESSON.replace("- {{1:1:1}} | bismi | 2-3", "- {{1:1:1}} {{1:1:1}} | bismi bismi | 3-4")
+
+        item = self.build_screen(text)["blocks"][4]["items"][0]
+
+        self.assertEqual(["1:1:1", "1:1:1"], item["keys"])
+        self.assertEqual([3, 4], item["letters"])
+
+    def test_letters_past_the_end_of_two_words_are_refused(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", WORDS_LESSON.replace("- {{1:1:1}} | bismi | 2-3", "- {{1:1:1}} {{1:1:1}} | bismi | 7"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("has 6 letters", str(raised.exception))
 
     def test_the_letters_count_skips_vowel_marks(self):
         self.assertEqual(3, build_learn_content.letter_count("بِسْمِ"))

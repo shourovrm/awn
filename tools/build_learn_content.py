@@ -41,7 +41,7 @@ LETTERS_PREFIX = "letters:"
 LETTER_ENTRY_PATTERN = re.compile(r"^\[\[([^\]]+)\]\]\s+(.+)$")
 WORDS_PREFIX = "words:"
 TIP_PREFIX = "tip:"
-WORD_LINE_PATTERN = re.compile(r"^- \{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\}\s*\|\s*([^|]+?)\s*(?:\|\s*([\d,\s-]+))?$")
+WORD_LINE_PATTERN = re.compile(r"^- \{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\}(?:\s+\{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\})?\s*\|\s*([^|]+?)\s*(?:\|\s*([\d,\s-]+))?$")
 # The colour a words block gives its marked letters: a tajweed rule, or a grammar ending.
 WORD_MARKS = ("ghunnah", "qalqalah", "madd", "ikhfa", "idgham", "iqlab", "heavy", "silent", "ending")
 # Code points that start a letter; every other Arabic mark belongs to the letter before it.
@@ -180,7 +180,11 @@ def parse_letter_positions(value, where):
 
 
 def parse_words(paragraph, where, used_keys):
-    """Reads a `words: mark` line and its `- {{key}} | caption | letters` lines as word tiles."""
+    """Reads a `words: mark` line and its `- {{key}} | caption | letters` lines as word tiles.
+
+    A line may name two neighbouring words, for rules that join the end of one word to the next;
+    its letters are then counted across both.
+    """
     mark = paragraph[0][len(WORDS_PREFIX) :].strip() or None
     if mark is not None and mark not in WORD_MARKS:
         raise LessonError(f"{where}: the words mark {mark!r} is not one of {WORD_MARKS}.")
@@ -189,11 +193,12 @@ def parse_words(paragraph, where, used_keys):
         match = WORD_LINE_PATTERN.match(line.strip())
         if not match:
             raise LessonError(f"{where}: a words line looks like '- {{{{2:6:1}}}} | caption | 2-3' and starts with a word key, not {line!r}.")
-        key, caption, letters = match.groups()
+        first_key, second_key, caption, letters = match.groups()
+        keys = [first_key] + ([second_key] if second_key else [])
         scan_text(caption, where, used_keys)
-        used_keys.append(key)
+        used_keys.extend(keys)
         positions = parse_letter_positions(letters, where) if letters else []
-        items.append({"key": key, "caption": caption, "letters": positions})
+        items.append({"keys": keys, "caption": caption, "letters": positions})
     if not items:
         raise LessonError(f"{where}: a words block needs at least one word line.")
     return {"type": "words", "mark": mark, "items": items}
@@ -446,14 +451,19 @@ def check_marked_letters(database, screens, name):
             for item in block["items"]:
                 if not item["letters"]:
                     continue
-                surah, ayah, position = (int(part) for part in item["key"].split(":"))
-                text = database.execute(
-                    "SELECT text_uthmani FROM word WHERE surah = ? AND ayah = ? AND position = ?",
-                    (surah, ayah, position),
-                ).fetchone()[0]
-                count = letter_count(text)
+                count = sum(letter_count(word_text(database, key)) for key in item["keys"])
                 if max(item["letters"]) > count:
-                    raise LessonError(f"{name}: {{{{{item['key']}}}}} has {count} letters, so letter {max(item['letters'])} cannot be marked.")
+                    raise LessonError(f"{name}: {' '.join(item['keys'])} has {count} letters, so letter {max(item['letters'])} cannot be marked.")
+
+
+def word_text(database, key):
+    surah, ayah, position = (int(part) for part in key.split(":"))
+    text = database.execute(
+        "SELECT text_uthmani FROM word WHERE surah = ? AND ayah = ? AND position = ?",
+        (surah, ayah, position),
+    ).fetchone()[0]
+    # A pause sign written after a space is not part of the word.
+    return text.split(" ")[0]
 
 
 def reference_link(reference):
@@ -514,7 +524,7 @@ def shape_of(screens):
 def marks_of_screen(screen):
     """The coloured letters of a screen's word tiles; a translation colours the same letters."""
     return [
-        (block["mark"], [(item["key"], item["letters"]) for item in block["items"]])
+        (block["mark"], [(item["keys"], item["letters"]) for item in block["items"]])
         for block in screen.get("blocks", [])
         if block["type"] == "words"
     ]
@@ -535,7 +545,7 @@ def keys_of_screen(screen):
         if block["type"] == "ayah":
             keys.add(block["key"])
         if block["type"] == "words":
-            keys.update(item["key"] for item in block["items"])
+            keys.update(key for item in block["items"] for key in item["keys"])
     check = screen.get("check")
     if check:
         keys.update(check[name] for name in ("ayah", "highlight") if name in check)

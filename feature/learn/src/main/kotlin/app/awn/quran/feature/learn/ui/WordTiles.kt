@@ -81,8 +81,8 @@ internal fun WordTiles(block: LessonBlock.Words) {
                     WordTileView(
                         tile = tile,
                         mark = block.mark,
-                        isPlaying = tile.key == playing,
-                        onPlay = { play(listOf(tile.key)) },
+                        isPlaying = playing in tile.keys,
+                        onPlay = { play(tile.keys) },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -91,7 +91,7 @@ internal fun WordTiles(block: LessonBlock.Words) {
         }
         AwnButton(
             label = stringResource(R.string.unit_grid_play_all),
-            onClick = { play(block.items.map { it.key }) },
+            onClick = { play(block.items.flatMap { it.keys }) },
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -134,18 +134,21 @@ private fun WordTileView(
                 color = content,
                 textAlign = TextAlign.Center,
             )
-            AyahLink(AyahRef(tile.key.surah, tile.key.ayah), content)
+            AyahLink(tile.ayah, content)
         }
     }
 }
 
-/** The word in the learning font, with the letters the lesson names in [markColor]. */
+/** The word or words in the learning font, with the letters the lesson names in [markColor]. */
 @Composable
 private fun MarkedWord(tile: WordTile, markColor: Color, content: Color) {
     val environment = LocalLearnEnvironment.current
-    val texts = rememberWordTexts(remember(tile.key) { setOf(tile.key) })
-    val word = ArabicLetters.withoutPauseSign(texts[tile.key].orEmpty())
-    val styled = remember(word, tile.letters, markColor) { colourLetters(word, tile, markColor) }
+    val texts = rememberWordTexts(remember(tile.keys) { tile.keys.toSet() })
+    val words =
+        tile.keys.joinToString(WORD_SEPARATOR) { key ->
+            ArabicLetters.withoutPauseSign(texts[key].orEmpty())
+        }
+    val styled = remember(words, tile.letters, markColor) { colourLetters(words, tile, markColor) }
     Text(
         text = styled,
         style =
@@ -221,6 +224,7 @@ private fun markColor(mark: WordMark?, isPlaying: Boolean): Color {
 }
 
 private const val TILES_PER_ROW = 2
+private const val WORD_SEPARATOR = " "
 
 // A tile word is drawn larger than ayah text: it stands alone and the coloured letters must read.
 private const val WORD_SCALE = 1.4f
