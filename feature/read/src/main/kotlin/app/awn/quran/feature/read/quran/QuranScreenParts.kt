@@ -74,7 +74,11 @@ internal fun QuranOrientation(
 
 /** The top bar's buttons wired to the view model and the host. */
 @Composable
-internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): TopBarActions {
+internal fun topBarActions(
+    viewModel: QuranViewModel,
+    slots: QuranScreenSlots,
+    hasMyWords: Boolean,
+): TopBarActions {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     return TopBarActions(
         onOpenIndex = slots.onOpenIndex,
@@ -109,6 +113,14 @@ internal fun topBarActions(viewModel: QuranViewModel, slots: QuranScreenSlots): 
             viewModel.closePopup()
             slots.onOpenSettings()
         },
+        onWordsOnPage =
+            slots.onOpenPageWords?.let { openPageWords ->
+                {
+                    viewModel.closePopup()
+                    openPageWords(viewModel.state.value.currentPage)
+                }
+            },
+        onToggleMyWords = viewModel::toggleMyWords.takeIf { hasMyWords },
     )
 }
 

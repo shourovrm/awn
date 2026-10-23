@@ -311,4 +311,42 @@
   <string name="sources_academy_detail">Noorani Qaida video lessons: letter and practice sounds. Creative Commons Attribution. The recordings are screen captures of the Al-Furqan Noorani Qaida program.</string>
   <string name="sources_tajweed_book">Usama Mahida and the teachers of SMA, Tajweed Made Easy (2018)</string>
   <string name="sources_tajweed_book_detail">Order and facts of the Tajweed units.</string>
+  <!-- Quran words page, set page and words on a page -->
+  <string name="words_summary_counts">%1$d known · %2$d met</string>
+  <string name="words_start_minutes">Start · %d min</string>
+  <string name="words_today_set">Set %d</string>
+  <string name="words_pages_heading">From your pages</string>
+  <string name="words_last_read">Last read · page %d</string>
+  <string name="words_hifz_today">Hifz today · page %d</string>
+  <plurals name="words_page_detail">
+    <item quantity="one">%1$d word · %2$d you know</item>
+    <item quantity="other">%1$d words · %2$d you know</item>
+  </plurals>
+  <string name="words_sets_heading">Sets</string>
+  <string name="words_set_known">Set %1$d · %2$d of %3$d known</string>
+  <string name="words_set_plain">Set %d</string>
+  <string name="words_grammar_after">Grammar · %1$s, after set %2$d</string>
+  <string name="set_page_title">Set %d</string>
+  <string name="page_words_title">Page %d words</string>
+  <plurals name="page_words_subtitle">
+    <item quantity="one">%1$s · %2$d word · %3$d you know</item>
+    <item quantity="other">%1$s · %2$d words · %3$d you know</item>
+  </plurals>
+  <string name="page_words_range">%1$s %2$d–%3$d</string>
+  <string name="page_words_range_across">%1$s %2$d – %3$s %4$d</string>
+  <string name="page_words_filter_all">All %d</string>
+  <string name="page_words_filter_new">New %d</string>
+  <string name="page_words_filter_learning">Learning %d</string>
+  <string name="page_words_filter_known">Known %d</string>
+  <plurals name="page_word_times">
+    <item quantity="one">%d time in the Quran</item>
+    <item quantity="other">%d times in the Quran</item>
+  </plurals>
+  <string name="page_word_state_new">New</string>
+  <string name="page_words_open">Open page</string>
+  <plurals name="page_words_learn_new">
+    <item quantity="one">Learn %d new</item>
+    <item quantity="other">Learn %d new</item>
+  </plurals>
+  <string name="page_words_empty">No words to show for this page</string>
 </resources>

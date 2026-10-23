@@ -158,10 +158,13 @@ private fun AwnNavigation(
     val viewModelFactory = remember(services) { AwnViewModelFactory(services) }
     // A fresh start opens the Quran tab; the choice survives rotation but nothing else.
     var selectedTabName by rememberSaveable { mutableStateOf(AwnTab.Quran.name) }
+    // A page whose words the Learn tab should open; cleared once the tab has shown it.
+    var learnPageWordsRequest by rememberSaveable { mutableStateOf<Int?>(null) }
     val tabNavigation =
         TabNavigation(
             navController = navController,
             selectTab = { selectedTabName = it.name },
+            requestPageWords = { page -> learnPageWordsRequest = page },
         )
     NavHost(
         navController = navController,
@@ -191,6 +194,8 @@ private fun AwnNavigation(
                 navigation = tabNavigation,
                 selected = AwnTab.valueOf(selectedTabName),
                 tabSlots = tabSlots,
+                learnPageWordsRequest = learnPageWordsRequest,
+                onLearnPageWordsShown = { learnPageWordsRequest = null },
             )
         }
     }
@@ -203,6 +208,8 @@ private fun TabsRoute(
     navigation: TabNavigation,
     selected: AwnTab,
     tabSlots: TabSlots,
+    learnPageWordsRequest: Int?,
+    onLearnPageWordsShown: () -> Unit,
 ) {
     val tabActions = TabActions(navigation::openSettings, navigation::openQuran)
     val todayNavigation =
@@ -240,6 +247,9 @@ private fun TabsRoute(
                     packs = services.coreData.packs,
                     downloads = services.coreData.packDownloads,
                     wordSound = services.learnWordSound,
+                    pageLinks = rememberLearnPageLinks(services, navigation),
+                    pageWordsRequest = learnPageWordsRequest,
+                    onPageWordsRequestHandled = onLearnPageWordsShown,
                     onReviseAt = { ayah ->
                         navigation.openQuran(page = null, ayah = ayah)
                         services.recite.reviseAt(ayah)
@@ -354,6 +364,7 @@ private fun QuranRoute(
             onBackWhenIdle = navigation::returnToTabs,
             onOpenSearch = navigation::openSearch,
             onOpenLearn = { navigation.showTab(AwnTab.Learn) },
+            onOpenPageWords = navigation::showPageWords,
             onOpenSettings = navigation::openSettings,
             onPlayRange = { first, last -> services.audio.controller.playRange(first, last) },
             isReciteActive = isReciting,
@@ -361,7 +372,12 @@ private fun QuranRoute(
             reciteCurrentWord = { rememberReciteCurrentWord(services.recite) },
             reciteFocusedWord = { rememberReciteFocusedWord(services.recite) },
             onReciteFocusWord = services.recite::focusWord,
-            hifzBar = hifzBarSlot(services, isPracticing = practice != null),
+            hifzBar =
+                hifzBarSlot(
+                    services,
+                    isPracticing = practice != null,
+                    onOpenPageWords = navigation::showPageWords,
+                ),
             isAudioActive = isAudioActive,
             busyState = { busyState },
             onToggleBusy = toggleBusy,

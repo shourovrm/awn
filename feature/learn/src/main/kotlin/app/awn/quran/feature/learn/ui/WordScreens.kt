@@ -131,7 +131,7 @@ internal fun WordListScreen(
 }
 
 @Composable
-private fun WordRow(row: WordListRow, onClick: () -> Unit) {
+internal fun WordRow(row: WordListRow, onClick: () -> Unit) {
     val muted = row.status == WordStatus.NotMet
     Row(
         modifier =

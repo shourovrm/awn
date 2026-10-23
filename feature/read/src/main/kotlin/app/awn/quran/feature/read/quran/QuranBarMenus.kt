@@ -193,9 +193,23 @@ internal fun OverflowItems(
     )
     MenuItem(R.string.bar_rotate, R.drawable.ic_read_screen_rotation, actions.onRotate)
     MenuItem(R.string.menu_learn, R.drawable.ic_read_learn, actions.onLearn)
+    actions.onWordsOnPage?.let {
+        MenuItem(R.string.menu_words_on_page, R.drawable.ic_read_learn, it)
+    }
+    actions.onToggleMyWords?.let { MyWordsTick(state.settings.showMyWords, it) }
     if (includesSettings) {
         MenuItem(R.string.menu_settings, R.drawable.ic_read_settings, actions.onSettings)
     }
+}
+
+/** The "Show my words" switch of the page menu; the menu stays open so the effect shows. */
+@Composable
+private fun MyWordsTick(isTicked: Boolean, onToggle: () -> Unit) {
+    LayerTick(
+        label = stringResource(R.string.menu_show_my_words),
+        isTicked = isTicked,
+        onToggle = onToggle,
+    )
 }
 
 @Composable

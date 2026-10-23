@@ -68,12 +68,30 @@ class LearnNavigationTest {
     }
 
     @Test
+    fun backFromTheNewWordsScreensReturnsToWhereTheUserCameFrom() {
+        assertEquals(
+            LearnRoute.PageWords(25),
+            learnBackFrom(LearnRoute.WordPage(rank = 12, from = LearnRoute.PageWords(25))),
+        )
+        assertEquals(
+            LearnRoute.SetPage(3),
+            learnBackFrom(LearnRoute.WordPage(rank = 12, from = LearnRoute.SetPage(3))),
+        )
+        assertEquals(LearnRoute.Track(LearnTrack.Words), learnBackFrom(LearnRoute.SetPage(3)))
+        assertEquals(LearnRoute.Track(LearnTrack.Words), learnBackFrom(LearnRoute.PageWords(25)))
+    }
+
+    @Test
     fun routesSurviveSavingForATurnedScreen() {
         val routes =
             listOf(
                 LearnRoute.FirstOpen,
                 LearnRoute.Hub,
                 LearnRoute.WordPage(rank = 12),
+                LearnRoute.WordPage(rank = 12, from = LearnRoute.SetPage(3)),
+                LearnRoute.WordPage(rank = 12, from = LearnRoute.PageWords(25)),
+                LearnRoute.SetPage(3),
+                LearnRoute.PageWords(25),
                 LearnRoute.Track(LearnTrack.Tajweed),
                 LearnRoute.CourseUnit("letters-01", LearnTrack.Reading),
                 LearnRoute.CourseUnit("letters-01", track = null),

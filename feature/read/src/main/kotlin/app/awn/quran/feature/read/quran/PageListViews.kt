@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
@@ -79,6 +80,8 @@ internal class ListPageEnvironment(
     val fontCache: PageFontCache,
     /** The recite state of each word while reciting; empty otherwise. */
     val wordStates: Map<WordKey, WordState>,
+    /** Words the user knows or is learning, filled when "Show my words" is on. */
+    val myWordMarks: Map<WordKey, MyWordMark> = emptyMap(),
     /** The first letter shown inside the block of a Hidden word. */
     val hintLetters: Map<WordKey, String> = emptyMap(),
     val isReciting: Boolean,

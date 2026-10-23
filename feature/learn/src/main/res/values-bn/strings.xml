@@ -311,4 +311,42 @@
   <string name="sources_academy_detail">নূরানি ক্বায়িদার ভিডিও পাঠ: হরফ ও অনুশীলনের শব্দ। ক্রিয়েটিভ কমন্স অ্যাট্রিবিউশন। রেকর্ডিংগুলো আল-ফুরকান নূরানি ক্বায়িদা অনুষ্ঠানের স্ক্রিন ধারণ।</string>
   <string name="sources_tajweed_book">উসামা মাহিদা ও SMA-এর শিক্ষকগণ, Tajweed Made Easy (২০১৮)</string>
   <string name="sources_tajweed_book_detail">তাজবিদ পাঠগুলোর ক্রম ও তথ্য।</string>
+  <!-- Quran words page, set page and words on a page -->
+  <string name="words_summary_counts">জানা %1$d · দেখা %2$d</string>
+  <string name="words_start_minutes">শুরু · %d মিনিট</string>
+  <string name="words_today_set">সেট %d</string>
+  <string name="words_pages_heading">আপনার পাতা থেকে</string>
+  <string name="words_last_read">শেষ পড়া · পৃষ্ঠা %d</string>
+  <string name="words_hifz_today">আজকের হিফজ · পৃষ্ঠা %d</string>
+  <plurals name="words_page_detail">
+    <item quantity="one">%1$dটি শব্দ · জানা %2$dটি</item>
+    <item quantity="other">%1$dটি শব্দ · জানা %2$dটি</item>
+  </plurals>
+  <string name="words_sets_heading">সেট</string>
+  <string name="words_set_known">সেট %1$d · %3$dটির মধ্যে %2$dটি জানা</string>
+  <string name="words_set_plain">সেট %d</string>
+  <string name="words_grammar_after">ব্যাকরণ · %1$s, সেট %2$d-এর পরে</string>
+  <string name="set_page_title">সেট %d</string>
+  <string name="page_words_title">পৃষ্ঠা %d-এর শব্দ</string>
+  <plurals name="page_words_subtitle">
+    <item quantity="one">%1$s · %2$dটি শব্দ · জানা %3$dটি</item>
+    <item quantity="other">%1$s · %2$dটি শব্দ · জানা %3$dটি</item>
+  </plurals>
+  <string name="page_words_range">%1$s %2$d–%3$d</string>
+  <string name="page_words_range_across">%1$s %2$d – %3$s %4$d</string>
+  <string name="page_words_filter_all">সব %d</string>
+  <string name="page_words_filter_new">নতুন %d</string>
+  <string name="page_words_filter_learning">শিখছি %d</string>
+  <string name="page_words_filter_known">জানা %d</string>
+  <plurals name="page_word_times">
+    <item quantity="one">কুরআনে %d বার</item>
+    <item quantity="other">কুরআনে %d বার</item>
+  </plurals>
+  <string name="page_word_state_new">নতুন</string>
+  <string name="page_words_open">পৃষ্ঠা খুলুন</string>
+  <plurals name="page_words_learn_new">
+    <item quantity="one">%dটি নতুন শিখুন</item>
+    <item quantity="other">%dটি নতুন শিখুন</item>
+  </plurals>
+  <string name="page_words_empty">এই পৃষ্ঠার জন্য দেখানোর মতো শব্দ নেই</string>
 </resources>

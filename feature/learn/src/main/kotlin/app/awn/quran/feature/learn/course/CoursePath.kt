@@ -60,6 +60,8 @@ data class PathInput(
     /** True when the user chose to start with the letters course. */
     val includeLetters: Boolean,
     val plan: TodayPlan?,
+    /** False on the Quran words page, which lists word sets and grammar lessons only. */
+    val includeStartLessons: Boolean = true,
 )
 
 /**
@@ -117,6 +119,7 @@ object CoursePath {
     }
 
     private fun startLessons(input: PathInput): List<CourseLesson> {
+        if (!input.includeStartLessons) return emptyList()
         val letters =
             if (input.includeLetters) input.content.inCourse(LessonCourse.Letters) else emptyList()
         return letters + input.content.inCourse(LessonCourse.Basics)

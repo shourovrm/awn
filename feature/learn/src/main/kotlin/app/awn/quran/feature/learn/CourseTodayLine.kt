@@ -1,9 +1,11 @@
 package app.awn.quran.feature.learn
 
 import android.content.Context
+import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseChoices
+import app.awn.quran.feature.learn.course.PageWords
 import app.awn.quran.feature.learn.session.TodayPlan
 import app.awn.quran.feature.learn.words.CourseSnapshot
 import kotlinx.coroutines.flow.Flow
@@ -70,6 +72,23 @@ fun learnWordIsAdded(context: Context, word: WordKey): Flow<Boolean> {
             services.courseRepository.observeSnapshot().map { snapshot ->
                 rank in snapshot.wordCards || rank in snapshot.queuedRanks
             },
+        )
+    }
+}
+
+/**
+ * How well the user knows the form of each of [words], again after every answer: the Quran page
+ * marks known words and words being learned. A word not met yet has no entry.
+ */
+fun learnWordMarks(context: Context, words: Collection<WordKey>): Flow<Map<WordKey, MyWordMark>> {
+    val services = LearnServices.get(context)
+    return flow {
+        val forms = services.courseAssets().forms
+        emitAll(
+            services.courseRepository
+                .observeSnapshot()
+                .map { snapshot -> PageWords.marks(words, forms, snapshot) }
+                .distinctUntilChanged(),
         )
     }
 }

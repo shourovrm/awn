@@ -29,6 +29,8 @@
   <string name="menu_bookmark_page">পৃষ্ঠা বুকমার্ক করুন</string>
   <string name="menu_remove_page_bookmark">বুকমার্ক সরান</string>
   <string name="menu_learn">শিখুন</string>
+  <string name="menu_words_on_page">এই পৃষ্ঠার শব্দ</string>
+  <string name="menu_show_my_words">আমার শব্দ দেখান</string>
   <string name="menu_settings">সেটিংস</string>
 
   <string name="ayah_play">এখান থেকে চালান</string>

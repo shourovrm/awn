@@ -47,6 +47,10 @@ internal class TopBarActions(
     val onRotate: () -> Unit,
     val onLearn: () -> Unit,
     val onSettings: () -> Unit,
+    /** Opens the words of the page in the Learn tab; null hides the menu item. */
+    val onWordsOnPage: (() -> Unit)? = null,
+    /** Turns "Show my words" on or off; null hides the menu item. */
+    val onToggleMyWords: (() -> Unit)? = null,
 )
 
 /** Above this font scale the title and the buttons no longer share a row. */

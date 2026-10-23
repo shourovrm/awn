@@ -200,3 +200,6 @@
 2026-10-23 | Home Show choice is Surahs and Juz only; Pages list, PageRow, buildPageRows removed | Go to page covers pages (architecture.md)
 2026-10-23 | IndoPak 16-line removed, IndoPak 15 in print card, uninstalled IndoPak never saved | v0.1.0 force close: layouts missing (read.md)
 2026-10-23 | Notice moves from first launch to the first Learn visit, short text in the app language; LICENSE 4 reworded | maintainer: concise, one language
+2026-10-23 | Quran words page lists sets, today words and pages only; no Reading or Basics lessons | user: the page had nothing for words
+2026-10-23 | Words on a page opens from words page, Quran menu and Hifz menu; Learn N new queues them | user: link words to reading and Hifz
+2026-10-23 | Show my words marks known (green) and learning (ochre) words on the Quran page via MyWords.marks | user: learnt words linked to the page

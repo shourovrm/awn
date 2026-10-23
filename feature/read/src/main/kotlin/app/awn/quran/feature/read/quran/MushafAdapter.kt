@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.LineItem
+import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.read.page.AyahRange
@@ -124,6 +125,8 @@ internal data class MushafHost(
     val fontFamily: FontFamily?,
     val plainFamily: FontFamily?,
     val wordStates: Map<WordKey, WordState>,
+    /** Words the user knows or is learning, filled when "Show my words" is on. */
+    val myWordMarks: Map<WordKey, MyWordMark> = emptyMap(),
     /** The first letter shown inside the block of a Hidden word. */
     val hintLetters: Map<WordKey, String> = emptyMap(),
     /** A tap on a word, with the word's place in the screen body. */
@@ -161,7 +164,7 @@ internal fun MushafPageHost(
     val wordStates = host.wordStates
     // Remembered, so equal marks give an equal PageDecorations and the page can skip recomposing.
     val decorations =
-        remember(highlights, wordStates, host.hintLetters, host.focusedWord) {
+        remember(highlights, wordStates, host.myWordMarks, host.hintLetters, host.focusedWord) {
             PageDecorations(
                 selectedAyahs = highlights.selectedAyahs,
                 playingAyah = highlights.playingAyah,
@@ -169,6 +172,7 @@ internal fun MushafPageHost(
                 bookmarkedAyahs = highlights.bookmarkedAyahs,
                 focusedWord = host.focusedWord,
                 wordStates = { key -> wordStates[key] ?: WordState.Neutral },
+                myWordMarks = host.myWordMarks,
                 hintLetter = { key -> host.hintLetters[key] },
             )
         }

@@ -3,6 +3,7 @@ package app.awn.quran.feature.read.page
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.geometry.Rect
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.tracker.WordState
 
@@ -16,6 +17,8 @@ import app.awn.quran.tracker.WordState
  * @property bookmarkedAyahs ayahs that carry a bookmark; empty when "Highlight bookmarks" is off.
  * @property focusedWord the flagged word the reciter is reviewing; drawn with a ring and a fill.
  * @property wordStates the recitation state of each word; Hidden words are drawn as a block.
+ * @property myWordMarks words of forms the user knows or is learning, filled behind the text; empty
+ *   when "Show my words" is off.
  * @property hintLetter the first letter shown inside the block of a Hidden word, or null.
  */
 @Immutable
@@ -26,6 +29,7 @@ data class PageDecorations(
     val bookmarkedAyahs: Set<AyahRef> = emptySet(),
     val focusedWord: WordKey? = null,
     val wordStates: (WordKey) -> WordState = { WordState.Neutral },
+    val myWordMarks: Map<WordKey, MyWordMark> = emptyMap(),
     val hintLetter: (WordKey) -> String? = { null },
 )
 

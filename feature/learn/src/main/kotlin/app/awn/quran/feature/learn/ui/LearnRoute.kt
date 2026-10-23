@@ -19,7 +19,14 @@ internal sealed interface LearnRoute {
 
     data object WordList : LearnRoute
 
-    data class WordPage(val rank: Int) : LearnRoute
+    /** A word's page; [from] is the screen Back returns to, the word list when null. */
+    data class WordPage(val rank: Int, val from: LearnRoute? = null) : LearnRoute
+
+    /** The ten words of one set of the Quran words track. */
+    data class SetPage(val number: Int) : LearnRoute
+
+    /** Every distinct word on one Quran page, with the user's progress on each. */
+    data class PageWords(val page: Int) : LearnRoute
 
     data object Sources : LearnRoute
 
@@ -47,7 +54,9 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
     when (route) {
         LearnRoute.Hub,
         LearnRoute.FirstOpen -> null
-        is LearnRoute.WordPage -> LearnRoute.WordList
+        is LearnRoute.WordPage -> route.from ?: LearnRoute.WordList
+        is LearnRoute.SetPage,
+        is LearnRoute.PageWords -> LearnRoute.Track(LearnTrack.Words)
         is LearnRoute.CourseUnit -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
         else -> LearnRoute.Hub
     }
@@ -83,7 +92,9 @@ private val SIMPLE_ROUTES: Map<String, LearnRoute> =
 internal fun encodeLearnRoute(route: LearnRoute): String =
     when (route) {
         is LearnRoute.Session -> "hub"
-        is LearnRoute.WordPage -> listOf("word_page", route.rank).joinToString(ROUTE_SEPARATOR)
+        is LearnRoute.WordPage -> encodeWordPage(route)
+        is LearnRoute.SetPage -> listOf("set_page", route.number).joinToString(ROUTE_SEPARATOR)
+        is LearnRoute.PageWords -> listOf("page_words", route.page).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.Track -> listOf("track", route.track.name).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.CourseUnit ->
             listOf("unit", route.track?.name ?: NO_TRACK, route.id).joinToString(ROUTE_SEPARATOR)
@@ -97,7 +108,9 @@ internal fun decodeLearnRoute(saved: String): LearnRoute? {
 
 private fun decodeRouteWithValues(parts: List<String>): LearnRoute? =
     when (parts[0]) {
-        "word_page" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.WordPage(it) }
+        "word_page" -> decodeWordPage(parts)
+        "set_page" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.SetPage(it) }
+        "page_words" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.PageWords(it) }
         "track" -> parts.getOrNull(1)?.let { LearnRoute.Track(LearnTrack.valueOf(it)) }
         "unit" -> decodeUnit(parts)
         else -> null
@@ -108,4 +121,17 @@ private fun decodeUnit(parts: List<String>): LearnRoute? {
     val unitId = parts.getOrNull(2)
     val track = trackName?.takeUnless { it == NO_TRACK }?.let { LearnTrack.valueOf(it) }
     return if (trackName == null || unitId == null) null else LearnRoute.CourseUnit(unitId, track)
+}
+
+// The screen Back returns to is saved as the rest of the text after the rank, which the split with
+// a limit of three keeps whole.
+private fun encodeWordPage(route: LearnRoute.WordPage): String {
+    val parts = mutableListOf("word_page", route.rank.toString())
+    route.from?.let { parts += encodeLearnRoute(it) }
+    return parts.joinToString(ROUTE_SEPARATOR)
+}
+
+private fun decodeWordPage(parts: List<String>): LearnRoute? {
+    val rank = parts.getOrNull(1)?.toIntOrNull() ?: return null
+    return LearnRoute.WordPage(rank, parts.getOrNull(2)?.let(::decodeLearnRoute))
 }

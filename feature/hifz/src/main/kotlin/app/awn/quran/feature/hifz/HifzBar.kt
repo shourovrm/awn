@@ -112,8 +112,9 @@ internal data class HifzBarColors(
  * recite mode, which :app turns on together with the practice.
  *
  * [playRange] plays the ayahs with the chosen reciter; [onExit] leaves recite mode on the screen.
- * Leaving the composition stops reciting, restores the repeat setting of the player and drops the
- * practice if it was not finished.
+ * [onOpenPageWords] shows the words of the part's first page in the Learn tab; without it the part
+ * menu has no such item. Leaving the composition stops reciting, restores the repeat setting of the
+ * player and drops the practice if it was not finished.
  */
 // One bar: its state, the two rows and the grade step belong together.
 @Suppress("LongMethod", "CyclomaticComplexMethod")
@@ -124,6 +125,7 @@ fun HifzBar(
     playRange: (first: AyahRef, last: AyahRef) -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenPageWords: ((page: Int) -> Unit)? = null,
 ) {
     val request by controller.practice.collectAsState()
     val current = request ?: return
@@ -244,6 +246,10 @@ fun HifzBar(
                     onExit()
                 },
                 modifier = Modifier.weight(1f),
+                onWordsOnPage =
+                    onOpenPageWords?.let { openWords ->
+                        { openWords(current.pages.first()) }
+                    },
             )
             BarToggle(
                 icon =

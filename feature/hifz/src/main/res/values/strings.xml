@@ -117,6 +117,7 @@
   <string name="bar_stop_reciting">Stop reciting</string>
   <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">Close</string>
+  <string name="bar_words_on_page">Words on this page</string>
   <string name="bar_finish_part">Finish part</string>
   <string name="bar_getting_ready">Getting ready</string>
   <string name="bar_ayah">Ayah %d</string>

@@ -28,11 +28,13 @@ internal fun TrackRoutes(
         is LearnRoute.Track ->
             if (route.track == LearnTrack.Words) {
                 HubRoute(context, dueAyahs) {
-                    WordsTrackScreen(it, hubActions, context::goHub, modifier)
+                    WordsTrackRoute(it, context, hubActions, modifier)
                 }
             } else {
                 TrackRoute(route.track, context, modifier)
             }
+        is LearnRoute.SetPage -> SetPageRoute(route.number, context, modifier)
+        is LearnRoute.PageWords -> PageWordsRoute(route.page, context, modifier)
         is LearnRoute.CourseUnit -> CourseUnitRoute(route, context, modifier)
         else -> error("$route is not a track screen.")
     }
