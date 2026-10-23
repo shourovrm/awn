@@ -174,6 +174,8 @@ data class QuranScreenSlots(
      * example when the microphone permission is missing.
      */
     val onToggleBusy: (openFullBar: () -> Unit) -> Unit = {},
+    /** Optional. Shows the words of a page in the Learn tab; null hides "Words on this page". */
+    val onOpenPageWords: ((page: Int) -> Unit)? = null,
 ) {
     companion object {
         /** Slots that draw nothing and do nothing, for hosts that wire the parts later. */
@@ -437,6 +439,7 @@ private fun QuranContent(
                 selectionActions = selectionActions,
                 onListAnchor = onListAnchor,
                 onWordAnchor = { wordAnchor = it },
+                myWords = dependencies.myWords,
                 // The page reports the word in its own coordinates, which start one margin in.
             )
         }
@@ -453,7 +456,8 @@ private fun QuranContent(
                 state = state,
                 surahName = state.headerSurah?.localName().orEmpty(),
                 isNight = slots.isNight,
-                actions = topBarActions(viewModel, slots),
+                actions =
+                    topBarActions(viewModel, slots, hasMyWords = dependencies.myWords != null),
                 modifier =
                     Modifier.onSizeChanged { size -> barClearance.onTopBarMeasured(size.height) },
             )
@@ -755,6 +759,7 @@ private fun QuranPager(
     selectionActions: MushafSelectionActions,
     onListAnchor: (Rect?) -> Unit,
     onWordAnchor: (Rect?) -> Unit,
+    myWords: MyWords?,
 ) {
     val pagerState =
         rememberPagerState(initialPage = state.currentPage - 1, pageCount = { state.pageCount })
@@ -848,6 +853,12 @@ private fun QuranPager(
                         remember(fullHeightPx, pageShift) {
                             Modifier.fixedHeightShifted(fullHeightPx, pageShift)
                         }
+                    val myWordMarks by
+                        rememberMyWordMarks(
+                            myWords,
+                            remember(load.layout) { wordKeysOf(load.layout) },
+                            state.settings.showMyWords,
+                        )
                     Box(Modifier.fillMaxSize().then(tapToggle).then(shiftModifier)) {
                         MushafPageItem(
                             layout = load.layout,
@@ -866,6 +877,7 @@ private fun QuranPager(
                                     fontFamily = glyphLookup.family,
                                     plainFamily = plainLookup.family,
                                     wordStates = reciteMarks.states,
+                                    myWordMarks = myWordMarks,
                                     hintLetters = reciteMarks.hintLetters,
                                     focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
@@ -900,6 +912,12 @@ private fun QuranPager(
         } else if (arabicLookup == null) {
             Box(Modifier.fillMaxSize())
         } else {
+            val listMarks by
+                rememberMyWordMarks(
+                    myWords,
+                    remember(state.contents[pageNumber]) { wordKeysOf(state.contents[pageNumber]) },
+                    state.settings.showMyWords,
+                )
             PageListView(
                 content = state.contents[pageNumber],
                 isCurrent = isCurrent,
@@ -909,6 +927,7 @@ private fun QuranPager(
                         arabicFamily = arabicLookup.family,
                         fontCache = fontCache,
                         wordStates = reciteMarks.states,
+                        myWordMarks = listMarks,
                         hintLetters = reciteMarks.hintLetters,
                         isReciting = state.isReciting,
                         recitedAyah = reciteMarks.currentAyah,

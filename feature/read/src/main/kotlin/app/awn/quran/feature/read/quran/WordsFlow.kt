@@ -32,12 +32,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.page.PageFontWord
+import app.awn.quran.feature.read.page.myWordFillColor
 import app.awn.quran.feature.read.page.wordCellFill
 import app.awn.quran.feature.read.page.wordColor
 import app.awn.quran.feature.read.settings.ReadSettings
@@ -87,7 +89,14 @@ internal fun WordsFlow(
                     word = word,
                     environment = environment,
                     styles = cellStyles,
-                    fill = wordFill(environment.wordStates[word.key], playingWord, word, fills),
+                    fill =
+                        wordFill(
+                            environment.wordStates[word.key],
+                            environment.myWordMarks[word.key],
+                            playingWord,
+                            word,
+                            fills,
+                        ),
                     isFocused = word.key == environment.focusedWord,
                     onAyahLongPress = onAyahLongPress,
                 )
@@ -114,18 +123,24 @@ private fun wordCellStyles(settings: ReadSettings, arabicStyle: TextStyle): Word
     return WordCellStyles(arabic, meaning)
 }
 
-/** A recite mark wins over the playing-word fill, so a word being checked shows its result. */
+/**
+ * A recite mark wins over the playing-word fill, so a word being checked shows its result; the fill
+ * of "Show my words" is the quietest and gives way to both.
+ */
 @Composable
 private fun wordFill(
     state: WordState?,
+    myWordMark: MyWordMark?,
     playingWord: Int?,
     word: AyahWord,
     fills: ReaderFills,
 ): Color {
-    val markFill = wordCellFill(state ?: WordState.Neutral, Awn.field)
+    val reciteFill = wordCellFill(state ?: WordState.Neutral, Awn.field)
+    val myWordFill = myWordMark?.let { myWordFillColor(it, Awn.field) }
     return when {
-        markFill != null -> markFill
+        reciteFill != null -> reciteFill
         playingWord == word.key.wordPosition -> fills.playingWord
+        myWordFill != null -> myWordFill
         else -> Color.Transparent
     }
 }

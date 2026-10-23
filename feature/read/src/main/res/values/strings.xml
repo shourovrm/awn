@@ -30,6 +30,8 @@
   <string name="menu_bookmark_page">Bookmark this page</string>
   <string name="menu_remove_page_bookmark">Remove bookmark</string>
   <string name="menu_learn">Learn</string>
+  <string name="menu_words_on_page">Words on this page</string>
+  <string name="menu_show_my_words">Show my words</string>
   <string name="menu_settings">Settings</string>
 
   <string name="ayah_play">Play from here</string>

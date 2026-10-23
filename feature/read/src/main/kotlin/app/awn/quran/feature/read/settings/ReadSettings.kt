@@ -65,6 +65,8 @@ data class ReadSettings(
     val volumeKeysTurnPages: Boolean = false,
     /** The surah, juz and page number around the Mushaf page. */
     val showPageInfo: Boolean = true,
+    /** Marks on the page the words the user knows and the words they are learning. */
+    val showMyWords: Boolean = false,
 ) {
     /** The factor that multiplies the Arabic font size. */
     val arabicScale: Float

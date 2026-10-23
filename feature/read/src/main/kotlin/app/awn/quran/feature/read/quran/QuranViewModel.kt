@@ -405,6 +405,11 @@ class QuranViewModel(
     }
 
     /** The view button: Mushaf or line by line. The choice is saved. */
+    /** "Show my words" in the page menu: marks the words the user knows or is learning. */
+    fun toggleMyWords() {
+        updateSettings { it.copy(showMyWords = !it.showMyWords) }
+    }
+
     fun switchView() {
         updateSettings { it.copy(pageView = it.pageView.other()) }
     }
