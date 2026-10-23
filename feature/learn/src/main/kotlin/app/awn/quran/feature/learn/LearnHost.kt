@@ -41,9 +41,11 @@ import app.awn.quran.feature.learn.ui.CourseDependencies
 import app.awn.quran.feature.learn.ui.CourseRoutes
 import app.awn.quran.feature.learn.ui.CourseRuntime
 import app.awn.quran.feature.learn.ui.LearnEnvironment
+import app.awn.quran.feature.learn.ui.LearnPageLinks
 import app.awn.quran.feature.learn.ui.LearnRoute
 import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
+import app.awn.quran.feature.learn.ui.LocalLearnPageLinks
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
@@ -73,6 +75,10 @@ private val EMPTY_SNAPSHOT =
  * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
  * end of the bar on the hub (:app puts Settings there). [wordSound] plays a Quran word of a
  * practice item with the word reciter the user chose; the recorded lesson sounds come from [packs].
+ *
+ * [pageLinks] ties the tab to the Quran and Hifz tabs. A [pageWordsRequest] (from the Quran page
+ * menu or the Hifz bar) opens the words of that page; [onPageWordsRequestHandled] tells :app to
+ * forget it, so turning the screen does not open it again.
  */
 @Composable
 fun LearnScreen(
@@ -84,6 +90,9 @@ fun LearnScreen(
     onReviseAt: ((AyahRef) -> Unit)? = null,
     barActions: @Composable RowScope.() -> Unit = {},
     wordSound: WordSound = WordSound.Silent,
+    pageLinks: LearnPageLinks = LearnPageLinks(),
+    pageWordsRequest: Int? = null,
+    onPageWordsRequestHandled: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -96,6 +105,7 @@ fun LearnScreen(
 
     val routeState = rememberStartRoute(services)
     val route = routeState.value
+    OpenRequestedPageWords(pageWordsRequest, routeState, onPageWordsRequestHandled)
 
     val snapshot by remember {
         services.progress.observeSnapshot()
@@ -125,6 +135,7 @@ fun LearnScreen(
     val current = route ?: return
     CompositionLocalProvider(
         LocalLearnEnvironment provides environment,
+        LocalLearnPageLinks provides pageLinks,
         LocalUnitSounds provides unitSounds,
     ) {
         LearnRoutes(
@@ -143,6 +154,20 @@ fun LearnScreen(
             barActions = barActions,
             modifier = modifier,
         )
+    }
+}
+
+@Composable
+private fun OpenRequestedPageWords(
+    page: Int?,
+    routeState: MutableState<LearnRoute?>,
+    onHandled: () -> Unit,
+) {
+    LaunchedEffect(page) {
+        if (page != null) {
+            routeState.value = LearnRoute.PageWords(page)
+            onHandled()
+        }
     }
 }
 

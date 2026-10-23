@@ -225,7 +225,7 @@ private fun TodayReady(state: HubState, actions: HubActions) {
 }
 
 @Composable
-private fun MeaningsNeeded(meanings: MeaningsState, onDownload: () -> Unit) {
+internal fun MeaningsNeeded(meanings: MeaningsState, onDownload: () -> Unit) {
     val field = Awn.field
     Text(
         text = stringResource(R.string.course_meanings_title),
@@ -250,7 +250,7 @@ private fun MeaningsNeeded(meanings: MeaningsState, onDownload: () -> Unit) {
 }
 
 @Composable
-private fun planSummary(plan: TodayPlan): String {
+internal fun planSummary(plan: TodayPlan): String {
     val parts = mutableListOf<String>()
     if (plan.reviewCount > 0) {
         parts +=
@@ -262,85 +262,6 @@ private fun planSummary(plan: TodayPlan): String {
     if (plan.lessonIds.isNotEmpty()) parts += stringResource(R.string.course_today_lesson)
     return parts.joinToString(", ")
 }
-
-@Composable
-internal fun PathRowView(row: PathRow, state: HubState, actions: HubActions) {
-    when (row) {
-        is PathRow.Folded -> FoldedRow(row, state)
-        is PathRow.SetStep -> SetRow(row)
-        is PathRow.LessonStep -> LessonRow(row, state, actions)
-        is PathRow.Later ->
-            StepRow(
-                PathState.Upcoming,
-                stringResource(R.string.course_later),
-                stringResource(R.string.course_later_from, row.fromSet),
-                false,
-                null,
-            )
-    }
-}
-
-@Composable
-private fun FoldedRow(row: PathRow.Folded, state: HubState) {
-    val sets =
-        row.sets?.let {
-            if (it.first == it.last) stringResource(R.string.course_folded_set, it.first)
-            else stringResource(R.string.course_folded_sets, it.first, it.last)
-        }
-    val lessons = row.lessonIds.map { state.lessonTitles[it].orEmpty() }
-    val title = (listOfNotNull(sets) + lessons).joinToString(", ")
-    StepRow(
-        PathState.Done,
-        title,
-        pluralStringResource(R.plurals.course_folded_detail, row.stepCount, row.stepCount),
-        false,
-        null,
-    )
-}
-
-@Composable
-private fun SetRow(row: PathRow.SetStep) {
-    val detail =
-        when {
-            row.state == PathState.Done ->
-                pluralStringResource(R.plurals.course_set_known, row.knownCount, row.knownCount)
-            row.metCount > 0 ->
-                pluralStringResource(
-                    R.plurals.course_set_left,
-                    LEARN_SET_SIZE - row.metCount,
-                    LEARN_SET_SIZE - row.metCount,
-                )
-            else -> null
-        }
-    StepRow(
-        row.state,
-        stringResource(R.string.course_set_title, row.number),
-        detail,
-        row.isToday,
-        null,
-    )
-}
-
-@Composable
-private fun LessonRow(row: PathRow.LessonStep, state: HubState, actions: HubActions) {
-    val title =
-        stringResource(R.string.course_lesson_title, state.lessonTitles[row.lessonId].orEmpty())
-    val trigger = state.triggerMeanings[row.lessonId]
-    val detail =
-        if (trigger != null && row.triggerSet != null) {
-            stringResource(
-                R.string.course_lesson_reason,
-                row.triggerSet,
-                "{{${trigger.first}}}",
-                trigger.second,
-            )
-        } else {
-            stringResource(R.string.course_basics)
-        }
-    StepRow(row.state, title, detail, row.isToday, onClick = { actions.onLesson(row.lessonId) })
-}
-
-private const val LEARN_SET_SIZE = 10
 
 /**
  * One step of the path: a marker, the title with a detail, and "Today" when it is in today's plan.

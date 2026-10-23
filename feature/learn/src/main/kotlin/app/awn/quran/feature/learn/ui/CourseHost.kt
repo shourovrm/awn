@@ -149,11 +149,13 @@ internal fun CourseRoutes(
         LearnRoute.Hub ->
             HubRoute(context, dueAyahs) { CourseHub(it, actions, modifier, barActions) }
         is LearnRoute.Track,
+        is LearnRoute.SetPage,
+        is LearnRoute.PageWords,
         is LearnRoute.CourseUnit -> TrackRoutes(route, context, actions, dueAyahs, modifier)
         is LearnRoute.Session -> SessionRouteOrHub(request, context, modifier)
         LearnRoute.QuizStart -> QuizStartRoute(context, modifier)
         LearnRoute.WordList -> WordListRoute(context, modifier)
-        is LearnRoute.WordPage -> WordPageRoute(route.rank, context, modifier)
+        is LearnRoute.WordPage -> WordPageRoute(route, context, modifier)
         LearnRoute.Sources ->
             SourcesScreen(
                 runtime.assets.content.references,
@@ -303,7 +305,12 @@ private fun WordListRoute(context: CourseScreenContext, modifier: Modifier) {
 }
 
 @Composable
-private fun WordPageRoute(rank: Int, context: CourseScreenContext, modifier: Modifier) {
+private fun WordPageRoute(
+    route: LearnRoute.WordPage,
+    context: CourseScreenContext,
+    modifier: Modifier,
+) {
+    val rank = route.rank
     val lookups = context.runtime.lookups
     val snapshot = context.snapshot
     val details by
@@ -324,7 +331,7 @@ private fun WordPageRoute(rank: Int, context: CourseScreenContext, modifier: Mod
                 }
             },
             onAdd = { context.scope.launch { context.services.courseRepository.queueWord(rank) } },
-            onBack = { context.onRouteChange(LearnRoute.WordList) },
+            onBack = { context.onRouteChange(learnBackFrom(route) ?: LearnRoute.WordList) },
             modifier = modifier,
         )
     }
