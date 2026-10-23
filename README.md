@@ -8,7 +8,7 @@ Status: milestone 1 (skeleton). The app starts, shows the notice, and has empty 
 
 ## Download
 
-Get the APK from the [latest release](https://github.com/shourovrm/awn/releases/latest). Most phones need the `arm64-v8a` file (`app-github-arm64-v8a-release.apk`). Install steps are under Install below.
+Get the APK from the newest `v0.x` release on the [releases page](https://github.com/shourovrm/awn/releases?q=v0). Most phones need `app-github-arm64-v8a-release.apk`. Install steps are under Install below.
 
 ## Install
 
