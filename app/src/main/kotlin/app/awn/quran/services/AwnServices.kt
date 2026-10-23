@@ -200,7 +200,7 @@ class AwnServices(private val application: Application) {
         val reciterId =
             wordReciterFor(listenSettings.wordReciterId.first(), listeningReciterId, withTimings)
                 ?: listeningReciterId
-        audioPlayer.playWord(reciterId, AyahRef(word.surah, word.ayah), word.wordPosition)
+        audioPlayer.playWordToEnd(reciterId, AyahRef(word.surah, word.ayah), word.wordPosition)
     }
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */

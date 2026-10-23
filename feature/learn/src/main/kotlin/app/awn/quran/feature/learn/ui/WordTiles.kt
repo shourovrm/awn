@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -149,16 +151,25 @@ private fun MarkedWord(tile: WordTile, markColor: Color, content: Color) {
             ArabicLetters.withoutPauseSign(texts[key].orEmpty())
         }
     val styled = remember(words, tile.letters, markColor) { colourLetters(words, tile, markColor) }
-    Text(
+    val largestSize = AwnTypography.quran.fontSize * WORD_SCALE
+    // Two words on one line are too wide for a tile at the full size; they shrink rather than wrap,
+    // because a wrapped pair reads as two separate examples.
+    BasicText(
         text = styled,
         style =
             AwnTypography.title.copy(
                 fontFamily = environment?.arabic?.fontFamily ?: AwnTypography.title.fontFamily,
-                fontSize = AwnTypography.quran.fontSize * WORD_SCALE,
+                fontSize = largestSize,
+                color = content,
                 textDirection = TextDirection.Rtl,
                 textAlign = TextAlign.Center,
             ),
-        color = content,
+        maxLines = 1,
+        autoSize =
+            TextAutoSize.StepBased(
+                minFontSize = AwnTypography.lead.fontSize,
+                maxFontSize = largestSize,
+            ),
     )
 }
 

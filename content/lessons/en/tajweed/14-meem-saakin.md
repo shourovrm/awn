@@ -18,6 +18,11 @@ A meem saakin is a [[م]] with no vowel, as at the end of {{1:7:4}}, ʿalayhim. 
 - Hidden before [[ب]]: the lips close lightly and the nasal sound is held for two counts. This is ikhfa shafawi.
 - Clear before every other letter, with no hold. This is izhar shafawi.
 
+words:
+- {{2:10:2}} {{2:10:3}} | qulūbihim-maraḍ · merged | 6-7
+- {{2:8:10}} {{2:8:11}} | hum-bimuʾminīn · hidden | 2-3
+- {{1:7:4}} {{1:7:5}} | ʿalayhim ghayri · clear | 5
+
 ## Screen 2: Merged before meem
 
 The meem at the end of the first word joins the doubled meem that starts the next. Hold the one m through the nose for two counts.

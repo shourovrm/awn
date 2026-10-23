@@ -19,6 +19,12 @@ A noon saakin is a [[ن]] with no vowel, as in {{79:40:2}}, man. Tanween ends a 
 - Changed to m (iqlab): before [[ب]]
 - Hidden (ikhfa): before the remaining 15 letters
 
+words:
+- {{79:40:2}} {{79:40:3}} | man khāfa · clear | 2
+- {{2:8:3}} {{2:8:4}} | may-yaqūlu · merged | 2-3
+- {{90:2:2}} {{90:2:3}} | ḥillum-bihādhā · changed to m | 2
+- {{114:4:1}} {{114:4:2}} | min sharri · hidden | 2
+
 ## Screen 2: Clear
 
 Before [[ء]] [[ه]] [[ع]] [[ح]] [[غ]] [[خ]], the n is said clearly, with no nasal hold. These six letters come from the throat, far from the n, so the tongue has time to finish the n.
