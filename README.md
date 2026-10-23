@@ -6,6 +6,10 @@ The source is available under MIT plus the Awn additional conditions (see `LICEN
 
 Status: milestone 1 (skeleton). The app starts, shows the notice, and has empty Read, Listen, Recite and Learn screens. Plan: `docs/plan.md`.
 
+## Download
+
+Get the APK from the [latest release](https://github.com/shourovrm/awn/releases/latest). Most phones need the `arm64-v8a` file (`app-github-arm64-v8a-release.apk`). Install steps are under Install below.
+
 ## Install
 
 1. Download the APK for your phone from the latest release on the GitHub Releases page. Most phones need `arm64-v8a`; older 32-bit phones need `armeabi-v7a`; emulators on a PC need `x86_64`.
