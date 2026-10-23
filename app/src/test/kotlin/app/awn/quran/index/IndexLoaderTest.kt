@@ -61,7 +61,7 @@ class IndexLoaderTest {
             content.surahRows.filterIsInstance<SurahRow>().first { it.chapter.number == 2 }
         assertEquals(6, baqarah.page)
         assertEquals(30, content.juzRows.size)
-        assertEquals(604, content.pageRows.count { it is PageRow })
+        assertEquals(604, content.pageCount)
     }
 
     @Test
@@ -83,7 +83,7 @@ class IndexLoaderTest {
         val baqarah =
             content.surahRows.filterIsInstance<SurahRow>().first { it.chapter.number == 2 }
         assertEquals(5, baqarah.page)
-        assertEquals(INDOPAK_16_PAGES, content.pageRows.count { it is PageRow })
+        assertEquals(INDOPAK_16_PAGES, content.pageCount)
     }
 
     @Test
