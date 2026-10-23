@@ -46,7 +46,7 @@ internal fun RichText(
     color: Color = Awn.field.content,
     highlight: WordKey? = null,
     textAlign: TextAlign = TextAlign.Start,
-    arabicSize: TextUnit = maxOf(style.fontSize, AwnTypography.lead.fontSize),
+    arabicSize: TextUnit = arabicSizeFor(style),
 ) {
     val environment = LocalLearnEnvironment.current
     val keys = remember(text, highlight) { LessonMarkup.wordKeys(text) }
@@ -69,6 +69,11 @@ internal fun RichText(
         color = color,
         modifier = modifier,
     )
+}
+
+private fun arabicSizeFor(style: TextStyle): TextUnit {
+    val leadSize = AwnTypography.lead.fontSize
+    return if (style.fontSize > leadSize) style.fontSize else leadSize
 }
 
 /** One Quran word at the size of [style], centred: the word of a question or a new word. */

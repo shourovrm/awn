@@ -66,46 +66,46 @@ internal val LearnRouteSaver: Saver<LearnRoute?, String> =
 private const val ROUTE_SEPARATOR = "|"
 private const val NO_TRACK = "-"
 
+/** The routes that carry no values, by the name they are saved under. */
+private val SIMPLE_ROUTES: Map<String, LearnRoute> =
+    mapOf(
+        "first_open" to LearnRoute.FirstOpen,
+        "hub" to LearnRoute.Hub,
+        "course_choices" to LearnRoute.CourseChoices,
+        "quiz_start" to LearnRoute.QuizStart,
+        "word_list" to LearnRoute.WordList,
+        "sources" to LearnRoute.Sources,
+        "progress" to LearnRoute.Progress,
+        "reading_progress" to LearnRoute.ReadingProgress,
+        "revision" to LearnRoute.Revision,
+    )
+
 internal fun encodeLearnRoute(route: LearnRoute): String =
     when (route) {
-        LearnRoute.FirstOpen -> "first_open"
-        LearnRoute.Hub,
         is LearnRoute.Session -> "hub"
-        LearnRoute.CourseChoices -> "course_choices"
-        LearnRoute.QuizStart -> "quiz_start"
-        LearnRoute.WordList -> "word_list"
         is LearnRoute.WordPage -> listOf("word_page", route.rank).joinToString(ROUTE_SEPARATOR)
-        LearnRoute.Sources -> "sources"
-        LearnRoute.Progress -> "progress"
-        LearnRoute.ReadingProgress -> "reading_progress"
-        LearnRoute.Revision -> "revision"
         is LearnRoute.Track -> listOf("track", route.track.name).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.CourseUnit ->
             listOf("unit", route.track?.name ?: NO_TRACK, route.id).joinToString(ROUTE_SEPARATOR)
+        else -> SIMPLE_ROUTES.entries.first { it.value == route }.key
     }
 
 internal fun decodeLearnRoute(saved: String): LearnRoute? {
     val parts = saved.split(ROUTE_SEPARATOR, limit = 3)
-    return when (parts[0]) {
-        "first_open" -> LearnRoute.FirstOpen
-        "hub" -> LearnRoute.Hub
-        "course_choices" -> LearnRoute.CourseChoices
-        "quiz_start" -> LearnRoute.QuizStart
-        "word_list" -> LearnRoute.WordList
+    return SIMPLE_ROUTES[parts[0]] ?: decodeRouteWithValues(parts)
+}
+
+private fun decodeRouteWithValues(parts: List<String>): LearnRoute? =
+    when (parts[0]) {
         "word_page" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.WordPage(it) }
-        "sources" -> LearnRoute.Sources
-        "progress" -> LearnRoute.Progress
-        "reading_progress" -> LearnRoute.ReadingProgress
-        "revision" -> LearnRoute.Revision
         "track" -> parts.getOrNull(1)?.let { LearnRoute.Track(LearnTrack.valueOf(it)) }
         "unit" -> decodeUnit(parts)
         else -> null
     }
-}
 
 private fun decodeUnit(parts: List<String>): LearnRoute? {
-    val trackName = parts.getOrNull(1) ?: return null
-    val unitId = parts.getOrNull(2) ?: return null
-    val track = if (trackName == NO_TRACK) null else LearnTrack.valueOf(trackName)
-    return LearnRoute.CourseUnit(unitId, track)
+    val trackName = parts.getOrNull(1)
+    val unitId = parts.getOrNull(2)
+    val track = trackName?.takeUnless { it == NO_TRACK }?.let { LearnTrack.valueOf(it) }
+    return if (trackName == null || unitId == null) null else LearnRoute.CourseUnit(unitId, track)
 }
