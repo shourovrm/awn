@@ -56,6 +56,7 @@ import app.awn.quran.feature.recite.MicrophoneAccess
 import app.awn.quran.feature.recite.RecitationPhase
 import app.awn.quran.feature.recite.ReciteBarMode
 import app.awn.quran.feature.recite.ReciteController
+import app.awn.quran.feature.recite.ReciteRevealButtons
 import app.awn.quran.feature.recite.reciteBarMode
 import app.awn.quran.feature.recite.rememberMicrophonePermission
 import app.awn.quran.feature.recite.stopMicrophone
@@ -68,6 +69,8 @@ const val HIFZ_BAR_PREVIOUS_TAG = "hifz-bar-previous"
 const val HIFZ_BAR_NEXT_TAG = "hifz-bar-next"
 const val HIFZ_BAR_REPEAT_TAG = "hifz-bar-repeat"
 const val HIFZ_BAR_MIC_TAG = "hifz-bar-mic"
+const val HIFZ_BAR_REVEAL_WORD_TAG = "hifz-bar-reveal-word"
+const val HIFZ_BAR_REVEAL_AYAH_TAG = "hifz-bar-reveal-ayah"
 const val HIFZ_BAR_FINISH_TAG = "hifz-bar-finish"
 const val HIFZ_BAR_CLOSE_TAG = "hifz-bar-close"
 
@@ -298,6 +301,26 @@ fun HifzBar(
                     }
                 },
             )
+        }
+        if (hideWords) RevealRow(recite, colors)
+    }
+}
+
+// A second row, because the first has no room for two more 44 dp buttons on a 360 dp screen; it
+// shows only while words are hidden, when the buttons mean something.
+@Composable
+private fun RevealRow(recite: ReciteController, colors: HifzBarColors) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ReciteRevealButtons(
+            recite,
+            wordTag = HIFZ_BAR_REVEAL_WORD_TAG,
+            ayahTag = HIFZ_BAR_REVEAL_AYAH_TAG,
+        ) { icon, description, onClick, tag ->
+            BarButton(icon, description, onClick, tag, colors)
         }
     }
 }

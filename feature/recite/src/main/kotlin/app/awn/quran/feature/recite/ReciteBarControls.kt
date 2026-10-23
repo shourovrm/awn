@@ -57,7 +57,15 @@ internal fun ReciteBarControls(
             tag = RECITE_BAR_HIDE_TAG,
             colors = colors,
         )
-        if (hideWords) RevealButtons(controller, colors)
+        if (hideWords) {
+            ReciteRevealButtons(
+                controller,
+                wordTag = RECITE_BAR_REVEAL_WORD_TAG,
+                ayahTag = RECITE_BAR_REVEAL_AYAH_TAG,
+            ) { icon, description, onClick, tag ->
+                BarIconButton(icon, description, onClick, tag, colors)
+            }
+        }
         ListenButton(
             audio = audio,
             enabled = canListen || isAudioActive,
@@ -73,37 +81,6 @@ internal fun ReciteBarControls(
             onClick = { toggleMicrophone(controller, permission, phase, isAudioActive) },
         )
     }
-}
-
-/** Show next word and show ayah, the two ways to look at a hidden word without reciting it. */
-@Composable
-private fun RevealButtons(controller: ReciteController, colors: ReciteBarColors) {
-    val session = controller.session
-    val hint by session.hint.collectAsState()
-    val currentWord by session.currentWord.collectAsState()
-    val showsFirstLetterFirst by controller.settings.hintEnabled.collectAsState(initial = true)
-    // The description says what the next tap does: one tap shows the letter, the next the word.
-    val letterIsShown = hint != null && hint?.key == currentWord
-    val description =
-        if (showsFirstLetterFirst && !letterIsShown) {
-            stringResource(R.string.recite_reveal_letter)
-        } else {
-            stringResource(R.string.recite_reveal_word)
-        }
-    BarIconButton(
-        icon = R.drawable.ic_recite_reveal_word,
-        description = description,
-        onClick = { session.revealNextWord(showsFirstLetterFirst) },
-        tag = RECITE_BAR_REVEAL_WORD_TAG,
-        colors = colors,
-    )
-    BarIconButton(
-        icon = R.drawable.ic_recite_reveal_ayah,
-        description = stringResource(R.string.recite_reveal_ayah),
-        onClick = session::revealAyah,
-        tag = RECITE_BAR_REVEAL_AYAH_TAG,
-        colors = colors,
-    )
 }
 
 private fun listen(controller: ReciteController, audio: ReciteAudioState) {
