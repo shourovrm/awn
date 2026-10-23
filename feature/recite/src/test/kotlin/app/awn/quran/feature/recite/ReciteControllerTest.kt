@@ -85,6 +85,7 @@ class ReciteControllerTest {
                 }
             }
         assertEquals(WordState.Hidden, hidden[fixture.first])
+        fixture.controller.joinPendingWork()
         assertTrue(withContext(Dispatchers.Default) { fixture.settings.hifzEnabled.first() })
     }
 

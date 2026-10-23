@@ -104,6 +104,9 @@ class ReciteController(
     private var revisionQueueLeft: List<AyahRef> = emptyList()
     private var loadJob: Job? = null
 
+    // The latest write of the hide-words choice, so a test can wait until it is stored.
+    private var hideWordsSaveJob: Job? = null
+
     // The last ayah the player reported since [listenOnward], and whether the audio has ended since
     // it started. Together they say where reciting goes on.
     @Volatile private var lastListenedAyah: AyahRef? = null
@@ -477,9 +480,13 @@ class ReciteController(
         }
     }
 
-    /** Waits until the last [reciteFrom] or [exit] has finished; for tests. */
+    /**
+     * Waits until the last [reciteFrom] or [exit] has finished and the last hide-words choice is
+     * stored; for tests.
+     */
     internal suspend fun joinPendingWork() {
         loadJob?.join()
+        hideWordsSaveJob?.join()
     }
 
     // The ayahs after [last] on the first following page that has any. A long ayah can fill a whole
@@ -553,7 +560,7 @@ class ReciteController(
         // read the same old state and send the same choice, so the second tap seemed to do nothing.
         // The saved value is only the next run's starting point.
         session.setHifzEnabled(hide)
-        if (!runActive) scope.launch { settings.setHifzEnabled(hide) }
+        if (!runActive) hideWordsSaveJob = scope.launch { settings.setHifzEnabled(hide) }
     }
 }
 
