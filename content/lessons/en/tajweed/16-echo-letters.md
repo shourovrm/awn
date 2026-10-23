@@ -5,7 +5,7 @@ order: 16
 appears_after: "Tajweed unit 15, nasal sound"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lesson 9"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [2:4:9, 2:19:9, 80:19:2, 112:1:4, 113:1:4, 2:3:7, 2:7:8, 79:22:2, 97:5:4, 84:25:7]
+examples: [2:3:7, 2:4:9, 2:7:8, 2:19:9, 79:22:2, 80:19:2, 84:25:7, 85:3:2, 96:2:4, 97:5:4, 100:2:2, 110:2:3, 111:1:5, 111:5:3, 112:1:4, 112:2:2, 113:1:4]
 reviewed_by: ""
 version: 2026-10-23
 ---
@@ -14,16 +14,27 @@ version: 2026-10-23
 
 Five letters echo when they carry a sukoon: [[ق]] [[ط]] [[ب]] [[ج]] [[د]]. The echo is qalqalah, a small bounce as the closed sound is released, so the letter does not die in the mouth. The five are learned as one phrase, [[قُطْبُ جَدٍّ]].
 
-- {{2:4:9}}, qab-lika: [[ب]] with a sukoon bounces
-- {{2:19:9}}, yaj-ʿalūna: [[ج]] with a sukoon bounces
-- {{80:19:2}}, nuṭ-fatin: [[ط]] with a sukoon bounces
+words: qalqalah
+- {{2:4:9}} | qab-lika | 2
+- {{2:19:9}} | yaj-ʿalūna | 2
+- {{80:19:2}} | nuṭ-fatin | 2
+- {{110:2:3}} | yad-khulūna | 2
+- {{100:2:2}} | qad-ḥan | 2
+- {{111:5:3}} | ḥab-lun | 2
+
+tip: Say qab-lika slowly. After the b the lips open with a small push of sound, and no vowel is added: not qaba-lika.
 
 ## Screen 2: Stronger at a stop
 
 When you stop on a word that ends in one of the five, the last letter takes a sukoon and bounces more strongly.
 
-- {{112:1:4}}, aḥad: the [[د]] bounces at the end of the ayah
-- {{113:1:4}}, al-falaq: the [[ق]] bounces at the end of the ayah
+words: qalqalah
+- {{112:1:4}} | aḥad | 3
+- {{113:1:4}} | al-falaq | 5
+- {{96:2:4}} | ʿalaq | 3
+- {{112:2:2}} | aṣ-ṣamad | 5
+- {{111:1:5}} | wa-tabb | 3
+- {{85:3:2}} | wa-mashhūd | 6
 
 ## Check: Echo letters
 

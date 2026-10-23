@@ -5,32 +5,54 @@ order: 17
 appears_after: "Tajweed unit 16, echo letters"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lesson 10"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [2:30:2, 2:11:2, 2:8:4, 2:13:12, 2:4:3, 2:4:4, 1:7:9, 2:1:1, 1:2:4]
+examples: [1:2:4, 1:3:2, 1:4:3, 1:6:3, 1:7:9, 2:4:3, 2:4:4, 2:8:4, 2:11:2, 2:13:12, 2:30:2, 80:33:3, 108:1:1, 108:1:2, 109:1:3, 110:1:2, 114:1:4, 114:4:3]
 reviewed_by: ""
 version: 2026-10-23
 ---
 
 ## Screen 1: Natural length
 
-A long vowel is held for two counts: [[ا]] after a fatha, [[و]] after a damma, [[ي]] after a kasra. This is the natural madd.
+A long vowel is held for two counts: [[ا]] after a fatha, [[و]] after a damma, [[ي]] after a kasra. This is the natural madd. One count is the length of a short vowel.
 
-- {{2:30:2}}, qāla
-- {{2:11:2}}, qīla
-- {{2:8:4}}, yaqūlu
+words: madd
+- {{2:30:2}} | qāla | 2
+- {{2:11:2}} | qīla | 2
+- {{2:8:4}} | yaqūlu | 3
+- {{114:4:3}} | al-waswās | 6
+- {{1:4:3}} | ad-dīn | 4
+- {{114:1:4}} | an-nās | 4
+
+tip: Count by tapping a finger: one tap for a short vowel, two for a long one.
 
 ## Screen 2: The wavy line
 
 A wavy line above a long vowel, the maddah, means hold it longer than two counts. Something follows the long vowel: a hamza or a sukoon.
 
-- Hamza in the same word: hold 4 or 5 counts. {{2:13:12}}, as-sufahāʾu. This is madd muttaṣil, the joined madd.
-- Hamza at the start of the next word: hold 4 or 5 counts. {{2:4:3}} {{2:4:4}}, bimā unzila. This is madd munfaṣil, the separated madd.
-- A sukoon or shaddah after it: hold 6 counts. {{1:7:9}}, aḍ-ḍāllīn, and the letter names in {{2:1:1}}. This is madd lāzim, the necessary madd.
+- Hamza in the same word: hold 4 or 5 counts. This is madd muttaṣil, the joined madd.
+- Hamza at the start of the next word: hold 4 or 5 counts. This is madd munfaṣil, the separated madd.
+- A sukoon or shaddah after it: hold 6 counts. This is madd lāzim, the necessary madd.
+
+words: madd
+- {{2:13:12}} | as-sufahāʾu · 4 or 5 | 6
+- {{110:1:2}} | jāʾa · 4 or 5 | 2
+- {{2:4:3}} {{2:4:4}} | bimā unzila · 4 or 5 | 3
+- {{108:1:1}} {{108:1:2}} | innā aʿṭaynāka · 4 or 5 | 3
+- {{1:7:9}} | aḍ-ḍāllīn · 6 | 4
+- {{80:33:3}} | aṣ-ṣākhkhah · 6 | 4
 
 ## Screen 3: Stopping after a long vowel
 
 When you stop on a word whose second-last letter is a long vowel, the last letter takes a sukoon and the long vowel may be held 2, 4 or 6 counts. This is madd ʿāriḍ, the madd caused by stopping.
 
-{{1:2:4}}, al-ʿālamīn: stopping here, the ī may be held 2, 4 or 6 counts. Keep one length all through a recitation.
+words: madd
+- {{1:2:4}} | al-ʿālamīn | 6
+- {{1:3:2}} | ar-raḥīm | 5
+- {{1:4:3}} | ad-dīn | 4
+- {{1:6:3}} | al-mustaqīm | 7
+- {{109:1:3}} | al-kāfirūn | 6
+- {{114:1:4}} | an-nās | 4
+
+tip: Keep one length all through a recitation: if the first stop is held four counts, hold every stop four counts.
 
 ## Check: Natural madd
 

@@ -5,7 +5,7 @@ order: 15
 appears_after: "Tajweed unit 14, meem saakin"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lesson 5 (letters of ghunnah)"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [2:6:1, 2:8:2, 2:17:6, 1:2:3, 2:3:6]
+examples: [1:2:3, 2:3:6, 2:6:1, 2:8:2, 2:17:6, 78:1:1, 108:1:1, 114:1:4]
 reviewed_by: ""
 version: 2026-10-23
 ---
@@ -14,11 +14,15 @@ version: 2026-10-23
 
 A [[ن]] or [[م]] with a shaddah is held through the nose for two counts. That held nasal sound is the ghunnah.
 
-- {{2:6:1}}, inna: the nn is held
-- {{2:8:2}}, an-nās: the nn is held
-- {{2:17:6}}, falammā: the mm is held
+words: ghunnah
+- {{2:6:1}} | inna | 2
+- {{114:1:4}} | an-nās | 3
+- {{2:17:6}} | falammā | 3
+- {{78:1:1}} | ʿamma | 2
+- {{108:1:1}} | innā | 2
+- {{2:3:6}} | wa-mimmā | 3
 
-To feel it, pinch your nose while saying inna: the sound stops, because it comes through the nose.
+tip: Pinch your nose while saying inna. The sound stops, because it comes through the nose.
 
 ## Check: Length
 

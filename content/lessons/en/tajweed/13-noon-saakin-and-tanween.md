@@ -5,7 +5,7 @@ order: 13
 appears_after: "Tajweed unit 12, heavy and light letters"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lesson 7"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [79:40:2, 2:7:11, 2:8:3, 78:30:2, 2:5:4, 2:2:6, 86:7:2, 2:10:9, 2:4:8, 79:37:2, 79:18:5, 79:40, 2:8, 2:5, 86:7, 2:4, 79:37, 2:7, 2:10, 78:30, 2:2, 79:18]
+examples: [2:2, 2:2:6, 2:4, 2:4:8, 2:5, 2:5:4, 2:5:5, 2:7, 2:7:11, 2:7:12, 2:8, 2:8:3, 2:8:4, 2:10, 2:10:9, 2:10:10, 3:34:1, 3:34:2, 3:64:7, 3:64:8, 78:30, 78:30:2, 78:30:3, 79:18, 79:18:5, 79:37, 79:37:2, 79:40, 79:40:2, 79:40:3, 80:16:1, 80:16:2, 80:19:1, 80:19:2, 86:7, 86:7:2, 89:23:2, 89:23:3, 90:2:2, 90:2:3, 96:7:1, 96:7:2, 98:1:5, 98:1:6, 99:4:1, 99:4:2, 101:6:2, 101:6:3, 101:11:1, 101:11:2, 102:8:3, 102:8:4, 105:4:3, 105:4:4, 106:4:3, 106:4:4, 106:4:6, 106:4:7, 107:4:1, 107:4:2, 107:5:3, 107:5:4, 111:5:4, 111:5:5, 112:4:2, 112:4:3, 114:4:1, 114:4:2]
 reviewed_by: ""
 version: 2026-10-23
 ---
@@ -21,17 +21,33 @@ A noon saakin is a [[ن]] with no vowel, as in {{79:40:2}}, man. Tanween ends a 
 
 ## Screen 2: Clear
 
-Before [[ء]] [[ه]] [[ع]] [[ح]] [[غ]] [[خ]], the n is said clearly, with no nasal hold.
+Before [[ء]] [[ه]] [[ع]] [[ح]] [[غ]] [[خ]], the n is said clearly, with no nasal hold. These six letters come from the throat, far from the n, so the tongue has time to finish the n.
 
-- {{79:40:2}} man khāfa: n before [[خ]]
-- {{2:7:11}} ʿadhābun ʿaẓīm: n before [[ع]]
+words:
+- {{79:40:2}} {{79:40:3}} | man khāfa | 2
+- {{2:7:11}} {{2:7:12}} | ʿadhābun ʿaẓīm | 4
+- {{106:4:6}} {{106:4:7}} | min khawf | 2
+- {{101:11:1}} {{101:11:2}} | nārun ḥāmiyah | 3
+- {{98:1:5}} {{98:1:6}} | min ahli | 2
+- {{102:8:3}} {{102:8:4}} | yawmaʾidhin ʿani | 5
 
 ## Screen 3: Merged
 
-The n disappears into the next letter, which is then doubled.
+The n disappears into the next letter, which is then doubled. Before [[ي]] [[ن]] [[م]] [[و]] the doubled letter keeps a nasal hold of two counts.
 
-- With a nasal hold of two counts, before [[ي]] [[ن]] [[م]] [[و]]: {{2:8:3}}, may-yaqūlu; {{78:30:2}}, falan-nazīdakum
-- Without a nasal hold, before [[ل]] [[ر]]: {{2:5:4}}, mir-rabbihim; {{2:2:6}}, hudal-lil-muttaqīn
+words: idgham
+- {{2:8:3}} {{2:8:4}} | may-yaqūlu | 2-3
+- {{78:30:2}} {{78:30:3}} | falan-nazīdakum | 3-4
+- {{111:5:4}} {{111:5:5}} | mim-masad | 2-3
+- {{80:19:1}} {{80:19:2}} | min-nuṭfah | 2-3
+
+Before [[ل]] [[ر]] the n is dropped with no nasal hold.
+
+words: silent
+- {{2:5:4}} {{2:5:5}} | mir-rabbihim | 2
+- {{112:4:2}} {{112:4:3}} | yakul-lahū | 3
+- {{107:4:1}} {{107:4:2}} | fawaylul-lil | 4
+- {{96:7:1}} {{96:7:2}} | ar-raʾāhu | 2
 
 Merging happens only between two words. Inside one word the n stays clear, as in dunyā.
 
@@ -39,16 +55,27 @@ Merging happens only between two words. Inside one word the n stays clear, as in
 
 Before [[ب]] the n becomes an m, held through the nose for two counts. The Mushaf marks it with a small [[م]].
 
-- {{86:7:2}}, mim-bayni
-- {{2:10:9}}, alīmum-bimā
+words: iqlab
+- {{90:2:2}} {{90:2:3}} | ḥillum-bihādhā | 2
+- {{80:16:1}} {{80:16:2}} | kirāmim-bararah | 4
+- {{89:23:2}} {{89:23:3}} | yawmaʾidhim-bijahannam | 5
+- {{2:10:9}} {{2:10:10}} | alīmum-bimā | 4
+- {{3:64:7}} {{3:64:8}} | sawāʾim-baynanā | 4
+- {{3:34:1}} {{3:34:2}} | dhurriyyatam-baʿḍuhā | 4
 
 ## Screen 5: Hidden
 
 Before the other 15 letters the n is neither clear nor merged: the tongue does not touch for the n, and the nasal sound is held for two counts while the mouth gets ready for the next letter.
 
-- {{2:4:8}}, min qablika
-- {{79:37:2}}, man ṭaghā
-- {{79:18:5}}, an tazakkā
+words: ikhfa
+- {{114:4:1}} {{114:4:2}} | min sharri | 2
+- {{107:5:3}} {{107:5:4}} | ʿan ṣalātihim | 2
+- {{106:4:3}} {{106:4:4}} | min jūʿ | 2
+- {{105:4:3}} {{105:4:4}} | min sijjīl | 2
+- {{101:6:2}} {{101:6:3}} | man thaqulat | 2
+- {{99:4:1}} {{99:4:2}} | yawmaʾidhin tuḥaddithu | 5
+
+tip: Shape your mouth for the next letter while the n is still sounding through the nose.
 
 ## Check: Which rule
 
