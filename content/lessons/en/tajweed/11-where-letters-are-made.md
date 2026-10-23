@@ -5,7 +5,7 @@ order: 11
 appears_after: "Reading unit 10, a whole ayah; first tajweed unit"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lessons 2 and 4"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [2:30:2]
+examples: [1:1:1, 1:2:1, 1:2:4, 1:7:5, 2:6:1, 2:8:4, 2:11:2, 2:30:2, 79:40:3, 112:1:2, 112:1:4, 113:1:4]
 reviewed_by: ""
 version: 2026-10-23
 ---
@@ -23,6 +23,16 @@ Six letters come from the throat, in three pairs from the bottom up:
 - Bottom, nearest the chest: [[ء]] and [[ه]]
 - Middle: [[ع]] and [[ح]]
 - Top, nearest the mouth: [[غ]] and [[خ]]
+
+words:
+- {{112:1:4}} | aḥad · hamza, ḥāʾ | 1-2
+- {{112:1:2}} | huwa · hāʾ | 1
+- {{1:2:4}} | al-ʿālamīn · ʿayn | 3
+- {{1:2:1}} | al-ḥamdu · ḥāʾ | 3
+- {{1:7:5}} | ghayri · ghayn | 1
+- {{79:40:3}} | khāfa · khāʾ | 1
+
+tip: Say each word with a hand on your throat. The sound starts lower for [[ء]] and [[ه]] than for [[غ]] and [[خ]].
 
 ## Screen 3: The tongue
 
@@ -42,6 +52,14 @@ Eighteen letters are made with the tongue against the roof of the mouth or the t
 - Both lips: [[ب]] (moist part), [[م]] (dry part) and [[و]] (lips rounded, not closed)
 - The nose carries the nasal sound of [[ن]] and [[م]], the ghunnah.
 - The open space of the mouth carries the long vowels: [[ا]] after a fatha, [[و]] after a damma and [[ي]] after a kasra.
+
+words:
+- {{113:1:4}} | al-falaq · fāʾ | 3
+- {{1:1:1}} | bismi · bāʾ, mīm | 1, 3
+- {{112:1:2}} | huwa · wāw | 2
+- {{2:6:1}} | inna · nasal nūn | 2
+- {{2:8:4}} | yaqūlu · long ū | 3
+- {{2:11:2}} | qīla · long ī | 2
 
 ## Screen 5: Letters that sound alike
 

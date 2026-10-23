@@ -5,7 +5,7 @@ order: 12
 appears_after: "Tajweed unit 11, where letters are made"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lessons 5 and 6"
 licence: Lesson text is project text, CC BY-SA 4.0.
-examples: [71:2:1, 70:4:7, 2:7:1, 2:7:2, 112:1:2, 112:1:3, 1:1:1, 1:1:2, 1:2:3, 78:40:4, 2:7, 112:1]
+examples: [1:1:1, 1:1:2, 1:1:3, 1:2:2, 1:2:3, 1:7:9, 2:7, 2:7:1, 2:7:2, 2:7:12, 2:8:6, 3:55:2, 3:55:3, 70:4:7, 71:2:1, 78:40:4, 79:37:3, 79:40:3, 81:22:2, 101:1:1, 101:11:1, 106:2:2, 108:2:3, 109:4:3, 110:1:3, 112:1, 112:1:2, 112:1:3, 112:2:1, 112:2:2, 113:1:1, 114:5:4]
 reviewed_by: ""
 version: 2026-10-23
 ---
@@ -16,29 +16,66 @@ Seven letters are always heavy: [[خ]] [[ص]] [[ض]] [[غ]] [[ط]] [[ق]] [[ظ]]
 
 The seven are often learned as one phrase, [[خُصَّ ضَغْطٍ قِظْ]].
 
+words: heavy
+- {{79:40:3}} | khāfa | 1
+- {{112:2:2}} | aṣ-ṣamad | 3
+- {{1:7:9}} | aḍ-ḍāllīn | 3
+- {{79:37:3}} | ṭaghā | 1-2
+- {{113:1:1}} | qul | 1
+- {{2:7:12}} | ʿaẓīm | 2
+
 ## Screen 2: Alif follows the letter before it
 
-An alif has no weight of its own. After a heavy letter it is heavy; after a light letter it is light.
+An alif has no weight of its own. After a heavy letter it is heavy:
 
-- {{71:2:1}}, qāla: heavy, because [[ق]] is heavy
-- {{70:4:7}}, kāna: light, because [[ك]] is light
+words: heavy
+- {{71:2:1}} | qāla | 1-2
+- {{79:40:3}} | khāfa | 1-2
+- {{81:22:2}} | ṣāḥibukum | 1-2
+
+After a light letter it is light:
+
+words:
+- {{70:4:7}} | kāna | 1-2
+- {{101:11:1}} | nārun | 1-2
+- {{109:4:3}} | ʿābidun | 1-2
 
 ## Screen 3: The l in Allah
 
-The l in the name Allah is heavy after a fatha or a damma and light after a kasra.
+The l in the name Allah is heavy after a fatha or a damma, and at the start of reading:
 
-- {{2:7:1}} {{2:7:2}}, khatama-llāhu: heavy, after the fatha of khatama
-- {{112:1:2}} {{112:1:3}}, huwa-llāhu: heavy, after the fatha of huwa
-- {{1:1:1}} {{1:1:2}}, bismi-llāhi: light, after the kasra of bismi
+words: heavy
+- {{2:7:1}} {{2:7:2}} | khatama-llāhu | 5-6
+- {{112:1:2}} {{112:1:3}} | huwa-llāhu | 4-5
+- {{3:55:2}} {{3:55:3}} | qāla-llāhu | 5-6
+- {{112:2:1}} | allāhu | 2-3
+
+It is light after a kasra:
+
+words:
+- {{1:1:1}} {{1:1:2}} | bismi-llāhi | 5-6
+- {{2:8:6}} | billāhi | 3-4
+- {{1:2:2}} | lillāhi | 1-2
 
 ## Screen 4: Raa
 
-[[ر]] is heavy when it carries a fatha or a damma, and light when it carries a kasra.
+[[ر]] is heavy when it carries a fatha or a damma:
 
-- {{1:2:3}}, rabbi: heavy, [[ر]] with a fatha
-- {{78:40:4}}, qarīban: light, [[ر]] with a kasra
+words: heavy
+- {{1:2:3}} | rabbi | 1
+- {{1:1:3}} | ar-raḥmān | 3
+- {{110:1:3}} | naṣru | 3
+- {{108:2:3}} | wanḥar | 5
 
-A [[ر]] with a sukoon takes the weight of the vowel before it: after a fatha or damma it is heavy, after a kasra it is light.
+It is light when it carries a kasra:
+
+words:
+- {{78:40:4}} | qarīban | 2
+- {{106:2:2}} | riḥlata | 1
+- {{101:1:1}} | al-qāriʿah | 5
+- {{114:5:4}} | ṣudūri | 4
+
+A [[ر]] with a sukoon takes the weight of the vowel before it: after a fatha or damma it is heavy, as in wanḥar, and after a kasra it is light.
 
 ## Check: Heavy letters
 
