@@ -1,7 +1,7 @@
 ---
 id: grammar-14-masculine-feminine
 title: Masculine and feminine
-order: 14
+order: 16
 appears_after: "the set with qalat (66:11:9)"
 introduced_by: [66:11:9]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"

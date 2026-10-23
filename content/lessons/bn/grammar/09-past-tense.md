@@ -1,12 +1,12 @@
 ---
 id: grammar-09-past-tense
 title: অতীত কাল
-order: 9
+order: 7
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""
-appears_after: "the set with qalu (2:25:19) or kuntum (77:43:5)"
-introduced_by: [2:25:19, 77:43:5]
+appears_after: "set 4, with qalu (2:11:8)"
+introduced_by: [2:11:8]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:25:19, 2:30:2, 5:117:2, 21:69:1, 66:11:9, 77:43:5]

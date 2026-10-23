@@ -1,8 +1,8 @@
 ---
 id: grammar-11-commands
 title: Commands
-order: 11
-appears_after: "the set with qul (2:80:8)"
+order: 6
+appears_after: "set 3, with qul (2:80:8)"
 introduced_by: [2:80:8]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.

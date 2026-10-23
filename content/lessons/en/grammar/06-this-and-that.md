@@ -1,9 +1,9 @@
 ---
 id: grammar-06-this-and-that
 title: This and that
-order: 6
-appears_after: "the set with dhalika (2:2:1) or hadha (2:25:20)"
-introduced_by: [2:2:1, 2:25:20]
+order: 10
+appears_after: "set 7, with ulaika (2:5:1)"
+introduced_by: [2:5:1]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:2:1, 2:5:1, 2:25:20, 52:14:1, 79:12:2]

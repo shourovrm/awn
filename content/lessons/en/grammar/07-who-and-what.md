@@ -1,9 +1,9 @@
 ---
 id: grammar-07-who-and-what
 title: Who and what
-order: 7
-appears_after: "the set with alladhina (1:7:2) or alladhi (2:17:3)"
-introduced_by: [1:7:2, 2:17:3]
+order: 9
+appears_after: "set 6, with walladhina (2:4:1)"
+introduced_by: [2:4:1]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [1:7:2, 2:8:3, 2:17:3, 2:17:8, 2:255:20, 2:255:21, 2:255:22, 2:255:23]

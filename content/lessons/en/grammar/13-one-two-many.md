@@ -2,8 +2,8 @@
 id: grammar-13-one-two-many
 title: One, two and many
 order: 13
-appears_after: "the set with al-muminin (85:10:4)"
-introduced_by: [85:10:4]
+appears_after: "set 13, with al-muminin (2:223:16)"
+introduced_by: [2:223:16]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:7:4, 28:15:10, 36:14:4, 78:40:10, 85:10:4, 85:10:5, 109:1:3]

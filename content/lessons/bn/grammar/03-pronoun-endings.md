@@ -1,7 +1,7 @@
 ---
 id: grammar-03-pronoun-endings
 title: সংযুক্ত সর্বনাম
-order: 3
+order: 11
 translated_from: en
 source_version: 2026-10-21
 translation_reviewed_by: ""

@@ -5,8 +5,8 @@ order: 4
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""
-appears_after: "the first set, with fi (2:10:1) and qala (2:30:2)"
-introduced_by: [2:10:1, 2:30:2]
+appears_after: "the first set, with fi (2:10:1)"
+introduced_by: [2:10:1]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:3:2, 2:5:2, 2:7:12, 2:8:2, 2:10:1, 2:11:6, 2:11:7, 2:30:2, 112:1:4]

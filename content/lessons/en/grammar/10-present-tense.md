@@ -1,9 +1,9 @@
 ---
 id: grammar-10-present-tense
 title: Present tense
-order: 10
-appears_after: "the set with yuminuna (2:3:2) or tamaluna (2:74:37)"
-introduced_by: [2:3:2, 2:74:37]
+order: 12
+appears_after: "set 11, with yuminuna (2:3:2)"
+introduced_by: [2:3:2]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [1:5:2, 2:3:2, 2:8:4, 100:9:2, 109:2:2, 109:2:4]

@@ -1,9 +1,9 @@
 ---
 id: grammar-05-pronouns
 title: He, she and they
-order: 5
-appears_after: "the set with huwa (2:29:1) or hum (2:4:11)"
-introduced_by: [2:29:1, 2:4:11]
+order: 14
+appears_after: "set 15, with nahnu (2:11:10)"
+introduced_by: [2:11:10]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:4:11, 2:5:7, 2:5:8, 2:29:1, 76:23:2, 88:21:3, 97:5:2, 109:3:2, 109:4:2, 112:1:2, 112:1:3]

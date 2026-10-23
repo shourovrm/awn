@@ -1,7 +1,7 @@
 ---
 id: grammar-14-masculine-feminine
 title: পুংলিঙ্গ ও স্ত্রীলিঙ্গ
-order: 14
+order: 16
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

@@ -1,9 +1,9 @@
 ---
 id: grammar-12-not-and-never
 title: Not and never
-order: 12
-appears_after: "the set with la (2:2:3) or lam (112:3:1)"
-introduced_by: [2:2:3, 112:3:1]
+order: 8
+appears_after: "set 5, with lam (2:6:8)"
+introduced_by: [2:6:8]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:2:3, 2:2:4, 2:8:9, 2:8:10, 2:24:4, 2:24:5, 70:2:2, 112:3:1, 112:3:2]

@@ -1,7 +1,7 @@
 ---
 id: grammar-03-pronoun-endings
 title: Pronoun endings
-order: 3
+order: 11
 appears_after: "the first set that contains a word with a pronoun ending, such as ربنا (2:285:25) or ربكم (2:21:4)"
 introduced_by: [2:285:25, 2:21:4, 2:3:7, 2:4:5]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), §185 and its remarks, pp. 99-100, https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"

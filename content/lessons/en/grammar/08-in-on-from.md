@@ -1,9 +1,9 @@
 ---
 id: grammar-08-in-on-from
 title: In, on and from
-order: 8
-appears_after: "the set with min (2:4:8) or ala (2:5:2)"
-introduced_by: [2:4:8, 2:5:2]
+order: 5
+appears_after: "set 2, with ila (2:14:9)"
+introduced_by: [2:14:9]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [1:1:1, 1:2:2, 2:4:8, 2:4:9, 2:5:2, 2:8:6, 2:11:6, 2:11:7, 96:8:2, 96:8:3, 107:5:3, 107:5:4]

@@ -5,8 +5,8 @@ order: 15
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""
-appears_after: "the set with kayfa (105:1:3) or hal (88:1:1)"
-introduced_by: [105:1:3, 88:1:1]
+appears_after: "set 16, with kayfa (2:28:1)"
+introduced_by: [2:28:1]
 reference: "Follows Wright, A Grammar of the Arabic Language (1859), https://commons.wikimedia.org/wiki/File:A_Grammar_of_the_Arabic_Language_(IA_agrammararabicl00wriggoog).pdf"
 licence: Public domain (source). Lesson text is project text.
 examples: [2:255:20, 75:10:4, 88:1:1, 88:1:2, 101:2:1, 105:1:1, 105:1:2, 105:1:3]
