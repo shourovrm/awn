@@ -53,9 +53,9 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
     }
 
 /**
- * Keeps the route across a turned screen or a recreated activity. A route is saved as one text:
- * its name, then the track and the unit id where it has them. A running session cannot be saved
- * (its questions and answers live in a controller), so it comes back as the hub.
+ * Keeps the route across a turned screen or a recreated activity. A route is saved as one text: its
+ * name, then the track and the unit id where it has them. A running session cannot be saved (its
+ * questions and answers live in a controller), so it comes back as the hub.
  */
 internal val LearnRouteSaver: Saver<LearnRoute?, String> =
     Saver(

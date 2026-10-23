@@ -59,7 +59,8 @@ class ArabicLayoutTest {
         composeRule.waitForIdle()
 
         val bulletNode = composeRule.onNodeWithText("•").fetchSemanticsNode()
-        val itemNode = composeRule.onNodeWithText("one dot below", substring = true).fetchSemanticsNode()
+        val itemNode =
+            composeRule.onNodeWithText("one dot below", substring = true).fetchSemanticsNode()
         val bulletBaseline = bulletNode.boundsInRoot.top + layoutOf("•").getLineBaseline(0)
         val itemBaseline = itemNode.boundsInRoot.top + layoutOf("one dot below").getLineBaseline(0)
 
