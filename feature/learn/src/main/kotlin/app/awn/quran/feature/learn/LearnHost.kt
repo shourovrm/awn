@@ -29,6 +29,7 @@ import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.content.LearnLanguage
+import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
@@ -86,7 +87,9 @@ fun LearnScreen(
     val resources = LocalResources.current
     val services = remember { LearnServices.get(context) }
     val locale = LocalConfiguration.current.locales[0]
-    val language = LearnLanguage.of(locale)
+    val lessonLanguageChoice by
+        services.settings.lessonLanguage.collectAsState(initial = LessonLanguageChoice.FollowApp)
+    val language = LearnLanguage.resolve(lessonLanguageChoice, locale)
     val scope = rememberCoroutineScope()
 
     val routeState = rememberStartRoute(services)
@@ -147,10 +150,7 @@ internal class LearnRouteContent(
     val locale: Locale,
     val quranText: QuranTextRepository,
     val surahName: (Int) -> String,
-) {
-    val language: LearnLanguage
-        get() = LearnLanguage.of(locale)
-}
+)
 
 /**
  * The route on screen, null until the setting that says whether the course started is read. Back

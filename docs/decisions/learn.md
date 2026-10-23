@@ -22,6 +22,7 @@
 - Reading units 1 to 10 (`content/lessons/{en,bn}/letters`) follow the Noorani Qaida's order: all letters, ba ta tha, letters by name, short vowels, tanween, small long vowels, madd and leen, sukoon, shaddah, a whole ayah. Their clip ids are checked with `build_learn_content.py --clips <folder>`.
 
 - Learn sounds: `learn-qaida-audio` (kind `learn-audio` in `scripts.json`, group `LearnAudio`) is a zip of `<unit>/<clip>.opus` extracted to `packs/learn-audio/<id>`; `PackRepository.learnAudioFile(clipId)` finds a clip; units with clips offer "Download sounds" on their first page until installed; Settings > Downloads lists it. Built by `tools/build_learn_audio_pack.py` and `build_manifests.py --add-learn-audio=<scripts.json>`.
+- Lesson language: `LearnSettings.lessonLanguage` (`LessonLanguageChoice`: follow app, English, Bangla; default follow app) is resolved once in `LearnScreen` with `LearnLanguage.resolve` and decides lesson text, unit titles, grid transliterations, practice, word meanings (`wbw_en`/`wbw_bn`), the ayah translation and surah names inside Learn. Buttons and labels stay in the app language. Done ids are lesson ids, so switching never touches progress. The row is `LessonLanguageSettingsRow` on the Recite settings page; the Quran tab snippet stays in the app language.
 
 ## Open items
 - The course progress page has no "last page read" panel (words you know on your last page); the learn module has no last-read page.

@@ -16,8 +16,8 @@ import app.awn.quran.feature.learn.course.LearningAyah
 
 /**
  * What the learning screens draw Arabic, names and translations from. [languageCode] is "en" or
- * "bn": the language of the app, which decides lesson text, meanings and the translation shown
- * under an ayah.
+ * "bn": the lesson language (the app language unless the user chose one in settings), which
+ * decides lesson text, meanings and the translation shown under an ayah.
  */
 class LearnEnvironment(
     val arabic: LearningArabic,

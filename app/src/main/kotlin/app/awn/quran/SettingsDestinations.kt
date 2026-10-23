@@ -22,6 +22,7 @@ import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.feature.learn.reminder.ReviseReminderSettingsPage
+import app.awn.quran.feature.learn.settings.LessonLanguageSettingsRow
 import app.awn.quran.feature.listen.AudioSettingsPage
 import app.awn.quran.feature.read.page.MushafSettingsPage
 import app.awn.quran.feature.read.settings.PackListKind
@@ -272,4 +273,5 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
 private fun ReciteModuleRows(services: AwnServices) {
     ReciteSettingsPage(services.reciteSettings)
     ReviseReminderSettingsPage()
+    LessonLanguageSettingsRow()
 }

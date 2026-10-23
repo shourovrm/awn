@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -68,7 +70,16 @@ class LearnSettings(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[COURSE_STARTED_KEY] = true }
     }
 
+    /** The language of lesson content; follows the app language until the user picks one. */
+    val lessonLanguage: Flow<LessonLanguageChoice> =
+        dataStore.data.map { LessonLanguageChoice.fromStoredName(it[LESSON_LANGUAGE_KEY]) }
+
+    suspend fun setLessonLanguage(choice: LessonLanguageChoice) {
+        dataStore.edit { it[LESSON_LANGUAGE_KEY] = choice.storedName }
+    }
+
     companion object {
+        private val LESSON_LANGUAGE_KEY = stringPreferencesKey("lesson_language")
         val SESSION_MINUTE_CHOICES = listOf(5, 10, 15)
         const val DEFAULT_SESSION_MINUTES = 10
         private val SESSION_MINUTES_KEY = intPreferencesKey("session_minutes")

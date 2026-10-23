@@ -55,6 +55,10 @@
   <string name="reminder_time">অনুস্মারকের সময়</string>
   <string name="reminder_permission">অনুস্মারক পেতে বিজ্ঞপ্তির অনুমতি দিন</string>
   <string name="reminder_time_set">ঠিক করুন</string>
+  <string name="lesson_language">পাঠের ভাষা</string>
+  <string name="lesson_language_follow_app">অ্যাপের ভাষা</string>
+  <string name="lesson_language_english">English</string>
+  <string name="lesson_language_bangla">বাংলা</string>
   <string name="reminder_time_cancel">বাতিল</string>
   <!-- Word course: hub -->
   <string name="course_today_heading">আজ · %d মিনিট</string>
