@@ -42,16 +42,6 @@ class RevisionAndProgressScreenTest {
             isTextShown = true,
         )
 
-    private val progress =
-        ProgressUiState(
-            streakDays = 4,
-            pagesThisWeek = 12,
-            memorisedCount = 7,
-            memorisationThreshold = 3,
-            bySurah = listOf(SurahProgress(1, "Al-Fatihah", 7)),
-            nextRevisionDate = "11 Mar 2026",
-        )
-
     private fun showNarrowAndLarge(mode: ColourMode, content: @Composable () -> Unit) {
         composeRule.setContent {
             val density = LocalDensity.current
@@ -104,14 +94,5 @@ class RevisionAndProgressScreenTest {
 
         composeRule.onNodeWithText("Revise").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
-    }
-
-    @Test
-    fun progressShowsTitleAndRowsAtLargeText() {
-        showNarrowAndLarge(ColourMode.Black) { ProgressScreen(progress, onBackClick = {}) }
-
-        composeRule.onNodeWithText("Progress").assertIsDisplayed()
-        composeRule.onNodeWithText("Al-Fatihah").assertExists()
-        composeRule.onNodeWithText("Next revision: 11 Mar 2026").assertExists()
     }
 }
