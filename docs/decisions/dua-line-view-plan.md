@@ -100,3 +100,11 @@ stale and gets updated in step 1.
 - Shared tests (`DuaCardsScreenTest`, `TopicsScreenTest`) belong to the main session; workers
   report failures there and do not edit them. At most two Gradle runs at once.
 - Order: step 1 -> A and C together -> merge A -> B -> merge -> steps 7 and 8.
+
+## Revert point and the dotted circle
+- Revert point: local tag `pre-dua-line-view` at `dc1e646` (CI green on GitHub, 2026-10-24).
+- The "weird circle" on the cards (seen on Ali 'Imran 3:193, after ءَامِنُوا۟) is likely U+06DF
+  ARABIC SMALL HIGH ROUNDED ZERO, which the bundled card font cannot place, so a dotted
+  placeholder circle shows. The line view's page font draws it. The pack-missing fallback must
+  therefore use the same fallback as Mushaf line mode (`rememberFontLookup`), not the card's
+  current Hafs style. Phone check: 3:193 shows no circle.
