@@ -229,7 +229,7 @@ internal fun meaningAtPosition(meanings: List<String>, position: Int): String? =
  * The glyphs of [word] when it has a glyph code in [script] and its page is known in [pageOfWord];
  * null otherwise, which draws the Unicode text.
  */
-private fun glyphsOf(word: Word, script: ScriptId?, pageOfWord: Map<WordKey, Int>): WordGlyphs? {
+fun glyphsOf(word: Word, script: ScriptId?, pageOfWord: Map<WordKey, Int>): WordGlyphs? {
     val page = pageOfWord[word.key] ?: return null
     val hasCode =
         when (script) {

@@ -11,7 +11,7 @@ import app.awn.quran.core.data.ScriptId
  * The answer to "which font family draws this page": [family] is null when the font is not
  * installed. A [FontLookup] that does not exist yet means the answer is still being fetched.
  */
-internal class FontLookup(val family: FontFamily?)
+class FontLookup(val family: FontFamily?)
 
 /**
  * The font family of [page] in [script], or null while it is still being found.
@@ -21,7 +21,7 @@ internal class FontLookup(val family: FontFamily?)
  * recomposes when it is ready; no font file is read on the main thread.
  */
 @Composable
-internal fun rememberFontLookup(
+fun rememberFontLookup(
     fontCache: PageFontCache,
     script: ScriptId,
     page: Int,

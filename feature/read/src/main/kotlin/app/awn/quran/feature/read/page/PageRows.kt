@@ -29,7 +29,7 @@ internal sealed interface PageRow {
 }
 
 /** The scripts whose words are glyph codes of a font made for each page. */
-internal val pageGlyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
+val pageGlyphScripts = setOf(ScriptId.V1, ScriptId.V2, ScriptId.V4Tajweed)
 
 /** The IndoPak print: Nastaleeq text in one Unicode font, laid out in its own 15-line pages. */
 internal val indoPakScripts = setOf(ScriptId.IndoPak15)
@@ -110,4 +110,4 @@ internal fun frameSlotCountOf(layout: PageLayout): Int =
     maxOf(PageGeometry.SLOTS, slotCountOf(layout) + slotShiftOf(layout))
 
 /** True when [script] is drawn with one font per page. */
-internal fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts
+fun isGlyphScript(script: ScriptId): Boolean = script in glyphScripts

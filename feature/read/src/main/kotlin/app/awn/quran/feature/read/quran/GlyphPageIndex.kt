@@ -16,7 +16,7 @@ import app.awn.quran.core.data.WordKey
  * kept for the life of the index, so the many ayahs of one page read each layout once. One index
  * serves one page load, because it is not thread safe.
  */
-internal class GlyphPageIndex(
+class GlyphPageIndex(
     private val quranText: QuranTextRepository,
     private val script: ScriptId,
 ) {

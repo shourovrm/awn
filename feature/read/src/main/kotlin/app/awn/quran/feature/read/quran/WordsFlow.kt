@@ -17,12 +17,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
@@ -53,6 +55,9 @@ private const val WORD_LINE_HEIGHT_FACTOR = 1.6f
 
 /** The space between plain Arabic words, about one space of the Quran font. */
 private val PLAIN_WORD_GAP = 4.dp
+
+/** How see-through a word outside the dua is, so colour fonts dim as plain ink does. */
+private const val DIMMED_WORD_ALPHA = 0.6f
 
 /** A meaning wraps to at most this many lines, so a long gloss cannot push the next row away. */
 private const val MEANING_MAX_LINES = 2
@@ -172,8 +177,15 @@ private fun WordCell(
                 onAyahLongPress,
             )
         } else {
-            Modifier.plainCellTaps(state, word, tapped, onAyahLongPress)
+            Modifier.plainCellTaps(
+                isTappable = state.isRecitedBadly || word.key in input.tappableWords,
+                word = word,
+                onTap = tapped,
+                onAyahLongPress = onAyahLongPress,
+            )
         }
+    val tag = input.wordTag(word.key)
+    val taggedModifier = if (tag == null) tapModifier else tapModifier.testTag(tag)
     // The word under review gets a fill and a ring; the ink keeps its colour.
     val focusModifier =
         if (isFocused) {
@@ -185,7 +197,7 @@ private fun WordCell(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
-            tapModifier
+            taggedModifier
                 .clip(AwnShapes.wordBlock)
                 .background(fill)
                 .then(focusModifier)
@@ -227,14 +239,14 @@ private fun Modifier.meaningCellTaps(
  * says what went wrong.
  */
 private fun Modifier.plainCellTaps(
-    state: WordState,
+    isTappable: Boolean,
     word: AyahWord,
     onTap: () -> Unit,
     onAyahLongPress: () -> Unit,
-): Modifier {
-    val isFlagged = state == WordState.Wrong || state == WordState.Mispronounced
-    return if (isFlagged) wordTaps(word, onTap, onAyahLongPress) else this
-}
+): Modifier = if (isTappable) wordTaps(word, onTap, onAyahLongPress) else this
+
+private val WordState.isRecitedBadly: Boolean
+    get() = this == WordState.Wrong || this == WordState.Mispronounced
 
 private fun Modifier.wordTaps(
     word: AyahWord,
@@ -263,7 +275,10 @@ private fun ArabicWord(
     val ink = if (isDimmed) field.mutedContent else wordColor(state, field)
     val hintLetter = input.hintLetters[word.key].takeIf { state == WordState.Hidden }
     // The word is still laid out, invisible, so its block keeps its size under the letter.
-    Box(contentAlignment = Alignment.Center) {
+    // Colour (tajweed) glyph fonts ignore the ink, so a dimmed glyph word is made see-through.
+    val dimModifier =
+        if (isDimmed && word.glyphs != null) Modifier.alpha(DIMMED_WORD_ALPHA) else Modifier
+    Box(contentAlignment = Alignment.Center, modifier = dimModifier) {
         ArabicWordInk(word, style, ink, input)
         if (hintLetter != null) Text(text = hintLetter, style = style, color = field.content)
     }
