@@ -29,6 +29,8 @@ Awn also listens. When you recite to the phone, it follows your words on the pag
 
 The whole app is in English and Bangla. The Quran text, the layouts of each Mushaf and the fonts are the same files Quran.com uses.
 
+Awn is free and non-commercial, for everyone's use. I ask only for your dua for me and my family, that we may be saved on the Day of Judgement.
+
 ## Getting Awn on your phone
 
 Awn runs on Android 8.0 or newer. It is not on the Play Store yet, so you install the file yourself:
@@ -39,32 +41,9 @@ Awn runs on Android 8.0 or newer. It is not on the Play Store yet, so you instal
 
 A newer version is installed the same way, over the old one; your bookmarks and progress stay.
 
-## Your first minutes
-
-<p>
-  <img src="docs/screenshots/language.webp" width="200" alt="Language screen" align="left" hspace="12">
-  <img src="docs/screenshots/welcome-card.webp" width="200" alt="Welcome card" align="left" hspace="12">
-</p>
-
-Awn asks for your language, then opens the Quran. The first page shows one card: choose the Mushaf you want to read and whether to download a translation with word meanings. Until the download is done the page shows plain Arabic text, and you can keep reading while it runs. The Madinah 1421 Mushaf is about 137 MB; the Indo-Pak Mushaf is 6 MB; a translation with word meanings is about 4 MB. Wi-Fi is recommended.
-
-<br clear="all">
-
-Reciting needs one more download, 86 MB, the first time you tap the microphone. Before that, Awn shows a short notice: the Quran is learned from a teacher, Awn helps you practise between lessons, and the computer that listens to you can be wrong.
-
-Everything you download is listed under Settings, Storage, where any of it can be removed again. A switch under Settings, Audio limits every download to Wi-Fi.
-
 ## Privacy
 
 Awn has no account, no analytics and no advertising. It connects to the internet only to fetch what you ask for: the Mushaf, translations, reciter audio, the recitation checker and app updates, all from this project's GitHub releases and the sources credited below. Your recitation is processed on the phone and never leaves it. Bookmarks, saved ayahs and recent pages can be saved to a file and restored from it under Settings, Backup.
-
-## The notice
-
-Awn's recitation checker is a computer model and can be wrong. It is for assistance only and is not a replacement for a proficient, authorised teacher, because the Quran is only received through oral transmission (mushafahah). The notice appears in the app the first time Learn or the microphone is opened.
-
-বাংলা: এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।
-
-العربية: هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.
 
 ## Help and feedback
 
@@ -77,6 +56,8 @@ A mistake in the Quran text, a translation or a word timing is the most importan
 The rest of this page is for people who build Awn from source or contribute to it.
 
 ### Licence
+
+The AI-advisory notice that the licence requires is in `NOTICE` and in the app under Settings, About, in English, Bangla and Arabic.
 
 The source is available under MIT plus the Awn additional conditions in `LICENSE`: free to every end user, no advertising, no charges or in-app purchases, the AI-advisory notice stays, and the conditions pass to forks. Because the conditions restrict selling, the project is source-available rather than OSI open source, and it is not on F-Droid for that reason.
 
