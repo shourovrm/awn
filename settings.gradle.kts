@@ -39,4 +39,5 @@ include(
     ":feature:recite",
     ":feature:learn",
     ":feature:hifz",
+    ":feature:duas",
 )
