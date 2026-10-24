@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -57,13 +55,22 @@ class DuasViewModel(
         viewModelScope.launch { rereadTilesWhenPronunciationArrives() }
     }
 
-    // Tiles read before the pronunciation was downloaded have no pronunciation line.
+    // Tiles read before the pronunciation was downloaded have no pronunciation line, so the
+    // tiles already read are read again once it arrives.
     private suspend fun rereadTilesWhenPronunciationArrives() {
-        dependencies.pronunciation
-            .distinctUntilChanged()
-            .filter { it == PronunciationState.Installed }
-            .drop(1)
-            .collect { mutableState.update { it.copy(wordTiles = emptyMap()) } }
+        var wasMissing = false
+        dependencies.pronunciation.distinctUntilChanged().collect { pronunciation ->
+            val hasArrived = wasMissing && pronunciation == PronunciationState.Installed
+            wasMissing = pronunciation != PronunciationState.Installed
+            if (hasArrived) rereadShownTiles()
+        }
+    }
+
+    private fun rereadShownTiles() {
+        val shownIds = mutableState.value.wordTiles.keys
+        val duas = mutableState.value.catalogue?.duas.orEmpty().filter { it.id in shownIds }
+        mutableState.update { it.copy(wordTiles = emptyMap()) }
+        duas.forEach(::requestWordTiles)
     }
 
     private suspend fun readCatalogue() {

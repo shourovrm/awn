@@ -5,6 +5,7 @@ import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.duas.DuasFixtures
 import app.awn.quran.feature.duas.DuasTestEnvironment
+import app.awn.quran.feature.duas.PronunciationState
 import app.awn.quran.feature.duas.content.DuaMatchField
 import app.awn.quran.feature.duas.content.DuaSearchEntry
 import app.awn.quran.feature.duas.content.DuaSearchHit
@@ -186,6 +187,29 @@ class DuasViewModelTest {
         )
         assertEquals(listOf("Our Lord", "give us", "in"), tiles.map { it.meaning })
         assertEquals(listOf("rabbana", "atina", "fi"), tiles.map { it.transliteration })
+    }
+
+    @Test
+    fun tilesReadBeforeThePronunciationArrivesAreReadAgainWithIt() {
+        val environment = DuasTestEnvironment()
+        environment.pronunciation.value = PronunciationState.Missing
+        val transliterations = environment.translations.wordTransliterations
+        val sounds = transliterations.getValue(AyahRef(2, 201))
+        transliterations.remove(AyahRef(2, 201))
+        val model = viewModel(environment)
+        model.requestWordTiles(DuasFixtures.d1)
+        assertEquals(
+            listOf("", "", ""),
+            model.state.value.wordTiles.getValue("d1").map { it.transliteration },
+        )
+
+        transliterations[AyahRef(2, 201)] = sounds
+        environment.pronunciation.value = PronunciationState.Installed
+
+        assertEquals(
+            listOf("rabbana", "atina", "fi"),
+            model.state.value.wordTiles.getValue("d1").map { it.transliteration },
+        )
     }
 
     @Test
