@@ -82,8 +82,8 @@ fun rememberTodayTiles(
 }
 
 /**
- * The most ayahs the Learn tile offers in one day. A user who skipped a week has hundreds due, and a
- * row that says so reads as a debt; the tile offers a day's worth.
+ * The most ayahs the Learn tile offers in one day. A user who skipped a week has hundreds due, and
+ * a row that says so reads as a debt; the tile offers a day's worth.
  */
 const val LEARN_TODAY_CAP = 10
 

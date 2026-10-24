@@ -56,9 +56,9 @@ private fun HifzTabContent(services: AwnServices, actions: TabActions) {
 private const val FIRST_PAGE = 1
 
 /**
- * The Hifz tile of the Quran tab: [line] is today's one line from the Hifz feature (null when
- * there is no plan or nothing to do). A tap shows the Hifz tab, so Back from the practice returns
- * there, then [startNextPart] opens the next part when one is left.
+ * The Hifz tile of the Quran tab: [line] is today's one line from the Hifz feature (null when there
+ * is no plan or nothing to do). A tap shows the Hifz tab, so Back from the practice returns there,
+ * then [startNextPart] opens the next part when one is left.
  */
 class HifzTodayProvider(
     private val line: @Composable () -> HifzTodayLine?,
