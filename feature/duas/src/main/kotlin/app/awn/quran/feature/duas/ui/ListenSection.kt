@@ -5,8 +5,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.duas.DuasDependencies
@@ -18,8 +21,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * The Listen controls of one dua: whole ayahs play with the reciter chosen in Settings, because the
- * player cannot start or stop inside an ayah.
+ * The Listen controls of one card: whole ayahs play with the chosen reciter, because the player
+ * cannot start or stop inside an ayah; the reciter's name opens the app's reciter sheet.
  */
 @Composable
 internal fun ListenSection(
@@ -38,6 +41,8 @@ internal fun ListenSection(
         if (prompt != null) audioPlayer.answerDownloadPrompt(download = false)
     }
     val reciterName by rememberReciterName(dependencies)
+    var isChoosingReciter by remember { mutableStateOf(false) }
+    if (isChoosingReciter) dependencies.reciterPicker { isChoosingReciter = false }
     ListenPanel(
         dua = dua,
         reciterName = reciterName,
@@ -58,9 +63,7 @@ internal fun ListenSection(
                 onCycleRepeat = {
                     audioPlayer.setRepeat(nextRepeatCount(options.repeatEachAyah) - 1)
                 },
-                onCycleSpeed = {
-                    audioPlayer.setOptions(options.copy(speed = nextSpeed(options.speed)))
-                },
+                onChooseReciter = { isChoosingReciter = true },
             ),
         modifier = modifier,
     )

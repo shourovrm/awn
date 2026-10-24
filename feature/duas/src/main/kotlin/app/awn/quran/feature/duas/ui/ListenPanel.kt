@@ -3,7 +3,6 @@ package app.awn.quran.feature.duas.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +34,7 @@ import app.awn.quran.player.PlaybackState
 
 internal const val LISTEN_PLAY_TAG = "dua-listen-play"
 internal const val LISTEN_REPEAT_TAG = "dua-listen-repeat"
-internal const val LISTEN_SPEED_TAG = "dua-listen-speed"
+internal const val LISTEN_RECITER_TAG = "dua-listen-reciter"
 
 /**
  * The ayah of [dua] that is playing or paused now, or null when the player is on something else.
@@ -63,12 +62,13 @@ internal class ListenPanelActions(
     val onPlay: () -> Unit,
     val onStop: () -> Unit,
     val onCycleRepeat: () -> Unit,
-    val onCycleSpeed: () -> Unit,
+    val onChooseReciter: () -> Unit,
 )
 
 /**
- * The Listen controls: play or stop, the reciter's name with the word being said, the repeat count
- * and the speed. [wordCountOfAyah] gives the length of the playing ayah for "Word 7 of 11".
+ * The Listen controls, as on the Mushaf's audio bar: play or stop, the reciter's name, which opens
+ * the reciter sheet, with the word being said under it, and the repeat count. [wordCountOfAyah]
+ * gives the length of the playing ayah for "Word 7 of 11".
  */
 @Composable
 internal fun ListenPanel(
@@ -99,17 +99,32 @@ internal fun ListenPanel(
             tint = field.buttonFill,
             modifier = Modifier.testTag(LISTEN_PLAY_TAG),
         )
-        Column(Modifier.weight(1f).padding(horizontal = AwnSpacing.small)) {
-            Text(
-                text = reciterName,
-                style = AwnTypography.bodyStrong,
-                color = field.content,
-                maxLines = 1,
+        Row(
+            Modifier.weight(1f)
+                .heightIn(min = AwnSpacing.touchTarget)
+                .clip(AwnShapes.control)
+                .clickable(role = Role.Button, onClick = actions.onChooseReciter)
+                .padding(horizontal = AwnSpacing.small)
+                .testTag(LISTEN_RECITER_TAG),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = reciterName,
+                    style = AwnTypography.bodyStrong,
+                    color = field.content,
+                    maxLines = 1,
+                )
+                ListenStatusLine(dua, playback, wordCountOfAyah)
+            }
+            Icon(
+                painter = painterResource(R.drawable.ic_duas_dropdown),
+                contentDescription = stringResource(R.string.duas_choose_reciter),
+                tint = field.content,
+                modifier = Modifier.size(AwnSpacing.iconSize),
             )
-            ListenStatusLine(dua, playback, wordCountOfAyah)
         }
         RepeatButton(count = options.repeatEachAyah, onClick = actions.onCycleRepeat)
-        SpeedButton(speed = options.speed, onClick = actions.onCycleSpeed)
     }
 }
 
@@ -158,24 +173,6 @@ private fun RepeatButton(count: Int, onClick: () -> Unit) {
             text = stringResource(R.string.duas_repeat_value, count),
             style = AwnTypography.bodyStrong,
             color = field.content,
-        )
-    }
-}
-
-@Composable
-private fun SpeedButton(speed: Float, onClick: () -> Unit) {
-    Box(
-        modifier =
-            Modifier.heightIn(min = AwnSpacing.touchTarget)
-                .clickable(role = Role.Button, onClick = onClick)
-                .padding(horizontal = AwnSpacing.small)
-                .testTag(LISTEN_SPEED_TAG),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.duas_speed_value, speedText(speed)),
-            style = AwnTypography.bodyStrong,
-            color = Awn.field.content,
         )
     }
 }

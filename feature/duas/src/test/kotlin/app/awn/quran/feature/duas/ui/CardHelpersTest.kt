@@ -24,23 +24,6 @@ class CardHelpersTest {
     }
 
     @Test
-    fun speedCyclesThroughTheFourSteps() {
-        assertEquals(1.25f, nextSpeed(1f))
-        assertEquals(1.5f, nextSpeed(1.25f))
-        assertEquals(0.75f, nextSpeed(1.5f))
-        assertEquals(1f, nextSpeed(0.75f))
-        assertEquals(1f, nextSpeed(1.1f))
-    }
-
-    @Test
-    fun speedTextHasNoTrailingZeros() {
-        assertEquals("1", speedText(1f))
-        assertEquals("1.25", speedText(1.25f))
-        assertEquals("1.5", speedText(1.5f))
-        assertEquals("0.75", speedText(0.75f))
-    }
-
-    @Test
     fun ayahNumbersUseArabicIndicDigits() {
         assertEquals("٢٠١", arabicIndicDigits(201))
         assertEquals("١", arabicIndicDigits(1))
