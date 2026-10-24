@@ -31,9 +31,9 @@ import app.awn.quran.feature.learn.words.WordAyah
 import app.awn.quran.feature.learn.words.WordAyahSearch
 
 /**
- * Every ayah a word appears in, with the word marked, its surah and number above it. The field at
- * the top filters by surah, reference or text once [search] has loaded (null until then). A tap on
- * an ayah calls [onOpenAyah]; without it (tests, previews) the rows are not tappable.
+ * Every ayah a word appears in, with the word marked and its surah and number below it. The field
+ * at the top filters by surah, reference or text once [search] has loaded (null until then). A tap
+ * on an ayah calls [onOpenAyah]; without it (tests, previews) the rows are not tappable.
  */
 @Composable
 internal fun WordAyahsScreen(
@@ -90,26 +90,19 @@ private fun countText(shownCount: Int, totalCount: Int): String =
         pluralStringResource(R.plurals.word_ayahs_filtered, totalCount, shownCount, totalCount)
     }
 
+// The card shows the surah name and ayah number under the ayah, so the row adds only the tap.
 @Composable
 private fun WordAyahRow(row: WordAyah, onOpenAyah: ((AyahRef) -> Unit)?) {
-    val environment = LocalLearnEnvironment.current
     val clickable =
         if (onOpenAyah == null) {
             Modifier
         } else {
             Modifier.clickable(role = Role.Button) { onOpenAyah(row.ayah) }
         }
-    Column(
+    AyahCard(
+        row.ayah,
         modifier =
-            clickable
-                .fillMaxWidth()
-                .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
-    ) {
-        Text(
-            text = environment?.ayahReference(row.ayah) ?: row.ayah.toString(),
-            style = AwnTypography.bodyStrong,
-            color = Awn.field.buttonFill,
-        )
-        AyahCard(row.ayah, highlight = row.wordKeys.first())
-    }
+            clickable.padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
+        highlight = row.wordKeys.first(),
+    )
 }
