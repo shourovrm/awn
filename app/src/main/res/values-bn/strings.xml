@@ -9,6 +9,12 @@
   <string name="continue_start">পড়া শুরু করুন</string>
   <string name="continue_detail">%1$s · পৃষ্ঠা %2$s · পারা %3$s</string>
   <string name="today_title">আজ</string>
+  <string name="browse_title">ঘুরে দেখুন</string>
+  <string name="duas_entry_title">কুরআনের দুআ</string>
+  <plurals name="duas_entry_count">
+    <item quantity="one">%dটি দুআ</item>
+    <item quantity="other">%dটি দুআ</item>
+  </plurals>
   <plurals name="today_learn_revise">
     <item quantity="one">%d আয়াত পুনরাবৃত্তি</item>
     <item quantity="other">%d আয়াত পুনরাবৃত্তি</item>

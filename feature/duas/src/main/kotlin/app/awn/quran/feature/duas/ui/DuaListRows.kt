@@ -41,7 +41,9 @@ internal fun DuaFilterChips(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier.horizontalScroll(rememberScrollState()).padding(horizontal = AwnSpacing.screenMargin),
+        modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = AwnSpacing.screenMargin),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         DuasFilter.entries.forEach { filter ->

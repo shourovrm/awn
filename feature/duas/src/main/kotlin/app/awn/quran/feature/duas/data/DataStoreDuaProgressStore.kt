@@ -17,8 +17,7 @@ private val Context.duaProgressDataStore: DataStore<Preferences> by
  * Stores the saved dua ids as one string set and each dua's clean-recitation count under its own
  * key (`clean_<id>`), so recording one recitation never rewrites the other counts.
  */
-class DataStoreDuaProgressStore(private val dataStore: DataStore<Preferences>) :
-    DuaProgressStore {
+class DataStoreDuaProgressStore(private val dataStore: DataStore<Preferences>) : DuaProgressStore {
 
     constructor(context: Context) : this(context.applicationContext.duaProgressDataStore)
 

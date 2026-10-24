@@ -12,10 +12,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.ui.R as UiR
@@ -72,7 +72,10 @@ internal fun DuaCardsScreen(
                 onClick = actions.onSearch,
                 tint = Awn.field.onBar,
             )
-            SaveButton(isSaved = state.progress.isSaved(dua.id), onClick = { actions.onToggleSaved(dua) })
+            SaveButton(
+                isSaved = state.progress.isSaved(dua.id),
+                onClick = { actions.onToggleSaved(dua) },
+            )
         }
         CardPager(
             pagerState = pagerState,

@@ -18,6 +18,8 @@ internal class TabNavigation(
 
     fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)
 
+    fun openDuas() = navController.navigate(Routes.DUAS)
+
     /** Closes everything above the tabs and shows [tab]. */
     fun showTab(tab: AwnTab) {
         selectTab(tab)

@@ -37,7 +37,9 @@ internal const val LISTEN_PLAY_TAG = "dua-listen-play"
 internal const val LISTEN_REPEAT_TAG = "dua-listen-repeat"
 internal const val LISTEN_SPEED_TAG = "dua-listen-speed"
 
-/** The ayah of [dua] that is playing or paused now, or null when the player is on something else. */
+/**
+ * The ayah of [dua] that is playing or paused now, or null when the player is on something else.
+ */
 internal fun PlaybackState.ayahOf(dua: Dua): AyahRef? =
     when (this) {
         is PlaybackState.Playing -> ayah.takeIf { it in dua.ayahs }
@@ -48,8 +50,8 @@ internal fun PlaybackState.ayahOf(dua: Dua): AyahRef? =
 /** The word the reciter is saying, when the player is playing [dua] and knows the word. */
 internal fun PlaybackState.playingWordOf(dua: Dua): WordKey? {
     val playing = this as? PlaybackState.Playing ?: return null
-    val wordPosition = playing.wordPosition ?: return null
-    if (playing.ayah !in dua.ayahs) return null
+    val wordPosition = playing.wordPosition
+    if (wordPosition == null || playing.ayah !in dua.ayahs) return null
     return WordKey(playing.ayah.surah, playing.ayah.ayah, wordPosition)
 }
 

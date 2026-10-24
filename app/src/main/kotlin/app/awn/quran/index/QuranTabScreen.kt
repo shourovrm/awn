@@ -57,6 +57,8 @@ class QuranTabActions(
     val onSearch: () -> Unit,
     val onBookmarks: () -> Unit,
     val onSettings: () -> Unit,
+    /** Opens the Duas collection. */
+    val onDuas: () -> Unit = {},
     /** Opens the Quran screen at [page]. */
     val onOpen: (page: Int, ayah: AyahRef?) -> Unit,
 )
@@ -68,8 +70,9 @@ internal enum class IndexMode(val labelResource: Int) {
 }
 
 /**
- * The Quran tab: the continue card, today's rows, the day's snippet and the index list with the juz
- * rail. [todayItems] is already capped; with none the Today section is not drawn at all.
+ * The Quran tab: the continue card, today's rows, the Duas entry, the day's snippet and the index
+ * list with the juz rail. [todayItems] is already capped; with none the Today section is not drawn
+ * at all. [duaCount] is how many duas the collection holds; null (not read yet) hides its entry.
  */
 @Composable
 fun QuranTabScreen(
@@ -77,6 +80,7 @@ fun QuranTabScreen(
     todayItems: List<TodayItem>,
     actions: QuranTabActions,
     modifier: Modifier = Modifier,
+    duaCount: Int? = null,
 ) {
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
         Column(modifier.fillMaxSize()) {
@@ -84,7 +88,7 @@ fun QuranTabScreen(
             val content = state.content
             val continueReading = state.continueReading
             if (content != null && continueReading != null) {
-                QuranTabBody(state, content, continueReading, todayItems, actions)
+                QuranTabBody(state, content, continueReading, todayItems, duaCount, actions)
             }
         }
     }
@@ -130,6 +134,7 @@ private fun QuranTabBody(
     content: IndexContent,
     continueReading: ContinueReading,
     todayItems: List<TodayItem>,
+    duaCount: Int?,
     actions: QuranTabActions,
 ) {
     var modeOrdinal by rememberSaveable { mutableIntStateOf(IndexMode.Surahs.ordinal) }
@@ -147,10 +152,14 @@ private fun QuranTabBody(
     val listState = rememberLazyListState()
     // The rows follow the items above them, so a juz number maps to a list position through this.
     val itemsBeforeRows =
-        1 + (if (todayItems.isNotEmpty()) 1 else 0) + (if (snippet != null) 1 else 0) + 1
+        1 +
+            (if (todayItems.isNotEmpty()) 1 else 0) +
+            (if (duaCount != null) 1 else 0) +
+            (if (snippet != null) 1 else 0) +
+            1
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            topItems(continueReading, todayItems, snippet, actions)
+            topItems(continueReading, todayItems, duaCount, snippet, actions)
             item(key = "list-header") {
                 ListControls(
                     mode = mode,
@@ -182,10 +191,11 @@ private fun QuranTabBody(
     }
 }
 
-/** The items above the list: the continue card, Today, and the day's snippet. */
+/** The items above the list: the continue card, Today, the Duas entry, and the day's snippet. */
 private fun LazyListScope.topItems(
     continueReading: ContinueReading,
     todayItems: List<TodayItem>,
+    duaCount: Int?,
     snippet: DailySnippetCard?,
     actions: QuranTabActions,
 ) {
@@ -204,6 +214,15 @@ private fun LazyListScope.topItems(
     if (todayItems.isNotEmpty()) {
         item(key = "today") {
             TodaySection(todayItems, Modifier.padding(horizontal = AwnSpacing.screenMargin))
+        }
+    }
+    if (duaCount != null) {
+        item(key = "duas") {
+            DuasSection(
+                duaCount = duaCount,
+                onOpen = actions.onDuas,
+                modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
+            )
         }
     }
     if (snippet != null) {

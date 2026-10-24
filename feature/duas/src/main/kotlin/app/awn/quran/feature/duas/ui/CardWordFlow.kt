@@ -21,11 +21,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnFieldColors
 import app.awn.quran.core.ui.theme.AwnReciteFills
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.core.ui.theme.AwnFieldColors
 import app.awn.quran.tracker.WordState
 
 private const val OUTSIDE_WORD_ALPHA = 0.45f
@@ -100,7 +99,7 @@ private fun CardWordBlock(
                 .background(wordFill(key, state, highlights, field))
                 .then(ring)
                 .then(tap)
-                .padding(horizontal = AwnSpacing.small / 2)
+                .padding(horizontal = AwnSpacing.small / 2),
     ) {
         Text(
             text = cardWord.word.textUthmani,
@@ -148,14 +147,16 @@ internal fun reciteFill(state: WordState, isLightField: Boolean): Color =
         WordState.Tentative,
         WordState.Mispronounced ->
             if (isLightField) AwnReciteFills.dayTentative else AwnReciteFills.nightTentative
-        WordState.Wrong ->
-            if (isLightField) AwnReciteFills.dayWrong else AwnReciteFills.nightWrong
+        WordState.Wrong -> if (isLightField) AwnReciteFills.dayWrong else AwnReciteFills.nightWrong
         WordState.Neutral,
         WordState.Hidden -> Color.Transparent
     }
 
 /** The digits of [number] as Arabic-Indic digits, which the Hafs font draws for ayah numbers. */
 internal fun arabicIndicDigits(number: Int): String =
-    number.toString().map { digit -> ARABIC_INDIC_ZERO + (digit - '0') }.joinToString(separator = "")
+    number
+        .toString()
+        .map { digit -> ARABIC_INDIC_ZERO + (digit - '0') }
+        .joinToString(separator = "")
 
 private const val ARABIC_INDIC_ZERO = '\u0660'

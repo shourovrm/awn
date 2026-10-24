@@ -4,7 +4,9 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.duas.content.Dua
 import app.awn.quran.feature.duas.ui.CardWord
 
-/** One tile of the word-by-word view: the Arabic word, its meaning and its sound in Latin letters. */
+/**
+ * One tile of the word-by-word view: the Arabic word, its meaning and its sound in Latin letters.
+ */
 data class DuaWordTile(
     val key: WordKey,
     val arabic: String,

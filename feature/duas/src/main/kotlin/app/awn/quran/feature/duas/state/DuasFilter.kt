@@ -13,8 +13,7 @@ enum class DuasFilter(@StringRes val labelResource: Int) {
     Rabbi(R.string.duas_filter_rabbi),
     Prophets(R.string.duas_filter_prophets),
     Saved(R.string.duas_filter_saved),
-    Learned(R.string.duas_filter_learned),
-    ;
+    Learned(R.string.duas_filter_learned);
 
     fun accepts(dua: Dua, progress: DuaProgress): Boolean =
         when (this) {

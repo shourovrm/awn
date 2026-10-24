@@ -88,7 +88,8 @@ class DuaCardLoader(
         if (language == ENGLISH) return wanted
         val english = translations.wordByWord(ENGLISH, ayah)
         return List(maxOf(wanted.size, english.size)) { index ->
-            wanted.getOrNull(index)?.takeIf { it.isNotBlank() } ?: english.getOrNull(index).orEmpty()
+            wanted.getOrNull(index)?.takeIf { it.isNotBlank() }
+                ?: english.getOrNull(index).orEmpty()
         }
     }
 

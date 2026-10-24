@@ -26,7 +26,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Holds what the Duas home and the cards show, and what a tap on either changes. */
+/**
+ * Holds what the Duas home and the cards show, and what a tap on either changes. Each tap on the
+ * two screens is one function here, which is why there are more than the usual number.
+ */
+@Suppress("TooManyFunctions")
 class DuasViewModel(
     private val dependencies: DuasDependencies,
     private val search: (String, List<DuaSearchEntry>) -> List<DuaSearchHit> = DuaSearch::search,
@@ -80,8 +84,9 @@ class DuasViewModel(
 
     fun setFilter(filter: DuasFilter) = mutableState.update { it.copy(filter = filter) }
 
-    fun setQuery(query: String) =
-        mutableState.update { it.copy(query = query).withSearchHits(language.value) }
+    fun setQuery(query: String) = mutableState.update {
+        it.copy(query = query).withSearchHits(language.value)
+    }
 
     fun openGroup(groupKey: String) = openDeck { catalogue, state ->
         val duas = duasOfGroup(catalogue, groupKey, state.filter, state.progress)

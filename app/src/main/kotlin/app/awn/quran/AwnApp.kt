@@ -32,6 +32,7 @@ import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
+import app.awn.quran.feature.duas.ui.DuasScreen
 import app.awn.quran.feature.learn.LearnScreen
 import app.awn.quran.feature.listen.AudioBar
 import app.awn.quran.feature.listen.PlayRangePanel
@@ -239,8 +240,10 @@ private fun TabsRoute(
                         onSearch = navigation::openSearch,
                         onBookmarks = navigation::openBookmarks,
                         onSettings = navigation::openSettings,
+                        onDuas = navigation::openDuas,
                         onOpen = navigation::openQuran,
                     ),
+                duaCount = rememberDuaCount(services),
             )
         },
         learnTab = {
@@ -303,6 +306,13 @@ private fun NavGraphBuilder.indexDestinations(
             onSortChange = viewModel::setSort,
             onBack = { navController.popBackStack() },
             onOpen = navController::openQuran,
+        )
+    }
+    composable(Routes.DUAS) {
+        DuasScreen(
+            dependencies = services.duasDependencies,
+            onBack = { navController.popBackStack() },
+            onOpenQuran = { page, ayah -> navController.openQuran(page, ayah) },
         )
     }
     composable(Routes.SEARCH) {

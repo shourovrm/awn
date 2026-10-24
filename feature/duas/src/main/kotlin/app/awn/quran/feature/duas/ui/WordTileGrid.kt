@@ -132,7 +132,7 @@ private fun WordDetailStrip(tile: DuaWordTile, myWords: MyWords?) {
             Modifier.fillMaxWidth()
                 .clip(AwnShapes.control)
                 .background(field.softFill)
-                .padding(AwnSpacing.medium)
+                .padding(AwnSpacing.medium),
     ) {
         Text(
             text = tile.arabic,
@@ -140,7 +140,10 @@ private fun WordDetailStrip(tile: DuaWordTile, myWords: MyWords?) {
             color = field.content,
         )
         Text(
-            text = listOf(tile.transliteration, tile.meaning).filter { it.isNotBlank() }.joinToString(" · "),
+            text =
+                listOf(tile.transliteration, tile.meaning)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
             style = AwnTypography.small,
             color = field.content,
         )

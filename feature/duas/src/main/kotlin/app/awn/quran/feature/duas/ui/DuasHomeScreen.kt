@@ -172,6 +172,10 @@ private fun LazyListScope.searchItems(state: DuasState, actions: DuasHomeActions
         )
     }
     items(results.size, key = { "result-${results[it].dua.id}" }) { index ->
-        DuaSearchResultRow(card = results[index], query = state.query, onClick = actions.onOpenResult)
+        DuaSearchResultRow(
+            card = results[index],
+            query = state.query,
+            onClick = actions.onOpenResult,
+        )
     }
 }

@@ -26,8 +26,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The Duas collection: the home with search, filters and groups, and the cards of the list a tap
- * opened. Back from the cards returns to the home. [onOpenQuran] opens the Quran screen at the
- * page and ayah of a dua.
+ * opened. Back from the cards returns to the home. [onOpenQuran] opens the Quran screen at the page
+ * and ayah of a dua.
  */
 @Composable
 fun DuasScreen(
@@ -52,7 +52,10 @@ fun DuasScreen(
             val deckDuas = state.deckDuas
             if (deck != null && catalogue != null && deckDuas.isNotEmpty()) {
                 val title =
-                    catalogue.groups.firstOrNull { it.key == deck.groupKey }?.name?.inLanguage(language)
+                    catalogue.groups
+                        .firstOrNull { it.key == deck.groupKey }
+                        ?.name
+                        ?.inLanguage(language)
                 DuaCardsScreen(
                     title = title ?: stringResource(R.string.duas_starters_title),
                     duas = deckDuas,
@@ -65,7 +68,9 @@ fun DuasScreen(
                             onSearch = viewModel::closeDeck,
                             onToggleSaved = viewModel::toggleSaved,
                             onOpenMushaf = { dua ->
-                                scope.launch { onOpenQuran(viewModel.pageOf(dua), dua.start.ayahRef()) }
+                                scope.launch {
+                                    onOpenQuran(viewModel.pageOf(dua), dua.start.ayahRef())
+                                }
                             },
                             onCleanRecitation = viewModel::recordCleanRecitation,
                             onRequestWordTiles = viewModel::requestWordTiles,

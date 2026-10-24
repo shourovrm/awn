@@ -11,5 +11,6 @@ data class CardWord(val word: Word, val isDuaWord: Boolean)
  * dua can start or end inside an ayah, so a word counts when its key lies between the dua's first
  * and last word.
  */
-fun cardWords(words: List<Word>, dua: Dua): List<CardWord> =
-    words.map { word -> CardWord(word, isDuaWord = word.key >= dua.start && word.key <= dua.end) }
+fun cardWords(words: List<Word>, dua: Dua): List<CardWord> = words.map { word ->
+    CardWord(word, isDuaWord = word.key >= dua.start && word.key <= dua.end)
+}

@@ -8,7 +8,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import app.awn.quran.core.data.WordKey
 
-/** The choices that belong to the card screen as a whole; all but [reviewedWord] survive rotation. */
+/**
+ * The choices that belong to the card screen as a whole; all but [reviewedWord] survive rotation.
+ */
 internal class CardScreenState(
     mode: DuaCardMode,
     showDuaOnly: Boolean,
