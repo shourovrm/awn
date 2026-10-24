@@ -10,9 +10,6 @@ private const val MINIMUM_QUERY_LENGTH = 2
 private val transliteratedArticle = Regex("^(adh|ash|ath|al|ad|an|ar|as|at|az)[\\s-]")
 
 private const val ARABIC_ARTICLE = "ال"
-private const val BANGLA_ARTICLE = "আল"
-private const val ARABIC_TATWEEL = 'ـ'
-private val arabicAlefVariants = setOf('أ', 'إ', 'آ', 'ٱ')
 
 /**
  * How well a surah matches: a name that starts with the query ranks before one that contains it.
@@ -23,25 +20,34 @@ private enum class MatchRank {
 }
 
 /**
- * The surahs that [query] names, best match first. The query may be a surah number or part of the
- * transliterated, Arabic or Bangla name; hyphens, apostrophes, spaces, diacritics and the article
- * ("Al-", "ال") do not matter. A query shorter than 2 characters finds nothing unless it is a
- * number.
+ * The surahs that [query] names, best match first. The query may be a surah number (in Latin,
+ * Arabic-Indic or Bangla digits) or part of the transliterated, Arabic or spoken Bangla name or of
+ * the Bangla meaning; hyphens, apostrophes, spaces, diacritics, the article ("Al-", "ال", "আল-")
+ * and a leading "সূরা" do not matter, and Bangla spellings that sound alike are equal (see
+ * [foldedWords]). A query shorter than 2 characters finds nothing unless it is a number.
  */
 internal fun surahsMatching(query: String, chapters: List<Chapter>): List<Chapter> {
-    val trimmedQuery = query.trim()
-    val isNumber = trimmedQuery.isNotEmpty() && trimmedQuery.all { it.isDigit() }
+    val foldedQuery = withoutSuraWord(foldedWords(query.trim())).trim()
+    val isNumber = foldedQuery.isNotEmpty() && foldedQuery.all { it.isDigit() }
     return if (isNumber) {
-        chapters.filter { it.number == trimmedQuery.toIntOrNull() }
+        chapters.filter { it.number == foldedQuery.toIntOrNull() }
     } else {
-        surahsNamed(lettersOnly(trimmedQuery), chapters)
+        surahsNamed(wantedSpellings(foldedQuery), chapters)
     }
 }
 
-private fun surahsNamed(wanted: String, chapters: List<Chapter>): List<Chapter> {
-    if (wanted.length < MINIMUM_QUERY_LENGTH) return emptyList()
+/** The query as typed and without its Bangla article, because the article is optional. */
+private fun wantedSpellings(foldedQuery: String): List<String> =
+    listOf(foldedQuery, withoutBanglaArticle(foldedQuery))
+        .map(::squeezed)
+        .filter { it.length >= MINIMUM_QUERY_LENGTH }
+        .distinct()
+
+private fun surahsNamed(wantedSpellings: List<String>, chapters: List<Chapter>): List<Chapter> {
     val ranked = chapters.mapNotNull { chapter ->
-        rankOf(wanted, nameFormsOf(chapter))?.let { rank -> rank to chapter }
+        val nameForms = nameFormsOf(chapter)
+        val bestRank = wantedSpellings.mapNotNull { rankOf(it, nameForms) }.minOrNull()
+        bestRank?.let { rank -> rank to chapter }
     }
     return ranked.sortedBy { (rank, _) -> rank }.map { (_, chapter) -> chapter }
 }
@@ -53,29 +59,26 @@ private fun rankOf(wanted: String, nameForms: List<String>): MatchRank? =
         else -> null
     }
 
-/** Every spelling of the chapter's names that a user may type, with and without the article. */
+/**
+ * Every spelling of the chapter's names that a user may type, with and without the article. The
+ * Bangla meaning is searched as well, so "গুহা" finds Al-Kahf.
+ */
 private fun nameFormsOf(chapter: Chapter): List<String> {
     val forms = mutableListOf<String>()
 
     val simpleName = chapter.nameSimple.lowercase(Locale.ROOT)
-    forms += lettersOnly(simpleName)
-    forms += lettersOnly(simpleName.replace(transliteratedArticle, ""))
+    forms += squeezed(foldedWords(simpleName))
+    forms += squeezed(foldedWords(simpleName.replace(transliteratedArticle, "")))
 
-    val arabicName = lettersOnly(chapter.nameArabic)
+    val arabicName = squeezed(foldedWords(chapter.nameArabic))
     forms += arabicName
     forms += arabicName.removePrefix(ARABIC_ARTICLE)
 
-    val banglaName = lettersOnly(chapter.nameBangla.orEmpty())
-    forms += banglaName
-    forms += banglaName.removePrefix(BANGLA_ARTICLE)
+    val banglaName = foldedWords(chapter.nameBangla.orEmpty())
+    forms += squeezed(banglaName)
+    forms += squeezed(withoutBanglaArticle(banglaName))
+
+    forms += squeezed(foldedWords(chapter.nameBanglaMeaning.orEmpty()))
 
     return forms.filter { it.isNotEmpty() }
 }
-
-/** Lower-case letters and digits only, with the Arabic alef variants and the tatweel unified. */
-private fun lettersOnly(text: String): String =
-    text
-        .lowercase(Locale.ROOT)
-        .filter { it.isLetterOrDigit() && it != ARABIC_TATWEEL }
-        .map { if (it in arabicAlefVariants) 'ا' else it }
-        .joinToString("")

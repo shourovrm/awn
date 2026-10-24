@@ -10,8 +10,9 @@ private const val BANGLA_LANGUAGE = "bn"
 
 /**
  * The meaning of a surah's name in [languageCode] ("bn", "en", ...). Bangla comes from the Quran
- * pack; every other language, and a Bangla surah the pack has no meaning for, falls back to the
- * English meaning from `surah_meanings_en`. Null only when neither exists.
+ * pack's meaning column, never from the spoken name; every other language, and a Bangla surah the
+ * pack has no meaning for, falls back to the English meaning from `surah_meanings_en`. Null only
+ * when neither exists.
  */
 fun surahMeaningFor(
     languageCode: String,
@@ -20,7 +21,7 @@ fun surahMeaningFor(
 ): String? {
     val english = englishMeanings.getOrNull(chapter.number - 1)?.takeIf { it.isNotBlank() }
     if (languageCode != BANGLA_LANGUAGE) return english
-    return chapter.nameBangla?.takeIf { it.isNotBlank() } ?: english
+    return chapter.nameBanglaMeaning?.takeIf { it.isNotBlank() } ?: english
 }
 
 /** The meanings of the surah names in the app language, for the list rows. */

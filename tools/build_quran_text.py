@@ -6,8 +6,9 @@ Tables:
        page_v2, line_v2)  one row per spoken word
   ayah_marker(surah, ayah, page_v1, line_v1, page_v2, line_v2)  the ayah-end sign
   ayah(surah, ayah, text_uthmani, juz, hizb, page_v1, page_v2)
-  chapter(number, name_arabic, name_simple, name_bangla, verses_count,
-          revelation_place, bismillah_pre)
+  chapter(number, name_arabic, name_simple, name_bangla, name_bangla_meaning, verses_count,
+          revelation_place, bismillah_pre)  name_bangla is the spoken Bangla name and
+          name_bangla_meaning its meaning, both from tools/data/surah_names_bn.tsv
   pack_info(key, value)
 
 The per-word transliteration is not stored here: it is the downloadable pack built by
@@ -37,6 +38,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import quran_com
+import surah_names_bn
 
 SCHEMA = """
 CREATE TABLE word (
@@ -60,7 +62,7 @@ CREATE TABLE ayah (
 );
 CREATE TABLE chapter (
     number INTEGER PRIMARY KEY, name_arabic TEXT NOT NULL, name_simple TEXT NOT NULL,
-    name_bangla TEXT, verses_count INTEGER NOT NULL,
+    name_bangla TEXT, name_bangla_meaning TEXT, verses_count INTEGER NOT NULL,
     revelation_place TEXT NOT NULL, bismillah_pre INTEGER NOT NULL
 );
 CREATE TABLE pack_info (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -71,13 +73,12 @@ CREATE INDEX word_page_v2 ON word (page_v2, line_v2);
 
 def build_chapter_rows():
     english = quran_com.fetch("/chapters", language="en")["chapters"]
-    bangla = quran_com.fetch("/chapters", language="bn")["chapters"]
-    bangla_names = {chapter["id"]: chapter["translated_name"]["name"] for chapter in bangla}
+    bangla_names = surah_names_bn.read_surah_names()
     rows = []
     for chapter in english:
         rows.append((
             chapter["id"], chapter["name_arabic"], chapter["name_simple"],
-            bangla_names.get(chapter["id"]), chapter["verses_count"],
+            *bangla_names[chapter["id"]], chapter["verses_count"],
             chapter["revelation_place"], 1 if chapter["bismillah_pre"] else 0,
         ))
     return rows
@@ -161,10 +162,11 @@ def main():
     connection.executemany("INSERT INTO word VALUES (?,?,?,?,?,?,?,?,?,?)", word_rows)
     connection.executemany("INSERT INTO ayah_marker VALUES (?,?,?,?,?,?)", marker_rows)
     connection.executemany("INSERT INTO ayah VALUES (?,?,?,?,?,?,?)", ayah_rows)
-    connection.executemany("INSERT INTO chapter VALUES (?,?,?,?,?,?,?)", build_chapter_rows())
+    connection.executemany("INSERT INTO chapter VALUES (?,?,?,?,?,?,?,?)", build_chapter_rows())
     sample_path = "/verses/by_chapter/1"
     connection.executemany("INSERT INTO pack_info VALUES (?, ?)", [
         ("format_version", "1"),
+        ("bangla_names_source", surah_names_bn.SOURCE_NOTE),
         ("source", "Quran.com API v4 " + quran_com.API_BASE),
         ("retrieved", quran_com.retrieval_date(
             sample_path, words="true", word_fields=quran_com.WORD_FIELDS, fields="text_uthmani",

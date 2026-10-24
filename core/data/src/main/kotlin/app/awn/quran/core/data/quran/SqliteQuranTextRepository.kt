@@ -161,7 +161,7 @@ class SqliteQuranTextRepository(
         val cursor =
             database.rawQuery(
                 "SELECT number, name_arabic, name_simple, name_bangla, verses_count, " +
-                    "revelation_place, bismillah_pre FROM chapter ORDER BY number",
+                    "revelation_place, bismillah_pre, name_bangla_meaning FROM chapter ORDER BY number",
                 null,
             )
         return cursor.use {
@@ -176,6 +176,7 @@ class SqliteQuranTextRepository(
                             versesCount = it.getInt(4),
                             revelationPlace = it.getString(5),
                             bismillahPre = it.getInt(6) == 1,
+                            nameBanglaMeaning = if (it.isNull(7)) null else it.getString(7),
                         ),
                     )
                 }

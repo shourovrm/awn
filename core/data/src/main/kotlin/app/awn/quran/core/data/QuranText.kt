@@ -12,7 +12,11 @@ enum class ScriptId(val packId: String) {
     IndoPak15("indopak-15"),
 }
 
-/** One surah. [nameBangla] is null when the pack has no Bangla name. */
+/**
+ * One surah. [nameBangla] is the name Bangla readers say aloud ("আল-বাকারা"), null when the pack
+ * has none; [nameBanglaMeaning] is what that name means ("বকনা-বাছুর-গরু"), null when the source
+ * gives no meaning.
+ */
 data class Chapter(
     val number: Int,
     val nameArabic: String,
@@ -21,6 +25,7 @@ data class Chapter(
     val versesCount: Int,
     val revelationPlace: String,
     val bismillahPre: Boolean,
+    val nameBanglaMeaning: String? = null,
 )
 
 /**

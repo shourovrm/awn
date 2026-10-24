@@ -9,12 +9,26 @@ class SurahMeaningTest {
 
     private val english = listOf("The Opener", "The Cow")
 
-    private fun chapter(number: Int, bangla: String?) =
-        Chapter(number, "", "Surah $number", bangla, 7, "makkah", true)
+    private fun chapter(number: Int, banglaMeaning: String?) =
+        Chapter(
+            number,
+            "",
+            "Surah $number",
+            "আল-নাম",
+            7,
+            "makkah",
+            true,
+            nameBanglaMeaning = banglaMeaning,
+        )
 
     @Test
     fun banglaUsersGetTheBanglaMeaning() {
         assertEquals("সূচনা", surahMeaningFor("bn", chapter(1, "সূচনা"), english))
+    }
+
+    @Test
+    fun theSpokenNameIsNotShownAsTheMeaning() {
+        assertEquals("The Cow", surahMeaningFor("bn", chapter(2, null), english))
     }
 
     @Test

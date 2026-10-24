@@ -1,6 +1,7 @@
 package app.awn.quran.core.data.search
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class SearchNormaliserTest {
@@ -56,7 +57,48 @@ class SearchNormaliserTest {
     @Test
     fun banglaVowelSignsSurvive() {
         assertEquals("কুরআন", SearchNormaliser.normalise("কুরআন"))
-        assertEquals("পরম করুণাময়", SearchNormaliser.normalise("পরম করুণাময়"))
+        assertEquals("পরম করুণাময", SearchNormaliser.normalise("পরম করুণাময়"))
+    }
+
+    @Test
+    fun banglaLongAndShortVowelsAreTheSame() {
+        assertEquals(SearchNormaliser.normalise("ইয়াসিন"), SearchNormaliser.normalise("ইয়াসীন"))
+        assertEquals(SearchNormaliser.normalise("নুহ"), SearchNormaliser.normalise("নূহ"))
+        assertEquals(SearchNormaliser.normalise("ইমরান"), SearchNormaliser.normalise("ঈমরান"))
+        assertEquals(SearchNormaliser.normalise("উলা"), SearchNormaliser.normalise("ঊলা"))
+    }
+
+    @Test
+    fun banglaYaWithNuktaIsTheSameWhetherOneCodePointOrTwo() {
+        val oneCodePoint = "ই\u09DFাসিন"
+        val twoCodePoints = "ই\u09AF\u09BCাসিন"
+        val withoutNukta = "ই\u09AFাসিন"
+        assertEquals(
+            SearchNormaliser.normalise(oneCodePoint),
+            SearchNormaliser.normalise(twoCodePoints),
+        )
+        assertEquals(
+            SearchNormaliser.normalise(oneCodePoint),
+            SearchNormaliser.normalise(withoutNukta),
+        )
+    }
+
+    @Test
+    fun banglaKhandaTaAndAnusvaraFoldToTheirCommonSpelling() {
+        assertEquals(SearchNormaliser.normalise("সত"), SearchNormaliser.normalise("সৎ"))
+        assertEquals(SearchNormaliser.normalise("রঙ"), SearchNormaliser.normalise("রং"))
+    }
+
+    @Test
+    fun banglaHasantaAndJoinersAreDropped() {
+        assertEquals("আহযাব", SearchNormaliser.normalise("আহ\u09CD\u200Cযাব"))
+        assertEquals("আহযাব", SearchNormaliser.normalise("আহ\u09CDযাব"))
+    }
+
+    @Test
+    fun banglaVowelsOfDifferentQualityStayApart() {
+        assertNotEquals(SearchNormaliser.normalise("কাল"), SearchNormaliser.normalise("কল"))
+        assertNotEquals(SearchNormaliser.normalise("দিন"), SearchNormaliser.normalise("দেন"))
     }
 
     @Test

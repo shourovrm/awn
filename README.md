@@ -78,6 +78,7 @@ English: This app is an artificial-intelligence model that may make mistakes. It
 - Quran-Lab, Zipformer P-Arabic v3 speech model, under the NPL-1.2 licence (`awn-models/NPL-1.2.txt` in the models release): https://huggingface.co/Quran-Lab/zipformer_p-arabic-v3
 - k2-fsa, sherpa-onnx, runs the model on the device: https://github.com/k2-fsa/sherpa-onnx
 - Microsoft, ONNX Runtime, inside sherpa-onnx: https://github.com/microsoft/onnxruntime
+- Bangla Wikipedia, list of surahs, spoken Bangla surah names and their meanings (CC BY-SA 4.0): https://bn.wikipedia.org/wiki/%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8%E0%A7%87%E0%A6%B0_%E0%A6%B8%E0%A7%82%E0%A6%B0%E0%A6%BE%E0%A6%B0_%E0%A6%A4%E0%A6%BE%E0%A6%B2%E0%A6%BF%E0%A6%95%E0%A6%BE
 - Quran.com / Tarteel QUL, Quran text, layouts, fonts and word timings (used from milestone 2): https://qul.tarteel.ai
 - QuranicAudio and EveryAyah, reciter audio (used from milestone 3).
 - Google, Jetpack Compose, Room, DataStore, Navigation and Media3 (Apache-2.0).

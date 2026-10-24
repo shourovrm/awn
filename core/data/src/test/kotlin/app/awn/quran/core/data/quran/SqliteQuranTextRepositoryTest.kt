@@ -38,6 +38,20 @@ class SqliteQuranTextRepositoryTest {
     }
 
     @Test
+    fun everyChapterHasASpokenBanglaNameAndMostHaveAMeaning() = runBlocking {
+        val chapters = repository.chapters()
+
+        assertTrue(chapters.all { !it.nameBangla.isNullOrBlank() })
+        assertEquals("আল-বাকারা", chapters.first { it.number == 2 }.nameBangla)
+        assertEquals("বকনা-বাছুর-গরু", chapters.first { it.number == 2 }.nameBanglaMeaning)
+        assertEquals("আল-ইখলাস", chapters.first { it.number == 112 }.nameBangla)
+        assertEquals(
+            setOf(20, 36),
+            chapters.filter { it.nameBanglaMeaning == null }.map { it.number }.toSet(),
+        )
+    }
+
+    @Test
     fun everyScriptWithALayoutHas604Pages() {
         for (script in ScriptId.entries - setOf(ScriptId.IndoPak15)) {
             assertEquals(script.name, 604, repository.pageCount(script))

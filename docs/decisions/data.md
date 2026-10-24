@@ -27,6 +27,7 @@
 - Installs run in WorkManager (`PackInstallWorker`, unique work `pack-install:<id>`, expedited, network required, foreground notification with Cancel). `PackDownloads.request` writes the id to the wanted list (SharedPreferences `wanted_downloads`) first; success or a failure a retry cannot fix removes it, a dropped connection keeps it and retries, and `AwnApplication` calls `resumeWanted` at every start. `.part` files resume by Range.
 - `CatalogueModel` (state, space check, install, cancel, remove) is shared by the Reading settings, the Downloads page and `FontPackController`.
 - Manifests are read from the bundled JSON only; PackEntry.licence is "Not stated by the source" because manifests carry none.
+- Bangla surah names: `chapter.name_bangla` is the spoken name and `name_bangla_meaning` the meaning, from `tools/data/surah_names_bn.tsv` (Bangla Wikipedia, CC BY-SA). Search folds spellings in `BanglaSpelling` (also used by ayah search) and `SurahNameFolding` (names only).
 
 ## Open items
 - Nothing from awn-data/next is released except the IndoPak entries in the bundled scripts.json: indopak.sqlite must be uploaded to data-v1 (CI fetches it for IndoPakLayoutTest), 22 packs have no publication permission, and the app's DATA_RELEASE_URL points at data-v1 (tools/write_release_plan.py writes the plan). The font's author is to be contacted; the user plans to do it.

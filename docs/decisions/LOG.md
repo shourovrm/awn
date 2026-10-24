@@ -205,3 +205,4 @@
 2026-10-23 | Show my words marks known (green) and learning (ochre) words on the Quran page via MyWords.marks | user: learnt words linked to the page
 2026-10-23 | Lessons gain words (tappable Quran word tiles, coloured letters, two-word tiles) and tip blocks; tajweed units 11-18 rewritten with them | user: lessons too thin (learn.md)
 2026-10-23 | Grammar track grows to 17 units (12 new, en and bn), one trigger per set by real form rank | user: grammar not enough; four landed after set 1 (learn.md)
+2026-10-24 | Surah rows show the spoken Bangla name; the meaning is its own column and search folds Bangla spellings | Quran.com's bn translated_name was a meaning, often wrong (data.md)

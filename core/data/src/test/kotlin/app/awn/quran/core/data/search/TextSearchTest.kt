@@ -147,4 +147,22 @@ class TextSearchTest {
 
         assertEquals(1, loadCount)
     }
+
+    @Test
+    fun aBanglaQueryFindsTheTranslationWhateverVowelLengthItIsTyped() = runBlocking {
+        val bangla =
+            SearchableTexts(
+                SearchSource.Translation(TranslationId("bn_test")),
+                listOf(AyahRef(1, 1), AyahRef(1, 2)),
+                listOf("শুরু করছি আল্লাহর নামে যিনি পরম করুণাময়", "সকল প্রশংসা আল্লাহর জন্য"),
+            )
+        val banglaSearch = TextSearch(loadTexts = { listOf(bangla) })
+
+        assertEquals(listOf(AyahRef(1, 1)), banglaSearch.search("করূণাময়").hits.map { it.ayah })
+        assertEquals(listOf(AyahRef(1, 1)), banglaSearch.search("যীনি").hits.map { it.ayah })
+        assertEquals(
+            listOf(AyahRef(1, 1)),
+            banglaSearch.search("আল্লাহর নামে").hits.map { it.ayah },
+        )
+    }
 }

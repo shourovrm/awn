@@ -54,8 +54,9 @@ enum class DaggerAlefReading {
  * on a waw or ya seat becomes a bare hamza, and a bare hamza before an alef is dropped, so
  * ءَامَنُوا, آمنوا and امنوا agree and رَءُوف agrees with رؤوف. Uthmani letters that only the
  * Uthmani spelling has are read in [DaggerAlefReading] terms (see [normalise]). Latin: letters are
- * lower-cased and lose their accents, so "Rahman" finds "Raḥmān". Other scripts, Bangla in
- * particular, pass through unchanged because their vowel signs are letters, not decoration.
+ * lower-cased and lose their accents, so "Rahman" finds "Raḥmān". Bangla keeps its vowel signs,
+ * which are letters, but folds the spellings readers use interchangeably (see [BanglaSpelling]).
+ * Other scripts pass through unchanged.
  */
 object SearchNormaliser {
 
@@ -149,6 +150,7 @@ object SearchNormaliser {
         ) {
             return
         }
+        if (BanglaSpelling.appendFolded(character, into)) return
         when {
             isIgnorableMark(character) -> Unit
             character in alefForms -> into.append(ALEF)
