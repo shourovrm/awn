@@ -114,11 +114,13 @@ fun AwnApp(
                     },
                 )
             FirstLaunchStep.Done -> {
-                AwnNavigation(
-                    services,
-                    colourSettings,
-                    tabSlots ?: remember(services) { defaultTabSlots(services) },
-                )
+                ProvideQuranPrint(services.readDependencies) {
+                    AwnNavigation(
+                        services,
+                        colourSettings,
+                        tabSlots ?: remember(services) { defaultTabSlots(services) },
+                    )
+                }
             }
         }
     }

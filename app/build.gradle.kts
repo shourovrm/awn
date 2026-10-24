@@ -167,6 +167,7 @@ tasks
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
+    implementation(project(":core:quranfont"))
     implementation(project(":player"))
     implementation(project(":feature:read"))
     implementation(project(":feature:listen"))
