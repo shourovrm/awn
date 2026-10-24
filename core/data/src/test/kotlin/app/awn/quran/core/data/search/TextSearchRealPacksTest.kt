@@ -94,7 +94,10 @@ class TextSearchRealPacksTest {
 
     private companion object {
         const val SLOWEST_CLOSE_QUERY_MILLIS = 2_000L
-        const val SLOWEST_QUERY_MILLIS = 400L
+        // The two-letter query "ال" matches 5187 ayahs: about 130 ms on a desktop but over 500 ms
+        // on a shared CI runner (2026-10-24), so the bound guards against a real slowdown, not
+        // against the runner of the day.
+        const val SLOWEST_QUERY_MILLIS = 1_000L
         const val FIRST_QUERY_MILLIS = 8_000L
     }
 }
