@@ -7,6 +7,7 @@
   <string name="learn_all_lessons">সব পাঠ</string>
   <string name="learn_revise_none">ঝালানোর কিছু নেই</string>
   <string name="saying_share">শেয়ার</string>
+  <string name="saying_another">আরেকটি বাণী</string>
   <plurals name="learn_revise">
     <item quantity="one">%dটি আয়াত ঝালিয়ে নিন</item>
     <item quantity="other">%dটি আয়াত ঝালিয়ে নিন</item>

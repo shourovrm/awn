@@ -91,10 +91,10 @@ class LessonContentTest {
         }
 
     @Test
-    fun sixtySnippetsLoadWithReferences() {
+    fun fiftySixSnippetsLoadWithReferences() {
         val snippets = SnippetRepository(assets).all()
 
-        assertEquals(60, snippets.size)
+        assertEquals(56, snippets.size)
         assertEquals(snippets.size, snippets.map { it.id }.toSet().size)
         snippets.forEach { snippet ->
             assertTrue(snippet.arabic.isNotBlank())

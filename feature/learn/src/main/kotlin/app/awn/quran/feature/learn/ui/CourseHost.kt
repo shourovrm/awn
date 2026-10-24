@@ -391,7 +391,7 @@ internal fun HubRoute(
     // The rows wait for the saying, so the card never appears after them and moves them down.
     val hubState = state
     if (hubState != null && sayingLoad != null) {
-        screen(hubState.copy(saying = sayingLoad.saying))
+        screen(hubState.copy(sayings = sayingLoad.deck))
     }
 }
 

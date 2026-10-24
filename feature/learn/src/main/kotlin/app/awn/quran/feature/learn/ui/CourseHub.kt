@@ -66,8 +66,8 @@ internal data class HubState(
     val meanings: MeaningsState,
     /** Reading, Tajweed and Grammar, in that order; Words is drawn from the word figures. */
     val tracks: List<TrackSummary>,
-    /** The day's saying; null when there are no snippets. */
-    val saying: DailySaying? = null,
+    /** The sayings for the card, starting on today's; null when there are no snippets. */
+    val sayings: SayingDeck? = null,
 )
 
 /** Whether the word meanings the course needs are on the phone. */
@@ -118,10 +118,10 @@ internal fun CourseHub(
                     .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            state.saying?.let { saying ->
+            state.sayings?.let { deck ->
                 DailySayingCard(
-                    saying = saying,
-                    onShare = { shareText(context, saying.shareText, shareTitle) },
+                    deck = deck,
+                    onShare = { saying -> shareText(context, saying.shareText, shareTitle) },
                 )
             }
             TodayCard(state, actions)

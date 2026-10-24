@@ -78,11 +78,20 @@ class DailySayingTest {
             tracks = emptyList(),
         )
 
+    private val otherSaying =
+        DailySaying(
+            arabic = "اقْرَءُوا الْقُرْآنَ",
+            translation = "Read the Quran.",
+            source = "Sahih Muslim 804",
+        )
+
     private fun showHub(withSaying: DailySaying?) {
+        showDeck(withSaying?.let { SayingDeck(listOf(it), dayIndex = 0) })
+    }
+
+    private fun showDeck(deck: SayingDeck?) {
         composeRule.setContent {
-            AwnTheme(field = LearnField) {
-                CourseHub(hubState.copy(saying = withSaying), noHubActions)
-            }
+            AwnTheme(field = LearnField) { CourseHub(hubState.copy(sayings = deck), noHubActions) }
         }
     }
 
@@ -136,11 +145,35 @@ class DailySayingTest {
     }
 
     @Test
-    fun theDayPicksOneSnippetAndTheLanguagePicksItsRendering() {
+    fun aTapOnTheSayingShowsAnotherOne() {
+        showDeck(SayingDeck(listOf(saying, otherSaying), dayIndex = 0))
+
+        composeRule.onNodeWithText(saying.arabic).performClick()
+
+        composeRule.onNodeWithText(otherSaying.arabic).assertIsDisplayed()
+        composeRule.onNodeWithText(saying.arabic).assertDoesNotExist()
+    }
+
+    @Test
+    fun theSayingChangesByItselfAfterHalfAnHour() {
+        composeRule.mainClock.autoAdvance = false
+        showDeck(SayingDeck(listOf(saying, otherSaying), dayIndex = 0))
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.onNodeWithText(saying.arabic).assertIsDisplayed()
+
+        composeRule.mainClock.advanceTimeBy(HALF_AN_HOUR_MILLIS)
+
+        composeRule.onNodeWithText(otherSaying.arabic).assertIsDisplayed()
+    }
+
+    @Test
+    fun theDeckStartsOnTheDaysSnippetAndTheLanguagePicksItsRendering() {
         val snippets = listOf(snippet("a", 1), snippet("b", 2), snippet("c", 3))
 
-        val english = dailySayingOf(snippets, epochDay = 4, LearnLanguage.English) { "x" }
-        val bangla = dailySayingOf(snippets, epochDay = 4, LearnLanguage.Bangla) { "নাম $it" }
+        val englishDeck = sayingDeckOf(snippets, epochDay = 4, LearnLanguage.English) { "x" }
+        val banglaDeck = sayingDeckOf(snippets, epochDay = 4, LearnLanguage.Bangla) { "নাম $it" }
+        val english = englishDeck?.sayings?.get(englishDeck.dayIndex)
+        val bangla = banglaDeck?.sayings?.get(banglaDeck.dayIndex)
 
         assertEquals("arabic b", english?.arabic)
         assertEquals("english b", english?.translation)
@@ -151,6 +184,10 @@ class DailySayingTest {
 
     @Test
     fun noSnippetsGiveNoSaying() {
-        assertNull(dailySayingOf(emptyList(), epochDay = 4, LearnLanguage.English) { "x" })
+        assertNull(sayingDeckOf(emptyList(), epochDay = 4, LearnLanguage.English) { "x" })
+    }
+
+    private companion object {
+        const val HALF_AN_HOUR_MILLIS = 30L * 60L * 1000L
     }
 }

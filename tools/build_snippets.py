@@ -35,7 +35,6 @@ AYAHS = [
     (75, 18, "When We have recited it, follow its recitation.", "আমি যখন তা পাঠ করি, তখন তুমি সেই পাঠের অনুসরণ করো।"),
     (54, 17, "We have made the Quran easy to remember. Is there anyone who will remember?", "আমি কুরআনকে স্মরণের জন্য সহজ করেছি। তাই কেউ কি স্মরণ রাখবে?"),
     (17, 106, "A Quran We have divided so that you may recite it to people slowly.", "আমি কুরআনকে খণ্ড খণ্ড করে নাযিল করেছি, যাতে তুমি থেমে থেমে মানুষের কাছে পাঠ করতে পারো।"),
-    (73, 20, "So recite what is easy of the Quran.", "অতএব কুরআন থেকে যতটা সহজ হয় ততটা পাঠ করো।"),
     (96, 1, "Read in the name of your Lord who created.", "পড়ো তোমার প্রতিপালকের নামে, যিনি সৃষ্টি করেছেন।"),
     (15, 9, "It is We who sent down the Reminder, and We will protect it.", "আমিই এই স্মারক নাযিল করেছি এবং আমিই এর সংরক্ষণকারী।"),
     (2, 152, "Remember Me and I will remember you. Thank Me and do not be ungrateful.", "তোমরা আমাকে স্মরণ করো, আমিও তোমাদের স্মরণ করব। আমার কৃতজ্ঞ হও, অকৃতজ্ঞ হয়ো না।"),
@@ -50,7 +49,6 @@ AYAHS = [
     (16, 98, "When you recite the Quran, seek refuge in Allah from the accursed Satan.", "তুমি যখন কুরআন পাঠ করো, তখন অভিশপ্ত শয়তান থেকে আল্লাহর আশ্রয় চাও।"),
     (87, 6, "We will make you recite, and you will not forget.", "আমি তোমাকে পাঠ করাব, ফলে তুমি ভুলে যাবে না।"),
     (29, 49, "Rather, it is clear ayahs in the hearts of those who were given knowledge.", "বরং এটি সুস্পষ্ট আয়াত, যা জ্ঞানপ্রাপ্তদের অন্তরে রয়েছে।"),
-    (3, 191, "Those who remember Allah standing, sitting and lying on their sides.", "যারা দাঁড়িয়ে, বসে ও কাত হয়ে শুয়ে আল্লাহকে স্মরণ করে।"),
     (20, 14, "Establish the prayer for My remembrance.", "আমার স্মরণের জন্য সালাত কায়েম করো।"),
     (7, 205, "Remember your Lord within yourself, humbly and in awe, and without raising your voice.", "তোমার প্রতিপালককে মনে মনে স্মরণ করো বিনয় ও ভয়ের সঙ্গে, এবং উচ্চস্বর ছাড়া।"),
     (10, 57, "People, a counsel has come to you from your Lord, and a healing for what is in the hearts.", "হে মানুষ, তোমাদের কাছে তোমাদের প্রতিপালকের পক্ষ থেকে উপদেশ এসেছে এবং অন্তরে যা আছে তার আরোগ্য।"),
@@ -70,7 +68,6 @@ AYAHS = [
 # (collection, api edition, api hadithnumber, sunnah.com number, start phrase, end phrase, English, Bangla)
 HADITHS = [
     ("bukhari", "ara-bukhari", 5027, "5027", "خيركم من تعلم", "وعلمه", "The best of you are those who learn the Quran and teach it.", "তোমাদের মধ্যে সেই ব্যক্তিই সর্বোত্তম, যে কুরআন শেখে এবং শেখায়।"),
-    ("bukhari", "ara-bukhari", 4937, "4937", "مثل الذي يقرا القران وهو حافظ له", "اجران", "The one who recites the Quran and has memorised it is with the noble, obedient angels; the one who keeps at it and finds it hard has two rewards.", "যে কুরআন মুখস্থ রেখে পাঠ করে, সে সম্মানিত ও অনুগত ফেরেশতাদের সঙ্গে থাকবে; আর যে বারবার চর্চা করে এবং তার জন্য তা কঠিন, তার জন্য দুটি প্রতিদান।"),
     ("bukhari", "ara-bukhari", 5031, "5031", "انما مثل صاحب القران", "ذهبت", "The one who keeps the Quran is like the owner of tied camels: if he looks after them he keeps them, and if he lets them go they are gone.", "কুরআনের সঙ্গী সেই ব্যক্তির মতো, যার বাঁধা উট আছে: সে যত্ন নিলে উট ধরে রাখে, ছেড়ে দিলে চলে যায়।"),
     ("bukhari", "ara-bukhari", 5033, "5033", "تعاهدوا القران", "في عقلها", "Keep up the Quran. By Him in whose hand is my soul, it slips away faster than camels from their ropes.", "কুরআনের যত্ন নাও। সেই সত্তার কসম, যাঁর হাতে আমার প্রাণ, এটি দড়ি থেকে উটের পালানোর চেয়েও দ্রুত হারিয়ে যায়।"),
     ("bukhari", "ara-bukhari", 5032, "5032", "استذكروا القران", "من النعم", "Keep revising the Quran, for it escapes from men's hearts faster than camels from their ropes.", "কুরআন বারবার মনে করো, কারণ এটি মানুষের অন্তর থেকে দড়ি ছাড়ানো উটের চেয়েও দ্রুত পালিয়ে যায়।"),
@@ -86,7 +83,6 @@ HADITHS = [
     ("muslim", "ara-muslim", 1874, "804a", "اقرءوا القران فانه ياتي", "لاصحابه", "Recite the Quran, for on the Day of Resurrection it will come as an intercessor for its companions.", "কুরআন পাঠ করো, কারণ কিয়ামতের দিন এটি তার সঙ্গীদের জন্য সুপারিশকারী হয়ে আসবে।"),
     ("muslim", "ara-muslim", 1862, "798a", "الماهر بالقران", "اجران", "The one who is skilled in the Quran is with the noble angels; the one who recites with difficulty has two rewards.", "কুরআনে দক্ষ ব্যক্তি সম্মানিত ফেরেশতাদের সঙ্গে থাকবে; যে কষ্ট করে পাঠ করে, তার জন্য দুটি প্রতিদান।"),
     ("muslim", "ara-muslim", 1897, "817a", "ان الله يرفع بهذا الكتاب", "اخرين", "Allah raises some people by this Book and lowers others by it.", "আল্লাহ এই কিতাবের মাধ্যমে কিছু জাতিকে উঁচু করেন এবং অন্যদের নিচু করেন।"),
-    ("muslim", "ara-muslim", 6853, "2699a", "وما اجتمع قوم في بيت", "فيمن عنده", "When people gather in one of the houses of Allah, reciting the Book of Allah and studying it together, tranquillity descends on them, mercy covers them, angels surround them, and Allah mentions them to those with Him.", "যখন কিছু মানুষ আল্লাহর কোনো ঘরে জড়ো হয়ে আল্লাহর কিতাব তিলাওয়াত করে এবং নিজেদের মধ্যে তা পড়ে, তখন তাদের ওপর প্রশান্তি নামে, রহমত তাদের ঢেকে নেয়, ফেরেশতারা তাদের ঘিরে রাখে এবং আল্লাহ নিজের কাছের লোকদের কাছে তাদের কথা বলেন।"),
     ("muslim", "ara-muslim", 1891, "814a", "الم تر ايات انزلت", "مثلهن قط", "Have you not seen the ayahs sent down tonight, the like of which has never been seen?", "তুমি কি দেখোনি আজ রাতে কেমন আয়াত নাযিল হয়েছে, যার মতো আর কখনো দেখা যায়নি?"),
     ("muslim", "ara-muslim", 1886, "811a", "ايعجز احدكم ان يقرا", "ثلث القران", "Can any of you not recite a third of the Quran in a night?", "তোমাদের কেউ কি এক রাতে কুরআনের এক-তৃতীয়াংশ পড়তে অক্ষম?"),
     ("muslim", "ara-muslim", 1878, "807a", "الايتان من اخر", "كفتاه", "The last two ayahs of Surah al-Baqarah: whoever recites them at night, they will be enough for him.", "সূরা বাকারার শেষ দুই আয়াত: যে রাতে তা পাঠ করে, তা তার জন্য যথেষ্ট হবে।"),
