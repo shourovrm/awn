@@ -37,6 +37,7 @@ import app.awn.quran.feature.read.quran.WordsFlow
 import app.awn.quran.feature.read.quran.glyphsOf
 import app.awn.quran.feature.read.quran.readerFills
 import app.awn.quran.feature.read.settings.ReadSettings
+import app.awn.quran.tracker.WordState
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.runningFold
 
@@ -119,7 +120,7 @@ internal fun DuaLineView(
             wordStates = highlights.wordStates,
             focusedWord = highlights.focusedWord,
             dimmedWords = if (showDuaOnly) emptySet() else wordsOutsideDua(card),
-            tappableWords = highlights.flaggedWords,
+            tappableWords = tappableWordsOf(blocks, highlights),
             wordTag = ::cardWordTag,
             onWordTap = onWordTap,
         )
@@ -237,3 +238,16 @@ internal fun wordsOutsideDua(card: DuaCardData): Set<WordKey> =
 /** The position the word flow of [ayah] fills as the playing word, or null when it is elsewhere. */
 internal fun playingPositionIn(ayah: AyahRef, playingWord: WordKey?): Int? =
     playingWord?.takeIf { it.surah == ayah.surah && it.ayah == ayah.ayah }?.wordPosition
+
+/**
+ * Every word on a card opens the word card, with or without the word-by-word layer, except a word
+ * hidden for recitation: its card would give the word away.
+ */
+private fun tappableWordsOf(blocks: List<AyahBlock>, highlights: CardHighlights): Set<WordKey> {
+    val shownWords =
+        blocks
+            .flatMap { block -> block.words }
+            .map { word -> word.key }
+            .filter { key -> highlights.wordStates[key] != WordState.Hidden }
+    return shownWords.toSet() + highlights.flaggedWords
+}

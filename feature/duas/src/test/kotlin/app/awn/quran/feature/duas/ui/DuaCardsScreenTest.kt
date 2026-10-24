@@ -481,4 +481,15 @@ class DuaCardsScreenTest {
         assertEquals(setOf(key), environment.myWords.addedWords)
         composeRule.onNodeWithContentDescription("Saved").assertIsDisplayed()
     }
+
+    @Test
+    fun withoutWordByWordATapOnAWordStillOpensTheWordCard() {
+        show()
+
+        composeRule.onNodeWithTag(cardWordTag(WordKey(2, 201, 5))).performClick()
+        composeRule.waitForIdle()
+
+        assertTrue(environment.playedWords.isEmpty())
+        composeRule.onNodeWithContentDescription("Play").assertIsDisplayed()
+    }
 }
