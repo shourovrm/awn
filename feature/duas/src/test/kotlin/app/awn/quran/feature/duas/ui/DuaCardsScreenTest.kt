@@ -4,7 +4,10 @@ import android.Manifest
 import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -13,9 +16,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.WordKey
@@ -32,6 +37,7 @@ import app.awn.quran.feature.recite.RecitationPhase
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -81,12 +87,17 @@ class DuaCardsScreenTest {
         Shadows.shadowOf(application).grantPermissions(Manifest.permission.RECORD_AUDIO)
         val dependencies = environment.dependencies()
         composeRule.setContent {
+            // The layers menu saves to the store; the view model would read them back from it.
+            val storedLayers by
+                dependencies.progress.progress
+                    .map { it.layers }
+                    .collectAsState(initial = state.progress.layers)
             AwnTheme(barBehindStatusBar = true) {
                 DuaCardsScreen(
                     title = "Good in this world and the next",
                     duas = listOf(DuasFixtures.d1, DuasFixtures.d2),
                     startIndex = startIndex,
-                    state = state,
+                    state = state.copy(progress = state.progress.copy(layers = storedLayers)),
                     dependencies = dependencies,
                     actions =
                         DuaCardsActions(
@@ -420,32 +431,54 @@ class DuaCardsScreenTest {
         composeRule.onNodeWithTag(LISTEN_PLAY_TAG).assertIsDisplayed()
     }
 
+    /** Word by word is a layer ticked in the top bar menu, as in the Mushaf. */
+    private fun turnOnWordByWord() {
+        composeRule.onNodeWithTag("dua-layers-button").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("dua-layer-word-by-word").performClick()
+        // The menu stays open for more ticks, as in the Mushaf; Back closes it.
+        Espresso.pressBack()
+        composeRule.waitForIdle()
+    }
+
     @Test
-    fun wordByWordShowsTilesWithMeaningAndSoundForTheDuaWordsOnly() {
+    fun wordByWordShowsEachDuaWordWithItsMeaning() {
         show()
 
-        chooseMode(DuaCardMode.WordByWord)
+        turnOnWordByWord()
 
-        d1Words.forEach { composeRule.onNodeWithTag(wordTileTag(it)).assertIsDisplayed() }
-        composeRule.onNodeWithTag(wordTileTag(WordKey(2, 201, 1))).assertDoesNotExist()
         composeRule.onNodeWithText("Our Lord").assertIsDisplayed()
-        composeRule.onNodeWithText("rabbana").assertIsDisplayed()
+        composeRule.onNodeWithText("give us").assertIsDisplayed()
         assertTrue(DuasFixtures.d1 in requestedTiles)
     }
 
     @Test
-    fun tappingATilePlaysTheWordAndOffersToAddIt() {
+    fun tappingAWordOpensTheWordCardInsteadOfPlaying() {
         show()
-        chooseMode(DuaCardMode.WordByWord)
-        val key = WordKey(2, 201, 5)
+        turnOnWordByWord()
 
-        composeRule.onNodeWithTag(wordTileTag(key)).performClick()
+        composeRule.onNodeWithText("give us").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
+
+        assertTrue(environment.playedWords.isEmpty())
+        composeRule.onNodeWithContentDescription("Play").assertIsDisplayed()
+    }
+
+    @Test
+    fun theWordCardPlaysTheWordAndSavesIt() {
+        show()
+        turnOnWordByWord()
+        val key = WordKey(2, 201, 5)
+        composeRule.onNodeWithText("give us").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithContentDescription("Play").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("Save word").performClick()
         composeRule.waitForIdle()
 
         assertEquals(listOf(key), environment.playedWords)
-        composeRule.onNodeWithTag(ADD_WORD_TAG).performClick()
-        composeRule.waitForIdle()
         assertEquals(setOf(key), environment.myWords.addedWords)
-        composeRule.onNodeWithText("In my words").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Saved").assertIsDisplayed()
     }
 }

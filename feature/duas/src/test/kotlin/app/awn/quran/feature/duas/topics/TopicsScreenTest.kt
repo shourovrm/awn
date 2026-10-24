@@ -4,11 +4,13 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso
 import app.awn.quran.feature.duas.DuasTestEnvironment
 import app.awn.quran.feature.duas.PronunciationState
 import app.awn.quran.feature.duas.ui.PRONUNCIATION_DOWNLOAD_TAG
@@ -99,8 +101,15 @@ class TopicsScreenTest {
 
         composeRule.onNodeWithText("Parents").performClick()
         composeRule.onNodeWithText("Be good to your parents").performClick()
-        waitForText("Word by word")
-        composeRule.onNodeWithText("Word by word").performClick()
+        composeRule.waitUntil(WAIT_MILLIS) {
+            composeRule.onAllNodesWithTag("dua-layers-button").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("dua-layers-button").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("dua-layer-word-by-word").performClick()
+        // The menu stays open for more ticks, as in the Mushaf; Back closes it.
+        Espresso.pressBack()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag(PRONUNCIATION_DOWNLOAD_TAG).performClick()
 
         assertEquals(1, environment.pronunciationRequests)

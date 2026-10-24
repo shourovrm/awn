@@ -24,6 +24,8 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutinesTest)
     testImplementation(libs.robolectric)
+    // Back closes the layers menu in screen tests.
+    testImplementation(libs.androidx.espressoCore)
     testImplementation(libs.androidx.testExtJunit)
     testImplementation(libs.compose.uiTestJunit4)
     // Supplies the activity that Robolectric Compose tests launch.
