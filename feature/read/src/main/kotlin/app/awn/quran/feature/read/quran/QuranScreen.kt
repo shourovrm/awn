@@ -74,6 +74,12 @@ import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.FontLookup
+import app.awn.quran.core.quranfont.PageFontCache
+import app.awn.quran.core.quranfont.SharedPageFontCache
+import app.awn.quran.core.quranfont.isGlyphScript
+import app.awn.quran.core.quranfont.rememberFontLookup
 import app.awn.quran.core.ui.components.UndoMessage
 import app.awn.quran.core.ui.components.shareText
 import app.awn.quran.core.ui.theme.Awn
@@ -83,14 +89,9 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
-import app.awn.quran.feature.read.page.FontLookup
 import app.awn.quran.feature.read.page.PageBarInsets
-import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageLoad
 import app.awn.quran.feature.read.page.SelectionBounds
-import app.awn.quran.feature.read.page.SharedPageFontCache
-import app.awn.quran.feature.read.page.isGlyphScript
-import app.awn.quran.feature.read.page.rememberFontLookup
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState

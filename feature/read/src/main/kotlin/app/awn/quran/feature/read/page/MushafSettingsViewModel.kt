@@ -3,6 +3,7 @@ package app.awn.quran.feature.read.page
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.quranfont.indoPakScripts
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.settings.ReadSettings
 import kotlinx.coroutines.flow.SharingStarted

@@ -16,9 +16,9 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakePackRepository
+import app.awn.quran.core.quranfont.PageFontCache
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.read.page.MushafPage
-import app.awn.quran.feature.read.page.PageFontCache
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

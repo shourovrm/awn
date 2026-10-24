@@ -1,4 +1,4 @@
-package app.awn.quran.feature.read.page
+package app.awn.quran.core.quranfont
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

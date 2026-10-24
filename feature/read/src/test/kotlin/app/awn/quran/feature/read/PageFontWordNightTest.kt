@@ -6,9 +6,9 @@ import androidx.compose.ui.text.font.FontFamily
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.PageFontCache
+import app.awn.quran.core.quranfont.PageFontWord
 import app.awn.quran.core.ui.theme.AwnTheme
-import app.awn.quran.feature.read.page.PageFontCache
-import app.awn.quran.feature.read.page.PageFontWord
 import java.io.File
 import java.util.Collections
 import org.junit.Rule

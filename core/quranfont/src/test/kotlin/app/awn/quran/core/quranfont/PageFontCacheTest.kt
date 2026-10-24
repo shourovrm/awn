@@ -1,11 +1,10 @@
-package app.awn.quran.feature.read
+package app.awn.quran.core.quranfont
 
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.fakes.FakePackRepository
-import app.awn.quran.feature.read.page.PageFontCache
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers

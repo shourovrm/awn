@@ -4,7 +4,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Quarters
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
-import app.awn.quran.feature.read.page.indoPakScripts
+import app.awn.quran.core.quranfont.indoPakScripts
 
 private const val FIRST_PAGE = 1
 

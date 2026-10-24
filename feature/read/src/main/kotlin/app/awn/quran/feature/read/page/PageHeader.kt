@@ -6,6 +6,7 @@ import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.Quarter
 import app.awn.quran.core.data.Quarters
+import app.awn.quran.core.quranfont.indoPakScripts
 
 /**
  * The surah the page header names: the first surah that starts on the page (its first word is

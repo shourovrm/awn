@@ -11,11 +11,11 @@ import androidx.compose.ui.test.performSemanticsAction
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.PageFontCache
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.quran.AyahBlock
-import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.ListPageEnvironment
 import app.awn.quran.feature.read.quran.PageContent
 import app.awn.quran.feature.read.quran.PageItem

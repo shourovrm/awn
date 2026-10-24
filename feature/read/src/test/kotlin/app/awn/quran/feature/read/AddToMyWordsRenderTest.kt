@@ -6,8 +6,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
 import app.awn.quran.core.ui.theme.AwnTheme
-import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.MyWordState
 import app.awn.quran.feature.read.quran.WordPopup
 import app.awn.quran.feature.read.quran.WordPopupCard

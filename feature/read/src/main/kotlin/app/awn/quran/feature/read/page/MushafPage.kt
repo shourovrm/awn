@@ -31,6 +31,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.glyphScripts
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnFieldColors
 import app.awn.quran.core.ui.theme.AwnSpacing

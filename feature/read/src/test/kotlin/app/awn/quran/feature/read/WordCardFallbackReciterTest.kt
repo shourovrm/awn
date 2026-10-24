@@ -6,7 +6,7 @@ import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.WordTiming
 import app.awn.quran.core.data.fakes.FakeReciterRepository
-import app.awn.quran.feature.read.quran.AyahWord
+import app.awn.quran.core.quranfont.AyahWord
 import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.read.quran.QuranViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

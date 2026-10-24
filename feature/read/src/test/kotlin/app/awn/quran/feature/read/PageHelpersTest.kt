@@ -6,12 +6,12 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakePackRepository
+import app.awn.quran.core.quranfont.PageFontCache
+import app.awn.quran.core.quranfont.textToDraw
 import app.awn.quran.feature.read.page.JuzTable
-import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.page.PageRow
 import app.awn.quran.feature.read.page.buildPageRows
 import app.awn.quran.feature.read.page.slotCountOf
-import app.awn.quran.feature.read.page.textToDraw
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

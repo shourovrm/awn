@@ -12,6 +12,8 @@ dependencies {
     implementation(project(":core:ui"))
     // Repository interfaces and fakes appear in this module's public classes, so they are api.
     api(project(":core:data"))
+    // The page fonts and print scripts appear in the public signatures of this module.
+    api(project(":core:quranfont"))
     api(project(":player"))
     // WordState, the colour state of a word, is defined by the tracker.
     api(project(":tracker"))

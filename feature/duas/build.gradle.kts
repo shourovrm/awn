@@ -8,6 +8,7 @@ android { namespace = "app.awn.quran.feature.duas" }
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
+    implementation(project(":core:quranfont"))
     // Dua cards play the ayah, check a recitation and read word timings.
     implementation(project(":player"))
     implementation(project(":feature:recite"))

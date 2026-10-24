@@ -4,7 +4,8 @@ import androidx.compose.ui.geometry.Rect
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.feature.read.page.PageFontCache
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.PageFontCache
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.tracker.WordState
 

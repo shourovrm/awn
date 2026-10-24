@@ -32,6 +32,7 @@ include(
     ":app",
     ":core:ui",
     ":core:data",
+    ":core:quranfont",
     ":tracker",
     ":player",
     ":feature:read",

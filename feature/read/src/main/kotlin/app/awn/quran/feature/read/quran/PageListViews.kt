@@ -37,6 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.MyWordMark
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.PageFontCache
+import app.awn.quran.core.quranfont.rememberFontsLoaded
 import app.awn.quran.core.ui.components.translationNameWithNote
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnColors
@@ -47,8 +50,6 @@ import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.localName
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.BASMALA_TEXT
-import app.awn.quran.feature.read.page.PageFontCache
-import app.awn.quran.feature.read.page.rememberFontsLoaded
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.tracker.WordState
 

@@ -35,13 +35,14 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.MyWordMark
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.PageFontWord
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.feature.read.R
-import app.awn.quran.feature.read.page.PageFontWord
 import app.awn.quran.feature.read.page.myWordFillColor
 import app.awn.quran.feature.read.page.wordCellFill
 import app.awn.quran.feature.read.page.wordColor
@@ -206,9 +207,10 @@ private fun WordCell(
         if (settings.showArabic) {
             ArabicWord(word, styles.arabic, state, input)
         }
-        if (settings.showWordByWord && word.meaning != null) {
+        val meaning = word.meaning
+        if (settings.showWordByWord && meaning != null) {
             Text(
-                text = word.meaning,
+                text = meaning,
                 style = styles.meaning,
                 maxLines = MEANING_MAX_LINES,
                 overflow = TextOverflow.Ellipsis,

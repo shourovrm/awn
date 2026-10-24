@@ -1,4 +1,4 @@
-package app.awn.quran.feature.read.quran
+package app.awn.quran.core.quranfont
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.LineItem

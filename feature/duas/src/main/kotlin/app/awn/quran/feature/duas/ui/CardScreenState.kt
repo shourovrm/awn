@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.feature.read.quran.AyahWord
+import app.awn.quran.core.quranfont.AyahWord
 
 /**
  * The choices that belong to the card screen as a whole; all but [reviewedWord] survive rotation.

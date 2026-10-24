@@ -1,4 +1,4 @@
-package app.awn.quran.feature.read.page
+package app.awn.quran.core.quranfont
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,7 +60,7 @@ private fun cachedLookup(
  * A missing glyph font also loads the Unicode family of the page, which the words then draw with.
  */
 @Composable
-internal fun rememberFontsLoaded(
+fun rememberFontsLoaded(
     fontCache: PageFontCache,
     script: ScriptId,
     pages: Set<Int>,

@@ -11,8 +11,8 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.core.data.packs.PackFailureReason
+import app.awn.quran.core.quranfont.AyahWord
 import app.awn.quran.core.ui.theme.AwnTheme
-import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.WordAudioOffer
 import app.awn.quran.feature.read.quran.WordPopup
 import app.awn.quran.feature.read.quran.WordPopupCard

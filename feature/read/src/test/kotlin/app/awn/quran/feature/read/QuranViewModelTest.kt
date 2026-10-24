@@ -1,8 +1,8 @@
 package app.awn.quran.feature.read
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.quranfont.AyahWord
 import app.awn.quran.feature.read.page.AyahRange
-import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.BARS_REVEAL_MS
 import app.awn.quran.feature.read.quran.Popup
 import app.awn.quran.feature.read.quran.QuranTarget

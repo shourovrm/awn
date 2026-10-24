@@ -1,7 +1,7 @@
 package app.awn.quran.feature.read.quran
 
 import app.awn.quran.core.data.ScriptId
-import app.awn.quran.feature.read.page.indoPakScripts
+import app.awn.quran.core.quranfont.indoPakScripts
 import app.awn.quran.feature.read.settings.ReadSettings
 
 /**

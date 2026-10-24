@@ -5,6 +5,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.PageFontCache
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.duas.DuasFixtures
 import app.awn.quran.feature.duas.DuasTestEnvironment
@@ -12,7 +13,6 @@ import app.awn.quran.feature.duas.NoPacks
 import app.awn.quran.feature.duas.card.CardRequest
 import app.awn.quran.feature.duas.card.DuaCardData
 import app.awn.quran.feature.duas.card.DuaCardLoader
-import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import kotlinx.coroutines.runBlocking

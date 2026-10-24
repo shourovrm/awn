@@ -15,7 +15,7 @@ import app.awn.quran.core.data.fakes.InMemoryWantedPackStore
 import app.awn.quran.core.data.fakes.RecordingPackWorkScheduler
 import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.core.data.packs.PackFailureReason
-import app.awn.quran.feature.read.quran.AyahWord
+import app.awn.quran.core.quranfont.AyahWord
 import app.awn.quran.feature.read.quran.QuranTarget
 import app.awn.quran.feature.read.quran.QuranViewModel
 import app.awn.quran.feature.read.quran.WordAudioOffer

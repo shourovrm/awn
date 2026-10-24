@@ -6,29 +6,12 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationRepository
-import app.awn.quran.core.data.Word
-import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.GlyphPageIndex
+import app.awn.quran.core.quranfont.glyphsOf
+import app.awn.quran.core.quranfont.pageGlyphScripts
 import app.awn.quran.core.ui.text.normalizeFallbackText
-import app.awn.quran.feature.read.page.pageGlyphScripts
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
-
-/**
- * What draws a word in its page font: the glyph [word] and the Mushaf [page] whose font its glyph
- * code belongs to. A code is valid only with the font of its own page, and an ayah that runs over a
- * page break holds words of two pages.
- */
-data class WordGlyphs(val word: Word, val page: Int)
-
-/** One Arabic word with what the word by word view and its popup show. */
-data class AyahWord(
-    val key: WordKey,
-    val arabic: String,
-    /** Null when the word-by-word pack is not installed. */
-    val meaning: String?,
-    val transliteration: String?,
-    /** Set for the glyph prints (V1, V2, tajweed); null when [arabic] is drawn as plain text. */
-    val glyphs: WordGlyphs? = null,
-)
 
 /** One translation of an ayah. [rangeLabel] is set when a publisher merged several ayahs. */
 data class AyahTranslation(
@@ -224,19 +207,3 @@ private const val AYAH_TRANSLITERATION_PACK_ID = "en_transliteration"
  */
 internal fun meaningAtPosition(meanings: List<String>, position: Int): String? =
     meanings.getOrNull(position - 1)?.takeIf { it.isNotBlank() }
-
-/**
- * The glyphs of [word] when it has a glyph code in [script] and its page is known in [pageOfWord];
- * null otherwise, which draws the Unicode text.
- */
-fun glyphsOf(word: Word, script: ScriptId?, pageOfWord: Map<WordKey, Int>): WordGlyphs? {
-    val page = pageOfWord[word.key] ?: return null
-    val hasCode =
-        when (script) {
-            ScriptId.V1 -> word.codeV1 != null
-            ScriptId.V2,
-            ScriptId.V4Tajweed -> word.codeV2 != null
-            else -> false
-        }
-    return if (hasCode) WordGlyphs(word, page) else null
-}

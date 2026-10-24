@@ -14,13 +14,14 @@ import app.awn.quran.core.data.TranslationInfo
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.downloads.CatalogueRow
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.indoPakScripts
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.page.AyahRange
 import app.awn.quran.feature.read.page.FontPackController
 import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
-import app.awn.quran.feature.read.page.indoPakScripts
 import app.awn.quran.feature.read.page.pageTypeScripts
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 import app.awn.quran.feature.read.settings.PageView

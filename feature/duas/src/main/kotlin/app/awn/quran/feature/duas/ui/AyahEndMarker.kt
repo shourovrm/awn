@@ -6,9 +6,9 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.AyahWord
+import app.awn.quran.core.quranfont.WordGlyphs
 import app.awn.quran.feature.duas.card.DuaCardData
-import app.awn.quran.feature.read.quran.AyahWord
-import app.awn.quran.feature.read.quran.WordGlyphs
 
 /**
  * The position the ayah-end marker takes in its ayah. No ayah has this many words, so the marker

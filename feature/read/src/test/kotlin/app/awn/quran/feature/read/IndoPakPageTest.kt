@@ -9,13 +9,13 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.quranfont.textToDraw
 import app.awn.quran.feature.read.page.LineToken
 import app.awn.quran.feature.read.page.PageRow
 import app.awn.quran.feature.read.page.buildPageRows
 import app.awn.quran.feature.read.page.frameSlotCountOf
 import app.awn.quran.feature.read.page.isCentredBlockPage
 import app.awn.quran.feature.read.page.pageHeaderInfo
-import app.awn.quran.feature.read.page.textToDraw
 import app.awn.quran.feature.read.quran.pageAfterPrintChange
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
