@@ -454,7 +454,7 @@ private val PATH_DOT_COLUMN = AwnSpacing.pathDotColumn
 private val PATH_DOT = AwnSpacing.pathDot
 private val PATH_TODAY_DOT = AwnSpacing.pathTodayDot
 private val PATH_LINE = 2.dp
-private val PATH_LINE_INSET = 8.dp
+private val PATH_LINE_INSET = AwnSpacing.small
 
 /**
  * Done is a filled disc with a check, the next set a ring with its number, later sets a faint ring.

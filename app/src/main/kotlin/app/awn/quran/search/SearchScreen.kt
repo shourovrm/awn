@@ -84,31 +84,7 @@ fun SearchScreen(
             }
             val rows = state.rows
             if (rows != null || state.surahs.isNotEmpty()) {
-                if (rows != null) {
-                    Text(
-                        text =
-                            pluralStringResource(
-                                R.plurals.search_result_count,
-                                rows.size,
-                                rows.size,
-                            ),
-                        style = AwnTypography.small,
-                        color = Awn.field.content,
-                        modifier = Modifier.padding(AwnSpacing.screenMargin),
-                    )
-                    if (state.isCloseMatch && rows.isNotEmpty()) {
-                        Text(
-                            text = stringResource(R.string.search_close_matches),
-                            style = AwnTypography.small,
-                            color = Awn.field.content,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = AwnSpacing.screenMargin,
-                                    vertical = AwnSpacing.small,
-                                ),
-                        )
-                    }
-                }
+                if (rows != null) ResultCount(rows.size, state.isCloseMatch)
                 val ayahRows = rows.orEmpty()
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(state.surahs.size) { index ->
@@ -133,6 +109,26 @@ class VoiceSearchSlot(
     val actions: VoiceSearchActions,
     val onOpen: () -> Unit,
 )
+
+/** How many ayahs matched, and a line saying so when they are close matches only. */
+@Composable
+private fun ResultCount(count: Int, isCloseMatch: Boolean) {
+    Text(
+        text = pluralStringResource(R.plurals.search_result_count, count, count),
+        style = AwnTypography.small,
+        color = Awn.field.content,
+        modifier = Modifier.padding(AwnSpacing.screenMargin),
+    )
+    if (isCloseMatch && count > 0) {
+        Text(
+            text = stringResource(R.string.search_close_matches),
+            style = AwnTypography.small,
+            color = Awn.field.content,
+            modifier =
+                Modifier.padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
+        )
+    }
+}
 
 @Composable
 private fun SearchBar(

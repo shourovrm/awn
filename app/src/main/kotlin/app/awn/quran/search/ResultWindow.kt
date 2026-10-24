@@ -21,9 +21,13 @@ internal fun windowBeforeFirstMatch(
     matches: List<IntRange>,
     wordsBefore: Int = DEFAULT_WORDS_BEFORE_MATCH,
 ): ResultWindow {
-    val firstMatchStart = matches.firstOrNull()?.first ?: return ResultWindow(text, matches)
+    val firstMatchStart = matches.firstOrNull()?.first
     val windowStart =
-        clusterBoundaryAtOrBefore(text, startOfWordsBefore(text, firstMatchStart, wordsBefore))
+        if (firstMatchStart == null) {
+            0
+        } else {
+            clusterBoundaryAtOrBefore(text, startOfWordsBefore(text, firstMatchStart, wordsBefore))
+        }
     if (windowStart == 0) return ResultWindow(text, matches)
     val shift = LEADING_ELLIPSIS.length - windowStart
     return ResultWindow(

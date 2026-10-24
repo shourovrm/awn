@@ -8,6 +8,8 @@ import kotlin.math.abs
  * [limit]. Stopping at the limit keeps a search over half a million words cheap: two words whose
  * lengths differ by more than [limit] are rejected without looking at a letter.
  */
+// Two early exits stop at the limit; each is a plain guard that keeps the search cheap.
+@Suppress("ReturnCount")
 fun editDistance(first: CharSequence, second: CharSequence, limit: Int): Int {
     if (abs(first.length - second.length) > limit) return limit + 1
     var previousRow = IntArray(second.length + 1) { it }
