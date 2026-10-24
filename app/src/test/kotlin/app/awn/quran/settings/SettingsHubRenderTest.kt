@@ -46,9 +46,10 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
 
     private val summaries =
         mapOf(
-            SettingsSection.Mushaf to "Tajweed colours · page numbers shown",
+            SettingsSection.QuranPage to "Madinah Mushaf · 1421 · 1 translation",
             SettingsSection.Audio to "Al-Husary · Wi-Fi only",
-            SettingsSection.Downloads to "788 kB used",
+            SettingsSection.Learn to "Reminder 7:00 PM · Lessons in English",
+            SettingsSection.Storage to "788 kB used",
         )
 
     private var chosenLanguage: AppLanguage? = null
@@ -81,9 +82,10 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
     fun theHubGroupsSectionsAndShowsTheCurrentValueUnderEach() {
         showHub()
 
-        composeRule.onNodeWithText("Listening").assertIsDisplayed()
+        composeRule.onNodeWithText("Quran").assertIsDisplayed()
+        composeRule.onNodeWithText("Practice").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Al-Husary · Wi-Fi only").assertIsDisplayed()
-        composeRule.onNodeWithText("Mushaf").assertIsDisplayed().assertHeightIsAtLeast(64.dp)
+        composeRule.onNodeWithText("Quran page").assertIsDisplayed().assertHeightIsAtLeast(64.dp)
         composeRule.onNodeWithText("Search settings").assertIsDisplayed()
     }
 
@@ -96,6 +98,27 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
 
         assertEquals("settings/audio", openedRoute)
         assertEquals("audio.wifi_only", openedRow)
+    }
+
+    @Test
+    fun aResultNamesThePageItOpensOnItsSecondLine() {
+        showHub()
+
+        composeRule.onNodeWithContentDescription("Search settings").performTextInput("wi-fi")
+
+        composeRule.onNodeWithText("Audio").assertIsDisplayed()
+    }
+
+    @Test
+    fun searchingForALanguageOpensTheChoiceOnTheHubItself() {
+        showHub()
+
+        composeRule.onNodeWithContentDescription("Search settings").performTextInput("language")
+        composeRule.onNodeWithText("Language").performClick()
+        composeRule.onNodeWithText("বাংলা").performClick()
+
+        assertEquals(AppLanguage.Bangla, chosenLanguage)
+        assertTrue(openedRoute == null)
     }
 
     @Test

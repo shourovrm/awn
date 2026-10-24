@@ -104,13 +104,4 @@ class MushafSettingsViewModelTest {
         viewModel.remove(ScriptId.V2)
         assertFalse(viewModel.statuses.value.getValue(ScriptId.V2).isInstalled)
     }
-
-    @Test
-    fun showPageInfoIsStoredAndOnByDefault() = runTest {
-        assertTrue(viewModel.settings.value.showPageInfo)
-
-        viewModel.setShowPageInfo(false)
-
-        assertFalse(viewModel.settings.value.showPageInfo)
-    }
 }

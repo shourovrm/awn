@@ -77,9 +77,6 @@
   <string name="setting_translations">অনুবাদ</string>
   <string name="setting_transliteration">উচ্চারণ</string>
   <string name="setting_word_by_word">শব্দে শব্দে</string>
-  <string name="setting_word_language">অর্থের ভাষা</string>
-  <string name="setting_word_language_hint">প্রতিটি শব্দের অর্থ যে ভাষায় দেখাবে</string>
-  <string name="word_language_app">অ্যাপের ভাষা</string>
   <string name="setting_highlight_bookmarks">বুকমার্ক চিহ্নিত করুন</string>
   <string name="setting_volume_keys">ভলিউম কী পৃষ্ঠা উল্টায়</string>
   <string name="reading_group_layers">আরবির নিচে দেখানো হবে</string>
@@ -87,18 +84,17 @@
   <string name="reading_group_page">পৃষ্ঠা</string>
   <string name="reading_group_rotation">স্ক্রিন ঘোরানো</string>
   <string name="layer_translation">অনুবাদ</string>
-  <string name="setting_orientation_quran">কুরআনের পৃষ্ঠা</string>
-  <string name="setting_orientation_app">অ্যাপের বাকি অংশ</string>
   <string name="orientation_auto">স্বয়ংক্রিয়</string>
   <string name="orientation_portrait">খাড়া</string>
   <string name="orientation_landscape">আড়াআড়ি</string>
   <string name="value_off">বন্ধ</string>
   <string name="value_none">নেই</string>
-  <string name="pack_list_page_types">মুসহাফ</string>
   <string name="pack_list_translations">অনুবাদ</string>
   <string name="pack_list_transliteration">উচ্চারণ</string>
   <string name="pack_list_word_by_word">শব্দে শব্দে</string>
-  <string name="pack_list_word_audio">শব্দের অডিও</string>
+  <string name="pack_list_word_audio">একক শব্দের অডিও</string>
   <string name="catalogue_remove_frees">%1$s জায়গা খালি হবে। আবার ডাউনলোড করা যাবে।</string>
   <string name="pack_list_lesson_sounds">পাঠের শব্দ</string>
+  <string name="reading_group_mushaf">মুসহাফ</string>
+  <string name="setting_surah_name_meaning">সূরার নামের অর্থ</string>
 </resources>

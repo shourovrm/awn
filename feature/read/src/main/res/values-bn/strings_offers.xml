@@ -7,5 +7,5 @@
   <string name="speech_offer_downloading">ডাউনলোড হচ্ছে</string>
   <string name="speech_offer_progress">%2$sর %1$d%%</string>
   <string name="speech_offer_cancel">বাতিল</string>
-  <string name="speech_row_title">তিলাওয়াত</string>
+  <string name="speech_row_title">তিলাওয়াত যাচাই</string>
 </resources>

@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * Drives the Mushaf settings page: which page type is in use, installing and removing the font of
- * each page type, and the "Show surah, juz and page number" switch. A page type that the user
- * installs from here becomes the one in use as soon as its font is on the phone.
+ * Drives the Mushaf chooser: which page type is in use, and installing and removing the font of
+ * each page type. A page type that the user installs from here becomes the one in use as soon as
+ * its font is on the phone.
  */
 class MushafSettingsViewModel(private val dependencies: ReadDependencies) : ViewModel() {
 
@@ -71,9 +71,5 @@ class MushafSettingsViewModel(private val dependencies: ReadDependencies) : View
             return
         }
         viewModelScope.launch { dependencies.settingsStore.update { it.copy(script = script) } }
-    }
-
-    fun setShowPageInfo(show: Boolean) {
-        viewModelScope.launch { dependencies.settingsStore.update { it.copy(showPageInfo = show) } }
     }
 }

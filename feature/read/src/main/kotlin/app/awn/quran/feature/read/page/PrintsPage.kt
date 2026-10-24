@@ -53,10 +53,10 @@ private const val PERCENT = 100
 private const val DISABLED_ALPHA = 0.4f
 
 /**
- * The Prints screen of Settings, Mushaf: one print per screen in a pager, with the print's name,
- * page dots and the buttons that fit its state (see [printControlsOf]). It opens on the print in
- * use. Downloads, deletion and the choice of print go through [MushafSettingsViewModel], the same
- * code that the first-launch card and the Downloads list use.
+ * The Mushaf chooser, reached from Settings, Quran page and from Storage: one edition per screen in
+ * a pager, with the edition's name and detail, page dots and the buttons that fit its state (see
+ * [printControlsOf]). It opens on the edition in use. Downloads, deletion and the choice go through
+ * [MushafSettingsViewModel], the same code that the first-launch card uses.
  */
 @Composable
 fun PrintsPage(dependencies: ReadDependencies, modifier: Modifier = Modifier) {

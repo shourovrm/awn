@@ -26,74 +26,54 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.DayColours
 import app.awn.quran.core.ui.theme.NightColours
-import app.awn.quran.language.AppLanguage
+import app.awn.quran.core.ui.theme.mutedContent
 import kotlinx.coroutines.launch
 
 private const val BACKUP_FILE_NAME = "awn-bookmarks.json"
 private const val BACKUP_MIME_TYPE = "application/json"
 
-/** Day colours, night colours, follow the phone theme, language and surah name meaning. */
+/** Day colours, night colours and following the phone's dark mode. */
 @Composable
-fun AppearancePage(
+fun ColoursPage(
     colours: ColourSettings,
-    showSurahNameMeaning: Boolean,
-    language: AppLanguage,
     onColoursChange: ((ColourSettings) -> ColourSettings) -> Unit,
-    onShowSurahNameMeaningChange: (Boolean) -> Unit,
-    onLanguageChange: (AppLanguage) -> Unit,
     onBack: () -> Unit,
     targetRow: String? = null,
 ) {
     SettingsPage(
-        title = stringResource(R.string.settings_appearance),
+        title = stringResource(R.string.settings_colours),
         onBack = onBack,
         targetRow = targetRow,
     ) {
         AwnChoiceRow(
-            label = stringResource(R.string.appearance_day_colours),
+            label = stringResource(R.string.colours_day),
             options = DayColours.entries,
             selected = colours.day,
             optionLabel = { stringResource(it.label()) },
             onSelect = { chosen -> onColoursChange { it.copy(day = chosen) } },
-            rowKey = SettingRowKeys.APPEARANCE_DAY,
+            rowKey = SettingRowKeys.COLOURS_DAY,
         )
         AwnChoiceRow(
-            label = stringResource(R.string.appearance_night_colours),
+            label = stringResource(R.string.colours_night),
             options = NightColours.entries,
             selected = colours.night,
             optionLabel = { stringResource(it.label()) },
             onSelect = { chosen -> onColoursChange { it.copy(night = chosen) } },
-            rowKey = SettingRowKeys.APPEARANCE_NIGHT,
+            rowKey = SettingRowKeys.COLOURS_NIGHT,
         )
         SettingsSwitchRow(
-            label = stringResource(R.string.appearance_follow_device),
+            label = stringResource(R.string.colours_follow_phone),
             checked = colours.followDevice,
             onCheckedChange = { follows -> onColoursChange { it.copy(followDevice = follows) } },
-            rowKey = SettingRowKeys.APPEARANCE_FOLLOW_DEVICE,
-        )
-        AwnChoiceRow(
-            label = stringResource(R.string.appearance_language),
-            options = AppLanguage.entries,
-            selected = language,
-            // Each language is named in its own script, so a user who cannot read the current
-            // language can still find theirs.
-            optionLabel = { stringResource(it.ownNameRes) },
-            onSelect = onLanguageChange,
-            rowKey = SettingRowKeys.APPEARANCE_LANGUAGE,
-        )
-        SettingsSwitchRow(
-            label = stringResource(R.string.appearance_surah_name_meaning),
-            checked = showSurahNameMeaning,
-            onCheckedChange = onShowSurahNameMeaningChange,
-            rowKey = SettingRowKeys.APPEARANCE_SURAH_MEANING,
+            rowKey = SettingRowKeys.COLOURS_FOLLOW_PHONE,
         )
     }
 }
 
 internal fun DayColours.label(): Int =
     when (this) {
-        DayColours.Awn -> R.string.colours_awn
-        DayColours.Light -> R.string.colours_light
+        DayColours.Awn -> R.string.colours_cream
+        DayColours.Light -> R.string.colours_white
     }
 
 internal fun NightColours.label(): Int =
@@ -102,20 +82,20 @@ internal fun NightColours.label(): Int =
         NightColours.Black -> R.string.colours_black
     }
 
-/** Export and import of bookmarks, saved ayahs and recent pages as one file. */
+/** Saving bookmarks, saved ayahs and recent pages to one file, and restoring them from it. */
 @Composable
 fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit, targetRow: String? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var result by remember { mutableStateOf<BackupResult?>(null) }
-    val exportLauncher =
+    val saveLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.CreateDocument(BACKUP_MIME_TYPE),
         ) { uri ->
             if (uri != null)
                 scope.launch { result = viewModel.exportTo(context.contentResolver, uri) }
         }
-    val importLauncher =
+    val restoreLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null)
                 scope.launch { result = viewModel.importFrom(context.contentResolver, uri) }
@@ -127,15 +107,21 @@ fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit, targetRow: Stri
     ) {
         SettingsLinkRow(
             icon = R.drawable.ic_app_file_upload,
-            label = stringResource(R.string.backup_export),
-            onClick = { exportLauncher.launch(BACKUP_FILE_NAME) },
-            rowKey = SettingRowKeys.BACKUP_EXPORT,
+            label = stringResource(R.string.backup_save),
+            onClick = { saveLauncher.launch(BACKUP_FILE_NAME) },
+            rowKey = SettingRowKeys.BACKUP_SAVE,
         )
         SettingsLinkRow(
             icon = R.drawable.ic_app_file_download,
-            label = stringResource(R.string.backup_import),
-            onClick = { importLauncher.launch(arrayOf(BACKUP_MIME_TYPE)) },
-            rowKey = SettingRowKeys.BACKUP_IMPORT,
+            label = stringResource(R.string.backup_restore),
+            onClick = { restoreLauncher.launch(arrayOf(BACKUP_MIME_TYPE)) },
+            rowKey = SettingRowKeys.BACKUP_RESTORE,
+        )
+        Text(
+            text = stringResource(R.string.backup_scope),
+            style = AwnTypography.small,
+            color = Awn.field.mutedContent,
+            modifier = Modifier.padding(top = AwnSpacing.small),
         )
         result?.let { shown ->
             Text(
@@ -150,8 +136,8 @@ fun BackupPage(viewModel: SettingsViewModel, onBack: () -> Unit, targetRow: Stri
 
 private fun BackupResult.messageResource(): Int =
     when (this) {
-        BackupResult.Exported -> R.string.backup_exported
-        BackupResult.Imported -> R.string.backup_imported
+        BackupResult.Saved -> R.string.backup_saved
+        BackupResult.Restored -> R.string.backup_restored
         BackupResult.Failed -> R.string.backup_failed
     }
 
@@ -173,7 +159,7 @@ fun AboutPage(
         targetRow = targetRow,
     ) {
         SettingsLinkRow(
-            label = stringResource(R.string.about_notice),
+            label = stringResource(R.string.notice_learn_title),
             onClick = onOpenNotice,
             rowKey = SettingRowKeys.ABOUT_NOTICE,
         )
@@ -191,30 +177,49 @@ fun AboutPage(
 }
 
 /**
- * The Recite and memorise page: the settings of the recite module in [moduleSettings], then the
- * "Memorised after" row, which belongs to Learn and is kept here in :app.
+ * The Recite and Hifz page: the settings of the recite module in [moduleSettings], which draws the
+ * "Memorised after" row where it is told to by the slot it passes to the content, so the order is
+ * hide words, first-letter hint, memorised after, follow pace.
  */
 @Composable
-fun RecitePage(
+fun ReciteHifzPage(
     memorisedAfterDays: Int,
     onMemorisedAfterChange: (Int) -> Unit,
     onBack: () -> Unit,
     targetRow: String? = null,
-    moduleSettings: @Composable () -> Unit,
+    moduleSettings: @Composable (memorisedAfterRow: @Composable () -> Unit) -> Unit,
 ) {
     SettingsPage(
         title = stringResource(R.string.settings_recite),
         onBack = onBack,
         targetRow = targetRow,
     ) {
+        moduleSettings {
+            AwnChoiceRow(
+                label = stringResource(R.string.recite_memorised_after),
+                hint = stringResource(R.string.recite_memorised_after_hint),
+                options = MEMORISED_AFTER_DAYS.toList(),
+                selected = memorisedAfterDays,
+                optionLabel = { pluralStringResource(R.plurals.recite_days, it, it) },
+                onSelect = onMemorisedAfterChange,
+                rowKey = SettingRowKeys.RECITE_MEMORISED_AFTER,
+            )
+        }
+    }
+}
+
+/** The daily reminder and the lesson language; the rows belong to the learn module. */
+@Composable
+fun LearnPage(
+    onBack: () -> Unit,
+    targetRow: String? = null,
+    moduleSettings: @Composable () -> Unit,
+) {
+    SettingsPage(
+        title = stringResource(R.string.settings_learn),
+        onBack = onBack,
+        targetRow = targetRow,
+    ) {
         moduleSettings()
-        AwnChoiceRow(
-            label = stringResource(R.string.recite_memorised_after),
-            options = MEMORISED_AFTER_DAYS.toList(),
-            selected = memorisedAfterDays,
-            optionLabel = { pluralStringResource(R.plurals.recite_days, it, it) },
-            onSelect = onMemorisedAfterChange,
-            rowKey = SettingRowKeys.RECITE_MEMORISED_AFTER,
-        )
     }
 }

@@ -314,14 +314,11 @@ class ReadSettingsTest {
         }
 
     @Test
-    fun tickingALanguageShowsTheMeaningsButTheRowAndRemovalLeaveTheLayerAlone() = runTest {
+    fun tickingALanguageShowsTheMeaningsAndRemovingAnotherLanguageLeavesItChosen() = runTest {
         val fixture = ReadFixture(ReadSettings(showWordByWord = false))
         val viewModel = ReadSettingsViewModel(fixture.store)
 
-        viewModel.setWordByWordLanguage("ur")
-        assertEquals("ur", viewModel.settings.value.wordByWordLanguage)
-        assertEquals(false, viewModel.settings.value.showWordByWord)
-
+        viewModel.useWordByWordLanguage("ur")
         viewModel.useWordByWordLanguage("bn")
         assertEquals("bn", viewModel.settings.value.wordByWordLanguage)
         assertEquals(true, viewModel.settings.value.showWordByWord)
@@ -338,5 +335,33 @@ class ReadSettingsTest {
 
         assertEquals(listOf(TextLayer.Arabic), fresh.visibleLayers)
         assertEquals(emptyList<TranslationId>(), fresh.translations)
+    }
+
+    @Test
+    fun theSingleRotationChoiceSetsTheQuranPagesAndTheRestOfTheAppTogether() = runTest {
+        val fixture =
+            ReadFixture(
+                ReadSettings(
+                    quranOrientation = ScreenOrientation.Landscape,
+                    appOrientation = ScreenOrientation.Portrait,
+                ),
+            )
+        val viewModel = ReadSettingsViewModel(fixture.store)
+
+        viewModel.setScreenRotation(ScreenOrientation.Portrait)
+
+        assertEquals(ScreenOrientation.Portrait, viewModel.settings.value.quranOrientation)
+        assertEquals(ScreenOrientation.Portrait, viewModel.settings.value.appOrientation)
+    }
+
+    @Test
+    fun showPageInfoIsStoredAndOnByDefault() = runTest {
+        val fixture = ReadFixture()
+        val viewModel = ReadSettingsViewModel(fixture.store)
+        assertEquals(true, viewModel.settings.value.showPageInfo)
+
+        viewModel.setShowPageInfo(false)
+
+        assertEquals(false, viewModel.settings.value.showPageInfo)
     }
 }

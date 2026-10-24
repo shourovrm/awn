@@ -9,6 +9,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -16,16 +17,16 @@ import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.AwnSettingsPage
 import app.awn.quran.core.ui.components.SettingRowKeys
 import app.awn.quran.core.ui.components.SettingsGroupHeading
-import app.awn.quran.core.ui.components.SettingsInfoRow
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.components.SettingsSwitchRow
 import app.awn.quran.player.DownloadAmount
 
 /**
- * The Audio settings page for the Settings hub: reciter, download unit, Wi-Fi only, stop on close,
- * the downloads manager and the space used. It draws its own title bar because the manager opens
- * inside it; [onBack] leaves the page (the Back key first closes the manager). A search result
- * passes [targetRow] to scroll to one row.
+ * The Audio settings page for the Settings hub: reciter, single-word voice, stop on close, download
+ * unit, Wi-Fi only and the downloaded audio manager. It draws its own title bar because the manager
+ * opens inside it; [onBack] leaves the page (the Back key first closes the manager). A search
+ * result passes [targetRow] to scroll to one row. With [openManager] true, as when Storage opens
+ * the reciters, the manager is open on arrival and Back from it leaves the page.
  */
 @Composable
 fun AudioSettingsPage(
@@ -33,17 +34,24 @@ fun AudioSettingsPage(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     targetRow: String? = null,
+    openManager: Boolean = false,
 ) {
-    var managerOpen by rememberSaveable { mutableStateOf(false) }
+    var managerOpen by rememberSaveable { mutableStateOf(openManager) }
     var managerReciterId by rememberSaveable { mutableStateOf<String?>(null) }
     val goBack: () -> Unit = {
-        when {
-            managerReciterId != null -> managerReciterId = null
-            managerOpen -> managerOpen = false
-            else -> onBack()
+        when (managerBackAction(managerOpen, managerReciterId != null, openManager)) {
+            ManagerBackAction.CloseReciter -> managerReciterId = null
+            ManagerBackAction.CloseManager -> managerOpen = false
+            ManagerBackAction.LeavePage -> onBack()
         }
     }
-    BackHandler(enabled = managerOpen, onBack = goBack)
+    // The system Back key leaves the page by itself unless this page has a layer to close first.
+    BackHandler(
+        enabled =
+            managerBackAction(managerOpen, managerReciterId != null, openManager) !=
+                ManagerBackAction.LeavePage,
+        onBack = goBack,
+    )
     val title = if (managerOpen) R.string.audio_setting_downloads else R.string.audio_settings_title
     AwnSettingsPage(
         title = stringResource(title),
@@ -62,6 +70,29 @@ fun AudioSettingsPage(
         }
     }
 }
+
+/** What Back does inside the Audio page, from where the user is in it. */
+internal enum class ManagerBackAction {
+    CloseReciter,
+    CloseManager,
+    LeavePage,
+}
+
+/**
+ * Back closes the open reciter, then the manager, then leaves the page. A page opened straight onto
+ * the manager ([openedOnManager]) has no main page behind it to return to, so Back from the manager
+ * leaves the page and lands on the screen that opened it.
+ */
+internal fun managerBackAction(
+    isManagerOpen: Boolean,
+    isReciterOpen: Boolean,
+    openedOnManager: Boolean,
+): ManagerBackAction =
+    when {
+        isReciterOpen -> ManagerBackAction.CloseReciter
+        isManagerOpen && !openedOnManager -> ManagerBackAction.CloseManager
+        else -> ManagerBackAction.LeavePage
+    }
 
 @Composable
 private fun AudioSettingsMain(feature: AudioFeature, onOpenManager: () -> Unit) {
@@ -108,7 +139,8 @@ private fun PlaybackSettingsGroup(
     if (wordReciterInUse != null) {
         SettingsLinkRow(
             label = stringResource(R.string.audio_setting_word_audio),
-            value = wordReciterInUse.name,
+            value =
+                "${wordReciterInUse.name}\n${stringResource(R.string.audio_setting_word_audio_hint)}",
             onClick = onOpenWordSheet,
             rowKey = SettingRowKeys.AUDIO_WORD_RECITER,
         )
@@ -139,20 +171,22 @@ private fun DownloadSettingsGroup(
     )
     SettingsSwitchRow(
         label = stringResource(R.string.audio_setting_wifi),
+        hint = stringResource(R.string.audio_setting_wifi_hint),
         checked = state.wifiOnly,
         onCheckedChange = viewModel::setWifiOnly,
         rowKey = SettingRowKeys.AUDIO_WIFI_ONLY,
     )
     SettingsLinkRow(
         label = stringResource(R.string.audio_setting_downloads),
-        value = stringResource(R.string.audio_downloads_hint),
+        value =
+            pluralStringResource(
+                R.plurals.audio_downloads_value,
+                state.downloadedReciterCount,
+                Formatter.formatShortFileSize(LocalContext.current, state.usedBytes),
+                state.downloadedReciterCount,
+            ),
         onClick = onOpenManager,
         rowKey = SettingRowKeys.AUDIO_DOWNLOADS,
-    )
-    SettingsInfoRow(
-        label = stringResource(R.string.audio_setting_space),
-        value = Formatter.formatShortFileSize(LocalContext.current, state.usedBytes),
-        rowKey = SettingRowKeys.AUDIO_SPACE_USED,
     )
 }
 

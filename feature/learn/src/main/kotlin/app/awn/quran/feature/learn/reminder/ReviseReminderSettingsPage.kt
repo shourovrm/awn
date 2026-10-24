@@ -88,14 +88,14 @@ fun ReviseReminderSettingsPage(modifier: Modifier = Modifier) {
             label = stringResource(R.string.reminder_setting),
             checked = enabled,
             onCheckedChange = ::setEnabled,
-            rowKey = SettingRowKeys.RECITE_REMINDER,
+            rowKey = SettingRowKeys.LEARN_REMINDER,
         )
         if (enabled) {
             SettingsLinkRow(
                 label = stringResource(R.string.reminder_time),
                 value = formatTime(hour, minute),
                 onClick = { timePickerOpen = true },
-                rowKey = SettingRowKeys.RECITE_REMINDER_TIME,
+                rowKey = SettingRowKeys.LEARN_REMINDER_TIME,
             )
         }
         if (permissionRefused) {

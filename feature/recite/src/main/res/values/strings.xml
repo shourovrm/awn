@@ -39,9 +39,9 @@
   <string name="recite_microphone_open_settings">Open settings</string>
 
 
-  <string name="recite_settings_title">Recite and memorise</string>
+  <string name="recite_settings_title">Recite and Hifz</string>
   <string name="recite_settings_hide_words">Hide words</string>
-  <string name="recite_settings_hint">Show first letter first</string>
+  <string name="recite_settings_hint">First-letter hint</string>
 
   <string name="recite_close">Close</string>
   <string name="recite_hide_words">Hide words</string>
@@ -68,4 +68,9 @@
   <string name="recite_listen_ayah">Listen</string>
   <string name="recite_listen_pause">Pause audio</string>
   <string name="recite_listen_resume">Resume audio</string>
+  <string name="recite_settings_hide_words_hint">Each word appears once you recite it</string>
+  <string name="recite_follow_pace">Follow pace</string>
+  <string name="recite_follow_pace_hint">How soon Awn moves to the next word</string>
+  <string name="recite_pace_patient">Patient</string>
+  <string name="recite_pace_eager">Eager</string>
 </resources>

@@ -65,32 +65,15 @@
   <string name="search_voice_again">আবার তিলাওয়াত করুন</string>
 
   <string name="settings_title">সেটিংস</string>
-  <string name="settings_mushaf">মুসহাফ</string>
-  <string name="settings_reading">পড়া</string>
   <string name="settings_audio">অডিও</string>
-  <string name="settings_downloads">ডাউনলোড</string>
-  <string name="downloads_space_used">ব্যবহৃত জায়গা</string>
-  <string name="downloads_translations">অনুবাদ</string>
-  <string name="downloads_word_by_word">শব্দে শব্দে</string>
-  <string name="downloads_transliteration">উচ্চারণ</string>
-  <string name="downloads_word_audio">শব্দের অডিও</string>
-  <string name="downloads_reciters">ক্বারী</string>
-  <string name="settings_recite">তিলাওয়াত ও মুখস্থ</string>
-  <string name="settings_appearance">চেহারা</string>
+  <string name="settings_recite">তিলাওয়াত ও হিফজ</string>
   <string name="settings_backup">ব্যাকআপ</string>
   <string name="settings_about">সম্পর্কে</string>
 
-  <string name="appearance_day_colours">দিনের রং</string>
-  <string name="appearance_night_colours">রাতের রং</string>
-  <string name="appearance_follow_device">ফোনের থিম অনুসারে</string>
-  <string name="appearance_language">ভাষা</string>
   <string name="language_name_english">ইংরেজি</string>
   <string name="language_name_bangla">বাংলা</string>
   <string name="language_title">ভাষা বেছে নিন</string>
   <string name="language_continue">চালিয়ে যান</string>
-  <string name="appearance_surah_name_meaning">সূরার নামের অর্থ</string>
-  <string name="colours_awn">আওন</string>
-  <string name="colours_light">হালকা</string>
   <string name="colours_dark">গাঢ়</string>
   <string name="colours_black">কালো</string>
 
@@ -102,13 +85,8 @@
     <item quantity="other">%d দিন</item>
   </plurals>
 
-  <string name="backup_export">বুকমার্ক এক্সপোর্ট</string>
-  <string name="backup_import">বুকমার্ক ইম্পোর্ট</string>
-  <string name="backup_exported">বুকমার্ক এক্সপোর্ট হয়েছে</string>
-  <string name="backup_imported">বুকমার্ক ইমপোর্ট হয়েছে</string>
   <string name="backup_failed">ফাইলটি পড়া যায়নি। আউনের একটি ব্যাকআপ বেছে নিন।</string>
 
-  <string name="about_notice">বিজ্ঞপ্তি</string>
   <string name="about_credits">কৃতজ্ঞতা</string>
   <string name="about_version">সংস্করণ</string>
 
@@ -122,17 +100,10 @@
   <string name="notice_learn_practice">আওন পাঠের ফাঁকে অনুশীলনে সাহায্য করে। এটি আপনার শিক্ষকের বিকল্প নয়।</string>
   <string name="notice_learn_listening">আওন যখন আপনার তিলাওয়াত শোনে, তখন একটি কম্পিউটার মডেল শোনে, আর তা ভুল করতে পারে। সন্দেহ হলে শিক্ষককে জিজ্ঞেস করুন।</string>
   <string name="notice_accept">আমি বুঝেছি</string>
-  <string name="downloads_page_types">মুসহাফ</string>
-  <string name="settings_group_reading">পড়া</string>
-  <string name="settings_group_listening">শোনা</string>
   <string name="settings_group_app">অ্যাপ</string>
   <string name="settings_search_placeholder">সেটিংস খুঁজুন</string>
   <string name="settings_search_clear">খোঁজা মুছুন</string>
   <string name="settings_search_empty">কোনো সেটিং পাওয়া যায়নি</string>
-  <string name="downloads_group_on_phone">এই ফোনে</string>
-  <string name="downloads_on_phone_count">%2$d-এর মধ্যে %1$d এই ফোনে আছে</string>
-  <string name="summary_page_details_shown">পৃষ্ঠা নম্বর দেখানো হচ্ছে</string>
-  <string name="summary_page_details_hidden">পৃষ্ঠা নম্বর লুকানো</string>
   <plurals name="summary_translations">
     <item quantity="one">%d অনুবাদ</item>
     <item quantity="other">%d অনুবাদ</item>
@@ -141,13 +112,11 @@
   <string name="summary_word_by_word">শব্দে শব্দে</string>
   <string name="summary_arabic_only">শুধু আরবি</string>
   <string name="summary_words_hidden">শব্দ লুকানো</string>
-  <string name="summary_hint_on">আগে প্রথম অক্ষর</string>
+  <string name="summary_hint_on">প্রথম অক্ষরের ইঙ্গিত</string>
   <string name="summary_memorised_after">মুখস্থ ধরা হবে %1$s</string>
   <string name="summary_space_used">%1$s ব্যবহৃত</string>
-  <string name="summary_appearance">দিনে %1$s · রাতে %2$s · %3$s</string>
-  <string name="summary_backup">বুকমার্ক ও সাম্প্রতিক পৃষ্ঠা</string>
+  <string name="summary_backup">বুকমার্ক, সংরক্ষিত আয়াত, সাম্প্রতিক পৃষ্ঠা</string>
   <string name="summary_about">সংস্করণ %1$s</string>
-  <string name="downloads_lesson_sounds">পাঠের শব্দ</string>
   <string name="credits_lessons">পাঠ</string>
   <string name="credit_qaida_name">ক্বারী নূর মুহাম্মদ, আল-ক্বায়িদা আন-নূরানিয়্যা (নূরানি ক্বায়িদা)</string>
   <string name="credit_qaida_detail">পড়ার পাঠগুলোর ক্রম ও অনুশীলন। অবাণিজ্যিক কাজে ব্যবহৃত।</string>
@@ -165,4 +134,36 @@
     <item quantity="one">%d টি বিষয়</item>
     <item quantity="other">%d টি বিষয়</item>
   </plurals>
+  <string name="settings_quran_page">কুরআনের পৃষ্ঠা</string>
+  <string name="settings_learn">শিখুন</string>
+  <string name="settings_colours">রং</string>
+  <string name="settings_storage">স্টোরেজ</string>
+  <string name="settings_language">ভাষা</string>
+  <string name="settings_group_quran">কুরআন</string>
+  <string name="settings_group_practice">অনুশীলন</string>
+  <string name="storage_space_used">ব্যবহৃত জায়গা</string>
+  <string name="storage_group_on_phone">এই ফোনে</string>
+  <string name="storage_on_phone_count">%2$d-এর মধ্যে %1$d</string>
+  <string name="storage_mushaf">মুসহাফ</string>
+  <string name="storage_translations">অনুবাদ</string>
+  <string name="storage_transliteration">উচ্চারণ</string>
+  <string name="storage_word_by_word">শব্দে শব্দে</string>
+  <string name="storage_word_audio">একক শব্দের অডিও</string>
+  <string name="storage_lesson_sounds">পাঠের শব্দ</string>
+  <string name="storage_reciters">ক্বারী</string>
+  <string name="colours_day">দিনের রং</string>
+  <string name="colours_night">রাতের রং</string>
+  <string name="colours_follow_phone">ফোনের ডার্ক মোড অনুসারে</string>
+  <string name="colours_cream">ক্রিম</string>
+  <string name="colours_white">সাদা</string>
+  <string name="summary_colours">দিনে %1$s · রাতে %2$s</string>
+  <string name="summary_learn_reminder">রিমাইন্ডার %1$s</string>
+  <string name="summary_learn_no_reminder">রিমাইন্ডার নেই</string>
+  <string name="summary_learn_language">পাঠ %1$s ভাষায়</string>
+  <string name="backup_save">ফাইলে সংরক্ষণ</string>
+  <string name="backup_restore">ফাইল থেকে ফিরিয়ে আনা</string>
+  <string name="backup_saved">ফাইলে সংরক্ষিত হয়েছে</string>
+  <string name="backup_restored">ফাইল থেকে ফেরানো হয়েছে</string>
+  <string name="backup_scope">শুধু বুকমার্ক, সংরক্ষিত আয়াত ও সাম্প্রতিক পৃষ্ঠা</string>
+  <string name="recite_memorised_after_hint">আয়াত গণ্য হওয়ার আগে কত দিন সঠিক তিলাওয়াত করতে হবে</string>
 </resources>

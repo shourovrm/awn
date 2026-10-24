@@ -35,7 +35,7 @@ internal fun LessonLanguageRow(settings: LearnSettings, modifier: Modifier = Mod
         optionLabel = { stringResource(choiceLabel(it)) },
         onSelect = { picked -> scope.launch { settings.setLessonLanguage(picked) } },
         modifier = modifier,
-        rowKey = SettingRowKeys.RECITE_LESSON_LANGUAGE,
+        rowKey = SettingRowKeys.LEARN_LESSON_LANGUAGE,
     )
 }
 

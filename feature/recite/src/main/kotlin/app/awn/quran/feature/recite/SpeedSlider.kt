@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import app.awn.quran.core.ui.theme.Awn
@@ -28,8 +27,8 @@ private val trackShape = RoundedCornerShape(AwnSpacing.switchKnobCorner)
 private val thumbShape = RoundedCornerShape(AwnSpacing.sliderThumbCorner)
 
 /**
- * A continuous slider from Slower (0) to Faster (1): an 8 dp track in the field ink at 30 %, a 24
- * dp thumb in the accent with 7 dp corners, and the two end labels underneath.
+ * A continuous slider from [startLabel] (0) to [endLabel] (1): an 8 dp track in the field ink at 30
+ * %, a 24 dp thumb in the accent with 7 dp corners, and the two end labels underneath.
  */
 @OptIn(ExperimentalMaterial3Api::class) // Custom thumb and track slots are still experimental.
 @Composable
@@ -37,17 +36,19 @@ fun SpeedSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
+    description: String,
+    startLabel: String,
+    endLabel: String,
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
-    val speedLabel = stringResource(R.string.recite_speed)
     Column(modifier) {
         Slider(
             value = value,
             onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = 0f..1f,
-            modifier = Modifier.fillMaxWidth().semantics { contentDescription = speedLabel },
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = description },
             thumb = {
                 Box(
                     Modifier.size(AwnSpacing.sliderThumbSize)
@@ -71,8 +72,8 @@ fun SpeedSlider(
             },
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(R.string.recite_slower), style = AwnTypography.small)
-            Text(stringResource(R.string.recite_faster), style = AwnTypography.small)
+            Text(startLabel, style = AwnTypography.small)
+            Text(endLabel, style = AwnTypography.small)
         }
     }
 }

@@ -376,11 +376,36 @@ class AudioViewModelsTest {
         settle()
 
         assertEquals(30L, viewModel.state.value.usedBytes)
+        assertEquals(2, viewModel.state.value.downloadedReciterCount)
         assertEquals("Alafasy", viewModel.state.value.reciterName)
 
         viewModel.setDownloadAmount(app.awn.quran.player.DownloadAmount.Juz)
         settle()
         assertEquals(app.awn.quran.player.DownloadAmount.Juz, settings.downloadAmount.first())
+    }
+
+    @Test
+    fun backFromTheManagerOpenedByStorageLeavesThePageButOtherwiseClosesTheManager() {
+        assertEquals(
+            ManagerBackAction.LeavePage,
+            managerBackAction(isManagerOpen = true, isReciterOpen = false, openedOnManager = true),
+        )
+        assertEquals(
+            ManagerBackAction.CloseManager,
+            managerBackAction(isManagerOpen = true, isReciterOpen = false, openedOnManager = false),
+        )
+        assertEquals(
+            ManagerBackAction.CloseReciter,
+            managerBackAction(isManagerOpen = true, isReciterOpen = true, openedOnManager = true),
+        )
+        assertEquals(
+            ManagerBackAction.LeavePage,
+            managerBackAction(
+                isManagerOpen = false,
+                isReciterOpen = false,
+                openedOnManager = false,
+            ),
+        )
     }
 
     @Test

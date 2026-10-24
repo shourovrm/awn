@@ -39,9 +39,9 @@
   <string name="recite_microphone_open_settings">সেটিংস খুলুন</string>
 
 
-  <string name="recite_settings_title">তিলাওয়াত ও মুখস্থ</string>
+  <string name="recite_settings_title">তিলাওয়াত ও হিফজ</string>
   <string name="recite_settings_hide_words">শব্দ লুকান</string>
-  <string name="recite_settings_hint">আগে প্রথম অক্ষর দেখান</string>
+  <string name="recite_settings_hint">প্রথম অক্ষরের ইঙ্গিত</string>
 
   <string name="recite_close">বন্ধ করুন</string>
   <string name="recite_hide_words">শব্দ লুকান</string>
@@ -68,4 +68,9 @@
   <string name="recite_listen_ayah">শুনুন</string>
   <string name="recite_listen_pause">অডিও বিরতি</string>
   <string name="recite_listen_resume">অডিও চালু করুন</string>
+  <string name="recite_settings_hide_words_hint">তিলাওয়াত করলে তবেই শব্দটি দেখা যায়</string>
+  <string name="recite_follow_pace">তিলাওয়াতের সঙ্গে চলা</string>
+  <string name="recite_follow_pace_hint">পরের শব্দে কত তাড়াতাড়ি যাবে</string>
+  <string name="recite_pace_patient">ধীরস্থির</string>
+  <string name="recite_pace_eager">তৎপর</string>
 </resources>

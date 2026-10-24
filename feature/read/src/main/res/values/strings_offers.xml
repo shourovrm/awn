@@ -7,5 +7,5 @@
   <string name="speech_offer_downloading">Downloading</string>
   <string name="speech_offer_progress">%1$d%% of %2$s</string>
   <string name="speech_offer_cancel">Cancel</string>
-  <string name="speech_row_title">Recite</string>
+  <string name="speech_row_title">Recitation checker</string>
 </resources>

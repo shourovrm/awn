@@ -32,11 +32,10 @@
   <string name="reciter_current">নির্বাচিত</string>
   <string name="audio_settings_title">অডিও</string>
   <string name="audio_setting_reciter">ক্বারী</string>
-  <string name="audio_setting_word_audio">শব্দের তিলাওয়াত</string>
-  <string name="audio_setting_download_amount">ডাউনলোডের একক</string>
+  <string name="audio_setting_word_audio">একক শব্দের তিলাওয়াত</string>
+  <string name="audio_setting_download_amount">আগাম ডাউনলোড</string>
   <string name="audio_setting_wifi">শুধু ওয়াই-ফাই</string>
-  <string name="audio_setting_downloads">ডাউনলোড</string>
-  <string name="audio_setting_space">ব্যবহৃত জায়গা</string>
+  <string name="audio_setting_downloads">ডাউনলোড করা অডিও</string>
   <string name="amount_page">পৃষ্ঠা</string>
   <string name="amount_surah">সূরা</string>
   <string name="amount_juz">পারা</string>
@@ -81,9 +80,14 @@
   <string name="audio_group_playback">চালানো</string>
   <string name="audio_group_downloads">ডাউনলোড</string>
   <string name="audio_setting_download_amount_hint">প্লে চাপলে কতটুকু অডিও নামবে</string>
-  <string name="audio_downloads_hint">ফোনে থাকা অডিও, ক্বারী অনুযায়ী</string>
   <string name="manager_view">দেখান</string>
   <string name="manager_remove_reciter">%1$s-এর অডিও মুছুন</string>
   <string name="manager_remove_title">%1$s-এর অডিও মুছবেন?</string>
   <string name="manager_remove_frees">%1$s জায়গা খালি হবে। আবার ডাউনলোড করা যাবে।</string>
+  <string name="audio_setting_word_audio_hint">যে শব্দে চাপ দেবেন সেটি শোনায়</string>
+  <string name="audio_setting_wifi_hint">সব ডাউনলোডে প্রযোজ্য</string>
+  <plurals name="audio_downloads_value">
+    <item quantity="one">%1$s · %2$dজন ক্বারী</item>
+    <item quantity="other">%1$s · %2$dজন ক্বারী</item>
+  </plurals>
 </resources>

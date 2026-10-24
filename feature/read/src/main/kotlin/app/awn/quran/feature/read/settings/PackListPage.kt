@@ -7,24 +7,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import app.awn.quran.core.data.CatalogueGroup
-import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.core.ui.components.PackTick
 import app.awn.quran.core.ui.components.SettingsGroupHeading
 import app.awn.quran.feature.read.ReadDependencies
-import app.awn.quran.feature.read.page.MushafSettingsViewModel
 import java.util.Locale
 
 /**
- * One list of downloadable entries (translations, transliteration, word by word or page types),
- * grouped by language. The tick box at the start shows or hides an entry once it is on the phone;
- * bundled entries say "Included" and cannot be removed. The title is [PackListKind.title], drawn by
- * the page that hosts this list.
+ * One list of downloadable entries (translations, transliteration or word by word), grouped by
+ * language. The tick box at the start shows or hides an entry once it is on the phone; bundled
+ * entries say "Included" and cannot be removed. The title is [PackListKind.title], drawn by the
+ * page that hosts this list.
  */
 @Composable
 fun PackListPage(
@@ -34,10 +29,6 @@ fun PackListPage(
 ) {
     val settingsViewModel = rememberReadSettingsViewModel(dependencies)
     val catalogueViewModel = rememberCatalogueViewModel(dependencies)
-    val mushafViewModel: MushafSettingsViewModel =
-        viewModel(
-            factory = viewModelFactory { initializer { MushafSettingsViewModel(dependencies) } },
-        )
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val catalogue by catalogueViewModel.state.collectAsStateWithLifecycle()
     val rows = catalogue.rowsIn(kind.group)
@@ -79,48 +70,16 @@ fun PackListPage(
                         )
                     PackListKind.WordAudio,
                     PackListKind.LessonSounds -> EntryWithoutTick(row, baseActions)
-                    PackListKind.PageTypes ->
-                        PageTypeEntry(row, settings.script, mushafViewModel, baseActions)
                 }
             }
         }
     }
 }
 
-/** Word audio and lesson sounds are used wherever they are needed, so they have no tick. */
+/** Single-word audio and lesson sounds are used wherever they are needed, so they have no tick. */
 @Composable
 private fun EntryWithoutTick(row: CatalogueRow, actions: CatalogueRowActions) {
     CatalogueEntryRow(row = row, tick = PackTick.Absent, onTickChange = {}, actions = actions)
-}
-
-@Composable
-private fun PageTypeEntry(
-    row: CatalogueRow,
-    scriptInUse: ScriptId,
-    mushafViewModel: MushafSettingsViewModel,
-    baseActions: CatalogueRowActions,
-) {
-    val script = ScriptId.entries.firstOrNull { it.packId == row.item.id }
-    val isInUse = script != null && script == scriptInUse
-    CatalogueEntryRow(
-        row = row,
-        tick = tickOf(isInUse),
-        // One print is in use at a time: ticking another replaces it, unticking is not offered.
-        onTickChange = { wantsToUse ->
-            if (wantsToUse && script != null) mushafViewModel.use(script)
-        },
-        actions =
-            CatalogueRowActions(
-                // The view model also makes the print the one in use once its font is on the phone.
-                onInstall = {
-                    if (script != null) mushafViewModel.install(script) else baseActions.onInstall()
-                },
-                onCancel = baseActions.onCancel,
-                onRemove = baseActions.onRemove,
-            ),
-        // The print in use is never removed.
-        canRemove = !isInUse,
-    )
 }
 
 /**

@@ -2,6 +2,7 @@ package app.awn.quran.feature.read.page
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.PagerState
@@ -62,23 +64,43 @@ internal fun PrintPreview(script: ScriptId) {
             style = AwnTypography.lead,
             color = Awn.field.content,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = AwnSpacing.medium),
+            modifier = Modifier.padding(top = AwnSpacing.medium),
+        )
+        Text(
+            text = stringResource(text.year),
+            style = AwnTypography.small,
+            color = Awn.field.mutedContent,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = AwnSpacing.medium),
         )
     }
 }
 
-/** Stands in for a print that has no preview picture: a plain page shape with the print's name. */
+/**
+ * Stands in for an edition that has no preview picture: a paper-coloured page with fifteen thin
+ * ruled lines, one for each line of the edition.
+ */
 @Composable
 private fun PreviewPlaceholder(name: String) {
-    Box(
+    val field = Awn.field
+    Column(
         modifier =
             Modifier.fillMaxSize()
                 .aspectRatio(PREVIEW_ASPECT_RATIO, matchHeightConstraintsFirst = true)
                 .clip(AwnShapes.control)
-                .background(Awn.field.softFill),
-        contentAlignment = Alignment.Center,
+                .background(field.background)
+                .border(AwnSpacing.switchKnobRing, field.softFill, AwnShapes.control)
+                .padding(AwnSpacing.large)
+                .semantics { contentDescription = name },
+        verticalArrangement = Arrangement.SpaceEvenly,
     ) {
-        Text(text = name, style = AwnTypography.title, color = Awn.field.mutedContent)
+        repeat(PLACEHOLDER_LINE_COUNT) {
+            Box(
+                Modifier.fillMaxWidth()
+                    .height(AwnSpacing.switchKnobRing)
+                    .background(field.softFill),
+            )
+        }
     }
 }
 
@@ -99,5 +121,6 @@ internal fun PageDots(pagerState: PagerState) {
 }
 
 private const val PREVIEW_ASPECT_RATIO = 0.62f
+private const val PLACEHOLDER_LINE_COUNT = 15
 private val DOT_SIZE = AwnSpacing.small
 private val DOT_GAP = AwnSpacing.small

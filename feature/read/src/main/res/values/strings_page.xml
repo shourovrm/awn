@@ -14,11 +14,10 @@
   <string name="mushaf_year_v4">Tajweed rules in colour</string>
   <string name="mushaf_type_indopak">Indo-Pak, 15 lines</string>
   <string name="mushaf_year_indopak">Nastaleeq lettering</string>
-  <string name="mushaf_show_page_info">Show surah, juz and page number on the page</string>
+  <string name="mushaf_show_page_info">Surah, juz and page number</string>
   <string name="mushaf_preview_description">%1$s, preview of page %2$d</string>
   <string name="ayah_spoken_with_text">%1$s. %2$s</string>
   <string name="mushaf_print">Mushaf</string>
-  <string name="mushaf_print_value">%1$s, %2$s</string>
   <string name="print_offer_title">Choose your Mushaf</string>
   <string name="print_offer_body">Until then the page shows plain Arabic text. Wi‑Fi recommended.</string>
   <string name="starter_translation_name">%1$s translation</string>

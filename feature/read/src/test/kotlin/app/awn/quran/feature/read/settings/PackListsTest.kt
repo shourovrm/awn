@@ -73,7 +73,6 @@ class PackListsTest {
     fun everyKindListsItsOwnGroup() {
         assertEquals(
             setOf(
-                CatalogueGroup.PageType,
                 CatalogueGroup.Translation,
                 CatalogueGroup.Transliteration,
                 CatalogueGroup.WordByWord,

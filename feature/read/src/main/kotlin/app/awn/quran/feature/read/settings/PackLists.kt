@@ -5,9 +5,8 @@ import app.awn.quran.core.data.CatalogueGroup
 import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.feature.read.R
 
-/** The lists of downloadable entries that Settings opens from the Reading and Mushaf pages. */
+/** The lists of downloadable entries that Settings opens from the Quran page and Storage. */
 enum class PackListKind(val group: CatalogueGroup, @StringRes val title: Int) {
-    PageTypes(CatalogueGroup.PageType, R.string.pack_list_page_types),
     Translations(CatalogueGroup.Translation, R.string.pack_list_translations),
     Transliteration(CatalogueGroup.Transliteration, R.string.pack_list_transliteration),
     WordByWord(CatalogueGroup.WordByWord, R.string.pack_list_word_by_word),

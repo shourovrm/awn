@@ -19,8 +19,10 @@ import kotlinx.coroutines.launch
 data class AudioSettingsState(
     val reciterName: String = "",
     val downloadAmount: DownloadAmount = DownloadAmount.Page,
-    val wifiOnly: Boolean = true,
+    val wifiOnly: Boolean = false,
     val usedBytes: Long = 0L,
+    /** How many reciters have any audio on the phone. */
+    val downloadedReciterCount: Int = 0,
     val stopOnTaskRemoved: Boolean = true,
     /** The reciters that have word timings, the only ones the word audio can use. */
     val wordReciters: List<Reciter> = emptyList(),
@@ -38,6 +40,7 @@ class AudioSettingsViewModel(
 
     private val allReciters = MutableStateFlow<List<Reciter>>(emptyList())
     private val totalUsedBytes = MutableStateFlow(0L)
+    private val downloadedReciterCount = MutableStateFlow(0)
 
     private val wifiOnlyAndOptions =
         combine(settings.wifiOnly, player.options) { wifiOnly, options ->
@@ -58,7 +61,8 @@ class AudioSettingsViewModel(
                 settings.downloadAmount,
                 wifiOnlyAndOptions,
                 totalUsedBytes,
-            ) { choices, amount, (wifiOnly, options), used ->
+                downloadedReciterCount,
+            ) { choices, amount, (wifiOnly, options), used, reciterCount ->
                 val wordReciters =
                     choices.reciters.filter { it.wordByWord && it.timingPack != null }
                 AudioSettingsState(
@@ -70,6 +74,7 @@ class AudioSettingsViewModel(
                     downloadAmount = amount,
                     wifiOnly = wifiOnly,
                     usedBytes = used,
+                    downloadedReciterCount = reciterCount,
                     stopOnTaskRemoved = options.stopOnTaskRemoved,
                     wordReciters = wordReciters,
                     wordReciterId = wordReciterIdInUse(choices, wordReciters),
@@ -86,8 +91,11 @@ class AudioSettingsViewModel(
             val list = reciters.reciters()
             allReciters.value = list
             if (list.isEmpty()) return@launch
-            combine(list.map { downloads.usedBytes(it.id) }) { sizes -> sizes.sum() }
-                .collect { totalUsedBytes.value = it }
+            combine(list.map { downloads.usedBytes(it.id) }) { sizes -> sizes }
+                .collect { sizes ->
+                    totalUsedBytes.value = sizes.sum()
+                    downloadedReciterCount.value = sizes.count { it > 0L }
+                }
         }
     }
 

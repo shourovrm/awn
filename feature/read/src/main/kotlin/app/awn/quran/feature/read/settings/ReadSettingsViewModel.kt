@@ -43,13 +43,14 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
         it.withStepMoved(TextLayer.Arabic, delta).withStepMoved(TextLayer.Translation, delta)
     }
 
-    fun setQuranOrientation(orientation: ScreenOrientation) = change {
-        it.copy(quranOrientation = orientation)
+    /**
+     * The one "Screen rotation" choice: the Quran pages and the rest of the app turn the same way.
+     */
+    fun setScreenRotation(orientation: ScreenOrientation) = change {
+        it.copy(quranOrientation = orientation, appOrientation = orientation)
     }
 
-    fun setAppOrientation(orientation: ScreenOrientation) = change {
-        it.copy(appOrientation = orientation)
-    }
+    fun setShowPageInfo(show: Boolean) = change { it.copy(showPageInfo = show) }
 
     fun setHighlightBookmarks(enabled: Boolean) = change { it.copy(highlightBookmarks = enabled) }
 
@@ -58,9 +59,6 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
     fun setShowTransliteration(show: Boolean) = change { it.copy(showTransliteration = show) }
 
     fun setShowWordByWord(show: Boolean) = change { it.copy(showWordByWord = show) }
-
-    /** The Settings row: picks the language of the meanings, or null to follow the app language. */
-    fun setWordByWordLanguage(language: String?) = change { it.copy(wordByWordLanguage = language) }
 
     /** Ticking a language in the Word by word list also shows the meanings the user asked for. */
     fun useWordByWordLanguage(language: String) = change {

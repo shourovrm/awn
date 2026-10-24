@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import app.awn.quran.R
 import app.awn.quran.core.ui.components.AwnChoiceDialog
 import app.awn.quran.core.ui.components.AwnSearchField
+import app.awn.quran.core.ui.components.SettingRowKeys
 import app.awn.quran.core.ui.components.SettingsGroupHeading
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
@@ -26,40 +27,42 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.language.AppLanguage
 
-/** The sections of the Settings list, in the order they are listed. */
+/** The pages of Settings, in the order they are listed. */
 enum class SettingsSection(
     val route: String,
     @DrawableRes val icon: Int,
     @StringRes val label: Int,
 ) {
-    Mushaf("settings/mushaf", R.drawable.ic_app_menu_book, R.string.settings_mushaf),
-    Reading("settings/reading", R.drawable.ic_app_text_fields, R.string.settings_reading),
+    QuranPage("settings/quran", R.drawable.ic_app_menu_book, R.string.settings_quran_page),
     Audio("settings/audio", R.drawable.ic_app_headphones, R.string.settings_audio),
-    Downloads(
-        "settings/downloads",
-        R.drawable.ic_app_file_download,
-        R.string.settings_downloads,
-    ),
-    Recite("settings/recite", R.drawable.ic_app_mic, R.string.settings_recite),
-    Appearance("settings/appearance", R.drawable.ic_app_palette, R.string.settings_appearance),
+    ReciteHifz("settings/recite", R.drawable.ic_app_mic, R.string.settings_recite),
+    Learn("settings/learn", R.drawable.ic_app_school, R.string.settings_learn),
+    Colours("settings/colours", R.drawable.ic_app_palette, R.string.settings_colours),
+    Storage("settings/storage", R.drawable.ic_app_file_download, R.string.settings_storage),
     Backup("settings/backup", R.drawable.ic_app_backup, R.string.settings_backup),
     About("settings/about", R.drawable.ic_app_info, R.string.settings_about),
 }
 
-/** The headings of the hub and the sections under each, as in the quiet-list design. */
+/** The headings of the hub and the pages under each. The Language row opens the App group. */
 private val HUB_GROUPS: List<Pair<Int, List<SettingsSection>>> =
     listOf(
-        R.string.settings_group_reading to listOf(SettingsSection.Mushaf, SettingsSection.Reading),
-        R.string.settings_group_listening to
-            listOf(SettingsSection.Audio, SettingsSection.Downloads, SettingsSection.Recite),
+        R.string.settings_group_quran to listOf(SettingsSection.QuranPage, SettingsSection.Audio),
+        R.string.settings_group_practice to
+            listOf(SettingsSection.ReciteHifz, SettingsSection.Learn),
         R.string.settings_group_app to
-            listOf(SettingsSection.Appearance, SettingsSection.Backup, SettingsSection.About),
+            listOf(
+                SettingsSection.Colours,
+                SettingsSection.Storage,
+                SettingsSection.Backup,
+                SettingsSection.About,
+            ),
     )
 
 /**
- * Settings as grouped two-line rows: each section shows its current value under its name. A search
- * field at the top filters every setting of every page; a result opens its page at that row.
- * [summaries] gives the second line of each section; [onOpenRow] opens a page at a row.
+ * Settings as grouped two-line rows: each page shows its current value under its name. A search
+ * field at the top filters every setting of every page; a result opens its page at that row. The
+ * Language row is on the hub itself, so its search result opens the language choice here.
+ * [summaries] gives the second line of each page; [onOpenRow] opens a page at a row.
  */
 @Composable
 fun SettingsHubScreen(
@@ -75,6 +78,7 @@ fun SettingsHubScreen(
     val locale = LocalConfiguration.current.locales[0]
     val entries = remember(locale) { buildSettingsSearchEntries(context) }
     var query by rememberSaveable { mutableStateOf("") }
+    var isLanguageDialogOpen by rememberSaveable { mutableStateOf(false) }
 
     SettingsPage(
         title = stringResource(R.string.settings_title),
@@ -89,10 +93,30 @@ fun SettingsHubScreen(
             modifier = Modifier.padding(top = AwnSpacing.medium),
         )
         if (query.isBlank()) {
-            HubGroups(summaries, language, onLanguageChange, onOpenSection)
+            HubGroups(summaries, language, onOpenSection) { isLanguageDialogOpen = true }
         } else {
-            SearchResults(searchSettings(entries, query), onOpenRow)
+            SearchResults(searchSettings(entries, query)) { route, rowKey ->
+                if (rowKey == SettingRowKeys.HUB_LANGUAGE) {
+                    query = ""
+                    isLanguageDialogOpen = true
+                } else {
+                    onOpenRow(route, rowKey)
+                }
+            }
         }
+    }
+    if (isLanguageDialogOpen) {
+        AwnChoiceDialog(
+            title = stringResource(R.string.settings_language),
+            options = AppLanguage.entries,
+            selected = language,
+            optionLabel = { stringResource(it.ownNameRes) },
+            onSelect = {
+                isLanguageDialogOpen = false
+                onLanguageChange(it)
+            },
+            onDismiss = { isLanguageDialogOpen = false },
+        )
     }
 }
 
@@ -100,13 +124,21 @@ fun SettingsHubScreen(
 private fun HubGroups(
     summaries: Map<SettingsSection, String>,
     language: AppLanguage,
-    onLanguageChange: (AppLanguage) -> Unit,
     onOpenSection: (SettingsSection) -> Unit,
+    onOpenLanguage: () -> Unit,
 ) {
     HUB_GROUPS.forEach { (heading, sections) ->
         SettingsGroupHeading(stringResource(heading))
         // Language is the one setting reachable straight from the hub, first in the App group.
-        if (heading == R.string.settings_group_app) HubLanguageRow(language, onLanguageChange)
+        if (heading == R.string.settings_group_app) {
+            SettingsLinkRow(
+                label = stringResource(R.string.settings_language),
+                value = stringResource(language.ownNameRes),
+                icon = R.drawable.ic_app_language,
+                onClick = onOpenLanguage,
+                rowKey = SettingRowKeys.HUB_LANGUAGE,
+            )
+        }
         sections.forEach { section ->
             SettingsLinkRow(
                 label = stringResource(section.label),
@@ -115,31 +147,6 @@ private fun HubGroups(
                 onClick = { onOpenSection(section) },
             )
         }
-    }
-}
-
-/** The Language row of the hub: the current language in its own script, and the choice dialog. */
-@Composable
-private fun HubLanguageRow(language: AppLanguage, onLanguageChange: (AppLanguage) -> Unit) {
-    var isDialogOpen by rememberSaveable { mutableStateOf(false) }
-    SettingsLinkRow(
-        label = stringResource(R.string.appearance_language),
-        value = stringResource(language.ownNameRes),
-        icon = R.drawable.ic_app_language,
-        onClick = { isDialogOpen = true },
-    )
-    if (isDialogOpen) {
-        AwnChoiceDialog(
-            title = stringResource(R.string.appearance_language),
-            options = AppLanguage.entries,
-            selected = language,
-            optionLabel = { stringResource(it.ownNameRes) },
-            onSelect = {
-                isDialogOpen = false
-                onLanguageChange(it)
-            },
-            onDismiss = { isDialogOpen = false },
-        )
     }
 }
 

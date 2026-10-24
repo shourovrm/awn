@@ -4,6 +4,8 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.awn.quran.feature.learn.content.LessonLanguageChoice
+import app.awn.quran.feature.learn.progress.LearnSettings
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.services.AwnServices
 import java.io.IOException
@@ -20,22 +22,34 @@ import kotlinx.coroutines.withContext
 /** The choices of the "Memorised after" picker: the number of days an ayah must be recited. */
 val MEMORISED_AFTER_DAYS = 1..10
 
-/** The values the Listening and Learning groups of Settings show. */
+/** The values the hub summaries of Settings show. */
 data class SettingsState(
     val reciterName: String = "",
-    val wifiOnly: Boolean = true,
+    val wifiOnly: Boolean = false,
     val downloadedBytes: Long = 0L,
     val memorisationThreshold: Int = 0,
-    /** What the hub's second lines say about Mushaf and Reading. */
+    /** What the hub's second line says about the Quran page. */
     val readSettings: ReadSettings = ReadSettings(),
     val hifzEnabled: Boolean = false,
     val hintEnabled: Boolean = true,
+    val reminderEnabled: Boolean = false,
+    val reminderHour: Int = LearnSettings.DEFAULT_REMINDER_HOUR,
+    val reminderMinute: Int = 0,
+    val lessonLanguage: LessonLanguageChoice = LessonLanguageChoice.FollowApp,
+)
+
+/** The Learn page's stored values, read together because they make one summary line. */
+private data class LearnValues(
+    val reminderEnabled: Boolean,
+    val reminderHour: Int,
+    val reminderMinute: Int,
+    val lessonLanguage: LessonLanguageChoice,
 )
 
 /** How an export or import ended. */
 enum class BackupResult {
-    Exported,
-    Imported,
+    Saved,
+    Restored,
     Failed,
 }
 
@@ -61,17 +75,31 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
             )
         }
 
+    private val learnValues: Flow<LearnValues> =
+        combine(
+            services.learn.settings.reminderEnabled,
+            services.learn.settings.reminderHour,
+            services.learn.settings.reminderMinute,
+            services.learn.settings.lessonLanguage,
+            ::LearnValues,
+        )
+
     val state: StateFlow<SettingsState> =
         combine(
                 audioAndLearnState,
                 services.readDependencies.settingsStore.settings,
                 services.reciteSettings.hifzEnabled,
                 services.reciteSettings.hintEnabled,
-            ) { base, readSettings, hifzEnabled, hintEnabled ->
+                learnValues,
+            ) { base, readSettings, hifzEnabled, hintEnabled, learn ->
                 base.copy(
                     readSettings = readSettings,
                     hifzEnabled = hifzEnabled,
                     hintEnabled = hintEnabled,
+                    reminderEnabled = learn.reminderEnabled,
+                    reminderHour = learn.reminderHour,
+                    reminderMinute = learn.reminderMinute,
+                    lessonLanguage = learn.lessonLanguage,
                 )
             }
             .stateIn(
@@ -108,7 +136,7 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
                     resolver.openOutputStream(uri, "wt") ?: throw IOException("No stream for $uri")
                 stream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
             }
-            BackupResult.Exported
+            BackupResult.Saved
         } catch (_: IOException) {
             BackupResult.Failed
         }
@@ -123,7 +151,7 @@ class SettingsViewModel(private val services: AwnServices) : ViewModel() {
                     stream.use { it.readBytes().toString(Charsets.UTF_8) }
                 }
             services.coreData.bookmarks.importJson(json)
-            BackupResult.Imported
+            BackupResult.Restored
         } catch (_: IOException) {
             BackupResult.Failed
         } catch (_: IllegalArgumentException) {
