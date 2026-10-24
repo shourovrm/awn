@@ -3,7 +3,6 @@ package app.awn.quran.feature.read.quran
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
@@ -278,16 +277,4 @@ internal fun topBarClearancePx(areBarsVisible: Boolean): Float {
 internal fun copyToClipboard(context: Context, ayah: AyahRef, text: String) {
     val clipboard = context.getSystemService(ClipboardManager::class.java)
     clipboard.setPrimaryClip(ClipData.newPlainText(ayah.toString(), text))
-}
-
-internal fun shareText(context: Context, text: String) {
-    val send =
-        Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-        }
-    val chooser =
-        Intent.createChooser(send, context.getString(R.string.ayah_share))
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(chooser)
 }

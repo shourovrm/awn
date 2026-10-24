@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,7 @@ import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.SettingsLinkRow
+import app.awn.quran.core.ui.components.shareText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -93,14 +95,20 @@ internal class HubActions(
 private val SESSION_MINUTES = listOf(5, 10, 15)
 private const val PERCENT = 100
 
-/** The Learn tab: today's work, the course path, the progress and the other things to do. */
+/**
+ * The Learn tab: the day's [saying] when there is one, today's work, the course path, the progress
+ * and the other things to do.
+ */
 @Composable
 internal fun CourseHub(
     state: HubState,
     actions: HubActions,
     modifier: Modifier = Modifier,
     barActions: @Composable RowScope.() -> Unit = {},
+    saying: DailySaying? = null,
 ) {
+    val context = LocalContext.current
+    val shareTitle = stringResource(R.string.saying_share)
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(title = stringResource(R.string.learn_title), actions = barActions)
         Column(
@@ -109,6 +117,12 @@ internal fun CourseHub(
                     .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
+            if (saying != null) {
+                DailySayingCard(
+                    saying = saying,
+                    onShare = { shareText(context, saying.shareText, shareTitle) },
+                )
+            }
             TodayCard(state, actions)
             Heading(stringResource(R.string.track_heading))
             state.tracks.forEach { TrackRow(it, actions) }

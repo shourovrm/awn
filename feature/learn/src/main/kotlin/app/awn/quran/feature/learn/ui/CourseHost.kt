@@ -149,7 +149,9 @@ internal fun CourseRoutes(
         LearnRoute.FirstOpen -> FirstOpenRoute(context, modifier)
         LearnRoute.CourseChoices -> CourseChoicesRoute(context, modifier)
         LearnRoute.Hub ->
-            HubRoute(context, dueAyahs) { CourseHub(it, actions, modifier, barActions) }
+            HubRoute(context, dueAyahs) {
+                CourseHub(it, actions, modifier, barActions, rememberHubSaying(context))
+            }
         is LearnRoute.Track,
         is LearnRoute.SetPage,
         is LearnRoute.PageWords,
@@ -352,6 +354,17 @@ private fun WordPageOfRank(rank: Int, context: CourseScreenContext, onOpenAyahs:
             onOpenAyahs = onOpenAyahs,
         )
     }
+}
+
+/** The day's saying for the hub, in the lesson language. */
+@Composable
+private fun rememberHubSaying(context: CourseScreenContext): DailySaying? {
+    val environment = LocalLearnEnvironment.current
+    return rememberDailySaying(
+        repository = context.services.snippets,
+        languageCode = context.dependencies.languageCode,
+        surahName = { surah -> environment?.surahName(surah) ?: surah.toString() },
+    )
 }
 
 /** Builds the hub state off the main thread and draws [screen] with it: the hub or Words. */

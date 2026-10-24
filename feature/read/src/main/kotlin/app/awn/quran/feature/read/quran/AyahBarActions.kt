@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.IntSize
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadIconButton
 import app.awn.quran.feature.read.page.SelectionBounds
@@ -109,7 +110,7 @@ internal fun AyahActionBar(
                 tint = field.onBar,
             )
             ReadIconButton(
-                R.drawable.ic_read_share,
+                UiR.drawable.ic_ui_share,
                 stringResource(R.string.ayah_share),
                 actions.onShare,
                 tint = field.onBar,

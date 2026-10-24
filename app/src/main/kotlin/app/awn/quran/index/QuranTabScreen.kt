@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -50,11 +49,13 @@ import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.tabs.TodayTiles
 import kotlinx.coroutines.launch
 
 const val SURAH_LIST_TAG = "surah-list"
+
+// The continue card and the row of tiles; the list header follows them.
+private const val ITEMS_ABOVE_HEADER = 2
 
 /** What the buttons of the Quran tab open. */
 class QuranTabActions(
@@ -75,10 +76,10 @@ internal enum class IndexMode(val labelResource: Int) {
 }
 
 /**
- * The Quran tab: the slim continue card, one row of four tiles (Hifz, Learn, Duas, Topics), the
- * day's snippet and the index list with the juz rail. The list's header row stays on top while the
- * list scrolls. [duaCount] and [topicCount] are how many duas and topics the collections hold; null
- * (not read yet) leaves that tile without a detail line.
+ * The Quran tab: the slim continue card, one row of four tiles (Hifz, Learn, Duas, Topics) and the
+ * index list with the juz rail. The list's header row stays on top while the list scrolls.
+ * [duaCount] and [topicCount] are how many duas and topics the collections hold; null (not read
+ * yet) leaves that tile without a detail line.
  */
 @Composable
 fun QuranTabScreen(
@@ -160,15 +161,13 @@ private fun QuranTabBody(
             IndexMode.Surahs -> content.surahRows
             IndexMode.Juz -> content.juzRows
         }
-    val language = LearnLanguage.of(LocalConfiguration.current.locales[0])
-    val snippet = rememberDailySnippetCard(state.snippets, content.chapters, language)
     val meanings = rememberSurahMeanings()
     val listState = rememberLazyListState()
     // The rows follow the items above them, so a juz number maps to a list position through this.
-    val itemsBeforeRows = 1 + 1 + (if (snippet != null) 1 else 0) + 1
+    val itemsBeforeRows = ITEMS_ABOVE_HEADER + 1
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize().testTag(SURAH_LIST_TAG)) {
-            topItems(continueReading, todayTiles, browse, snippet, actions)
+            topItems(continueReading, todayTiles, browse, actions)
             // Pinned, so Go to page and Show stay in reach while the list scrolls under them.
             stickyHeader(key = "list-header") {
                 ListControls(
@@ -201,12 +200,11 @@ private fun QuranTabBody(
     }
 }
 
-/** The items above the list: the continue card, the four tiles, and the day's snippet. */
+/** The items above the list: the continue card and the four tiles. */
 private fun LazyListScope.topItems(
     continueReading: ContinueReading,
     todayTiles: TodayTiles,
     browse: BrowseCounts,
-    snippet: DailySnippetCard?,
     actions: QuranTabActions,
 ) {
     item(key = "continue") {
@@ -233,11 +231,6 @@ private fun LazyListScope.topItems(
                     top = AwnSpacing.small,
                 ),
         )
-    }
-    if (snippet != null) {
-        item(key = "snippet") {
-            DailySnippet(snippet, Modifier.padding(horizontal = AwnSpacing.screenMargin))
-        }
     }
 }
 

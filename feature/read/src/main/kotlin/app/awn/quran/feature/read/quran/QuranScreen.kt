@@ -75,6 +75,7 @@ import app.awn.quran.core.data.RemovedMyWord
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.UndoMessage
+import app.awn.quran.core.ui.components.shareText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -585,7 +586,13 @@ private fun QuranContent(
                             }
                         },
                         onShare = {
-                            scope.launch { shareText(context, viewModel.shareTextOf(range)) }
+                            scope.launch {
+                                shareText(
+                                    context,
+                                    viewModel.shareTextOf(range),
+                                    context.getString(R.string.ayah_share),
+                                )
+                            }
                         },
                     ),
                 modifier = Modifier.fillMaxSize(),

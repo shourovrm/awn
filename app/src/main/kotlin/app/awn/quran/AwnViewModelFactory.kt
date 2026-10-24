@@ -28,7 +28,6 @@ class AwnViewModelFactory(private val services: AwnServices) : ViewModelProvider
                         bookmarks = services.coreData.bookmarks,
                         showSurahNameMeaning = services.preferences.showSurahNameMeaning,
                         script = services.readDependencies.settingsStore.settings.map { it.script },
-                        loadSnippets = services.learn.snippets::all,
                     )
                 SearchViewModel::class.java ->
                     SearchViewModel(

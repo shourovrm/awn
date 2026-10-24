@@ -7,8 +7,6 @@ import app.awn.quran.core.data.BookmarkRepository
 import app.awn.quran.core.data.RecentPage
 import app.awn.quran.core.data.SavedAyah
 import app.awn.quran.core.data.ScriptId
-import app.awn.quran.feature.learn.content.Snippet
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +14,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
@@ -40,8 +36,6 @@ data class IndexState(
     val bookmarks: List<BookmarkEntry> = emptyList(),
     val sort: BookmarkSort = BookmarkSort.Date,
     val showSurahNameMeaning: Boolean = true,
-    /** Every snippet the app holds; the tab picks the day's one with `SnippetRepository.forDay`. */
-    val snippets: List<Snippet> = emptyList(),
 )
 
 /** Gathers the Quran tab and the Bookmarks screen from the Quran text and the user's bookmarks. */
@@ -51,7 +45,6 @@ class IndexViewModel(
     bookmarks: BookmarkRepository,
     showSurahNameMeaning: Flow<Boolean>,
     script: Flow<ScriptId>,
-    loadSnippets: () -> List<Snippet>,
 ) : ViewModel() {
 
     private val sort = MutableStateFlow(BookmarkSort.Date)
@@ -59,15 +52,13 @@ class IndexViewModel(
     private val content: Flow<IndexContent> =
         script.distinctUntilChanged().mapLatest { loader.loadContent(it) }
 
-    private val snippets: Flow<List<Snippet>> = flow { emit(loadSnippets()) }.flowOn(Dispatchers.IO)
-
     val state: StateFlow<IndexState> =
         combine(
                 content,
                 bookmarks.bookmarks(),
                 bookmarks.savedAyahs(),
                 bookmarks.recentPages(),
-                combine(sort, showSurahNameMeaning, snippets, ::Preferences),
+                combine(sort, showSurahNameMeaning, ::Preferences),
             ) { loadedContent, pageMarks, savedAyahs, recentPages, preferences ->
                 Sources(loadedContent, pageMarks, savedAyahs, recentPages, preferences)
             }
@@ -85,7 +76,6 @@ class IndexViewModel(
     private class Preferences(
         val sort: BookmarkSort,
         val showMeaning: Boolean,
-        val snippets: List<Snippet>,
     )
 
     private class Sources(
@@ -115,7 +105,6 @@ class IndexViewModel(
             bookmarks = sortBookmarks(entries, sources.preferences.sort),
             sort = sources.preferences.sort,
             showSurahNameMeaning = sources.preferences.showMeaning,
-            snippets = sources.preferences.snippets,
         )
     }
 }

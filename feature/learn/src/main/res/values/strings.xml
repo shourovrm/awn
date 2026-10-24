@@ -6,6 +6,7 @@
   <string name="learn_pages_caption">pages read this week</string>
   <string name="learn_all_lessons">All lessons</string>
   <string name="learn_revise_none">Nothing to revise</string>
+  <string name="saying_share">Share</string>
   <plurals name="learn_revise">
     <item quantity="one">Revise %d ayah</item>
     <item quantity="other">Revise %d ayahs</item>
