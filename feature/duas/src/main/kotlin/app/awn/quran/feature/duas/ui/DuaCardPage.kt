@@ -19,8 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
-import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -33,6 +31,7 @@ import app.awn.quran.feature.duas.R
 import app.awn.quran.feature.duas.card.DuaCardData
 import app.awn.quran.feature.duas.card.DuaWordTile
 import app.awn.quran.feature.duas.data.CardLayers
+import app.awn.quran.feature.read.settings.ReadSettings
 
 internal const val OPEN_MUSHAF_TAG = "dua-open-mushaf"
 internal const val SHOW_DUA_ONLY_TAG = "dua-show-dua-only"
@@ -51,17 +50,17 @@ internal class CardPageState(
 internal class CardPageActions(
     val onToggleDuaOnly: () -> Unit,
     val onOpenMushaf: () -> Unit,
-    val onPlayWord: (WordKey) -> Unit,
+    val onWordTap: WordTapHandler,
     val onFlaggedWordClick: (WordKey) -> Unit,
 )
 
-/** One card of the pager: the dua's reference, its words or word tiles, translation and links. */
+/** One card of the pager: the dua's reference, its words, translation and links. */
 @Composable
 internal fun DuaCardPage(
     card: DuaCardData?,
     wordTiles: List<DuaWordTile>,
     state: CardPageState,
-    myWords: MyWords?,
+    lineView: LineViewResources?,
     actions: CardPageActions,
     modifier: Modifier = Modifier,
 ) {
@@ -82,27 +81,42 @@ internal fun DuaCardPage(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
         ) {
             CardHeader(card)
-            if (state.layers.showWordByWord) {
-                WordTileGrid(wordTiles, myWords, actions.onPlayWord)
-            } else {
-                val textStyle: TextStyle =
-                    if (card.hasWordsOutsideDua) AwnTypography.quranLead else AwnTypography.quran
-                CardWordFlow(
-                    words = card.words,
+            if (lineView != null) {
+                DuaLineView(
+                    card = card,
+                    wordTiles = wordTiles,
                     showDuaOnly = state.showDuaOnly,
                     highlights = state.highlights,
-                    onFlaggedWordClick = actions.onFlaggedWordClick,
-                    textStyle = textStyle,
-                    modifier = Modifier.fillMaxWidth(),
+                    settings = lineSettingsOf(lineView.settings, state),
+                    resources = lineView,
+                    onWordTap = { ayah, word, bounds ->
+                        // A word recited badly opens its review; any other word opens its card.
+                        if (word.key in state.highlights.flaggedWords) {
+                            actions.onFlaggedWordClick(word.key)
+                        } else {
+                            actions.onWordTap(ayah, word, bounds)
+                        }
+                    },
                 )
-                if (state.layers.showTranslation) {
-                    CardTranslation(card.translation, state.isTranslationHidden)
-                }
+            }
+            if (state.layers.showTranslation) {
+                CardTranslation(card.translation, state.isTranslationHidden)
             }
             CardFooter(card, state, actions)
         }
     }
 }
+
+/**
+ * The user's Mushaf settings with this card's layers on top. While reciting with the words hidden,
+ * the meanings and the sound would give the words away, so they stay off as the translation does.
+ */
+private fun lineSettingsOf(mushafSettings: ReadSettings, state: CardPageState): ReadSettings =
+    mushafSettings.copy(
+        showArabic = true,
+        showWordByWord = state.layers.showWordByWord && !state.isTranslationHidden,
+        showTransliteration = state.layers.showTransliteration && !state.isTranslationHidden,
+    )
 
 @Composable
 private fun CardHeader(card: DuaCardData) {
@@ -150,7 +164,7 @@ private fun CardTranslation(translation: String?, isHidden: Boolean) {
 @Composable
 private fun CardFooter(card: DuaCardData, state: CardPageState, actions: CardPageActions) {
     val field = Awn.field
-    val hasToggle = card.hasWordsOutsideDua && !state.layers.showWordByWord
+    val hasToggle = card.hasWordsOutsideDua
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (hasToggle) Arrangement.SpaceBetween else Arrangement.End,

@@ -1,18 +1,25 @@
 package app.awn.quran.feature.duas
 
 import androidx.compose.runtime.Composable
+import app.awn.quran.core.data.CatalogueItem
+import app.awn.quran.core.data.InstalledPack
 import app.awn.quran.core.data.MyWords
+import app.awn.quran.core.data.PackRepository
+import app.awn.quran.core.data.PackSize
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.packs.PackEntry
 import app.awn.quran.feature.duas.content.DuaCatalogue
 import app.awn.quran.feature.duas.content.TopicCatalogue
 import app.awn.quran.feature.duas.data.DuaProgressStore
 import app.awn.quran.feature.duas.recite.DuaRecitation
+import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.player.AudioPlayer
+import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -48,7 +55,35 @@ data class DuasDependencies(
     val requestPronunciation: () -> Unit = {},
     /** Reads the bundled Ayahs by topic list; called off the main thread. */
     val loadTopics: suspend () -> TopicCatalogue = { TopicCatalogue(emptyList(), emptyList()) },
+    /**
+     * The Quran screen's settings. The cards draw their words with the script chosen there, so a
+     * dua looks as it does in the Mushaf.
+     */
+    val readSettings: Flow<ReadSettings> = flowOf(ReadSettings(script = ScriptId.QpcHafs)),
+    /** Where the Mushaf's page fonts are installed. */
+    val packs: PackRepository = NoPacks,
 )
+
+/** Stands in for the pack store where there is none; no font is installed. */
+internal object NoPacks : PackRepository {
+    override fun installed(): Flow<List<InstalledPack>> = flowOf(emptyList())
+
+    override suspend fun manifest(kind: String): List<PackEntry> = emptyList()
+
+    override suspend fun sizeOf(id: String): PackSize? = null
+
+    override suspend fun catalogue(): List<CatalogueItem> = emptyList()
+
+    override fun freeBytes(): Long = 0L
+
+    override suspend fun install(entry: PackEntry, onProgress: (Float) -> Unit) = Unit
+
+    override suspend fun remove(id: String) = Unit
+
+    override fun fontFile(script: ScriptId, page: Int): File? = null
+
+    override fun learnAudioFile(clipId: String): File? = null
+}
 
 /** Where the word-by-word pronunciation download stands. */
 enum class PronunciationState {

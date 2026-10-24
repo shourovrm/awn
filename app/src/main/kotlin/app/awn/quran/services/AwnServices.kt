@@ -255,6 +255,8 @@ class AwnServices(private val application: Application) {
             pronunciation = pronunciationState(),
             requestPronunciation = { coreData.packDownloads.request(PRONUNCIATION_PACK_ID) },
             loadTopics = { topicCatalogue.catalogue() },
+            readSettings = readDependencies.settingsStore.settings,
+            packs = coreData.packs,
         )
     }
 
