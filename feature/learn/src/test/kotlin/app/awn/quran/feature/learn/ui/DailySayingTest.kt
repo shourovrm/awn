@@ -61,8 +61,9 @@ class DailySayingTest {
         HubState(
             plan =
                 TodayPlan(
-                    steps = List(10) { PlanStep.NewWord(rank = it + 1) } +
-                        List(3) { PlanStep.Review(ItemRef.Word(rank = 100 + it)) },
+                    steps =
+                        List(10) { PlanStep.NewWord(rank = it + 1) } +
+                            List(3) { PlanStep.Review(ItemRef.Word(rank = 100 + it)) },
                     plannedSeconds = 600,
                 ),
             sessionMinutes = 10,
@@ -79,7 +80,9 @@ class DailySayingTest {
 
     private fun showHub(withSaying: DailySaying?) {
         composeRule.setContent {
-            AwnTheme(field = LearnField) { CourseHub(hubState, noHubActions, saying = withSaying) }
+            AwnTheme(field = LearnField) {
+                CourseHub(hubState.copy(saying = withSaying), noHubActions)
+            }
         }
     }
 
@@ -123,8 +126,7 @@ class DailySayingTest {
         val application = ApplicationProvider.getApplicationContext<Application>()
         val chooser = shadowOf(application).nextStartedActivity
         assertEquals(Intent.ACTION_CHOOSER, chooser.action)
-        @Suppress("DEPRECATION")
-        val sent = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+        @Suppress("DEPRECATION") val sent = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
         assertEquals(Intent.ACTION_SEND, sent?.action)
         assertEquals(saying.shareText, sent?.getStringExtra(Intent.EXTRA_TEXT))
         assertEquals(

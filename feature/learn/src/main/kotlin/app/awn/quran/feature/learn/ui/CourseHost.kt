@@ -150,7 +150,7 @@ internal fun CourseRoutes(
         LearnRoute.CourseChoices -> CourseChoicesRoute(context, modifier)
         LearnRoute.Hub ->
             HubRoute(context, dueAyahs) {
-                CourseHub(it, actions, modifier, barActions, rememberHubSaying(context))
+                CourseHub(it, actions, modifier, barActions)
             }
         is LearnRoute.Track,
         is LearnRoute.SetPage,
@@ -356,17 +356,6 @@ private fun WordPageOfRank(rank: Int, context: CourseScreenContext, onOpenAyahs:
     }
 }
 
-/** The day's saying for the hub, in the lesson language. */
-@Composable
-private fun rememberHubSaying(context: CourseScreenContext): DailySaying? {
-    val environment = LocalLearnEnvironment.current
-    return rememberDailySaying(
-        repository = context.services.snippets,
-        languageCode = context.dependencies.languageCode,
-        surahName = { surah -> environment?.surahName(surah) ?: surah.toString() },
-    )
-}
-
 /** Builds the hub state off the main thread and draws [screen] with it: the hub or Words. */
 @Composable
 internal fun HubRoute(
@@ -393,7 +382,17 @@ internal fun HubRoute(
                     )
                 }
         }
-    state?.let { screen(it) }
+    val sayingLoad =
+        rememberSayingLoad(
+            repository = context.services.snippets,
+            languageCode = context.dependencies.languageCode,
+            environment = LocalLearnEnvironment.current,
+        )
+    // The rows wait for the saying, so the card never appears after them and moves them down.
+    val hubState = state
+    if (hubState != null && sayingLoad != null) {
+        screen(hubState.copy(saying = sayingLoad.saying))
+    }
 }
 
 @Composable

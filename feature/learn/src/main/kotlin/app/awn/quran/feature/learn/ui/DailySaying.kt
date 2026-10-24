@@ -58,21 +58,32 @@ internal fun dailySayingOf(
     )
 }
 
-/** The day's saying, read from the snippet file off the main thread; null until it is read. */
+/** The outcome of reading the snippets: [saying] is null when there are none. */
+internal class SayingLoad(val saying: DailySaying?)
+
+/**
+ * The day's saying, read from the snippet file off the main thread. The result is null until the
+ * file is read, so the hub can wait for it and the card does not push the rows down after they are
+ * drawn.
+ */
 @Composable
-internal fun rememberDailySaying(
+internal fun rememberSayingLoad(
     repository: SnippetRepository,
     languageCode: String,
-    surahName: (Int) -> String,
-): DailySaying? {
+    environment: LearnEnvironment?,
+): SayingLoad? {
     val language = if (languageCode == "bn") LearnLanguage.Bangla else LearnLanguage.English
-    val saying by
-        produceState<DailySaying?>(null, repository, language) {
+    val load by
+        produceState<SayingLoad?>(null, repository, language, environment) {
             val snippets = withContext(Dispatchers.IO) { repository.all() }
             val today = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
-            value = dailySayingOf(snippets, today, language, surahName)
+            val saying =
+                dailySayingOf(snippets, today, language) { surah ->
+                    environment?.surahName(surah) ?: surah.toString()
+                }
+            value = SayingLoad(saying)
         }
-    return saying
+    return load
 }
 
 /**
@@ -92,7 +103,11 @@ internal fun DailySayingCard(
                 .fillMaxWidth()
                 .clip(AwnShapes.control)
                 .background(field.softFill)
-                .padding(start = AwnSpacing.medium, top = AwnSpacing.medium, end = AwnSpacing.small),
+                .padding(
+                    start = AwnSpacing.medium,
+                    top = AwnSpacing.medium,
+                    end = AwnSpacing.small,
+                ),
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
         Text(

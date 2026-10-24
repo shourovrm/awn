@@ -66,6 +66,8 @@ internal data class HubState(
     val meanings: MeaningsState,
     /** Reading, Tajweed and Grammar, in that order; Words is drawn from the word figures. */
     val tracks: List<TrackSummary>,
+    /** The day's saying; null when there are no snippets. */
+    val saying: DailySaying? = null,
 )
 
 /** Whether the word meanings the course needs are on the phone. */
@@ -96,7 +98,7 @@ private val SESSION_MINUTES = listOf(5, 10, 15)
 private const val PERCENT = 100
 
 /**
- * The Learn tab: the day's [saying] when there is one, today's work, the course path, the progress
+ * The Learn tab: the day's saying when there is one, today's work, the course path, the progress
  * and the other things to do.
  */
 @Composable
@@ -105,7 +107,6 @@ internal fun CourseHub(
     actions: HubActions,
     modifier: Modifier = Modifier,
     barActions: @Composable RowScope.() -> Unit = {},
-    saying: DailySaying? = null,
 ) {
     val context = LocalContext.current
     val shareTitle = stringResource(R.string.saying_share)
@@ -117,7 +118,7 @@ internal fun CourseHub(
                     .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
-            if (saying != null) {
+            state.saying?.let { saying ->
                 DailySayingCard(
                     saying = saying,
                     onShare = { shareText(context, saying.shareText, shareTitle) },
