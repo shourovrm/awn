@@ -1,1 +1,1646 @@
-{"groups": [], "prophets": {}, "duas": []}
+{
+  "note": "Word positions are the 1-based positions in the bundled quran.sqlite. A dua is included when the words are addressed to Allah, ask Him for something or seek refuge in Him, and a believer can say them as their own; see the excluded list for what was left out.",
+  "groups": [
+    {
+      "key": "forgiveness",
+      "name_en": "Forgiveness and mercy",
+      "name_bn": "ক্ষমা ও রহমত"
+    },
+    {
+      "key": "both-worlds",
+      "name_en": "Good in this world and the next",
+      "name_bn": "দুনিয়া ও আখিরাতের কল্যাণ"
+    },
+    {
+      "key": "hereafter",
+      "name_en": "Safety from the Fire and a good end",
+      "name_bn": "জাহান্নাম থেকে মুক্তি ও শুভ পরিণতি"
+    },
+    {
+      "key": "guidance",
+      "name_en": "Guidance and a steady heart",
+      "name_bn": "হিদায়াত ও অটল অন্তর"
+    },
+    {
+      "key": "knowledge",
+      "name_en": "Knowledge and wisdom",
+      "name_bn": "জ্ঞান ও প্রজ্ঞা"
+    },
+    {
+      "key": "family",
+      "name_en": "Parents, spouse and children",
+      "name_bn": "মা-বাবা, স্ত্রী ও সন্তান"
+    },
+    {
+      "key": "ease",
+      "name_en": "Ease in hardship",
+      "name_bn": "কষ্টে সহজতা"
+    },
+    {
+      "key": "patience",
+      "name_en": "Patience and a firm stand",
+      "name_bn": "ধৈর্য ও দৃঢ়তা"
+    },
+    {
+      "key": "help",
+      "name_en": "Help and rescue from wrongdoers",
+      "name_bn": "সাহায্য ও জালিমদের হাত থেকে মুক্তি"
+    },
+    {
+      "key": "refuge",
+      "name_en": "Refuge from evil and temptation",
+      "name_bn": "মন্দ ও প্রলোভন থেকে আশ্রয়"
+    },
+    {
+      "key": "safe-home",
+      "name_en": "Safety and a blessed home",
+      "name_bn": "নিরাপত্তা ও বরকতময় বাসস্থান"
+    },
+    {
+      "key": "provision",
+      "name_en": "Provision and blessings",
+      "name_bn": "রিযিক ও বরকত"
+    },
+    {
+      "key": "gratitude",
+      "name_en": "Gratitude and righteous deeds",
+      "name_bn": "কৃতজ্ঞতা ও নেক আমল"
+    },
+    {
+      "key": "acceptance",
+      "name_en": "Acceptance of worship",
+      "name_bn": "ইবাদত কবুল হওয়া"
+    },
+    {
+      "key": "faith",
+      "name_en": "Faith and good company",
+      "name_bn": "ঈমান ও সৎ সঙ্গ"
+    }
+  ],
+  "prophets": {
+    "adam": {
+      "name_en": "Adam",
+      "name_bn": "আদম"
+    },
+    "ibrahim": {
+      "name_en": "Ibrahim",
+      "name_bn": "ইবরাহীম"
+    },
+    "musa": {
+      "name_en": "Musa",
+      "name_bn": "মূসা"
+    },
+    "nuh": {
+      "name_en": "Nuh",
+      "name_bn": "নূহ"
+    },
+    "yunus": {
+      "name_en": "Yunus",
+      "name_bn": "ইউনুস"
+    },
+    "zakariya": {
+      "name_en": "Zakariya",
+      "name_bn": "যাকারিয়া"
+    },
+    "ayyub": {
+      "name_en": "Ayyub",
+      "name_bn": "আইয়ুব"
+    },
+    "sulayman": {
+      "name_en": "Sulayman",
+      "name_bn": "সুলাইমান"
+    },
+    "yusuf": {
+      "name_en": "Yusuf",
+      "name_bn": "ইউসুফ"
+    },
+    "lut": {
+      "name_en": "Lut",
+      "name_bn": "লূত"
+    },
+    "shuayb": {
+      "name_en": "Shuayb",
+      "name_bn": "শুআইব"
+    },
+    "isa": {
+      "name_en": "Isa",
+      "name_bn": "ঈসা"
+    },
+    "muhammad": {
+      "name_en": "Muhammad",
+      "name_bn": "মুহাম্মাদ"
+    }
+  },
+  "excluded": [
+    {
+      "ref": "2:186",
+      "reason": "Allah's reply to the one who asks, not a request."
+    },
+    {
+      "ref": "2:260",
+      "reason": "Ibrahim asks to be shown how the dead are given life; a request for a sign, not a dua to repeat."
+    },
+    {
+      "ref": "3:9",
+      "reason": "Acknowledges the Day of Gathering and asks for nothing; 3:8 stands alone."
+    },
+    {
+      "ref": "3:173",
+      "reason": "A statement of reliance (\"Allah is enough for us\"), spoken about Allah, not to Him."
+    },
+    {
+      "ref": "5:25",
+      "reason": "Musa asks for separation from a specific defiant people."
+    },
+    {
+      "ref": "7:155 (first part)",
+      "reason": "Musa's question and complaint before the request; the dua starts at \"You are our protector\"."
+    },
+    {
+      "ref": "8:32",
+      "reason": "Said by disbelievers who challenge Allah."
+    },
+    {
+      "ref": "9:129",
+      "reason": "A statement of reliance addressed to people, not to Allah."
+    },
+    {
+      "ref": "10:88",
+      "reason": "Musa's prayer against Pharaoh and his chiefs."
+    },
+    {
+      "ref": "11:41",
+      "reason": "Said to people boarding the ship, about Allah, not to Him; no request."
+    },
+    {
+      "ref": "11:45",
+      "reason": "Nuh pleads for his son, who then proved to be a disbeliever."
+    },
+    {
+      "ref": "14:38-39",
+      "reason": "Praise and acknowledgement of Allah's knowledge; no request."
+    },
+    {
+      "ref": "18:24",
+      "reason": "A hope about guidance, said in the third person, not a request."
+    },
+    {
+      "ref": "23:106-107",
+      "reason": "The plea of the people of the Fire."
+    },
+    {
+      "ref": "26:86",
+      "reason": "Ibrahim asks forgiveness for his father, who died a disbeliever; Ibrahim later disowned him (9:114)."
+    },
+    {
+      "ref": "28:17",
+      "reason": "A pledge by Musa, not a request."
+    },
+    {
+      "ref": "28:22",
+      "reason": "A hope for guidance spoken in the third person, not addressed to Allah."
+    },
+    {
+      "ref": "35:34-35",
+      "reason": "Praise by the people of Paradise; no request."
+    },
+    {
+      "ref": "35:37",
+      "reason": "The plea of the people of the Fire."
+    },
+    {
+      "ref": "38:41",
+      "reason": "Ayyub's complaint of harm with no stated request; his request is 21:83, which is included."
+    },
+    {
+      "ref": "39:46",
+      "reason": "Says that Allah judges between His servants; asks for nothing."
+    },
+    {
+      "ref": "40:60",
+      "reason": "Allah's command to call on Him, not a dua."
+    },
+    {
+      "ref": "43:13-14",
+      "reason": "The travelling words are praise said about Allah, not addressed to Him; no request."
+    },
+    {
+      "ref": "44:12",
+      "reason": "Said by disbelievers under punishment."
+    },
+    {
+      "ref": "71:26-27",
+      "reason": "Nuh's prayer against the disbelievers of his people."
+    },
+    {
+      "ref": "71:28 (last clause)",
+      "reason": "\"Do not increase the wrongdoers except in destruction\" is a prayer against others; the dua ends before it."
+    }
+  ],
+  "duas": [
+    {
+      "id": "7-23",
+      "surah": 7,
+      "start": {
+        "ayah": 23,
+        "word": 2,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 23,
+        "word": 12,
+        "text": "ٱلْخَـٰسِرِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbana",
+      "prophet": "adam",
+      "starter": true
+    },
+    {
+      "id": "2-285",
+      "surah": 2,
+      "start": {
+        "ayah": 285,
+        "word": 22,
+        "text": "سَمِعْنَا"
+      },
+      "end": {
+        "ayah": 285,
+        "word": 27,
+        "text": "ٱلْمَصِيرُ"
+      },
+      "group": "forgiveness",
+      "opening": "other",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "2-286",
+      "surah": 2,
+      "start": {
+        "ayah": 286,
+        "word": 13,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 286,
+        "word": 49,
+        "text": "ٱلْكَـٰفِرِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "3-16",
+      "surah": 3,
+      "start": {
+        "ayah": 16,
+        "word": 3,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 16,
+        "word": 11,
+        "text": "ٱلنَّارِ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "7-151",
+      "surah": 7,
+      "start": {
+        "ayah": 151,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 151,
+        "word": 11,
+        "text": "ٱلرَّٰحِمِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbi",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "7-155",
+      "surah": 7,
+      "start": {
+        "ayah": 155,
+        "word": 34,
+        "text": "أَنتَ"
+      },
+      "end": {
+        "ayah": 155,
+        "word": 41,
+        "text": "ٱلْغَـٰفِرِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "other",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "23-109",
+      "surah": 23,
+      "start": {
+        "ayah": 109,
+        "word": 7,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 109,
+        "word": 14,
+        "text": "ٱلرَّٰحِمِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "23-118",
+      "surah": 23,
+      "start": {
+        "ayah": 118,
+        "word": 2,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 118,
+        "word": 7,
+        "text": "ٱلرَّٰحِمِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "27-44",
+      "surah": 27,
+      "start": {
+        "ayah": 44,
+        "word": 19,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 44,
+        "word": 28,
+        "text": "ٱلْعَـٰلَمِينَ"
+      },
+      "group": "forgiveness",
+      "opening": "rabbi",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "28-16",
+      "surah": 28,
+      "start": {
+        "ayah": 16,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 16,
+        "word": 7,
+        "text": "لِى"
+      },
+      "group": "forgiveness",
+      "opening": "rabbi",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "2-201",
+      "surah": 2,
+      "start": {
+        "ayah": 201,
+        "word": 4,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 201,
+        "word": 14,
+        "text": "ٱلنَّارِ"
+      },
+      "group": "both-worlds",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "7-156",
+      "surah": 7,
+      "start": {
+        "ayah": 156,
+        "word": 1,
+        "text": "۞ وَٱكْتُبْ"
+      },
+      "end": {
+        "ayah": 156,
+        "word": 11,
+        "text": "إِلَيْكَ ۚ"
+      },
+      "group": "both-worlds",
+      "opening": "other",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "3-191",
+      "surah": 3,
+      "start": {
+        "ayah": 191,
+        "word": 13,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 192,
+        "word": 11,
+        "text": "أَنصَارٍۢ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "3-193",
+      "surah": 3,
+      "start": {
+        "ayah": 193,
+        "word": 1,
+        "text": "رَّبَّنَآ"
+      },
+      "end": {
+        "ayah": 193,
+        "word": 20,
+        "text": "ٱلْأَبْرَارِ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "3-194",
+      "surah": 3,
+      "start": {
+        "ayah": 194,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 194,
+        "word": 14,
+        "text": "ٱلْمِيعَادَ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "12-101",
+      "surah": 12,
+      "start": {
+        "ayah": 101,
+        "word": 1,
+        "text": "۞ رَبِّ"
+      },
+      "end": {
+        "ayah": 101,
+        "word": 21,
+        "text": "بِٱلصَّـٰلِحِينَ"
+      },
+      "group": "hereafter",
+      "opening": "rabbi",
+      "prophet": "yusuf",
+      "starter": false
+    },
+    {
+      "id": "25-65",
+      "surah": 25,
+      "start": {
+        "ayah": 65,
+        "word": 3,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 66,
+        "word": 4,
+        "text": "وَمُقَامًۭا"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "26-87",
+      "surah": 26,
+      "start": {
+        "ayah": 87,
+        "word": 1,
+        "text": "وَلَا"
+      },
+      "end": {
+        "ayah": 87,
+        "word": 4,
+        "text": "يُبْعَثُونَ"
+      },
+      "group": "hereafter",
+      "opening": "other",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "40-7",
+      "surah": 40,
+      "start": {
+        "ayah": 7,
+        "word": 14,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 7,
+        "word": 27,
+        "text": "ٱلْجَحِيمِ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "40-8",
+      "surah": 40,
+      "start": {
+        "ayah": 8,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 9,
+        "word": 8,
+        "text": "رَحِمْتَهُۥ ۚ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "66-8",
+      "surah": 66,
+      "start": {
+        "ayah": 8,
+        "word": 35,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 8,
+        "word": 45,
+        "text": "قَدِيرٌۭ"
+      },
+      "group": "hereafter",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "1-6",
+      "surah": 1,
+      "start": {
+        "ayah": 6,
+        "word": 1,
+        "text": "ٱهْدِنَا"
+      },
+      "end": {
+        "ayah": 7,
+        "word": 9,
+        "text": "ٱلضَّآلِّينَ"
+      },
+      "group": "guidance",
+      "opening": "other",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "3-8",
+      "surah": 3,
+      "start": {
+        "ayah": 8,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 8,
+        "word": 15,
+        "text": "ٱلْوَهَّابُ"
+      },
+      "group": "guidance",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "18-10",
+      "surah": 18,
+      "start": {
+        "ayah": 10,
+        "word": 7,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 10,
+        "word": 16,
+        "text": "رَشَدًۭا"
+      },
+      "group": "guidance",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "20-114",
+      "surah": 20,
+      "start": {
+        "ayah": 114,
+        "word": 15,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 114,
+        "word": 17,
+        "text": "عِلْمًۭا"
+      },
+      "group": "knowledge",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": true
+    },
+    {
+      "id": "2-129",
+      "surah": 2,
+      "start": {
+        "ayah": 129,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 129,
+        "word": 16,
+        "text": "ٱلْحَكِيمُ"
+      },
+      "group": "knowledge",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "26-83",
+      "surah": 26,
+      "start": {
+        "ayah": 83,
+        "word": 1,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 85,
+        "word": 5,
+        "text": "ٱلنَّعِيمِ"
+      },
+      "group": "knowledge",
+      "opening": "rabbi",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "17-24",
+      "surah": 17,
+      "start": {
+        "ayah": 24,
+        "word": 8,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 24,
+        "word": 12,
+        "text": "صَغِيرًۭا"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "3-38",
+      "surah": 3,
+      "start": {
+        "ayah": 38,
+        "word": 6,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 38,
+        "word": 15,
+        "text": "ٱلدُّعَآءِ"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": "zakariya",
+      "starter": false
+    },
+    {
+      "id": "14-41",
+      "surah": 14,
+      "start": {
+        "ayah": 41,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 41,
+        "word": 8,
+        "text": "ٱلْحِسَابُ"
+      },
+      "group": "family",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "19-4",
+      "surah": 19,
+      "start": {
+        "ayah": 4,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 6,
+        "word": 8,
+        "text": "رَضِيًّۭا"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": "zakariya",
+      "starter": false
+    },
+    {
+      "id": "21-89",
+      "surah": 21,
+      "start": {
+        "ayah": 89,
+        "word": 5,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 89,
+        "word": 11,
+        "text": "ٱلْوَٰرِثِينَ"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": "zakariya",
+      "starter": false
+    },
+    {
+      "id": "25-74",
+      "surah": 25,
+      "start": {
+        "ayah": 74,
+        "word": 3,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 74,
+        "word": 13,
+        "text": "إِمَامًا"
+      },
+      "group": "family",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "37-100",
+      "surah": 37,
+      "start": {
+        "ayah": 100,
+        "word": 1,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 100,
+        "word": 5,
+        "text": "ٱلصَّـٰلِحِينَ"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "71-28",
+      "surah": 71,
+      "start": {
+        "ayah": 28,
+        "word": 1,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 28,
+        "word": 10,
+        "text": "وَٱلْمُؤْمِنَـٰتِ"
+      },
+      "group": "family",
+      "opening": "rabbi",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "20-25",
+      "surah": 20,
+      "start": {
+        "ayah": 25,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 28,
+        "word": 2,
+        "text": "قَوْلِى"
+      },
+      "group": "ease",
+      "opening": "rabbi",
+      "prophet": "musa",
+      "starter": true
+    },
+    {
+      "id": "20-29",
+      "surah": 20,
+      "start": {
+        "ayah": 29,
+        "word": 1,
+        "text": "وَٱجْعَل"
+      },
+      "end": {
+        "ayah": 32,
+        "word": 3,
+        "text": "أَمْرِى"
+      },
+      "group": "ease",
+      "opening": "other",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "21-83",
+      "surah": 21,
+      "start": {
+        "ayah": 83,
+        "word": 5,
+        "text": "أَنِّى"
+      },
+      "end": {
+        "ayah": 83,
+        "word": 10,
+        "text": "ٱلرَّٰحِمِينَ"
+      },
+      "group": "ease",
+      "opening": "other",
+      "prophet": "ayyub",
+      "starter": false
+    },
+    {
+      "id": "21-87",
+      "surah": 21,
+      "start": {
+        "ayah": 87,
+        "word": 15,
+        "text": "لَّآ"
+      },
+      "end": {
+        "ayah": 87,
+        "word": 23,
+        "text": "ٱلظَّـٰلِمِينَ"
+      },
+      "group": "ease",
+      "opening": "other",
+      "prophet": "yunus",
+      "starter": false
+    },
+    {
+      "id": "28-24",
+      "surah": 28,
+      "start": {
+        "ayah": 24,
+        "word": 8,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 24,
+        "word": 15,
+        "text": "فَقِيرٌۭ"
+      },
+      "group": "ease",
+      "opening": "rabbi",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "2-250",
+      "surah": 2,
+      "start": {
+        "ayah": 250,
+        "word": 6,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 250,
+        "word": 15,
+        "text": "ٱلْكَـٰفِرِينَ"
+      },
+      "group": "patience",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": true
+    },
+    {
+      "id": "3-147",
+      "surah": 3,
+      "start": {
+        "ayah": 147,
+        "word": 7,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 147,
+        "word": 19,
+        "text": "ٱلْكَـٰفِرِينَ"
+      },
+      "group": "patience",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "7-126",
+      "surah": 7,
+      "start": {
+        "ayah": 126,
+        "word": 11,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 126,
+        "word": 16,
+        "text": "مُسْلِمِينَ"
+      },
+      "group": "patience",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "7-89",
+      "surah": 7,
+      "start": {
+        "ayah": 89,
+        "word": 34,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 89,
+        "word": 42,
+        "text": "ٱلْفَـٰتِحِينَ"
+      },
+      "group": "help",
+      "opening": "rabbana",
+      "prophet": "shuayb",
+      "starter": false
+    },
+    {
+      "id": "4-75",
+      "surah": 4,
+      "start": {
+        "ayah": 75,
+        "word": 15,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 75,
+        "word": 31,
+        "text": "نَصِيرًا"
+      },
+      "group": "help",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "10-85",
+      "surah": 10,
+      "start": {
+        "ayah": 85,
+        "word": 5,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 86,
+        "word": 5,
+        "text": "ٱلْكَـٰفِرِينَ"
+      },
+      "group": "help",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "17-80",
+      "surah": 17,
+      "start": {
+        "ayah": 80,
+        "word": 2,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 80,
+        "word": 14,
+        "text": "نَّصِيرًۭا"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "21-112",
+      "surah": 21,
+      "start": {
+        "ayah": 112,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 112,
+        "word": 10,
+        "text": "تَصِفُونَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "23-26",
+      "surah": 23,
+      "start": {
+        "ayah": 26,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 26,
+        "word": 5,
+        "text": "كَذَّبُونِ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "26-117",
+      "surah": 26,
+      "start": {
+        "ayah": 117,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 118,
+        "word": 9,
+        "text": "ٱلْمُؤْمِنِينَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "26-169",
+      "surah": 26,
+      "start": {
+        "ayah": 169,
+        "word": 1,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 169,
+        "word": 5,
+        "text": "يَعْمَلُونَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "lut",
+      "starter": false
+    },
+    {
+      "id": "28-21",
+      "surah": 28,
+      "start": {
+        "ayah": 21,
+        "word": 6,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 21,
+        "word": 10,
+        "text": "ٱلظَّـٰلِمِينَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "musa",
+      "starter": false
+    },
+    {
+      "id": "29-30",
+      "surah": 29,
+      "start": {
+        "ayah": 30,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 30,
+        "word": 6,
+        "text": "ٱلْمُفْسِدِينَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": "lut",
+      "starter": false
+    },
+    {
+      "id": "54-10",
+      "surah": 54,
+      "start": {
+        "ayah": 10,
+        "word": 3,
+        "text": "أَنِّى"
+      },
+      "end": {
+        "ayah": 10,
+        "word": 5,
+        "text": "فَٱنتَصِرْ"
+      },
+      "group": "help",
+      "opening": "other",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "66-11",
+      "surah": 66,
+      "start": {
+        "ayah": 11,
+        "word": 10,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 11,
+        "word": 24,
+        "text": "ٱلظَّـٰلِمِينَ"
+      },
+      "group": "help",
+      "opening": "rabbi",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "113-1",
+      "surah": 113,
+      "start": {
+        "ayah": 1,
+        "word": 2,
+        "text": "أَعُوذُ"
+      },
+      "end": {
+        "ayah": 5,
+        "word": 5,
+        "text": "حَسَدَ"
+      },
+      "group": "refuge",
+      "opening": "other",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "114-1",
+      "surah": 114,
+      "start": {
+        "ayah": 1,
+        "word": 2,
+        "text": "أَعُوذُ"
+      },
+      "end": {
+        "ayah": 6,
+        "word": 3,
+        "text": "وَٱلنَّاسِ"
+      },
+      "group": "refuge",
+      "opening": "other",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "7-47",
+      "surah": 7,
+      "start": {
+        "ayah": 47,
+        "word": 8,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 47,
+        "word": 13,
+        "text": "ٱلظَّـٰلِمِينَ"
+      },
+      "group": "refuge",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "11-47",
+      "surah": 11,
+      "start": {
+        "ayah": 47,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 47,
+        "word": 19,
+        "text": "ٱلْخَـٰسِرِينَ"
+      },
+      "group": "refuge",
+      "opening": "rabbi",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "12-33",
+      "surah": 12,
+      "start": {
+        "ayah": 33,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 33,
+        "word": 17,
+        "text": "ٱلْجَـٰهِلِينَ"
+      },
+      "group": "refuge",
+      "opening": "rabbi",
+      "prophet": "yusuf",
+      "starter": false
+    },
+    {
+      "id": "23-93",
+      "surah": 23,
+      "start": {
+        "ayah": 93,
+        "word": 2,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 94,
+        "word": 6,
+        "text": "ٱلظَّـٰلِمِينَ"
+      },
+      "group": "refuge",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "23-97",
+      "surah": 23,
+      "start": {
+        "ayah": 97,
+        "word": 2,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 98,
+        "word": 5,
+        "text": "يَحْضُرُونِ"
+      },
+      "group": "refuge",
+      "opening": "rabbi",
+      "prophet": "muhammad",
+      "starter": true
+    },
+    {
+      "id": "2-126",
+      "surah": 2,
+      "start": {
+        "ayah": 126,
+        "word": 4,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 126,
+        "word": 18,
+        "text": "ٱلْـَٔاخِرِ ۖ"
+      },
+      "group": "safe-home",
+      "opening": "rabbi",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "14-35",
+      "surah": 14,
+      "start": {
+        "ayah": 35,
+        "word": 4,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 36,
+        "word": 15,
+        "text": "رَّحِيمٌۭ"
+      },
+      "group": "safe-home",
+      "opening": "rabbi",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "14-37",
+      "surah": 14,
+      "start": {
+        "ayah": 37,
+        "word": 1,
+        "text": "رَّبَّنَآ"
+      },
+      "end": {
+        "ayah": 37,
+        "word": 26,
+        "text": "يَشْكُرُونَ"
+      },
+      "group": "safe-home",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "23-29",
+      "surah": 23,
+      "start": {
+        "ayah": 29,
+        "word": 2,
+        "text": "رَّبِّ"
+      },
+      "end": {
+        "ayah": 29,
+        "word": 8,
+        "text": "ٱلْمُنزِلِينَ"
+      },
+      "group": "safe-home",
+      "opening": "rabbi",
+      "prophet": "nuh",
+      "starter": false
+    },
+    {
+      "id": "3-26",
+      "surah": 3,
+      "start": {
+        "ayah": 26,
+        "word": 2,
+        "text": "ٱللَّهُمَّ"
+      },
+      "end": {
+        "ayah": 27,
+        "word": 21,
+        "text": "حِسَابٍۢ"
+      },
+      "group": "provision",
+      "opening": "allahumma",
+      "prophet": "muhammad",
+      "starter": false
+    },
+    {
+      "id": "5-114",
+      "surah": 5,
+      "start": {
+        "ayah": 114,
+        "word": 5,
+        "text": "ٱللَّهُمَّ"
+      },
+      "end": {
+        "ayah": 114,
+        "word": 22,
+        "text": "ٱلرَّٰزِقِينَ"
+      },
+      "group": "provision",
+      "opening": "allahumma",
+      "prophet": "isa",
+      "starter": false
+    },
+    {
+      "id": "38-35",
+      "surah": 38,
+      "start": {
+        "ayah": 35,
+        "word": 2,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 35,
+        "word": 15,
+        "text": "ٱلْوَهَّابُ"
+      },
+      "group": "provision",
+      "opening": "rabbi",
+      "prophet": "sulayman",
+      "starter": false
+    },
+    {
+      "id": "27-19",
+      "surah": 27,
+      "start": {
+        "ayah": 19,
+        "word": 6,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 19,
+        "word": 24,
+        "text": "ٱلصَّـٰلِحِينَ"
+      },
+      "group": "gratitude",
+      "opening": "rabbi",
+      "prophet": "sulayman",
+      "starter": false
+    },
+    {
+      "id": "46-15",
+      "surah": 46,
+      "start": {
+        "ayah": 15,
+        "word": 22,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 15,
+        "word": 45,
+        "text": "ٱلْمُسْلِمِينَ"
+      },
+      "group": "gratitude",
+      "opening": "rabbi",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "2-127",
+      "surah": 2,
+      "start": {
+        "ayah": 127,
+        "word": 8,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 127,
+        "word": 14,
+        "text": "ٱلْعَلِيمُ"
+      },
+      "group": "acceptance",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "2-128",
+      "surah": 2,
+      "start": {
+        "ayah": 128,
+        "word": 1,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 128,
+        "word": 17,
+        "text": "ٱلرَّحِيمُ"
+      },
+      "group": "acceptance",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "14-40",
+      "surah": 14,
+      "start": {
+        "ayah": 40,
+        "word": 1,
+        "text": "رَبِّ"
+      },
+      "end": {
+        "ayah": 40,
+        "word": 9,
+        "text": "دُعَآءِ"
+      },
+      "group": "acceptance",
+      "opening": "rabbi",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "60-4",
+      "surah": 60,
+      "start": {
+        "ayah": 4,
+        "word": 46,
+        "text": "رَّبَّنَا"
+      },
+      "end": {
+        "ayah": 5,
+        "word": 13,
+        "text": "ٱلْحَكِيمُ"
+      },
+      "group": "acceptance",
+      "opening": "rabbana",
+      "prophet": "ibrahim",
+      "starter": false
+    },
+    {
+      "id": "3-53",
+      "surah": 3,
+      "start": {
+        "ayah": 53,
+        "word": 1,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 53,
+        "word": 9,
+        "text": "ٱلشَّـٰهِدِينَ"
+      },
+      "group": "faith",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "5-83",
+      "surah": 5,
+      "start": {
+        "ayah": 83,
+        "word": 17,
+        "text": "رَبَّنَآ"
+      },
+      "end": {
+        "ayah": 83,
+        "word": 21,
+        "text": "ٱلشَّـٰهِدِينَ"
+      },
+      "group": "faith",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    },
+    {
+      "id": "59-10",
+      "surah": 59,
+      "start": {
+        "ayah": 10,
+        "word": 6,
+        "text": "رَبَّنَا"
+      },
+      "end": {
+        "ayah": 10,
+        "word": 23,
+        "text": "رَّحِيمٌ"
+      },
+      "group": "faith",
+      "opening": "rabbana",
+      "prophet": null,
+      "starter": false
+    }
+  ]
+}
