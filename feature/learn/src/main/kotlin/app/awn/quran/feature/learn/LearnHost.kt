@@ -51,7 +51,6 @@ import app.awn.quran.feature.learn.ui.LocalOpenAyah
 import app.awn.quran.feature.learn.ui.isLearnTabRoot
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
-import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -73,12 +72,12 @@ private val EMPTY_SNAPSHOT =
  * and the lessons. [quranText], [translations], [packs] and [downloads] supply the Arabic, the
  * meanings and the word-meaning download of the course.
  *
- * When [onReviseAt] is set, "Revise" calls it with the first due ayah in reading order, and :app
- * opens the Quran screen there in recite mode with words hidden; the Revision screen of this tab is
- * then not used. Without it, revision runs inside this tab. [barActions] are icon buttons at the
- * end of the bar on the hub (:app puts Settings there). [wordSound] plays a Quran word of a
- * practice item with the word reciter the user chose; the recorded lesson sounds come from [packs].
- * [onOpenAyah] opens an ayah in the Quran, from the surah name under a lesson word.
+ * "Revise ayahs" opens the Revise screen. Its Start button calls [onReviseAt], when set, with the
+ * first due ayah in reading order, and :app opens the Quran screen there in recite mode with words
+ * hidden. Without it, revision runs inside this tab. [barActions] are icon buttons at the end of
+ * the bar on the hub (:app puts Settings there). [wordSound] plays a Quran word of a practice item
+ * with the word reciter the user chose; the recorded lesson sounds come from [packs]. [onOpenAyah]
+ * opens an ayah in the Quran, from the surah name under a lesson word.
  *
  * [pageLinks] ties the tab to the Quran and Hifz tabs. A [pageWordsRequest] (from the Quran page
  * menu or the Hifz bar) opens the words of that page; [onPageWordsRequestHandled] tells :app to
@@ -253,27 +252,15 @@ private fun LearnRoutes(
 ) {
     val snapshot = content.snapshot
     val surahName = content.surahName
-    val goHub = { onRouteChange(LearnRoute.Hub) }
     when (route) {
-        LearnRoute.ReadingProgress ->
-            ProgressScreen(
-                state =
-                    LearnUiMapper.progressState(
-                        snapshot,
-                        surahName,
-                        ZoneId.systemDefault(),
-                        content.locale,
-                    ),
-                onBackClick = goHub,
-                modifier = modifier,
-            )
         LearnRoute.Revision ->
             RevisionHost(
-                dueToday = snapshot.dueToday,
+                // Revising early has nothing due today, so it walks the ayahs due next.
+                dueToday = snapshot.dueToday.ifEmpty { snapshot.nextDueAyahs },
                 quranText = content.quranText,
                 surahName = surahName,
                 rate = rate,
-                onBackClick = goHub,
+                onBackClick = { onRouteChange(LearnRoute.ReviseAyahs) },
                 modifier = modifier,
             )
         else ->
@@ -283,7 +270,7 @@ private fun LearnRoutes(
                     onRouteChange = onRouteChange,
                     dependencies = course.dependencies,
                     runtime = course.runtime,
-                    dueAyahs = snapshot.dueToday,
+                    content = content,
                     onReviseAt = onReviseAt,
                     barActions = barActions,
                     modifier = modifier,

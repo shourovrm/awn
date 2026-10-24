@@ -35,18 +35,59 @@
   <string name="revision_easy">Easy</string>
   <string name="revision_empty">All done</string>
 
+  <plurals name="revise_due_caption">
+    <item quantity="one">ayah due today</item>
+    <item quantity="other">ayahs due today</item>
+  </plurals>
+  <string name="revise_start">Start</string>
+  <string name="revise_due_heading">Due today</string>
+  <string name="revise_ayah_single">Ayah %1$s</string>
+  <string name="revise_ayah_range">Ayahs %1$s to %2$s</string>
+  <string name="revise_upcoming_heading">Coming up</string>
+  <string name="revise_empty_title">Nothing due today</string>
+  <plurals name="revise_empty_next">
+    <item quantity="one">Next revision is %1$s, %2$s ayah.</item>
+    <item quantity="other">Next revision is %1$s, %2$s ayahs.</item>
+  </plurals>
+  <string name="revise_empty_none">Ayahs you memorise appear here when they are due.</string>
+  <string name="revise_meanwhile_heading">Meanwhile</string>
+  <string name="revise_memorise">Memorise a new ayah</string>
+  <string name="revise_early">Revise early</string>
+  <plurals name="revise_early_detail">
+    <item quantity="one">The next %1$s ayah</item>
+    <item quantity="other">The next %1$s ayahs</item>
+  </plurals>
+
   <string name="progress_title">Progress</string>
-  <string name="progress_streak_caption">days in a row</string>
-  <plurals name="progress_memorised">
-    <item quantity="one">%1$s ayah memorised</item>
-    <item quantity="other">%1$s ayahs memorised</item>
+
+  <plurals name="reading_streak_caption">
+    <item quantity="one">day in a row</item>
+    <item quantity="other">days in a row</item>
   </plurals>
-  <plurals name="progress_memorised_rule">
-    <item quantity="one">Memorised after %1$s clean recital</item>
-    <item quantity="other">Memorised after %1$s clean recitals on different days</item>
+  <plurals name="reading_tile_pages">
+    <item quantity="one">page this week</item>
+    <item quantity="other">pages this week</item>
   </plurals>
-  <string name="progress_next_due">Next revision: %s</string>
-  <string name="progress_next_none">No revision planned</string>
+  <plurals name="reading_tile_ayahs">
+    <item quantity="one">ayah memorised</item>
+    <item quantity="other">ayahs memorised</item>
+  </plurals>
+  <plurals name="reading_tile_words">
+    <item quantity="one">word known</item>
+    <item quantity="other">words known</item>
+  </plurals>
+  <string name="reading_percent">%d%%</string>
+  <string name="reading_tile_share">of Quran words</string>
+  <string name="reading_chart_title">Pages this week</string>
+  <string name="reading_next_revision">Next revision</string>
+  <plurals name="reading_next_revision_detail">
+    <item quantity="one">%1$s, %2$s ayah</item>
+    <item quantity="other">%1$s, %2$s ayahs</item>
+  </plurals>
+  <string name="reading_new_title">Open a page to start your count</string>
+  <string name="reading_new_detail">Pages, ayahs and words appear here as you read and learn.</string>
+  <string name="reading_continue">Continue reading</string>
+  <string name="reading_start">Start reading</string>
 
   <string name="reminder_channel">Revision reminders</string>
   <plurals name="reminder_text">

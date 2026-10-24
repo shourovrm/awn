@@ -20,6 +20,7 @@ import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.feature.learn.CourseAssets
+import app.awn.quran.feature.learn.LearnRouteContent
 import app.awn.quran.feature.learn.LearnServices
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.LearnTracks
@@ -119,7 +120,7 @@ internal fun CourseRoutes(
     onRouteChange: (LearnRoute) -> Unit,
     dependencies: CourseDependencies,
     runtime: CourseRuntime?,
-    dueAyahs: List<AyahRef>,
+    content: LearnRouteContent,
     onReviseAt: ((AyahRef) -> Unit)?,
     barActions: @Composable RowScope.() -> Unit,
     modifier: Modifier,
@@ -144,7 +145,8 @@ internal fun CourseRoutes(
                 onRouteChange(LearnRoute.Session(newRequest.isOwnQuiz))
             },
         )
-    val actions = hubActions(context, dueAyahs, onReviseAt)
+    val dueAyahs = content.snapshot.dueToday
+    val actions = hubActions(context)
     when (route) {
         LearnRoute.FirstOpen -> FirstOpenRoute(context, modifier)
         LearnRoute.CourseChoices -> CourseChoicesRoute(context, modifier)
@@ -161,6 +163,8 @@ internal fun CourseRoutes(
         LearnRoute.WordList -> WordListRoute(context, modifier)
         is LearnRoute.WordPage -> WordPageRoute(route, context, modifier)
         is LearnRoute.WordAyahs -> WordAyahsRoute(route, context, modifier)
+        LearnRoute.ReadingProgress -> ReadingProgressRoute(content, context, modifier)
+        LearnRoute.ReviseAyahs -> ReviseAyahsRoute(content, onReviseAt, context, modifier)
         LearnRoute.Sources ->
             SourcesScreen(
                 runtime.assets.content.references,
@@ -215,11 +219,7 @@ private fun CourseChoicesRoute(context: CourseScreenContext, modifier: Modifier)
     )
 }
 
-private fun hubActions(
-    context: CourseScreenContext,
-    dueAyahs: List<AyahRef>,
-    onReviseAt: ((AyahRef) -> Unit)?,
-): HubActions =
+private fun hubActions(context: CourseScreenContext): HubActions =
     HubActions(
         onStart = {
             context.scope.launch {
@@ -232,11 +232,7 @@ private fun hubActions(
         onQuiz = { context.onRouteChange(LearnRoute.QuizStart) },
         onTrack = { context.onRouteChange(LearnRoute.Track(it)) },
         onReadingProgress = { context.onRouteChange(LearnRoute.ReadingProgress) },
-        onReviseAyahs = {
-            val firstDue = dueAyahs.minOrNull()
-            if (onReviseAt != null && firstDue != null) onReviseAt(firstDue)
-            else context.onRouteChange(LearnRoute.Revision)
-        },
+        onReviseAyahs = { context.onRouteChange(LearnRoute.ReviseAyahs) },
         onSessionMinutes = { minutes ->
             context.scope.launch { context.services.settings.setSessionMinutes(minutes) }
         },

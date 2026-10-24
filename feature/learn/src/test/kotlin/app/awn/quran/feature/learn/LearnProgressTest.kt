@@ -13,6 +13,7 @@ import app.awn.quran.feature.learn.progress.LearnProgress
 import app.awn.quran.feature.learn.progress.LearnSettings
 import java.io.File
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -235,6 +236,23 @@ class LearnProgressTest {
         assertEquals(2, snapshot.streakDays)
         assertEquals(2, snapshot.pagesThisWeek)
         assertEquals(0, snapshot.pagesToday)
+    }
+
+    @Test
+    fun theWeekViewFieldsComeFromEventsAndCards() = runBlocking {
+        progress.pageOpened(10)
+        advanceDays(1)
+        progress.pageOpened(11)
+        progress.rateCard(ayah, FsrsRating.Good)
+
+        val snapshot = progress.snapshot()
+
+        assertEquals(
+            setOf(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 11)),
+            snapshot.activeDaysThisWeek,
+        )
+        assertEquals(listOf(0, 0, 0, 0, 0, 1, 1), snapshot.pagesEachDayThisWeek)
+        assertEquals(listOf(ayah), snapshot.nextDueAyahs)
     }
 
     private companion object {

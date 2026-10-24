@@ -12,6 +12,7 @@ import app.awn.quran.feature.learn.data.EventEntity
 import app.awn.quran.feature.learn.data.EventKind
 import app.awn.quran.feature.learn.data.LearnDatabase
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -36,6 +37,14 @@ data class ProgressSnapshot(
     val memorisationThreshold: Int,
     val dueToday: List<AyahRef>,
     val nextDue: Instant?,
+    /** Which of the last seven days (oldest first, ending today) had any activity. */
+    val activeDaysThisWeek: Set<LocalDate> = emptySet(),
+    /** Distinct pages read on each of the last seven days, oldest first. */
+    val pagesEachDayThisWeek: List<Int> = List(ProgressCalculator.DAYS_IN_WEEK) { 0 },
+    /** Ayahs falling due on each of the seven days after today, tomorrow first. */
+    val dueNextSevenDays: List<Int> = List(ProgressCalculator.DAYS_IN_WEEK) { 0 },
+    /** The ayahs due on the day of [nextDue]. */
+    val nextDueAyahs: List<AyahRef> = emptyList(),
 ) {
     val memorisedCount: Int
         get() = memorisedByAyah.size
@@ -189,10 +198,11 @@ class LearnProgress(
         val zone = clock.zone()
         val today = clock.now().atZone(zone).toLocalDate()
         val pageOpens = dao.pageOpens()
+        val eventTimes = dao.allEventTimes()
         val memorised =
             ProgressCalculator.memorisedAyahs(dao.cleanHifzCompletions(), threshold, zone)
         return ProgressSnapshot(
-            streakDays = ProgressCalculator.currentStreak(dao.allEventTimes(), today, zone),
+            streakDays = ProgressCalculator.currentStreak(eventTimes, today, zone),
             pagesToday = ProgressCalculator.pagesPerDay(pageOpens, zone)[today] ?: 0,
             pagesThisWeek = ProgressCalculator.pagesThisWeek(pageOpens, today, zone),
             memorisedByAyah = memorised,
@@ -201,6 +211,10 @@ class LearnProgress(
             dueToday =
                 ProgressCalculator.dueToday(cards, today, zone).map { AyahRef(it.surah, it.ayah) },
             nextDue = ProgressCalculator.nextDue(cards),
+            activeDaysThisWeek = ProgressCalculator.activeDaysThisWeek(eventTimes, today, zone),
+            pagesEachDayThisWeek = ProgressCalculator.pagesEachDayThisWeek(pageOpens, today, zone),
+            dueNextSevenDays = ProgressCalculator.dueCountsNextSevenDays(cards, today, zone),
+            nextDueAyahs = ProgressCalculator.ayahsDueOnNextDay(cards, zone),
         )
     }
 }

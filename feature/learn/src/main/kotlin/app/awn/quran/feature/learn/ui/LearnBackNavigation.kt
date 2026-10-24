@@ -20,6 +20,7 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
         is LearnRoute.SetPage,
         is LearnRoute.PageWords -> LearnRoute.Track(LearnTrack.Words)
         is LearnRoute.CourseUnit -> learnBackFromUnit(route)
+        LearnRoute.Revision -> LearnRoute.ReviseAyahs
         else -> LearnRoute.Hub
     }
 

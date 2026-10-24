@@ -35,18 +35,59 @@
   <string name="revision_easy">সহজ</string>
   <string name="revision_empty">আজকের ঝালাই শেষ</string>
 
+  <plurals name="revise_due_caption">
+    <item quantity="one">আজ ঝালাইয়ের আয়াত</item>
+    <item quantity="other">আজ ঝালাইয়ের আয়াত</item>
+  </plurals>
+  <string name="revise_start">শুরু করুন</string>
+  <string name="revise_due_heading">আজ বাকি</string>
+  <string name="revise_ayah_single">%1$s নম্বর আয়াত</string>
+  <string name="revise_ayah_range">%1$s থেকে %2$s নম্বর আয়াত</string>
+  <string name="revise_upcoming_heading">সামনের দিনগুলো</string>
+  <string name="revise_empty_title">আজ ঝালাই নেই</string>
+  <plurals name="revise_empty_next">
+    <item quantity="one">পরের ঝালাই %1$s, %2$sটি আয়াত।</item>
+    <item quantity="other">পরের ঝালাই %1$s, %2$sটি আয়াত।</item>
+  </plurals>
+  <string name="revise_empty_none">মুখস্থ করা আয়াত ঝালাইয়ের দিনে এখানে দেখা যাবে।</string>
+  <string name="revise_meanwhile_heading">ততক্ষণে</string>
+  <string name="revise_memorise">নতুন আয়াত মুখস্থ করুন</string>
+  <string name="revise_early">আগেই ঝালাই করুন</string>
+  <plurals name="revise_early_detail">
+    <item quantity="one">পরের %1$sটি আয়াত</item>
+    <item quantity="other">পরের %1$sটি আয়াত</item>
+  </plurals>
+
   <string name="progress_title">অগ্রগতি</string>
-  <string name="progress_streak_caption">দিন টানা</string>
-  <plurals name="progress_memorised">
-    <item quantity="one">%1$sটি আয়াত মুখস্থ</item>
-    <item quantity="other">%1$sটি আয়াত মুখস্থ</item>
+
+  <plurals name="reading_streak_caption">
+    <item quantity="one">দিন টানা</item>
+    <item quantity="other">দিন টানা</item>
   </plurals>
-  <plurals name="progress_memorised_rule">
-    <item quantity="one">ভুল ছাড়া %1$s বার পড়লে মুখস্থ ধরা হয়</item>
-    <item quantity="other">আলাদা আলাদা দিনে ভুল ছাড়া %1$s বার পড়লে মুখস্থ ধরা হয়</item>
+  <plurals name="reading_tile_pages">
+    <item quantity="one">পৃষ্ঠা এই সপ্তাহে</item>
+    <item quantity="other">পৃষ্ঠা এই সপ্তাহে</item>
   </plurals>
-  <string name="progress_next_due">পরের ঝালাই: %s</string>
-  <string name="progress_next_none">কোনো ঝালাই ঠিক করা নেই</string>
+  <plurals name="reading_tile_ayahs">
+    <item quantity="one">আয়াত মুখস্থ</item>
+    <item quantity="other">আয়াত মুখস্থ</item>
+  </plurals>
+  <plurals name="reading_tile_words">
+    <item quantity="one">শব্দ জানা</item>
+    <item quantity="other">শব্দ জানা</item>
+  </plurals>
+  <string name="reading_percent">%d%%</string>
+  <string name="reading_tile_share">কুরআনের শব্দের</string>
+  <string name="reading_chart_title">এই সপ্তাহে পড়া পৃষ্ঠা</string>
+  <string name="reading_next_revision">পরের ঝালাই</string>
+  <plurals name="reading_next_revision_detail">
+    <item quantity="one">%1$s, %2$sটি আয়াত</item>
+    <item quantity="other">%1$s, %2$sটি আয়াত</item>
+  </plurals>
+  <string name="reading_new_title">গোনা শুরু করতে একটি পৃষ্ঠা খুলুন</string>
+  <string name="reading_new_detail">পড়া ও শেখার সাথে সাথে পৃষ্ঠা, আয়াত ও শব্দ এখানে দেখা যাবে।</string>
+  <string name="reading_continue">পড়া চালিয়ে যান</string>
+  <string name="reading_start">পড়া শুরু করুন</string>
 
   <string name="reminder_channel">ঝালাইয়ের অনুস্মারক</string>
   <plurals name="reminder_text">

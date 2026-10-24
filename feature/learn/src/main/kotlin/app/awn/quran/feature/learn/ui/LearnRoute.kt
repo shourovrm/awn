@@ -39,7 +39,13 @@ internal sealed interface LearnRoute {
     /** The existing reading progress page: streak, pages and memorised ayahs. */
     data object ReadingProgress : LearnRoute
 
+    /**
+     * The ayah-by-ayah revision session, started from [ReviseAyahs] when the Quran screen cannot.
+     */
     data object Revision : LearnRoute
+
+    /** What is due today and in the next week; its Start button leads to [Revision]. */
+    data object ReviseAyahs : LearnRoute
 
     /** The numbered units of one track. */
     data class Track(val track: LearnTrack) : LearnRoute
@@ -82,6 +88,7 @@ private val SIMPLE_ROUTES: Map<String, LearnRoute> =
         "progress" to LearnRoute.Progress,
         "reading_progress" to LearnRoute.ReadingProgress,
         "revision" to LearnRoute.Revision,
+        "revise_ayahs" to LearnRoute.ReviseAyahs,
     )
 
 internal fun encodeLearnRoute(route: LearnRoute): String =

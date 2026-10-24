@@ -57,7 +57,8 @@ class LearnNavigationTest {
                 LearnRoute.WordList,
                 LearnRoute.Sources,
                 LearnRoute.Progress,
-                LearnRoute.Revision,
+                LearnRoute.ReviseAyahs,
+                LearnRoute.ReadingProgress,
                 LearnRoute.Track(LearnTrack.Reading),
                 LearnRoute.CourseUnit("letters-01", track = null),
             )
@@ -65,6 +66,11 @@ class LearnNavigationTest {
         others.forEach { route ->
             assertEquals(route.toString(), LearnRoute.Hub, learnBackFrom(route))
         }
+    }
+
+    @Test
+    fun backFromTheRevisionSessionReturnsToTheReviseScreen() {
+        assertEquals(LearnRoute.ReviseAyahs, learnBackFrom(LearnRoute.Revision))
     }
 
     @Test
@@ -101,6 +107,8 @@ class LearnNavigationTest {
             listOf(
                 LearnRoute.FirstOpen,
                 LearnRoute.Hub,
+                LearnRoute.ReviseAyahs,
+                LearnRoute.Revision,
                 LearnRoute.WordPage(rank = 12),
                 LearnRoute.WordPage(rank = 12, from = LearnRoute.SetPage(3)),
                 LearnRoute.WordPage(rank = 12, from = LearnRoute.PageWords(25)),

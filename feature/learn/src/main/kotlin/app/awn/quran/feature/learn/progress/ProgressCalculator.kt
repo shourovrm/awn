@@ -79,4 +79,42 @@ object ProgressCalculator {
     /** The earliest due time of any card, or null when there are no cards. */
     fun nextDue(cards: List<CardEntity>): Instant? =
         cards.minOfOrNull { it.due }?.let { Instant.ofEpochMilli(it) }
+
+    /** The seven days of the week view, oldest first, ending today. */
+    fun lastSevenDays(today: LocalDate): List<LocalDate> =
+        (DAYS_IN_WEEK - 1 downTo 0).map { daysBack -> today.minusDays(daysBack.toLong()) }
+
+    /** The days among [lastSevenDays] on which the user did anything in the app. */
+    fun activeDaysThisWeek(eventTimes: List<Long>, today: LocalDate, zone: ZoneId): Set<LocalDate> {
+        val week = lastSevenDays(today).toSet()
+        return eventTimes.map { localDate(it, zone) }.filter { it in week }.toSet()
+    }
+
+    /** Distinct pages read on each of [lastSevenDays], in the same order. */
+    fun pagesEachDayThisWeek(opens: List<PageOpenRow>, today: LocalDate, zone: ZoneId): List<Int> {
+        val pagesByDay = pagesPerDay(opens, zone)
+        return lastSevenDays(today).map { day -> pagesByDay[day] ?: 0 }
+    }
+
+    /**
+     * How many cards fall due on each of the seven days after [today], tomorrow first. Cards that
+     * are due today or overdue are in [dueToday], not here.
+     */
+    fun dueCountsNextSevenDays(cards: List<CardEntity>, today: LocalDate, zone: ZoneId): List<Int> {
+        val dueDays = cards.map { localDate(it.due, zone) }
+        return (1..DAYS_IN_WEEK).map { daysAhead ->
+            val day = today.plusDays(daysAhead.toLong())
+            dueDays.count { it == day }
+        }
+    }
+
+    /** The ayahs that fall due on the same day as [nextDue], in reading order. */
+    fun ayahsDueOnNextDay(cards: List<CardEntity>, zone: ZoneId): List<AyahRef> {
+        val firstDue = cards.minOfOrNull { it.due } ?: return emptyList()
+        val firstDay = localDate(firstDue, zone)
+        return cards
+            .filter { localDate(it.due, zone) == firstDay }
+            .map { AyahRef(it.surah, it.ayah) }
+            .sortedWith(compareBy({ it.surah }, { it.ayah }))
+    }
 }
