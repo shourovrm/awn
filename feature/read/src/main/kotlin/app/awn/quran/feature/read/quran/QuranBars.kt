@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import app.awn.quran.core.data.TranslationId
+import app.awn.quran.core.ui.components.AwnDropdownMenu
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.R
@@ -177,7 +177,7 @@ private fun TopBarButtons(
     )
     if (view == PageView.LineByLine) {
         MenuButton(R.drawable.ic_read_layers, R.string.bar_layers, actions.onOpenLayers) {
-            DropdownMenu(
+            AwnDropdownMenu(
                 expanded = state.popup == Popup.Layers,
                 onDismissRequest = actions.onDismissPopup,
             ) {
@@ -193,7 +193,7 @@ private fun TopBarButtons(
         tint = field.onBar,
     )
     MenuButton(R.drawable.ic_read_text_size, R.string.bar_text_size, actions.onOpenTextSize) {
-        DropdownMenu(
+        AwnDropdownMenu(
             expanded = state.popup == Popup.TextSize,
             onDismissRequest = actions.onDismissPopup,
         ) {
@@ -209,7 +209,7 @@ private fun TopBarButtons(
         )
     }
     MenuButton(R.drawable.ic_read_more, R.string.bar_more, actions.onOpenOverflow) {
-        DropdownMenu(
+        AwnDropdownMenu(
             expanded = state.popup == Popup.Overflow,
             onDismissRequest = actions.onDismissPopup,
         ) {

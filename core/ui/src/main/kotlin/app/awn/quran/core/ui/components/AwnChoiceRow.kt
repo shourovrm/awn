@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MenuDefaults
@@ -26,13 +25,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.R
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.core.ui.theme.raisedSurface
 
 /**
  * A single-choice setting: the label (and an optional [hint] line) at the start, the chosen value
@@ -110,13 +106,9 @@ private fun <T> ChoiceMenu(
     onDismiss: () -> Unit,
 ) {
     val field = Awn.field
-    DropdownMenu(
+    AwnDropdownMenu(
         expanded = isOpen,
         onDismissRequest = onDismiss,
-        shape = AwnShapes.menu,
-        containerColor = field.raisedSurface,
-        tonalElevation = 0.dp,
-        shadowElevation = AwnSpacing.small,
         modifier = Modifier.widthIn(min = AwnSpacing.menuMinWidth),
     ) {
         options.forEach { option ->

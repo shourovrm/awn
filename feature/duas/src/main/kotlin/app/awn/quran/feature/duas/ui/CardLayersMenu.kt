@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,13 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
+import app.awn.quran.core.ui.components.AwnDropdownMenu
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.core.ui.theme.raisedSurface
 import app.awn.quran.feature.duas.R
 import app.awn.quran.feature.duas.data.CardLayers
 
@@ -53,16 +50,7 @@ internal fun CardLayersButton(
             modifier = Modifier.testTag(LAYERS_BUTTON_TAG),
             tint = Awn.field.onBar,
         )
-        // The surface, shape and shadow are those of the menus of :core:ui (AwnChoiceRow), not
-        // Material's tinted default.
-        DropdownMenu(
-            expanded = isOpen,
-            onDismissRequest = { isOpen = false },
-            shape = AwnShapes.menu,
-            containerColor = Awn.field.raisedSurface,
-            tonalElevation = 0.dp,
-            shadowElevation = AwnSpacing.small,
-        ) {
+        AwnDropdownMenu(expanded = isOpen, onDismissRequest = { isOpen = false }) {
             LayerTick(
                 label = stringResource(R.string.duas_layer_word_by_word),
                 isTicked = layers.showWordByWord,

@@ -99,7 +99,7 @@ private fun LayerTick(label: String, isTicked: Boolean, onToggle: () -> Unit) {
                     checkmarkColor = field.onButton,
                 ),
         )
-        Text(text = label, style = AwnTypography.body)
+        Text(text = label, style = AwnTypography.body, color = field.content)
     }
 }
 
@@ -151,6 +151,7 @@ private fun SizeRow(
         Text(
             text = label,
             style = AwnTypography.body,
+            color = Awn.field.content,
             modifier = Modifier.width(SIZE_LABEL_WIDTH),
         )
         ReadIconButton(
@@ -162,6 +163,7 @@ private fun SizeRow(
         Text(
             text = stringResource(R.string.size_percent, (scale * PERCENT).toInt()),
             style = AwnTypography.body,
+            color = Awn.field.content,
             textAlign = TextAlign.Center,
             modifier = Modifier.width(SIZE_VALUE_WIDTH),
         )
@@ -214,10 +216,17 @@ private fun MyWordsTick(isTicked: Boolean, onToggle: () -> Unit) {
 
 @Composable
 private fun MenuItem(label: Int, icon: Int, onClick: () -> Unit) {
+    val contentColor = Awn.field.content
     DropdownMenuItem(
-        text = { Text(text = stringResource(label), style = AwnTypography.body) },
+        text = {
+            Text(text = stringResource(label), style = AwnTypography.body, color = contentColor)
+        },
         leadingIcon = {
-            Icon(painter = painterResource(icon), contentDescription = null)
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = contentColor,
+            )
         },
         onClick = onClick,
     )

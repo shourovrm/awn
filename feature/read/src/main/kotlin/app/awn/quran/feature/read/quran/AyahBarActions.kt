@@ -11,10 +11,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
+import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
-import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.ReadIconButton
 import app.awn.quran.feature.read.page.SelectionBounds
