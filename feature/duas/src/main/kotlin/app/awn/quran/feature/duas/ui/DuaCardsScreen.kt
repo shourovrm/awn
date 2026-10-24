@@ -71,40 +71,25 @@ internal fun DuaCardsScreen(
     val playback by dependencies.audioPlayer.state.collectAsState(initial = PlaybackState.Idle)
     StopAudioWhenLeavingCard(pagerState, duas, dependencies, playback)
     val layers = state.progress.layers
-    val scope = rememberCoroutineScope()
-    val saveLayers: (CardLayers) -> Unit = { chosen ->
-        scope.launch { dependencies.progress.setLayers(chosen) }
-    }
-
     val lineView = rememberLineViewResources(dependencies)
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     LaunchedEffect(pagerState.currentPage) { screenState.wordCard = null }
 
     Box(modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() }) {
         // The open word card is modal: the screen under it is hidden from screen readers, and a
-        // second
-        // Play button there would be mistaken for the card's own.
+        // second Play button there would be mistaken for the card's own.
         val underCardSemantics =
             if (screenState.wordCard != null) Modifier.clearAndSetSemantics {} else Modifier
         Column(Modifier.fillMaxSize().then(underCardSemantics)) {
-            DuasTopBar(
+            CardsTopBar(
                 title = title,
                 subtitle =
                     stringResource(R.string.duas_position, pagerState.currentPage + 1, duas.size),
-                onBack = actions.onBack,
-            ) {
-                CardLayersButton(layers = layers, onLayersChange = saveLayers)
-                AwnIconButton(
-                    icon = UiR.drawable.ic_ui_search,
-                    contentDescription = stringResource(R.string.duas_search_button),
-                    onClick = actions.onSearch,
-                    tint = Awn.field.onBar,
-                )
-                SaveButton(
-                    isSaved = state.progress.isSaved(dua.id),
-                    onClick = { actions.onToggleSaved(dua) },
-                )
-            }
+                dua = dua,
+                state = state,
+                dependencies = dependencies,
+                actions = actions,
+            )
             CardPager(
                 pagerState = pagerState,
                 duas = duas,
@@ -116,15 +101,7 @@ internal fun DuaCardsScreen(
                 actions = actions,
                 modifier = Modifier.weight(1f),
             )
-            if (layers.showWordByWord || layers.showTransliteration) {
-                PronunciationOffer(
-                    dependencies,
-                    Modifier.padding(
-                        horizontal = AwnSpacing.screenMargin,
-                        vertical = AwnSpacing.small,
-                    ),
-                )
-            }
+            LayerPronunciationOffer(layers, dependencies)
             ModePanel(
                 dua = dua,
                 state = state,
@@ -287,4 +264,43 @@ private fun StopAudioWhenLeavingCard(
             if (duas.any { latestPlayback.ayahOf(it) != null }) dependencies.audioPlayer.stop()
         }
     }
+}
+
+/** The bar over the cards: back, the group and position, then layers, search and save. */
+@Composable
+private fun CardsTopBar(
+    title: String,
+    subtitle: String,
+    dua: Dua,
+    state: DuasState,
+    dependencies: DuasDependencies,
+    actions: DuaCardsActions,
+) {
+    val scope = rememberCoroutineScope()
+    val saveLayers: (CardLayers) -> Unit = { chosen ->
+        scope.launch { dependencies.progress.setLayers(chosen) }
+    }
+    DuasTopBar(title = title, subtitle = subtitle, onBack = actions.onBack) {
+        CardLayersButton(layers = state.progress.layers, onLayersChange = saveLayers)
+        AwnIconButton(
+            icon = UiR.drawable.ic_ui_search,
+            contentDescription = stringResource(R.string.duas_search_button),
+            onClick = actions.onSearch,
+            tint = Awn.field.onBar,
+        )
+        SaveButton(
+            isSaved = state.progress.isSaved(dua.id),
+            onClick = { actions.onToggleSaved(dua) },
+        )
+    }
+}
+
+/** Word by word and transliteration need the pronunciation pack; offer it while one is on. */
+@Composable
+private fun LayerPronunciationOffer(layers: CardLayers, dependencies: DuasDependencies) {
+    if (!layers.showWordByWord && !layers.showTransliteration) return
+    PronunciationOffer(
+        dependencies,
+        Modifier.padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
+    )
 }

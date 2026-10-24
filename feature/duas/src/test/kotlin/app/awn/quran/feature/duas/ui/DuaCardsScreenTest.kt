@@ -37,7 +37,6 @@ import app.awn.quran.feature.recite.RecitationPhase
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -88,10 +87,9 @@ class DuaCardsScreenTest {
         val dependencies = environment.dependencies()
         composeRule.setContent {
             // The layers menu saves to the store; the view model would read them back from it.
-            val storedLayers by
-                dependencies.progress.progress
-                    .map { it.layers }
-                    .collectAsState(initial = state.progress.layers)
+            val storedProgress by
+                dependencies.progress.progress.collectAsState(initial = state.progress)
+            val storedLayers = storedProgress.layers
             AwnTheme(barBehindStatusBar = true) {
                 DuaCardsScreen(
                     title = "Good in this world and the next",

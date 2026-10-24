@@ -19,6 +19,7 @@ import app.awn.quran.tracker.WordState
  * dua cards add the words whose mistake can be reviewed. [wordTag] gives a word its test tag, or
  * null for none.
  */
+@Suppress("LongParameterList") // Plain data and callbacks handed from a screen to its words.
 class WordFlowInput(
     val settings: ReadSettings,
     val fontCache: PageFontCache,
