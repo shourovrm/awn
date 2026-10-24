@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -185,8 +186,8 @@ fun WordPopupCard(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             Box(Modifier.defaultMinSize(minHeight = AwnSpacing.touchTarget), Alignment.Center) {
-                Text(
-                    text = popup.word.arabic,
+                QuranWordText(
+                    key = popup.word.key,
                     style = AwnTypography.quranLead,
                     color = field.onBar,
                 )

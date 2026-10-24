@@ -4,12 +4,18 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
+import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.QuranPrint
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 import org.junit.Assert.assertEquals
@@ -31,19 +37,28 @@ class ReviewCardWordTest {
 
     // One of the longest single words in the Quran (2:137).
     private val longWord = "فَسَيَكْفِيكَهُمُ"
+    // The print prepares the text for the Hafs font before it draws it.
+    private val drawnWord = normalizeFallbackText(longWord)
     private val key = WordKey(2, 137, 14)
+    private val quranText =
+        FakeQuranTextRepository(
+            wordsByAyah =
+                mutableMapOf(
+                    AyahRef(2, 137) to listOf(Word(key, longWord, codeV1 = null, codeV2 = null)),
+                ),
+        )
 
     private fun showCard(fontScale: Float) {
         composeRule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
                 LocalDensity provides Density(density.density, fontScale = fontScale),
+                LocalQuranPrint provides QuranPrint(quranText = quranText),
             ) {
                 AwnTheme {
                     ReciteReviewCard(
                         reviews = listOf(WordReview(key, listOf(ReviewFinding.WrongWord))),
                         focusedKey = key,
-                        words = listOf(Word(key, longWord, codeV1 = null, codeV2 = null)),
                         onFocus = {},
                         onListen = {},
                         onDismiss = {},
@@ -51,12 +66,14 @@ class ReviewCardWordTest {
                 }
             }
         }
-        composeRule.waitForIdle()
+        composeRule.waitUntil(timeoutMillis = LOAD_TIMEOUT_MS) {
+            composeRule.onAllNodesWithText(drawnWord).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun wordLayout(): TextLayoutResult {
         val layouts = mutableListOf<TextLayoutResult>()
-        composeRule.onNodeWithText(longWord).performSemanticsAction(
+        composeRule.onNodeWithText(drawnWord).performSemanticsAction(
             SemanticsActions.GetTextLayoutResult,
         ) { action ->
             action(layouts)
@@ -86,5 +103,9 @@ class ReviewCardWordTest {
             AwnTypography.quran.fontFamily,
             wordLayout().layoutInput.style.fontFamily,
         )
+    }
+
+    private companion object {
+        const val LOAD_TIMEOUT_MS = 5_000L
     }
 }

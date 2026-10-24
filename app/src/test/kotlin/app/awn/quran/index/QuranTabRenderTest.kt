@@ -19,6 +19,7 @@ import app.awn.quran.R
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.ColourMode
 import app.awn.quran.core.ui.theme.LocalColourMode
 import app.awn.quran.tabs.AwnTab
@@ -83,7 +84,7 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
                     page = 294,
                     chapter = chapters[17],
                     juz = 15,
-                    firstLineWords = listOf("كلمة", "أخرى"),
+                    firstWord = WordKey(18, 5, 1),
                     isStart = false,
                 ),
             lastPage = 294,

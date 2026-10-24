@@ -20,7 +20,6 @@ fun ReciteFocusedWordCard(controller: ReciteController, modifier: Modifier = Mod
     val session = controller.session
     val focusedWord by controller.focusedWord.collectAsState()
     if (focusedWord == null) return
-    val words by session.words.collectAsState()
     val reviews by session.reviews.collectAsState()
     val problems by session.wordProblems.collectAsState()
     val playback by controller.audioPlayer.state.collectAsState(initial = PlaybackState.Idle)
@@ -29,7 +28,6 @@ fun ReciteFocusedWordCard(controller: ReciteController, modifier: Modifier = Mod
         controller = controller,
         reviews = flaggedWords,
         focusedKey = focusedWord,
-        words = words,
         isAudioActive = reciteAudioStateOf(playback).isActive(),
         onDismiss = controller::clearFocus,
         modifier = modifier.padding(bottom = AwnSpacing.small),

@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,9 +28,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -60,12 +57,6 @@ const val REVIEW_CLOSE_TAG = "review-close"
 private const val CARD_MAX_HEIGHT_SHARE = 0.4f
 
 /**
- * The smallest the flagged word shrinks to, as a share of the Quran font size. Below this share the
- * word is too small to read, so a longer word is clipped rather than shrunk further.
- */
-private const val MIN_WORD_FONT_SIZE_SHARE = 0.5f
-
-/**
  * The review of flagged words as a card above the recite bar, on the field of the colour mode. The
  * page stays visible and live above it: [focusedKey] is the word on the page that is ringed. The
  * top row holds the play and save-word buttons (as on the word card) at the left and Close at the
@@ -79,7 +70,6 @@ private const val MIN_WORD_FONT_SIZE_SHARE = 0.5f
 fun ReciteReviewCard(
     reviews: List<WordReview>,
     focusedKey: WordKey?,
-    words: List<Word>,
     onFocus: (WordKey) -> Unit,
     onListen: (WordKey) -> Unit,
     onDismiss: () -> Unit,
@@ -93,7 +83,6 @@ fun ReciteReviewCard(
     // An empty list still shows the card: a card that silently stays closed looked like a bug.
     val position = reviews.indexOfFirst { it.key == focusedKey }.coerceAtLeast(0)
     val review = reviews.getOrNull(position)
-    val wordText = words.firstOrNull { it.key == review?.key }?.textUthmani.orEmpty()
     val field = Awn.field
     val windowHeightPx = LocalWindowInfo.current.containerSize.height
     val maxHeight = with(LocalDensity.current) { (windowHeightPx * CARD_MAX_HEIGHT_SHARE).toDp() }
@@ -119,7 +108,7 @@ fun ReciteReviewCard(
             onDismiss = onDismiss,
         )
         if (review != null) {
-            ReviewWord(wordText)
+            ReviewWord(review.key)
         }
         review?.findings?.forEach { finding -> FindingBlock(finding) }
         if (reviews.size > 1) {
@@ -156,24 +145,12 @@ private fun ReviewNavigation(
 /** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
 internal val TIGHT_GAP = AwnSpacing.small / 2
 
-/**
- * The flagged word on its own line, in the Quran font. It shrinks to fit the width on one line
- * instead of wrapping, because a wrapped word was hard to read in the small card.
- */
+/** The flagged word on its own line, centred, in the user's Mushaf print and never wrapped. */
 @Composable
-private fun ReviewWord(word: String) {
-    BasicText(
-        text = word,
-        modifier = Modifier.fillMaxWidth(),
-        style = AwnTypography.quran.copy(color = Awn.field.content, textAlign = TextAlign.Center),
-        maxLines = 1,
-        softWrap = false,
-        autoSize =
-            TextAutoSize.StepBased(
-                minFontSize = AwnTypography.quran.fontSize * MIN_WORD_FONT_SIZE_SHARE,
-                maxFontSize = AwnTypography.quran.fontSize,
-            ),
-    )
+private fun ReviewWord(key: WordKey) {
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        QuranWordText(key = key, style = AwnTypography.quran, color = Awn.field.content)
+    }
 }
 
 @Composable

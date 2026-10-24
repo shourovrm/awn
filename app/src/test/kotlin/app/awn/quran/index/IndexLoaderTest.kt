@@ -110,7 +110,7 @@ class IndexLoaderTest {
 
         val reading = loader.continueReading(lastPage = 294, content = content)
 
-        assertEquals(listOf("a", "b", "c"), reading.firstLineWords)
+        assertEquals(WordKey(18, 5, 1), reading.firstWord)
         assertEquals(294, reading.page)
         assertFalse(reading.isStart)
     }

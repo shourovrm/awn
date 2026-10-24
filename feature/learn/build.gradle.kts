@@ -99,6 +99,7 @@ androidComponents {
 dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
+    implementation(project(":core:quranfont"))
 
     implementation(libs.kotlinx.coroutinesCore)
     implementation(libs.androidx.roomRuntime)

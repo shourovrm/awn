@@ -1,6 +1,7 @@
 package app.awn.quran.core.quranfont
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Text
@@ -75,7 +76,8 @@ fun QuranWordText(
             value =
                 printedWordsOf(print, ayah, position..position, showEndMarker = false).firstOrNull()
         }
-    printedWord?.let { PrintedWordCell(it, print, style, color, modifier) }
+    // The box is there before the word is, so the modifier's size and tap target do not jump.
+    Box(modifier) { printedWord?.let { PrintedWordCell(it, print, style, color) } }
 }
 
 @Composable
@@ -84,7 +86,6 @@ private fun PrintedWordCell(
     print: QuranPrint,
     style: TextStyle,
     color: Color,
-    modifier: Modifier = Modifier,
 ) {
     val fontCache = print.fontCache
     if (fontCache == null) {
@@ -94,7 +95,6 @@ private fun PrintedWordCell(
             color = color,
             maxLines = 1,
             softWrap = false,
-            modifier = modifier,
         )
     } else {
         PageFontWord(
@@ -102,7 +102,6 @@ private fun PrintedWordCell(
             script = printedWord.script,
             page = printedWord.page,
             fontCache = fontCache,
-            modifier = modifier,
             fontSize = style.fontSize,
             lineHeight = style.lineHeight,
             color = color,

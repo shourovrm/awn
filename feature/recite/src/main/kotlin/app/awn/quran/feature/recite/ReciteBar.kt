@@ -97,7 +97,6 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                 controller = controller,
                 reviews = flaggedWords,
                 focusedKey = focusedWord,
-                words = words,
                 isAudioActive = isAudioActive,
                 onDismiss = {
                     reviewOpen = false

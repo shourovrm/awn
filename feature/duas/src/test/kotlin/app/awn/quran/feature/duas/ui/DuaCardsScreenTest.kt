@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,6 +25,8 @@ import androidx.test.espresso.Espresso
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.QuranPrint
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.duas.DuasFixtures
 import app.awn.quran.feature.duas.DuasTestEnvironment
@@ -90,23 +93,27 @@ class DuaCardsScreenTest {
             val storedProgress by
                 dependencies.progress.progress.collectAsState(initial = state.progress)
             val storedLayers = storedProgress.layers
-            AwnTheme(barBehindStatusBar = true) {
-                DuaCardsScreen(
-                    title = "Good in this world and the next",
-                    duas = listOf(DuasFixtures.d1, DuasFixtures.d2),
-                    startIndex = startIndex,
-                    state = state.copy(progress = state.progress.copy(layers = storedLayers)),
-                    dependencies = dependencies,
-                    actions =
-                        DuaCardsActions(
-                            onBack = { wentBack++ },
-                            onSearch = { searched++ },
-                            onToggleSaved = { toggledSaved += it },
-                            onOpenMushaf = { openedInMushaf += it },
-                            onCleanRecitation = { cleanRecitations += it },
-                            onRequestWordTiles = { requestedTiles += it },
-                        ),
-                )
+            CompositionLocalProvider(
+                LocalQuranPrint provides QuranPrint(quranText = dependencies.quranText),
+            ) {
+                AwnTheme(barBehindStatusBar = true) {
+                    DuaCardsScreen(
+                        title = "Good in this world and the next",
+                        duas = listOf(DuasFixtures.d1, DuasFixtures.d2),
+                        startIndex = startIndex,
+                        state = state.copy(progress = state.progress.copy(layers = storedLayers)),
+                        dependencies = dependencies,
+                        actions =
+                            DuaCardsActions(
+                                onBack = { wentBack++ },
+                                onSearch = { searched++ },
+                                onToggleSaved = { toggledSaved += it },
+                                onOpenMushaf = { openedInMushaf += it },
+                                onCleanRecitation = { cleanRecitations += it },
+                                onRequestWordTiles = { requestedTiles += it },
+                            ),
+                    )
+                }
             }
         }
     }

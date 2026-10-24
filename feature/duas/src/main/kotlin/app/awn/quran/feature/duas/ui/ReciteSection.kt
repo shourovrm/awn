@@ -107,10 +107,9 @@ private fun ReciteControls(
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
         val reviewedProblem = reviewedWord?.let { wordProblems[it] }
-        val reviewedArabic = card?.words?.firstOrNull { it.word.key == reviewedWord }?.word
-        if (reviewedWord != null && reviewedProblem != null && reviewedArabic != null) {
+        if (reviewedWord != null && reviewedProblem != null) {
             WordReviewCard(
-                arabic = reviewedArabic.textUthmani,
+                key = reviewedWord,
                 problem = reviewedProblem,
                 onPlayWord = { scope.launch { dependencies.playWord(reviewedWord) } },
                 onClose = { actions.onReviewedWordChange(null) },

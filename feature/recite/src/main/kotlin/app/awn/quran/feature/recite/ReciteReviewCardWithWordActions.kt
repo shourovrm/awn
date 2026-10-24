@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.data.RemovedMyWord
-import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.UndoMessage
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -30,7 +29,6 @@ internal fun ReciteReviewCardWithWordActions(
     controller: ReciteController,
     reviews: List<WordReview>,
     focusedKey: WordKey?,
-    words: List<Word>,
     isAudioActive: Boolean,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -63,7 +61,6 @@ internal fun ReciteReviewCardWithWordActions(
         ReciteReviewCard(
             reviews = reviews,
             focusedKey = focusedKey,
-            words = words,
             onFocus = controller::focusWord,
             onListen = { scope.launch { controller.listenToAyah() } },
             onDismiss = onDismiss,

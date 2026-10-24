@@ -6,6 +6,7 @@ import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.SavedAyah
 import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.WordKey
 
 /**
  * The print used for page numbers when the user's print has no page table (IndoPak not installed).
@@ -32,8 +33,8 @@ data class ContinueReading(
     val page: Int,
     val chapter: Chapter,
     val juz: Int,
-    /** The words of the first line of [page], in reading order; empty when there are none. */
-    val firstLineWords: List<String>,
+    /** The first word of the first line of text of [page]; null when the page has no words. */
+    val firstWord: WordKey?,
     /** True when nothing was read yet, so the card starts at page 1. */
     val isStart: Boolean,
 )
@@ -94,22 +95,21 @@ class IndexLoader(private val quranText: QuranTextRepository) {
             page = page,
             chapter = content.chapters.first { it.number == surah },
             juz = juzOfPage(content.juzStartPages, page),
-            firstLineWords = firstLineWords(page, content.script),
+            firstWord = firstWordOf(page, content.script),
             isStart = lastPage == null,
         )
     }
 
-    private suspend fun firstLineWords(page: Int, script: ScriptId): List<String> {
+    private suspend fun firstWordOf(page: Int, script: ScriptId): WordKey? {
         val layout = quranText.pageLayout(page, script)
         // A line that holds only a surah banner or the Basmalah has no words; the first line of
         // text is the first one that does.
         return layout.lines
             .asSequence()
-            .map { line ->
-                line.items.filterIsInstance<LineItem.WordItem>().map { it.word.textUthmani }
-            }
-            .firstOrNull { it.isNotEmpty() }
-            .orEmpty()
+            .flatMap { line -> line.items.filterIsInstance<LineItem.WordItem>() }
+            .firstOrNull()
+            ?.word
+            ?.key
     }
 
     suspend fun toAyahMark(saved: SavedAyah, script: ScriptId): BookmarkEntry.AyahMark =

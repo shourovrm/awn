@@ -17,7 +17,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextDirection
+import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
@@ -37,7 +38,7 @@ internal const val REVIEW_CLOSE_TAG = "dua-review-close"
  */
 @Composable
 internal fun WordReviewCard(
-    arabic: String,
+    key: WordKey,
     problem: WordProblem,
     onPlayWord: () -> Unit,
     onClose: () -> Unit,
@@ -58,9 +59,9 @@ internal fun WordReviewCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = arabic,
-                style = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl),
+            QuranWordText(
+                key = key,
+                style = AwnTypography.quranLead,
                 color = field.content,
                 modifier =
                     Modifier.heightIn(min = AwnSpacing.touchTarget)

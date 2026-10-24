@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
 import org.junit.Assert.assertEquals
@@ -32,7 +31,6 @@ class ReviewCardWordActionsTest {
                 ReciteReviewCard(
                     reviews = listOf(WordReview(key, listOf(ReviewFinding.WrongWord))),
                     focusedKey = key,
-                    words = listOf(Word(key, "word", codeV1 = null, codeV2 = null)),
                     onFocus = {},
                     onListen = { listened += it },
                     onDismiss = {},
