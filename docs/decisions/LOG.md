@@ -213,3 +213,5 @@
 2026-10-24 | Revision spacing: Manzil cycle, fixed steps or adaptive; Hifz journal and map page sheet | user asked for customised spacing and a journal (hifz.md)
 2026-10-24 | Ayahs by topic built on the dua cards (32 topics); dua Listen bar drops speed and opens the reciter sheet | user asked for Topics, a Mushaf-like listen bar and the missing pronunciation (duas.md)
 2026-10-25 | Wi-Fi only governs every download and is off by default | the switch only covered audio; user wants both networks allowed unless limited (data.md)
+2026-10-25 | One welcome card (single-select Mushaf plus translation tick) replaces the print and starter cards; notice before first recite | two download cards in a row read as pushy; recite was usable before the notice (read.md)
+2026-10-25 | Settings regrouped by the user's question; Mushaf and Reading merged; Downloads is Storage; print is Mushaf in the UI | first-time user review found jargon and a junk-drawer page (architecture.md, copy.md)

@@ -68,3 +68,6 @@ Use these words for these things, and no other word for the same thing.
 | recite_status_no_microphone | Can't use the microphone | adds "Close other recording apps." | error with one action |
 
 The Bangla strings changed in this pass are the maintainer session's translations and need a native reader's check, like the agents' Bangla before them.
+
+## Usability pass of 2026-10-25
+A review as a first-time non-technical user (mocks in the local `.design-mockups/first-run-settings/`) renamed "print" to "Mushaf" everywhere, merged the two first-run cards into one welcome card, and regrouped Settings by the user's question (Quran page, Audio; Recite and Hifz, Learn; Language, Colours, Storage, Backup, About). Renames: Download by → Download ahead; Word audio → Single-word voice / Single-word audio; Speed (recite) → Follow pace, Patient to Eager; Show first letter first → First-letter hint; Follow phone theme → Follow phone dark mode; Awn / Light colours → Cream / White; Downloads → Storage; Export / Import bookmarks → Save to a file / Restore from a file; Notice → Learn with a teacher; Recite (download row) → Recitation checker; Download for recite → Recite with Awn listening. The Bangla of this pass is agent-written and needs a native reader's check.
