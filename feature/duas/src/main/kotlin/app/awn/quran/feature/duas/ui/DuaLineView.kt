@@ -106,12 +106,12 @@ internal fun DuaLineView(
     onWordTap: WordTapHandler,
     modifier: Modifier = Modifier,
 ) {
-    val glyphPages = rememberGlyphPages(card, settings.script, resources.quranText)
+    val cardGlyphs = rememberCardGlyphs(card, settings.script, resources.quranText)
     // A glyph word draws nothing before its page is known, so the lines wait for it.
-    val pages = glyphPages ?: return
+    val glyphs = cardGlyphs ?: return
     val blocks =
-        remember(card, wordTiles, showDuaOnly, pages, settings.script) {
-            ayahBlocksOf(card, wordTiles, showDuaOnly, settings.script, pages)
+        remember(card, wordTiles, showDuaOnly, glyphs, settings.script) {
+            ayahBlocksOf(card, wordTiles, showDuaOnly, settings.script, glyphs)
         }
     val input =
         WordFlowInput(
@@ -119,9 +119,9 @@ internal fun DuaLineView(
             fontCache = resources.fontCache,
             wordStates = highlights.wordStates,
             focusedWord = highlights.focusedWord,
-            dimmedWords = if (showDuaOnly) emptySet() else wordsOutsideDua(card),
+            dimmedWords = if (showDuaOnly) emptySet() else dimmedWordsOf(card),
             tappableWords = tappableWordsOf(blocks, highlights),
-            wordTag = ::cardWordTag,
+            wordTag = ::tagOfCardWord,
             onWordTap = onWordTap,
         )
     val arabicStyle =
@@ -157,25 +157,45 @@ internal fun DuaLineView(
 }
 
 /**
- * The page of each word of [card] in a glyph [script], or an empty map for a script that has no
- * glyphs. Null while the pages are being looked up.
+ * What a glyph print needs to draw [DuaCardData.words]: the page of each word and the end sign of
+ * each ayah. Both are empty for a script that has no glyphs.
  */
+internal class CardGlyphs(
+    val pages: Map<WordKey, Int>,
+    val endSigns: Map<AyahRef, GlyphEndSign>,
+) {
+    companion object {
+        val None = CardGlyphs(emptyMap(), emptyMap())
+    }
+}
+
+/** The glyphs of [card] in [script]; null while the pages are being looked up. */
 @Composable
-private fun rememberGlyphPages(
+private fun rememberCardGlyphs(
     card: DuaCardData,
     script: ScriptId,
     quranText: QuranTextRepository,
-): Map<WordKey, Int>? {
+): CardGlyphs? {
     val usesGlyphs = script in pageGlyphScripts
-    val pages by
-        produceState<Map<WordKey, Int>?>(
-            initialValue = if (usesGlyphs) null else emptyMap(),
+    val glyphs by
+        produceState<CardGlyphs?>(
+            initialValue = if (usesGlyphs) null else CardGlyphs.None,
             card.dua.id,
             script,
         ) {
-            value = if (usesGlyphs) glyphPagesOf(card, script, quranText) else emptyMap()
+            value = if (usesGlyphs) cardGlyphsOf(card, script, quranText) else CardGlyphs.None
         }
-    return pages
+    return glyphs
+}
+
+private suspend fun cardGlyphsOf(
+    card: DuaCardData,
+    script: ScriptId,
+    quranText: QuranTextRepository,
+): CardGlyphs {
+    val pages = glyphPagesOf(card, script, quranText)
+    val endSigns = glyphEndSignsOf(card.words, script, pages, quranText)
+    return CardGlyphs(pages, endSigns)
 }
 
 private suspend fun glyphPagesOf(
@@ -194,41 +214,69 @@ private suspend fun glyphPagesOf(
 /**
  * The ayahs of [card] as the word flow wants them. A word outside the dua is left out when
  * [showDuaOnly] is set. A word has its meaning and sound from [wordTiles], which hold the dua's own
- * words only, so a word outside the dua has none.
+ * words only, so a word outside the dua has none. An ayah ends with its end marker unless its last
+ * word is left out, so the marker never stands after a word that is not shown.
  */
 internal fun ayahBlocksOf(
     card: DuaCardData,
     wordTiles: List<DuaWordTile>,
     showDuaOnly: Boolean,
     script: ScriptId,
-    glyphPages: Map<WordKey, Int>,
+    glyphs: CardGlyphs,
 ): List<AyahBlock> {
     val tilesByKey = wordTiles.associateBy { it.key }
     val shownWords = if (showDuaOnly) card.words.filter { it.isDuaWord } else card.words
+    val lastWordKeys = lastWordKeysOfAyahs(card)
     return shownWords
         .groupBy { AyahRef(it.word.key.surah, it.word.key.ayah) }
         .map { (ayah, cardWords) ->
-            val words = cardWords.map { cardWord ->
+            val spokenWords = cardWords.map { cardWord ->
                 val tile = tilesByKey[cardWord.word.key]
                 AyahWord(
                     key = cardWord.word.key,
                     arabic = normalizeFallbackText(cardWord.word.textUthmani),
                     meaning = tile?.meaning?.takeIf { it.isNotBlank() },
                     transliteration = tile?.transliteration?.takeIf { it.isNotBlank() },
-                    glyphs = glyphsOf(cardWord.word, script, glyphPages),
+                    glyphs = glyphsOf(cardWord.word, script, glyphs.pages),
                 )
             }
+            val endsWithMarker = cardWords.any { it.word.key == lastWordKeys[ayah] }
+            val words =
+                if (endsWithMarker) {
+                    spokenWords + ayahEndWordOf(ayah, glyphs.endSigns[ayah])
+                } else {
+                    spokenWords
+                }
             AyahBlock(
                 ayah = ayah,
                 words = words,
                 transliteration =
-                    words
+                    spokenWords
                         .mapNotNull { it.transliteration }
                         .joinToString(separator = " ")
                         .takeIf { it.isNotBlank() },
                 translations = emptyList(),
             )
         }
+}
+
+private fun lastWordKeysOfAyahs(card: DuaCardData): Map<AyahRef, WordKey> =
+    card.words
+        .groupBy { AyahRef(it.word.key.surah, it.word.key.ayah) }
+        .mapValues { (_, cardWords) -> cardWords.last().word.key }
+
+/** The tag of a word of the card, or of the end marker that follows an ayah. */
+private fun tagOfCardWord(key: WordKey): String =
+    if (isAyahEndKey(key)) ayahEndTag(AyahRef(key.surah, key.ayah)) else cardWordTag(key)
+
+/** The words faint on a card of whole ayahs: those outside the dua and the markers after them. */
+private fun dimmedWordsOf(card: DuaCardData): Set<WordKey> {
+    val markersAfterOutsideWords =
+        lastWordKeysOfAyahs(card)
+            .filterValues { lastWordKey -> lastWordKey in wordsOutsideDua(card) }
+            .keys
+            .map { ayah -> ayahEndKeyOf(ayah) }
+    return wordsOutsideDua(card) + markersAfterOutsideWords
 }
 
 /** The words of the ayah that are not part of the dua; they are drawn faint. */
@@ -248,6 +296,7 @@ private fun tappableWordsOf(blocks: List<AyahBlock>, highlights: CardHighlights)
         blocks
             .flatMap { block -> block.words }
             .map { word -> word.key }
+            .filterNot { key -> isAyahEndKey(key) }
             .filter { key -> highlights.wordStates[key] != WordState.Hidden }
     return shownWords.toSet() + highlights.flaggedWords
 }

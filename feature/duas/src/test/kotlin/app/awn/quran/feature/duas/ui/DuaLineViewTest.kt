@@ -34,6 +34,7 @@ class DuaLineViewTest {
     private val environment = DuasTestEnvironment()
     private val outsideWord = WordKey(2, 201, 1)
     private val duaWord = WordKey(2, 201, 4)
+    private val ayah = AyahRef(2, 201)
 
     private fun cardOfFirstDua(): DuaCardData = runBlocking {
         DuaCardLoader(environment.quranText, environment.translations)
@@ -41,7 +42,7 @@ class DuaLineViewTest {
             .single()
     }
 
-    private fun show(showDuaOnly: Boolean) {
+    private fun show(showDuaOnly: Boolean, card: DuaCardData = cardOfFirstDua()) {
         val settings = ReadSettings(script = ScriptId.QpcHafs, pageView = PageView.LineByLine)
         val resources =
             LineViewResources(
@@ -50,7 +51,6 @@ class DuaLineViewTest {
                 arabicFamily = null,
                 quranText = environment.quranText,
             )
-        val card = cardOfFirstDua()
         composeRule.setContent {
             AwnTheme {
                 DuaLineView(
@@ -81,6 +81,42 @@ class DuaLineViewTest {
 
         composeRule.onNodeWithTag(cardWordTag(outsideWord)).assertExists()
         composeRule.onNodeWithTag(cardWordTag(duaWord)).assertExists()
+    }
+
+    /** The card of the first dua with its ayah's last word taken out of the dua. */
+    private fun cardWhoseLastWordIsOutsideTheDua(): DuaCardData {
+        val card = cardOfFirstDua()
+        val wordsWithoutDuaEnd =
+            card.words.mapIndexed { index, cardWord ->
+                if (index == card.words.lastIndex) cardWord.copy(isDuaWord = false) else cardWord
+            }
+        return card.copy(words = wordsWithoutDuaEnd)
+    }
+
+    @Test
+    fun anAyahEndsWithItsMarkerWhenItsLastWordIsShown() {
+        show(showDuaOnly = true)
+
+        composeRule.onNodeWithTag(ayahEndTag(ayah)).assertExists()
+    }
+
+    @Test
+    fun theMarkerIsShownWithTheWholeAyah() {
+        show(showDuaOnly = false, card = cardWhoseLastWordIsOutsideTheDua())
+
+        composeRule.onNodeWithTag(ayahEndTag(ayah)).assertExists()
+    }
+
+    @Test
+    fun duaOnlyShowsNoMarkerWhenItHidesTheLastWord() {
+        show(showDuaOnly = true, card = cardWhoseLastWordIsOutsideTheDua())
+
+        composeRule.onNodeWithTag(ayahEndTag(ayah)).assertDoesNotExist()
+    }
+
+    @Test
+    fun theMarkerIsTheEndSignAroundTheAyahNumberInArabicIndicDigits() {
+        assertEquals("\u06DD\u0662\u0660\u0661", ayahEndText(201))
     }
 
     @Test

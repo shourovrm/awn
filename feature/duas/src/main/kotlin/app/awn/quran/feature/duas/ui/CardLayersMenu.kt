@@ -21,10 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.raisedSurface
 import app.awn.quran.feature.duas.R
 import app.awn.quran.feature.duas.data.CardLayers
 
@@ -50,7 +53,16 @@ internal fun CardLayersButton(
             modifier = Modifier.testTag(LAYERS_BUTTON_TAG),
             tint = Awn.field.onBar,
         )
-        DropdownMenu(expanded = isOpen, onDismissRequest = { isOpen = false }) {
+        // The surface, shape and shadow are those of the menus of :core:ui (AwnChoiceRow), not
+        // Material's tinted default.
+        DropdownMenu(
+            expanded = isOpen,
+            onDismissRequest = { isOpen = false },
+            shape = AwnShapes.menu,
+            containerColor = Awn.field.raisedSurface,
+            tonalElevation = 0.dp,
+            shadowElevation = AwnSpacing.small,
+        ) {
             LayerTick(
                 label = stringResource(R.string.duas_layer_word_by_word),
                 isTicked = layers.showWordByWord,
@@ -105,6 +117,6 @@ private fun LayerTick(
                     checkmarkColor = field.onButton,
                 ),
         )
-        Text(text = label, style = AwnTypography.body)
+        Text(text = label, style = AwnTypography.body, color = field.content)
     }
 }
