@@ -115,8 +115,8 @@ class DuaLineViewTest {
     }
 
     @Test
-    fun theMarkerIsTheEndSignAroundTheAyahNumberInArabicIndicDigits() {
-        assertEquals("\u06DD\u0662\u0660\u0661", ayahEndText(201))
+    fun theMarkerIsTheAyahNumberInArabicIndicDigits() {
+        assertEquals("\u0662\u0660\u0661", ayahEndText(201))
     }
 
     @Test

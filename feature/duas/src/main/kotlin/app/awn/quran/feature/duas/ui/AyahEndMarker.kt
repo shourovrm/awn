@@ -19,7 +19,6 @@ private const val AYAH_END_POSITION = 1000
 private const val ARABIC_INDIC_ZERO = '٠'
 
 /** The end-of-ayah sign, which a Unicode font draws round the digits that follow it. */
-private const val END_OF_AYAH_SIGN = '۝'
 
 /** What the glyph prints need to draw the marker: the sign in the page font, and that page. */
 internal class GlyphEndSign(val code: String, val page: Int)
@@ -32,11 +31,12 @@ internal fun isAyahEndKey(key: WordKey): Boolean = key.wordPosition == AYAH_END_
 /** Test tag of the marker after [ayah]. */
 internal fun ayahEndTag(ayah: AyahRef): String = "dua-ayah-end-${ayah.surah}-${ayah.ayah}"
 
-/** The sign and the number of [ayah] as Unicode text: U+06DD followed by Arabic-Indic digits. */
-internal fun ayahEndText(ayah: Int): String {
-    val digits = ayah.toString().map { digit -> ARABIC_INDIC_ZERO + (digit - '0') }
-    return END_OF_AYAH_SIGN + digits.joinToString(separator = "")
-}
+/**
+ * The number of [ayah] in Arabic-Indic digits. The Quran font draws the end-of-ayah ornament around
+ * the number by itself, as on the Mushaf page; adding the U+06DD sign as well draws a second ring.
+ */
+internal fun ayahEndText(ayah: Int): String =
+    ayah.toString().map { digit -> ARABIC_INDIC_ZERO + (digit - '0') }.joinToString(separator = "")
 
 /**
  * The marker as one more word at the end of the ayah, so the word flow draws it in the script's own
