@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -135,7 +136,6 @@ private fun KnownCard(summary: SessionSummary) {
 @Composable
 private fun LastAyahCard(lastAyah: LastAyah) {
     val colors = paperColors()
-    val environment = LocalLearnEnvironment.current
     Column(
         modifier =
             Modifier.fillMaxWidth()
@@ -155,14 +155,9 @@ private fun LastAyahCard(lastAyah: LastAyah) {
                 verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
             ) {
                 lastAyah.words.forEach { word ->
-                    Text(
-                        text = word.text,
-                        style =
-                            AwnTypography.lead.copy(
-                                fontFamily =
-                                    environment?.arabic?.fontFamily
-                                        ?: AwnTypography.lead.fontFamily,
-                            ),
+                    QuranWordText(
+                        key = word.key,
+                        style = AwnTypography.quran.copy(fontSize = AwnTypography.lead.fontSize),
                         color = if (word.isKnown) colors.onButton else colors.content,
                         modifier =
                             Modifier.clip(AwnShapes.wordBlock)

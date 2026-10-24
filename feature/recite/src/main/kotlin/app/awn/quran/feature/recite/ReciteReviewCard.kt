@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.quranfont.QuranWordText
+import app.awn.quran.core.quranfont.ShrinkToFit
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -145,11 +146,16 @@ private fun ReviewNavigation(
 /** Half the small gap: the card's vertical rhythm, tighter than the rest of the bar. */
 internal val TIGHT_GAP = AwnSpacing.small / 2
 
-/** The flagged word on its own line, centred, in the user's Mushaf print and never wrapped. */
+/**
+ * The flagged word on its own line, centred, in the user's Mushaf print. It shrinks to fit the
+ * width on one line instead of wrapping, because a wrapped word was hard to read in the small card.
+ */
 @Composable
 private fun ReviewWord(key: WordKey) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        QuranWordText(key = key, style = AwnTypography.quran, color = Awn.field.content)
+        ShrinkToFit {
+            QuranWordText(key = key, style = AwnTypography.quran, color = Awn.field.content)
+        }
     }
 }
 

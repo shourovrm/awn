@@ -3,6 +3,7 @@ package app.awn.quran.feature.learn
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Snippet
+import app.awn.quran.feature.learn.content.SnippetSource
 import app.awn.quran.feature.learn.content.snippetReference
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import app.awn.quran.feature.learn.progress.WeekProgress
@@ -22,8 +23,11 @@ data class LessonSummary(
     val isDraft: Boolean,
 )
 
-/** The day's snippet: Arabic text and where it comes from. */
-data class SnippetLine(val arabic: String, val reference: String)
+/**
+ * The day's snippet: Arabic text and where it comes from. [ayah] is set when the snippet is an
+ * ayah, which the screen then draws from the Quran text in the user's print.
+ */
+data class SnippetLine(val arabic: String, val reference: String, val ayah: AyahRef? = null)
 
 data class LearnUiState(
     val streakDays: Int,
@@ -108,7 +112,14 @@ object LearnUiMapper {
             lessons = lessons.take(LESSONS_ON_LEARN_SCREEN),
             snippet =
                 snippet?.let {
-                    SnippetLine(it.arabic, snippetReference(it.source, language, surahName))
+                    SnippetLine(
+                        arabic = it.arabic,
+                        reference = snippetReference(it.source, language, surahName),
+                        ayah =
+                            (it.source as? SnippetSource.Ayah)?.let { ayah ->
+                                AyahRef(ayah.surah, ayah.ayah)
+                            },
+                    )
                 },
         )
 

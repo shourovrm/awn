@@ -2,13 +2,21 @@ package app.awn.quran.feature.learn.ui
 
 import android.app.Application
 import android.content.Intent
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.Word
+import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.QuranPrint
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.LearnField
 import app.awn.quran.feature.learn.content.LearnLanguage
@@ -105,6 +113,36 @@ class DailySayingTest {
             url = null,
             grade = null,
         )
+
+    @Test
+    fun anAyahSayingIsDrawnFromTheQuranTextInThePrintWithItsEndMarker() {
+        val ayah = AyahRef(73, 4)
+        val quranText =
+            FakeQuranTextRepository(
+                wordsByAyah =
+                    mutableMapOf(
+                        ayah to listOf(Word(WordKey(73, 4, 1), "from the print", null, null)),
+                    ),
+            )
+        val ayahSaying = saying.copy(arabic = "snippet text", ayah = ayah)
+        composeRule.setContent {
+            AwnTheme(field = LearnField) {
+                CompositionLocalProvider(
+                    LocalQuranPrint provides QuranPrint(quranText = quranText),
+                ) {
+                    CourseHub(
+                        hubState.copy(sayings = SayingDeck(listOf(ayahSaying), dayIndex = 0)),
+                        noHubActions,
+                    )
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("from the print").assertIsDisplayed()
+        composeRule.onNodeWithText("٤").assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithText("snippet text").fetchSemanticsNodes().size)
+    }
 
     @Test
     fun theSayingShowsAboveTheTodayCard() {

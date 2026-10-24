@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import app.awn.quran.core.quranfont.QuranAyahText
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -85,7 +86,12 @@ fun LearnScreen(
 @Composable
 private fun SnippetBlock(snippet: SnippetLine) {
     Column(Modifier.padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.medium)) {
-        ArabicText(text = snippet.arabic)
+        val snippetAyah = snippet.ayah
+        if (snippetAyah != null) {
+            QuranAyahText(ayah = snippetAyah, modifier = Modifier.fillMaxWidth())
+        } else {
+            ArabicText(text = snippet.arabic)
+        }
         Text(
             text = snippet.reference,
             style = AwnTypography.small,

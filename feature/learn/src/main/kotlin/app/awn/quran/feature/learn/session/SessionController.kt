@@ -362,7 +362,7 @@ class SessionController(
         val known = after.knownRanks.toSet()
         val words =
             dependencies.arabic.ayah(ayah).words.map {
-                LastAyahWord(it.text, dependencies.frequency.rankOf(it.key) in known)
+                LastAyahWord(it.key, it.text, dependencies.frequency.rankOf(it.key) in known)
             }
         return LastAyah(ayah, words)
     }

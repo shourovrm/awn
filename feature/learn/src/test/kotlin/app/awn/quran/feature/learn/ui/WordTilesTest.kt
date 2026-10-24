@@ -6,7 +6,11 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.QuranPrint
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.course.CourseContentReader
 import app.awn.quran.feature.learn.course.LessonBlock
@@ -41,6 +45,20 @@ class WordTilesTest {
             override fun stop() = Unit
         }
 
+    private val quranText =
+        FakeQuranTextRepository(
+            wordsByAyah =
+                mutableMapOf(
+                    AyahRef(2, 6) to listOf(Word(WordKey(2, 6, 1), "inna", null, null)),
+                    AyahRef(78, 1) to listOf(Word(WordKey(78, 1, 1), "amma", null, null)),
+                    AyahRef(2, 8) to
+                        listOf(
+                            Word(WordKey(2, 8, 3), "may", null, null),
+                            Word(WordKey(2, 8, 4), "yaqulu", null, null),
+                        ),
+                ),
+        )
+
     private val block =
         CourseContentReader.parse(
                 """{"formatVersion":1,"references":[],"lessons":[{"id":"tajweed-15",
@@ -64,6 +82,7 @@ class WordTilesTest {
         composeRule.setContent {
             AwnTheme {
                 CompositionLocalProvider(
+                    LocalQuranPrint provides QuranPrint(quranText = quranText),
                     LocalUnitSounds provides sounds,
                     LocalOpenAyah provides { ayah -> openedAyahs += ayah },
                 ) {

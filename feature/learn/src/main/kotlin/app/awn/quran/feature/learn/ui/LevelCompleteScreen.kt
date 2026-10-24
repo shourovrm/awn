@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.quranfont.QuranAyahText
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -114,13 +115,17 @@ private fun LevelBadge(number: Int) {
 @Composable
 private fun KnowledgeAyah() {
     val ayah by rememberAyah(INCREASE_KNOWLEDGE_AYAH)
-    val words = ayah?.words.orEmpty().takeLast(INCREASE_KNOWLEDGE_WORD_COUNT)
-    Text(
-        text = words.joinToString(" ") { it.text },
-        style = arabicStyle(AwnTypography.title).copy(textAlign = TextAlign.Center),
-        color = Awn.field.content,
-        modifier = Modifier.fillMaxWidth().padding(top = AwnSpacing.medium),
-    )
+    val wordCount = ayah?.words?.size
+    if (wordCount != null) {
+        val firstShownPosition = maxOf(1, wordCount - INCREASE_KNOWLEDGE_WORD_COUNT + 1)
+        QuranAyahText(
+            ayah = INCREASE_KNOWLEDGE_AYAH,
+            modifier = Modifier.fillMaxWidth().padding(top = AwnSpacing.medium),
+            style = AwnTypography.quran.copy(fontSize = AwnTypography.title.fontSize),
+            wordRange = firstShownPosition..wordCount,
+            showEndMarker = false,
+        )
+    }
     Text(
         text = stringResource(R.string.level_complete_ayah_translation),
         style = AwnTypography.small,

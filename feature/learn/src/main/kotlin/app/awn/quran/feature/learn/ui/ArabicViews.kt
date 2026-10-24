@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -8,18 +9,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.QuranAyahText
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -84,19 +85,11 @@ internal fun ArabicWord(
     style: TextStyle = AwnTypography.title,
     color: Color = Awn.field.content,
 ) {
-    val environment = LocalLearnEnvironment.current
-    val texts = rememberWordTexts(remember(key) { setOf(key) })
-    Text(
-        text = texts[key].orEmpty(),
-        style =
-            style.copy(
-                fontFamily = environment?.arabic?.fontFamily ?: style.fontFamily,
-                textDirection = TextDirection.Rtl,
-                textAlign = TextAlign.Center,
-            ),
-        color = color,
-        modifier = modifier.fillMaxWidth(),
-    )
+    // The Quran style has the tall line height that keeps the marks above and below the letters.
+    val wordStyle = AwnTypography.quran.copy(fontSize = style.fontSize)
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        QuranWordText(key = key, style = wordStyle, color = color)
+    }
 }
 
 /**
@@ -115,22 +108,12 @@ internal fun AyahCard(
 ) {
     val environment = LocalLearnEnvironment.current
     val colors = paperColors()
-    val words by rememberAyah(ayah)
     val translation by rememberTranslation(if (showTranslation) ayah else null)
-    val fill = Awn.field.selectedAyahFill
-    val line =
-        remember(words, highlight, highlights, blankPosition, fill) {
-            buildAnnotatedString {
-                words?.words?.forEachIndexed { index, word ->
-                    if (index > 0) append(" ")
-                    val text = if (word.key.wordPosition == blankPosition) BLANK else word.text
-                    if (word.key == highlight || word.key in highlights) {
-                        withStyle(SpanStyle(background = fill)) { append(text) }
-                    } else {
-                        append(text)
-                    }
-                }
-            }
+    val highlightedPositions =
+        remember(ayah, highlight, highlights) {
+            (highlights + listOfNotNull(highlight))
+                .filter { key -> key.surah == ayah.surah && key.ayah == ayah.ayah }
+                .mapTo(mutableSetOf()) { key -> key.wordPosition }
         }
     Column(
         modifier =
@@ -140,16 +123,13 @@ internal fun AyahCard(
                 .background(colors.background)
                 .padding(AwnSpacing.medium),
     ) {
-        Text(
-            text = line,
-            style =
-                AwnTypography.quran.copy(
-                    fontFamily = environment?.arabic?.fontFamily ?: AwnTypography.quran.fontFamily,
-                    textDirection = TextDirection.Rtl,
-                    textAlign = TextAlign.Start,
-                ),
-            color = colors.content,
+        QuranAyahText(
+            ayah = ayah,
             modifier = Modifier.fillMaxWidth(),
+            color = colors.content,
+            showEndMarker = false,
+            highlightedPositions = highlightedPositions,
+            blankPosition = blankPosition,
         )
         translation?.let {
             Text(
@@ -169,6 +149,3 @@ internal fun AyahCard(
         }
     }
 }
-
-// A dotted gap with the width of a short word, drawn in the Arabic font like the words around it.
-private const val BLANK = "……"

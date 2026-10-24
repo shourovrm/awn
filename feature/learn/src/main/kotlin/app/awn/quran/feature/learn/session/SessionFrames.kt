@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn.session
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.LessonScreenData
 
@@ -88,7 +89,7 @@ data class LastAyah(val ayah: AyahRef, val words: List<LastAyahWord>) {
         get() = words.count { it.isKnown }
 }
 
-data class LastAyahWord(val text: String, val isKnown: Boolean)
+data class LastAyahWord(val key: WordKey, val text: String, val isKnown: Boolean)
 
 /** What the screen draws now. [progress] runs from 0 to 1; [secondsLeft] is an estimate. */
 data class SessionState(val frame: SessionFrame?, val progress: Float, val secondsLeft: Int)

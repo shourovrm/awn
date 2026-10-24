@@ -22,6 +22,8 @@ private const val AYAH_END_POSITION = 1000
 /** The font page of a print that draws every page with one font. */
 private const val SHARED_FONT_PAGE = 1
 
+private const val BLANK_TEXT = "……"
+
 private const val ARABIC_INDIC_ZERO = '٠'
 
 /**
@@ -40,17 +42,28 @@ internal suspend fun printedWordsOf(
     ayah: AyahRef,
     wordRange: IntRange?,
     showEndMarker: Boolean,
+    blankPosition: Int? = null,
 ): List<PrintedWord> {
     val quranText = print.quranText ?: return emptyList()
     val allWords = quranText.wordsOfAyah(ayah)
     val shownWords =
         if (wordRange == null) allWords else allWords.filter { it.key.wordPosition in wordRange }
     val pages = pagesOfWords(quranText, print.script, ayah, shownWords)
-    val printedWords = shownWords.map { word -> printedWordOf(word, print.script, pages[word.key]) }
+    val printedWords = shownWords.map { word ->
+        if (word.key.wordPosition == blankPosition) {
+            blankOf(word)
+        } else {
+            printedWordOf(word, print.script, pages[word.key])
+        }
+    }
     val reachesAyahEnd = shownWords.isNotEmpty() && shownWords.last() == allWords.last()
-    if (!showEndMarker || !reachesAyahEnd) return printedWords
-    val lastWordPage = pages[shownWords.last().key]
-    return printedWords + endMarkerOf(quranText, print.script, ayah, lastWordPage)
+    val endMarker =
+        if (showEndMarker && reachesAyahEnd) {
+            endMarkerOf(quranText, print.script, ayah, pages[shownWords.last().key])
+        } else {
+            null
+        }
+    return printedWords + listOfNotNull(endMarker)
 }
 
 private suspend fun pagesOfWords(
@@ -64,6 +77,10 @@ private suspend fun pagesOfWords(
     } else {
         emptyMap()
     }
+
+/** A gap with the width of a short word, in the place of a word the learner has to supply. */
+private fun blankOf(word: Word): PrintedWord =
+    PrintedWord(Word(word.key, BLANK_TEXT, null, null), ScriptId.QpcHafs, SHARED_FONT_PAGE)
 
 private fun printedWordOf(word: Word, script: ScriptId, glyphPage: Int?): PrintedWord =
     when {

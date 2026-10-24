@@ -23,6 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
+import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.quranfont.QuranAyahText
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
@@ -36,6 +38,7 @@ import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.feature.learn.content.SnippetPicker
 import app.awn.quran.feature.learn.content.SnippetRepository
 import app.awn.quran.feature.learn.content.SnippetShown
+import app.awn.quran.feature.learn.content.SnippetSource
 import app.awn.quran.feature.learn.content.snippetReference
 import java.time.LocalDate
 import java.time.ZoneId
@@ -46,7 +49,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /** The day's saying as the Learn hub shows it: Arabic, its rendering, and where it is from. */
-internal data class DailySaying(val arabic: String, val translation: String, val source: String) {
+internal data class DailySaying(
+    val arabic: String,
+    val translation: String,
+    val source: String,
+    /** Set for an ayah, which is drawn from the Quran text in the user's print. */
+    val ayah: AyahRef? = null,
+) {
     /** What the share sheet sends: the three parts on separate lines. */
     val shareText: String
         get() = "$arabic\n$translation\n$source"
@@ -79,6 +88,7 @@ private fun sayingOf(
         arabic = snippet.arabic,
         translation = snippet.rendering(language),
         source = snippetReference(snippet.source, language, surahName),
+        ayah = (snippet.source as? SnippetSource.Ayah)?.let { AyahRef(it.surah, it.ayah) },
     )
 
 /** The outcome of reading the snippets: [deck] is null when there are none. */
@@ -153,7 +163,6 @@ private fun SayingCard(
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
-    val arabicFontFamily = LocalLearnEnvironment.current?.arabic?.fontFamily
     Column(
         modifier =
             modifier
@@ -172,18 +181,7 @@ private fun SayingCard(
                 ),
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
     ) {
-        Text(
-            text = saying.arabic,
-            // The Mushaf's own font, as the other Learn screens use: the bundled one cannot place
-            // some marks of this text, such as the small rounded zero, and draws dotted circles.
-            style =
-                AwnTypography.quranLead.copy(
-                    fontFamily = arabicFontFamily ?: AwnTypography.quranLead.fontFamily,
-                    textDirection = TextDirection.Rtl,
-                ),
-            color = field.content,
-            modifier = Modifier.fillMaxWidth().padding(end = AwnSpacing.small),
-        )
+        SayingArabic(saying, Modifier.fillMaxWidth().padding(end = AwnSpacing.small))
         Text(
             text = saying.translation,
             style = AwnTypography.small,
@@ -204,5 +202,31 @@ private fun SayingCard(
                 tint = field.buttonFill,
             )
         }
+    }
+}
+
+/**
+ * The Arabic of a saying. An ayah is drawn from the Quran text in the user's print, with its end
+ * marker. A hadith is not Quran text and has no print, so it keeps the learning font, which draws
+ * every mark of the text.
+ */
+@Composable
+private fun SayingArabic(saying: DailySaying, modifier: Modifier = Modifier) {
+    val field = Awn.field
+    val ayah = saying.ayah
+    if (ayah != null) {
+        QuranAyahText(ayah = ayah, modifier = modifier, style = AwnTypography.quranLead)
+    } else {
+        val arabicFontFamily = LocalLearnEnvironment.current?.arabic?.fontFamily
+        Text(
+            text = saying.arabic,
+            style =
+                AwnTypography.quranLead.copy(
+                    fontFamily = arabicFontFamily ?: AwnTypography.quranLead.fontFamily,
+                    textDirection = TextDirection.Rtl,
+                ),
+            color = field.content,
+            modifier = modifier,
+        )
     }
 }

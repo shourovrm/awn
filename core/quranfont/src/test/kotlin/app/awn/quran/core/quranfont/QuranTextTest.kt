@@ -144,6 +144,22 @@ class QuranTextTest {
     }
 
     @Test
+    fun theBlankPositionIsDrawnAsAGapInPlaceOfItsWord() {
+        composeRule.setContent {
+            AwnTheme {
+                CompositionLocalProvider(LocalQuranPrint provides unicodePrint) {
+                    QuranAyahText(ayah, blankPosition = 1, showEndMarker = false)
+                }
+            }
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("……").assertIsDisplayed()
+        assertEquals(0, nodeCountOf("text1"))
+        composeRule.onNodeWithText("text2").assertIsDisplayed()
+    }
+
+    @Test
     fun aGlyphPrintFallsBackToTextForAWordWhosePageIsUnknown() {
         quranText.pages[3] = layout(3)
         showAyah(glyphPrint, wordRange = 1..1)

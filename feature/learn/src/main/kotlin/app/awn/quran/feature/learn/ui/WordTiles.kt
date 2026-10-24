@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,9 +39,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.QuranWordText
+import app.awn.quran.core.quranfont.ShrinkToFit
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -143,9 +148,36 @@ private fun WordTileView(
     }
 }
 
-/** The word or words in the learning font, with the letters the lesson names in [markColor]. */
+/**
+ * The word or words of [tile]. A tile that names letters draws its text in the learning font so
+ * those letters can take [markColor], which a page-font glyph (one picture for the whole word)
+ * cannot do; every other tile draws in the user's Mushaf print.
+ */
 @Composable
 private fun MarkedWord(tile: WordTile, markColor: Color, content: Color) {
+    if (tile.letters.isEmpty()) {
+        PrintedTileWords(tile.keys, content)
+    } else {
+        MarkedLettersWord(tile, markColor, content)
+    }
+}
+
+/** Two words on one line are too wide for a tile at full size, so the pair shrinks, not wraps. */
+@Composable
+private fun PrintedTileWords(keys: List<WordKey>, content: Color) {
+    val style = AwnTypography.quran.copy(fontSize = AwnTypography.quran.fontSize * WORD_SCALE)
+    ShrinkToFit {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+                keys.forEach { key -> QuranWordText(key = key, style = style, color = content) }
+            }
+        }
+    }
+}
+
+/** The word or words in the learning font, with the letters the lesson names in [markColor]. */
+@Composable
+private fun MarkedLettersWord(tile: WordTile, markColor: Color, content: Color) {
     val environment = LocalLearnEnvironment.current
     val texts = rememberWordTexts(remember(tile.keys) { tile.keys.toSet() })
     val words =

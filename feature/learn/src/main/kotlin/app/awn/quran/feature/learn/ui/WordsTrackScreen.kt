@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,16 +33,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.QuranWordText
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.SettingsLinkRow
@@ -79,7 +84,6 @@ internal fun WordsTrackScreen(
     modifier: Modifier = Modifier,
 ) {
     var openLevelNumbers by rememberSaveable { mutableStateOf(state.levels.currentLevelNumbers()) }
-    val texts = rememberWordTexts(state.keysToDraw(openLevelNumbers))
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
             title = trackName(LearnTrack.Words),
@@ -93,7 +97,7 @@ internal fun WordsTrackScreen(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
             SummaryBlock(state.hub)
-            TodaySetCard(state, actions.hub, texts)
+            TodaySetCard(state, actions.hub)
             if (state.pageLinks.isNotEmpty()) {
                 Heading(stringResource(R.string.words_pages_heading))
                 state.pageLinks.forEach { PageLink(it, actions.onOpenPageWords) }
@@ -107,7 +111,7 @@ internal fun WordsTrackScreen(
                         if (isOpen) openLevelNumbers - number else openLevelNumbers + number
                 }
                 if (isOpen) {
-                    LevelPath { section.rows.forEach { SetsPathRow(it, state, actions, texts) } }
+                    LevelPath { section.rows.forEach { SetsPathRow(it, state, actions) } }
                 }
             }
             WordListLinks(state.hub, actions.hub)
@@ -154,7 +158,7 @@ private fun SummaryBlock(hub: HubState) {
 }
 
 @Composable
-private fun TodaySetCard(state: WordsTrackState, actions: HubActions, texts: Map<WordKey, String>) {
+private fun TodaySetCard(state: WordsTrackState, actions: HubActions) {
     val field = Awn.field
     val plan = state.hub.plan
     Column(
@@ -184,7 +188,7 @@ private fun TodaySetCard(state: WordsTrackState, actions: HubActions, texts: Map
                 color = field.onBar,
             )
         }
-        TodayWordGrid(state.todayWords, texts)
+        TodayWordGrid(state.todayWords)
         if (state.hub.meanings != MeaningsState.Ready) {
             MeaningsNeeded(state.hub.meanings, actions.onDownloadMeanings)
         }
@@ -201,7 +205,7 @@ private fun TodaySetCard(state: WordsTrackState, actions: HubActions, texts: Map
 }
 
 @Composable
-private fun TodayWordGrid(words: List<SetWordCell>, texts: Map<WordKey, String>) {
+private fun TodayWordGrid(words: List<SetWordCell>) {
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
         words.chunked(GRID_COLUMNS).forEach { rowWords ->
             Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
@@ -210,12 +214,11 @@ private fun TodayWordGrid(words: List<SetWordCell>, texts: Map<WordKey, String>)
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Text(
-                            text = texts[word.key].orEmpty(),
-                            style = arabicStyle(AwnTypography.lead),
+                        QuranWordText(
+                            key = word.key,
+                            style =
+                                AwnTypography.quran.copy(fontSize = AwnTypography.lead.fontSize),
                             color = Awn.field.onBar,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                         )
                         word.meaning?.let {
                             Text(
@@ -259,7 +262,6 @@ private fun SetsPathRow(
     row: PathRow,
     state: WordsTrackState,
     actions: WordsTrackActions,
-    texts: Map<WordKey, String>,
 ) {
     when (row) {
         is PathRow.SetStep -> {
@@ -278,7 +280,7 @@ private fun SetsPathRow(
             SetRow(
                 pathState = row.state,
                 title = title,
-                preview = previewText(state.previewKeys[row.number], texts),
+                previewKeys = state.previewKeys[row.number].orEmpty(),
                 isToday = isToday,
                 onStart = actions.hub.onStart.takeIf { isToday && !state.hub.plan.isEmpty },
                 onClick = { actions.onOpenSet(row.number) },
@@ -357,7 +359,7 @@ private fun GrammarLine(row: PathRow.LessonStep, state: WordsTrackState, actions
 private fun SetRow(
     pathState: PathState,
     title: String,
-    preview: String?,
+    previewKeys: List<WordKey>,
     isToday: Boolean,
     onStart: (() -> Unit)?,
     onClick: () -> Unit,
@@ -388,15 +390,8 @@ private fun SetRow(
                     style = AwnTypography.bodyStrong,
                     color = if (isMuted) field.mutedContent else field.content,
                 )
-                preview?.let {
-                    Text(
-                        text = it,
-                        style = arabicStyle(AwnTypography.body),
-                        color = field.mutedContent,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                if (previewKeys.isNotEmpty()) {
+                    PreviewWords(previewKeys, field.mutedContent)
                 }
             }
             onStart?.let {
@@ -518,18 +513,18 @@ private fun Heading(text: String) {
     )
 }
 
-/** The first words of a set, in one line; null until their texts are loaded. */
-private fun previewText(keys: List<WordKey>?, texts: Map<WordKey, String>): String? {
-    val words = keys.orEmpty().mapNotNull { texts[it] }
-    return if (words.isEmpty()) null else words.joinToString(" ")
-}
-
-/** [style] in the learning Arabic font, right to left. */
+/** The first words of a set, in one line that keeps whole words only. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun arabicStyle(style: TextStyle): TextStyle {
-    val environment = LocalLearnEnvironment.current
-    return style.copy(
-        fontFamily = environment?.arabic?.fontFamily ?: style.fontFamily,
-        textDirection = TextDirection.Rtl,
-    )
+private fun PreviewWords(keys: List<WordKey>, color: Color) {
+    val style = AwnTypography.quran.copy(fontSize = AwnTypography.body.fontSize)
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
+            maxLines = 1,
+        ) {
+            keys.forEach { key -> QuranWordText(key = key, style = style, color = color) }
+        }
+    }
 }

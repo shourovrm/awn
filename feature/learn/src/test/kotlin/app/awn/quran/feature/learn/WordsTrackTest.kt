@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -16,6 +17,8 @@ import app.awn.quran.core.data.downloads.WantedPackStore
 import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.QuranPrint
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.learn.course.CourseContentReader
 import app.awn.quran.feature.learn.course.LessonCourse
@@ -87,13 +90,17 @@ class WordsTrackTest {
         val quranText = quranWithFirstSet()
         composeRule.setContent {
             AwnTheme {
-                LearnScreen(
-                    quranText = quranText,
-                    translations = FakeTranslationRepository(),
-                    packs = FakePackRepository(),
-                    downloads = PackDownloads(noWantedPacks, noScheduler),
-                    pageLinks = links,
-                )
+                CompositionLocalProvider(
+                    LocalQuranPrint provides QuranPrint(quranText = quranText),
+                ) {
+                    LearnScreen(
+                        quranText = quranText,
+                        translations = FakeTranslationRepository(),
+                        packs = FakePackRepository(),
+                        downloads = PackDownloads(noWantedPacks, noScheduler),
+                        pageLinks = links,
+                    )
+                }
             }
         }
         waitForText("Quran words")

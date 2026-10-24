@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.data.fsrs.FsrsRating
+import app.awn.quran.core.quranfont.QuranAyahText
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
@@ -83,7 +84,7 @@ private fun ColumnScope.RevisionCardContent(
         Text(text = card.label, style = AwnTypography.title)
         val text = card.text
         if (state.isTextShown && text != null) {
-            ArabicText(text = text)
+            QuranAyahText(ayah = card.ayah, modifier = Modifier.fillMaxWidth())
         } else {
             Text(text = stringResource(R.string.revision_prompt), style = AwnTypography.body)
         }

@@ -1,5 +1,6 @@
 package app.awn.quran.core.quranfont
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -28,9 +29,11 @@ private val WORD_GAP = 4.dp
  * by word in the user's Mushaf print as the Mushaf's line mode draws it: right to left, wrapping
  * onto more lines, each word in the font of its own page. [showEndMarker] adds the ayah-end sign
  * after the last word when it is shown. [maxLines] keeps whole words only, so one line ends at a
- * word.
+ * word. The words at [highlightedPositions] sit on [highlightColor]; the word at [blankPosition] is
+ * drawn as a gap.
  */
 @OptIn(ExperimentalLayoutApi::class)
+@Suppress("LongParameterList") // One option per way the screens mark or cut an ayah.
 @Composable
 fun QuranAyahText(
     ayah: AyahRef,
@@ -40,11 +43,14 @@ fun QuranAyahText(
     wordRange: IntRange? = null,
     showEndMarker: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
+    highlightedPositions: Set<Int> = emptySet(),
+    highlightColor: Color = Awn.field.selectedAyahFill,
+    blankPosition: Int? = null,
 ) {
     val print = LocalQuranPrint.current
     val printedWords by
-        produceState(emptyList(), print, ayah, wordRange, showEndMarker) {
-            value = printedWordsOf(print, ayah, wordRange, showEndMarker)
+        produceState(emptyList(), print, ayah, wordRange, showEndMarker, blankPosition) {
+            value = printedWordsOf(print, ayah, wordRange, showEndMarker, blankPosition)
         }
     // The words are placed from the right, as an Arabic line is read.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -54,7 +60,10 @@ fun QuranAyahText(
             maxLines = maxLines,
         ) {
             printedWords.forEach { printedWord ->
-                PrintedWordCell(printedWord, print, style, color)
+                val isHighlighted = printedWord.word.key.wordPosition in highlightedPositions
+                Box(if (isHighlighted) Modifier.background(highlightColor) else Modifier) {
+                    PrintedWordCell(printedWord, print, style, color)
+                }
             }
         }
     }
@@ -91,7 +100,8 @@ private fun PrintedWordCell(
     if (fontCache == null) {
         Text(
             text = textToDraw(printedWord.word, ScriptId.QpcHafs, hasGlyphFont = false),
-            style = style,
+            // Whatever style the caller passes, Quran text is drawn in the bundled Hafs font.
+            style = style.copy(fontFamily = AwnTypography.quran.fontFamily),
             color = color,
             maxLines = 1,
             softWrap = false,

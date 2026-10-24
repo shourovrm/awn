@@ -43,20 +43,7 @@ internal data class WordsTrackState(
     val levels: List<LevelSection>,
     /** The first words of each set in [levels], for the one-line preview. */
     val previewKeys: Map<Int, List<WordKey>>,
-) {
-    /**
-     * Every word the screen draws in Arabic while the levels in [openLevelNumbers] are open, so the
-     * texts load in one go and a folded level costs nothing.
-     */
-    fun keysToDraw(openLevelNumbers: Set<Int>): Set<WordKey> {
-        val previewSets =
-            levels
-                .filter { it.level.number in openLevelNumbers }
-                .flatMap { section -> section.rows.filterIsInstance<PathRow.SetStep>() }
-                .map { it.number }
-        return todayWords.map { it.key }.toSet() + previewSets.flatMap { previewKeys[it].orEmpty() }
-    }
-}
+)
 
 private const val PREVIEW_WORD_COUNT = 5
 
