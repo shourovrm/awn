@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
   <string name="learn_title">শিখুন</string>
   <string name="learn_progress_link">অগ্রগতি</string>
   <string name="learn_streak_caption">দিন টানা</string>
@@ -35,7 +35,7 @@
   <string name="revision_easy">সহজ</string>
   <string name="revision_empty">আজকের ঝালাই শেষ</string>
 
-  <plurals name="revise_due_caption">
+  <plurals name="revise_due_caption" tools:ignore="ImpliedQuantity">
     <item quantity="one">আজ ঝালাইয়ের আয়াত</item>
     <item quantity="other">আজ ঝালাইয়ের আয়াত</item>
   </plurals>
@@ -60,19 +60,19 @@
 
   <string name="progress_title">অগ্রগতি</string>
 
-  <plurals name="reading_streak_caption">
+  <plurals name="reading_streak_caption" tools:ignore="ImpliedQuantity">
     <item quantity="one">দিন টানা</item>
     <item quantity="other">দিন টানা</item>
   </plurals>
-  <plurals name="reading_tile_pages">
+  <plurals name="reading_tile_pages" tools:ignore="ImpliedQuantity">
     <item quantity="one">পৃষ্ঠা এই সপ্তাহে</item>
     <item quantity="other">পৃষ্ঠা এই সপ্তাহে</item>
   </plurals>
-  <plurals name="reading_tile_ayahs">
+  <plurals name="reading_tile_ayahs" tools:ignore="ImpliedQuantity">
     <item quantity="one">আয়াত মুখস্থ</item>
     <item quantity="other">আয়াত মুখস্থ</item>
   </plurals>
-  <plurals name="reading_tile_words">
+  <plurals name="reading_tile_words" tools:ignore="ImpliedQuantity">
     <item quantity="one">শব্দ জানা</item>
     <item quantity="other">শব্দ জানা</item>
   </plurals>
