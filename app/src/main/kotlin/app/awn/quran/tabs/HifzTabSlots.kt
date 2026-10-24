@@ -12,7 +12,7 @@ import app.awn.quran.feature.hifz.HifzTodayLine
 import app.awn.quran.feature.hifz.rememberHifzTodayLine
 import app.awn.quran.services.AwnServices
 
-/** The slots with the real Hifz tab and the Hifz row before the Learn row. */
+/** The slots with the real Hifz tab and the Today providers of Hifz and Learn. */
 fun defaultTabSlots(services: AwnServices): TabSlots =
     TabSlots(
         hifzTab = { actions ->
@@ -21,16 +21,14 @@ fun defaultTabSlots(services: AwnServices): TabSlots =
                 actions = actions,
             )
         },
-        todayProviders =
-            listOf(
-                HifzTodayProvider(
-                    line = { rememberHifzTodayLine(services.hifz.controller) },
-                    startNextPart = {
-                        services.hifz.controller.startNextPart()?.let(services::startHifzPractice)
-                    },
-                ),
-                LearnTodayProvider,
+        hifzToday =
+            HifzTodayProvider(
+                line = { rememberHifzTodayLine(services.hifz.controller) },
+                startNextPart = {
+                    services.hifz.controller.startNextPart()?.let(services::startHifzPractice)
+                },
             ),
+        learnToday = LearnTodayProvider,
     )
 
 @Composable
@@ -58,7 +56,7 @@ private fun HifzTabContent(services: AwnServices, actions: TabActions) {
 private const val FIRST_PAGE = 1
 
 /**
- * The Hifz row of the Today section: [line] is today's one line from the Hifz feature (null when
+ * The Hifz tile of the Quran tab: [line] is today's one line from the Hifz feature (null when
  * there is no plan or nothing to do). A tap shows the Hifz tab, so Back from the practice returns
  * there, then [startNextPart] opens the next part when one is left.
  */

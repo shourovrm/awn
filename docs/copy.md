@@ -22,8 +22,8 @@ Use these words for these things, and no other word for the same thing.
 | review | the list of words to look at after reciting |
 | day colours, night colours | the two colour choices; never "theme" except "phone theme" |
 | space used | storage taken by downloads |
-| Continue reading | the card that opens the page read last ("Start reading" before anything was read) |
-| Today | the Quran tab section of today's load from Learn and Hifz; never a backlog |
+| Continue reading | the slim card that opens the page read last ("Start reading" before anything was read) |
+| Today | the load of the Hifz and Learn tiles on the Quran tab; never a backlog |
 | Show | the choice of list on the Quran tab: Surahs, Juz, Pages |
 | Go to page | opens a page by number, on the Quran tab and in the Quran screen menu |
 | Hifz | the memorising tab; a word of its own, not translated into "memorise" |

@@ -70,7 +70,7 @@ import app.awn.quran.tabs.TabSlots
 import app.awn.quran.tabs.TabsHost
 import app.awn.quran.tabs.TodayNavigation
 import app.awn.quran.tabs.defaultTabSlots
-import app.awn.quran.tabs.rememberTodayItems
+import app.awn.quran.tabs.rememberTodayTiles
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -232,7 +232,8 @@ private fun TabsRoute(
             val state by viewModel.state.collectAsStateWithLifecycle()
             QuranTabScreen(
                 state = state,
-                todayItems = rememberTodayItems(tabSlots.todayProviders, todayNavigation),
+                todayTiles =
+                    rememberTodayTiles(tabSlots.hifzToday, tabSlots.learnToday, todayNavigation),
                 actions = navigation.quranTabActions(),
                 duaCount = rememberDuaCount(services),
                 topicCount = rememberTopicCount(services),

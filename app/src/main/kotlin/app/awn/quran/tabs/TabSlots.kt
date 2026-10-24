@@ -12,10 +12,11 @@ class TabActions(
 
 /**
  * The parts of the tabs that other features plug into. [hifzTab] draws the whole Hifz tab,
- * including its own top bar; [todayProviders] supply the rows of the Today section on the Quran
+ * including its own top bar; [hifzToday] and [learnToday] supply the Today tiles on the Quran
  * tab. [defaultTabSlots] builds the real ones from the app's services.
  */
 class TabSlots(
     val hifzTab: @Composable (TabActions) -> Unit,
-    val todayProviders: List<TodayProvider>,
+    val hifzToday: TodayProvider,
+    val learnToday: TodayProvider,
 )

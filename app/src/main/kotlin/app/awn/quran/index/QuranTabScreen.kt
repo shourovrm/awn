@@ -1,6 +1,7 @@
 package app.awn.quran.index
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -49,8 +51,10 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.tabs.TodayItem
+import app.awn.quran.tabs.TodayTiles
 import kotlinx.coroutines.launch
+
+const val SURAH_LIST_TAG = "surah-list"
 
 /** What the buttons of the Quran tab open. */
 class QuranTabActions(
@@ -71,14 +75,15 @@ internal enum class IndexMode(val labelResource: Int) {
 }
 
 /**
- * The Quran tab: the continue card, today's rows, the Duas entry, the day's snippet and the index
- * list with the juz rail. [todayItems] is already capped; with none the Today section is not drawn
- * at all. [duaCount] is how many duas the collection holds; null (not read yet) hides its entry.
+ * The Quran tab: the slim continue card, one row of four tiles (Hifz, Learn, Duas, Topics), the
+ * day's snippet and the index list with the juz rail. The list's header row stays on top while the
+ * list scrolls. [duaCount] and [topicCount] are how many duas and topics the collections hold; null
+ * (not read yet) leaves that tile without a detail line.
  */
 @Composable
 fun QuranTabScreen(
     state: IndexState,
-    todayItems: List<TodayItem>,
+    todayTiles: TodayTiles,
     actions: QuranTabActions,
     modifier: Modifier = Modifier,
     duaCount: Int? = null,
@@ -94,7 +99,7 @@ fun QuranTabScreen(
                     state,
                     content,
                     continueReading,
-                    todayItems,
+                    todayTiles,
                     BrowseCounts(duaCount, topicCount),
                     actions,
                 )
@@ -142,7 +147,7 @@ private fun QuranTabBody(
     state: IndexState,
     content: IndexContent,
     continueReading: ContinueReading,
-    todayItems: List<TodayItem>,
+    todayTiles: TodayTiles,
     browse: BrowseCounts,
     actions: QuranTabActions,
 ) {
@@ -160,16 +165,12 @@ private fun QuranTabBody(
     val meanings = rememberSurahMeanings()
     val listState = rememberLazyListState()
     // The rows follow the items above them, so a juz number maps to a list position through this.
-    val itemsBeforeRows =
-        1 +
-            (if (todayItems.isNotEmpty()) 1 else 0) +
-            (if (browse.isShown) 1 else 0) +
-            (if (snippet != null) 1 else 0) +
-            1
+    val itemsBeforeRows = 1 + 1 + (if (snippet != null) 1 else 0) + 1
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            topItems(continueReading, todayItems, browse, snippet, actions)
-            item(key = "list-header") {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize().testTag(SURAH_LIST_TAG)) {
+            topItems(continueReading, todayTiles, browse, snippet, actions)
+            // Pinned, so Go to page and Show stay in reach while the list scrolls under them.
+            stickyHeader(key = "list-header") {
                 ListControls(
                     mode = mode,
                     onModeChange = { modeOrdinal = it.ordinal },
@@ -200,10 +201,10 @@ private fun QuranTabBody(
     }
 }
 
-/** The items above the list: the continue card, Today, the Duas entry, and the day's snippet. */
+/** The items above the list: the continue card, the four tiles, and the day's snippet. */
 private fun LazyListScope.topItems(
     continueReading: ContinueReading,
-    todayItems: List<TodayItem>,
+    todayTiles: TodayTiles,
     browse: BrowseCounts,
     snippet: DailySnippetCard?,
     actions: QuranTabActions,
@@ -220,21 +221,18 @@ private fun LazyListScope.topItems(
                 ),
         )
     }
-    if (todayItems.isNotEmpty()) {
-        item(key = "today") {
-            TodaySection(todayItems, Modifier.padding(horizontal = AwnSpacing.screenMargin))
-        }
-    }
-    if (browse.isShown) {
-        item(key = "browse") {
-            BrowseSection(
-                duaCount = browse.duas,
-                topicCount = browse.topics,
-                onDuas = actions.onDuas,
-                onTopics = actions.onTopics,
-                modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
-            )
-        }
+    item(key = "tiles") {
+        QuickTiles(
+            todayTiles = todayTiles,
+            browse = browse,
+            actions = actions,
+            modifier =
+                Modifier.padding(
+                    start = AwnSpacing.screenMargin,
+                    end = AwnSpacing.screenMargin,
+                    top = AwnSpacing.small,
+                ),
+        )
     }
     if (snippet != null) {
         item(key = "snippet") {
@@ -315,6 +313,7 @@ private fun ListControls(
     Row(
         modifier =
             Modifier.fillMaxWidth()
+                .background(field.background)
                 .padding(
                     start = AwnSpacing.screenMargin,
                     end = AwnSpacing.screenMargin,
@@ -351,10 +350,4 @@ private fun ListControls(
             isCompact = true,
         )
     }
-}
-
-/** How many duas and topics the Browse tiles show; null until that collection has been read. */
-internal data class BrowseCounts(val duas: Int?, val topics: Int?) {
-    val isShown: Boolean
-        get() = duas != null || topics != null
 }

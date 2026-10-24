@@ -7,9 +7,7 @@
   <string name="tab_hifz">হিফয</string>
   <string name="continue_reading">পড়া চালিয়ে যান</string>
   <string name="continue_start">পড়া শুরু করুন</string>
-  <string name="continue_detail">%1$s · পৃষ্ঠা %2$s · পারা %3$s</string>
-  <string name="today_title">আজ</string>
-  <string name="browse_title">ঘুরে দেখুন</string>
+  <string name="continue_detail">%1$s · পৃষ্ঠা %2$s</string>
   <plurals name="duas_entry_count">
     <item quantity="one">%dটি দুআ</item>
     <item quantity="other">%dটি দুআ</item>
@@ -18,15 +16,9 @@
     <item quantity="one">%d আয়াত পুনরাবৃত্তি</item>
     <item quantity="other">%d আয়াত পুনরাবৃত্তি</item>
   </plurals>
-  <string name="today_course_start">আজ শুরু করুন · %d মিনিট</string>
-  <plurals name="today_course_new">
-    <item quantity="one">%dটি নতুন শব্দ</item>
-    <item quantity="other">%dটি নতুন শব্দ</item>
-  </plurals>
-  <plurals name="today_course_reviews">
-    <item quantity="one">%dটি ঝালাই</item>
-    <item quantity="other">%dটি ঝালাই</item>
-  </plurals>
+  <string name="today_course_minutes">%d মিনিট</string>
+  <string name="today_words_title">শব্দ</string>
+  <string name="today_tile_idle">আজ কিছু নেই</string>
   <string name="index_show">দেখান</string>
   <string name="index_bookmarks">বুকমার্ক</string>
   <string name="index_read_last">শেষ পড়া</string>

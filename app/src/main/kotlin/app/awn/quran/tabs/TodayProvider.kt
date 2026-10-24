@@ -17,12 +17,9 @@ import app.awn.quran.feature.learn.learnDueAyahCount
 import app.awn.quran.feature.learn.learnFirstDueAyah
 import kotlinx.coroutines.launch
 
-/** The most rows the Today section shows, whatever the providers supply. */
-const val MAX_TODAY_ITEMS = 2
-
 /**
- * One compact row of the Today section on the Quran tab. [detail] states today's load ("Revise 12
- * ayahs"), never a backlog; [onOpen] starts it.
+ * One of the two Today tiles on the Quran tab. [detail] states today's load ("Revise 12 ayahs"),
+ * never a backlog; [onOpen] starts it.
  */
 data class TodayItem(
     val title: String,
@@ -43,55 +40,68 @@ class TodayNavigation(
 )
 
 /**
- * A feature's offer for the Today section. The Learn and Hifz features each have one; :app lists
- * them in [TabSlots.todayProviders]. [item] runs in composition, so the strings follow the app
- * language, and returns null when the feature has nothing to do today; the section then leaves that
- * row out, and the whole section when every provider returns null.
+ * A feature's offer for its Today tile. The Learn and Hifz features each have one, held in
+ * [TabSlots]. [item] runs in composition, so the strings follow the app language, and returns null
+ * when the feature has nothing to do today; the tile then stays with a neutral line.
  */
 fun interface TodayProvider {
     @Composable fun item(navigation: TodayNavigation): TodayItem?
 }
 
-/** The rows to draw: the providers' rows that exist, at most [MAX_TODAY_ITEMS], in list order. */
-fun visibleTodayItems(items: List<TodayItem?>): List<TodayItem> =
-    items.filterNotNull().take(MAX_TODAY_ITEMS)
-
-@Composable
-fun rememberTodayItems(
-    providers: List<TodayProvider>,
-    navigation: TodayNavigation,
-): List<TodayItem> = visibleTodayItems(providers.map { it.item(navigation) })
+/** The Hifz and Learn tiles of the Quran tab. */
+class TodayTiles(val hifz: TodayItem, val learn: TodayItem)
 
 /**
- * The most ayahs the Learn row offers in one day. A user who skipped a week has hundreds due, and a
- * row that says so reads as a debt; the row offers a day's worth.
+ * The two tiles. A provider with nothing to offer gives a tile that names its tab, says nothing is
+ * due, and opens that tab, so the row of tiles always has the same four places.
  */
-const val LEARN_TODAY_CAP = 10
-
-/** The ayah count the Learn row shows for [dueCount] due ayahs, or null when none is due. */
-fun learnTodayCount(dueCount: Int): Int? = dueCount.takeIf { it > 0 }?.coerceAtMost(LEARN_TODAY_CAP)
-
-/** The Learn row once the word course has started: its time, new words and words to revise. */
 @Composable
-private fun courseTodayItem(line: CourseTodayLine, navigation: TodayNavigation): TodayItem {
-    val parts = buildList {
-        if (line.newWords > 0) {
-            add(pluralStringResource(R.plurals.today_course_new, line.newWords, line.newWords))
-        }
-        if (line.reviews > 0) {
-            add(pluralStringResource(R.plurals.today_course_reviews, line.reviews, line.reviews))
-        }
-    }
-    return TodayItem(
-        title = stringResource(R.string.today_course_start, line.minutes),
-        detail = parts.joinToString(" · "),
-        icon = R.drawable.ic_app_school,
-        onOpen = navigation.openLearnTab,
-    )
+fun rememberTodayTiles(
+    hifzProvider: TodayProvider,
+    learnProvider: TodayProvider,
+    navigation: TodayNavigation,
+): TodayTiles {
+    val idleDetail = stringResource(R.string.today_tile_idle)
+    val hifz =
+        hifzProvider.item(navigation)
+            ?: TodayItem(
+                title = stringResource(R.string.tab_hifz),
+                detail = idleDetail,
+                icon = R.drawable.ic_app_psychology,
+                onOpen = navigation.openHifzTab,
+            )
+    val learn =
+        learnProvider.item(navigation)
+            ?: TodayItem(
+                title = stringResource(R.string.tab_learn),
+                detail = idleDetail,
+                icon = R.drawable.ic_app_school,
+                onOpen = navigation.openLearnTab,
+            )
+    return TodayTiles(hifz, learn)
 }
 
 /**
- * The Learn row: the word course's day once the course has started, otherwise the ayahs due for
+ * The most ayahs the Learn tile offers in one day. A user who skipped a week has hundreds due, and a
+ * row that says so reads as a debt; the tile offers a day's worth.
+ */
+const val LEARN_TODAY_CAP = 10
+
+/** The ayah count the Learn tile shows for [dueCount] due ayahs, or null when none is due. */
+fun learnTodayCount(dueCount: Int): Int? = dueCount.takeIf { it > 0 }?.coerceAtMost(LEARN_TODAY_CAP)
+
+/** The Learn tile once the word course has started: its name and the minutes of today's work. */
+@Composable
+private fun courseTodayItem(line: CourseTodayLine, navigation: TodayNavigation): TodayItem =
+    TodayItem(
+        title = stringResource(R.string.today_words_title),
+        detail = stringResource(R.string.today_course_minutes, line.minutes),
+        icon = R.drawable.ic_app_school,
+        onOpen = navigation.openLearnTab,
+    )
+
+/**
+ * The Learn tile: the word course's day once the course has started, otherwise the ayahs due for
  * revision, capped at [LEARN_TODAY_CAP].
  */
 object LearnTodayProvider : TodayProvider {

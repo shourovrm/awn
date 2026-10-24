@@ -47,12 +47,12 @@ class HifzTodayProviderTest {
     }
 
     @Test
-    fun noPlanMeansNoHifzRow() {
+    fun noPlanMeansNoHifzOffer() {
         assertNull(itemFor(null))
     }
 
     @Test
-    fun aPlanGivesTheHifzRowWithItsLine() {
+    fun aPlanGivesTheHifzOfferWithItsLine() {
         val item = itemFor(HifzTodayLine("Hifz", "Sabaq page 24, revise 4 pages"))
 
         assertNotNull(item)
@@ -65,18 +65,5 @@ class HifzTodayProviderTest {
         itemFor(HifzTodayLine("Hifz", "Done"))?.onOpen?.invoke()
 
         assertEquals(listOf("hifz tab", "start"), events)
-    }
-
-    @Test
-    fun hifzComesBeforeLearnInTheSectionOrder() {
-        val shown =
-            visibleTodayItems(
-                listOf(
-                    TodayItem("Hifz", "d", 0) {},
-                    TodayItem("Learn", "d", 0) {},
-                ),
-            )
-
-        assertEquals(listOf("Hifz", "Learn"), shown.map { it.title })
     }
 }

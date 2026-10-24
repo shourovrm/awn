@@ -3,12 +3,11 @@ package app.awn.quran.index
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextMeasurer
@@ -24,7 +22,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDirection
 import app.awn.quran.R
-import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -53,8 +50,9 @@ fun fitWholeWords(
 }
 
 /**
- * The one primary action of the Quran tab: opens the Quran screen at the page read last (page 1
- * before anything was read). It shows the first line of that page in Arabic, cut between words.
+ * The one primary action of the Quran tab: a slim row that opens the Quran screen at the page read
+ * last (page 1 before anything was read). The surah and page are on the left; the first line of
+ * that page in Arabic, cut between words, is on the right.
  */
 @Composable
 internal fun ContinueCard(
@@ -65,40 +63,32 @@ internal fun ContinueCard(
     val field = Awn.field
     val title =
         stringResource(if (reading.isStart) R.string.continue_start else R.string.continue_reading)
-    val numbers = NumberFormat.getIntegerInstance()
     val detail =
         stringResource(
             R.string.continue_detail,
             reading.chapter.nameSimple,
-            numbers.format(reading.page),
-            numbers.format(reading.juz),
+            NumberFormat.getIntegerInstance().format(reading.page),
         )
-    Column(
+    Row(
         modifier =
             modifier
                 .fillMaxWidth()
                 .clip(AwnShapes.control)
                 .background(field.buttonFill)
                 .clickable(role = Role.Button, onClick = onClick)
-                .padding(AwnSpacing.medium),
+                .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(text = title, style = AwnTypography.bodyStrong, color = field.onButton)
-                Text(text = detail, style = AwnTypography.small, color = field.onButton)
-            }
-            Icon(
-                painter = painterResource(UiR.drawable.ic_ui_chevron),
-                contentDescription = null,
-                tint = field.onButton,
-                modifier = Modifier.size(AwnSpacing.iconSize),
-            )
+        Column(Modifier.weight(1f)) {
+            Text(text = title, style = AwnTypography.bodyStrong, color = field.onButton)
+            Text(text = detail, style = AwnTypography.small, color = field.onButton)
         }
         if (reading.firstLineWords.isNotEmpty()) {
             FirstLine(
                 words = reading.firstLineWords,
                 color = field.onButton,
-                modifier = Modifier.padding(top = AwnSpacing.small),
+                modifier = Modifier.weight(1f),
             )
         }
     }

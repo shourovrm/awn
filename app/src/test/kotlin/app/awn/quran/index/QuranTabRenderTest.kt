@@ -7,10 +7,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.width
 import androidx.test.core.app.ApplicationProvider
 import app.awn.quran.R
 import app.awn.quran.core.data.AyahRef
@@ -21,7 +24,9 @@ import app.awn.quran.core.ui.theme.LocalColourMode
 import app.awn.quran.tabs.AwnTab
 import app.awn.quran.tabs.AwnTabBar
 import app.awn.quran.tabs.TodayItem
+import app.awn.quran.tabs.TodayTiles
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -86,11 +91,18 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
         )
 
     private var openedPage: Int? = null
-    private var openedToday = false
+    private var openedHifz = 0
+    private var openedLearn = 0
     private var openedDuas = 0
     private var openedTopics = 0
 
-    private fun show(todayItems: List<TodayItem>, duaCount: Int? = null, topicCount: Int? = null) {
+    private val tiles =
+        TodayTiles(
+            hifz = TodayItem("Hifz", "Sabaq p. 1", R.drawable.ic_app_psychology) { openedHifz++ },
+            learn = TodayItem("Words", "10 min", R.drawable.ic_app_school) { openedLearn++ },
+        )
+
+    private fun show(duaCount: Int? = 89, topicCount: Int? = 32) {
         composeRule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
@@ -99,7 +111,7 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
             ) {
                 QuranTabScreen(
                     state = state,
-                    todayItems = todayItems,
+                    todayTiles = tiles,
                     duaCount = duaCount,
                     topicCount = topicCount,
                     actions =
@@ -117,74 +129,90 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
     }
 
     @Test
-    fun theContinueCardNamesTheSurahPageAndJuzAndOpensThePage() {
-        show(emptyList())
+    fun theContinueCardNamesTheSurahAndPageAndOpensThePage() {
+        show()
 
         composeRule.onNodeWithText("Continue reading").assertIsDisplayed()
-        composeRule.onNodeWithText("Surah 18 · page 294 · Juz 15").performClick()
+        composeRule.onNodeWithText("Surah 18 · page 294").performClick()
 
         assertEquals(294, openedPage)
     }
 
     @Test
-    fun withNoTodayRowsTheSectionIsAbsent() {
-        show(emptyList())
+    fun fourTilesShowTheirDetailAndOpenTheirDestinations() {
+        show()
 
-        composeRule.onNodeWithText("Today").assertDoesNotExist()
-    }
-
-    @Test
-    fun aTodayRowShowsItsTitleAndDetailAndOpens() {
-        show(
-            listOf(
-                TodayItem(
-                    "Learn",
-                    "Revise 5 ayahs",
-                    icon = R.drawable.ic_app_school,
-                    onOpen = { openedToday = true },
-                ),
-            ),
-        )
-
-        composeRule.onNodeWithText("Today").assertIsDisplayed()
-        composeRule.onNodeWithText("Revise 5 ayahs").performClick()
-
-        assertEquals(true, openedToday)
-    }
-
-    @Test
-    fun beforeTheCollectionIsReadThereIsNoDuasEntry() {
-        show(emptyList(), duaCount = null)
-
-        composeRule.onNodeWithText("Browse").assertDoesNotExist()
-        composeRule.onNodeWithText("Duas from the Quran").assertDoesNotExist()
-    }
-
-    @Test
-    fun theBrowseTilesShowDuasAndTopicsWithTheirCountsAndOpenThem() {
-        show(emptyList(), duaCount = 89, topicCount = 32)
-
-        composeRule.onNodeWithText("Browse").assertIsDisplayed()
+        composeRule.onNodeWithText("Sabaq p. 1").performClick()
+        composeRule.onNodeWithText("10 min").performClick()
         composeRule.onNodeWithText("89 duas").performClick()
         composeRule.onNodeWithText("32 topics").performClick()
 
-        assertEquals(1, openedDuas)
-        assertEquals(1, openedTopics)
+        assertEquals(listOf(1, 1, 1, 1), listOf(openedHifz, openedLearn, openedDuas, openedTopics))
     }
 
     @Test
-    fun theBrowseTilesSitSideBySideAboveTheSurahList() {
-        show(emptyList(), duaCount = 89, topicCount = 32)
+    fun theTilesHaveNoSectionHeadings() {
+        show()
 
-        val duas = composeRule.onNodeWithTag(BROWSE_DUAS_TAG).getBoundsInRoot()
-        val topics = composeRule.onNodeWithTag(BROWSE_TOPICS_TAG).getBoundsInRoot()
-        assertEquals(duas.top, topics.top)
+        composeRule.onNodeWithText("Today").assertDoesNotExist()
+        composeRule.onNodeWithText("Browse").assertDoesNotExist()
+    }
+
+    @Test
+    fun beforeTheCollectionsAreReadTheFourTilesStillShow() {
+        show(duaCount = null, topicCount = null)
+
+        composeRule.onNodeWithTag(HIFZ_TILE_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(LEARN_TILE_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(BROWSE_DUAS_TAG).assertIsDisplayed()
+        composeRule.onNodeWithTag(BROWSE_TOPICS_TAG).assertIsDisplayed()
+    }
+
+    @Test
+    fun theFourTilesSitInOneRowOfEqualWidthAboveTheSurahList() {
+        show()
+
+        val bounds =
+            listOf(HIFZ_TILE_TAG, LEARN_TILE_TAG, BROWSE_DUAS_TAG, BROWSE_TOPICS_TAG).map {
+                composeRule.onNodeWithTag(it).getBoundsInRoot()
+            }
+        assertEquals(1, bounds.map { it.top }.distinct().size)
+        assertEquals(1, bounds.map { it.width }.distinct().size)
         composeRule.onNodeWithText("Show").assertIsDisplayed()
     }
 
     @Test
+    fun theDailySnippetIsNotOnTheQuranTab() {
+        show()
+
+        composeRule.onNodeWithText("Show another").assertDoesNotExist()
+    }
+
+    @Test
+    fun theListHeaderStaysOnScreenWhileTheListScrolls() {
+        show()
+
+        composeRule.onNodeWithText("Go to page").assertIsDisplayed()
+        composeRule.onNodeWithTag(SURAH_LIST_TAG).performScrollToIndex(60)
+
+        composeRule.onNodeWithText("Go to page").assertIsDisplayed()
+        composeRule.onNodeWithText("Show").assertIsDisplayed()
+    }
+
+    @Test
+    fun theJuzRailStartsUnderThePinnedHeaderAfterScrolling() {
+        show()
+
+        composeRule.onNodeWithTag(SURAH_LIST_TAG).performScrollToIndex(60)
+
+        val headerBottom = composeRule.onNodeWithText("Go to page").getBoundsInRoot().bottom
+        val railTop = composeRule.onNodeWithContentDescription("Jump to juz").getBoundsInRoot().top
+        assertTrue("rail $railTop under header $headerBottom", railTop >= headerBottom)
+    }
+
+    @Test
     fun theShowChoiceSwitchesTheListToJuz() {
-        show(emptyList())
+        show()
 
         composeRule.onNodeWithText("Show").assertIsDisplayed()
         composeRule.onNodeWithText("Surahs").performClick()
