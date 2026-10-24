@@ -16,6 +16,7 @@ internal object Routes {
     const val TABS = "tabs"
     const val BOOKMARKS = "bookmarks"
     const val SEARCH = "search"
+    const val DUAS = "duas"
     const val SETTINGS = "settings"
     const val NOTICE = "notice"
     const val CREDITS = "credits"

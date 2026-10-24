@@ -7,7 +7,10 @@ import app.awn.quran.feature.duas.content.Dua
 data class CardWord(val word: Word, val isDuaWord: Boolean)
 
 /**
- * Marks which of the card's [words] (all words of the dua's ayahs, in order) belong to [dua]; the
- * UI slice writes it.
+ * Marks which of the card's [words] (all words of the dua's ayahs, in order) belong to [dua]. The
+ * dua can start or end inside an ayah, so a word counts when its key lies between the dua's first
+ * and last word.
  */
-fun cardWords(words: List<Word>, dua: Dua): List<CardWord> = TODO("ui slice")
+fun cardWords(words: List<Word>, dua: Dua): List<CardWord> = words.map { word ->
+    CardWord(word, isDuaWord = word.key >= dua.start && word.key <= dua.end)
+}

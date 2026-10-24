@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":tracker"))
 
     implementation(libs.kotlinx.coroutinesCore)
+    implementation(libs.androidx.datastorePreferences)
     implementation(libs.androidx.activityCompose)
     implementation(libs.androidx.lifecycleViewmodelCompose)
     implementation(libs.androidx.lifecycleRuntimeCompose)

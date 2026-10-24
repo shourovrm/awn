@@ -85,8 +85,9 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
 
     private var openedPage: Int? = null
     private var openedToday = false
+    private var openedDuas = 0
 
-    private fun show(todayItems: List<TodayItem>) {
+    private fun show(todayItems: List<TodayItem>, duaCount: Int? = null) {
         composeRule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
@@ -96,11 +97,13 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
                 QuranTabScreen(
                     state = state,
                     todayItems = todayItems,
+                    duaCount = duaCount,
                     actions =
                         QuranTabActions(
                             onSearch = {},
                             onBookmarks = {},
                             onSettings = {},
+                            onDuas = { openedDuas++ },
                             onOpen = { page, _: AyahRef? -> openedPage = page },
                         ),
                 )
@@ -142,6 +145,33 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
         composeRule.onNodeWithText("Revise 5 ayahs").performClick()
 
         assertEquals(true, openedToday)
+    }
+
+    @Test
+    fun beforeTheCollectionIsReadThereIsNoDuasEntry() {
+        show(emptyList(), duaCount = null)
+
+        composeRule.onNodeWithText("Browse").assertDoesNotExist()
+        composeRule.onNodeWithText("Duas from the Quran").assertDoesNotExist()
+    }
+
+    @Test
+    fun theDuasEntryShowsItsNameAndCountAndOpens() {
+        show(emptyList(), duaCount = 77)
+
+        composeRule.onNodeWithText("Browse").assertIsDisplayed()
+        composeRule.onNodeWithText("Duas from the Quran").assertIsDisplayed()
+        composeRule.onNodeWithText("77 duas").performClick()
+
+        assertEquals(1, openedDuas)
+    }
+
+    @Test
+    fun theDuasEntrySitsAboveTheSurahList() {
+        show(emptyList(), duaCount = 77)
+
+        composeRule.onNodeWithText("Duas from the Quran").assertIsDisplayed()
+        composeRule.onNodeWithText("Show").assertIsDisplayed()
     }
 
     @Test

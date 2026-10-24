@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="duas_title">কুরআনের দুআ</string>
+  <plurals name="duas_count">
+    <item quantity="one">%dটি দুআ</item>
+    <item quantity="other">%dটি দুআ</item>
+  </plurals>
+  <string name="duas_back">পেছনে</string>
+
+  <string name="duas_search_hint">দুআ খুঁজুন</string>
+  <string name="duas_search_clear">খোঁজা মুছুন</string>
+  <string name="duas_results_heading">দুআ · %d</string>
+  <string name="duas_search_empty">কোনো দুআ পাওয়া যায়নি</string>
+  <string name="duas_list_empty">এখানে এখনো কোনো দুআ নেই</string>
+
+  <string name="duas_filter_all">সব</string>
+  <string name="duas_filter_rabbana">রাব্বানা</string>
+  <string name="duas_filter_rabbi">রাব্বি</string>
+  <string name="duas_filter_prophets">নবীদের দুআ</string>
+  <string name="duas_filter_saved">সংরক্ষিত</string>
+  <string name="duas_filter_learned">শেখা</string>
+
+  <string name="duas_starters_title">শুরুর জন্য দশটি ছোট দুআ</string>
+  <string name="duas_starters_detail">দিনে ৩ মিনিট</string>
+  <string name="duas_groups_heading">বিভাগ</string>
+  <string name="duas_group_detail_learned">%1$s · %2$dটি শেখা</string>
+
+  <string name="duas_position">%2$dটির মধ্যে %1$d</string>
+  <string name="duas_save">দুআ সংরক্ষণ করুন</string>
+  <string name="duas_unsave">সংরক্ষিত থেকে সরান</string>
+  <string name="duas_search_button">দুআ খুঁজুন</string>
+  <string name="duas_opening_rabbana">রাব্বানা</string>
+  <string name="duas_opening_rabbi">রাব্বি</string>
+  <string name="duas_opening_allahumma">আল্লাহুম্মা</string>
+  <string name="duas_open_mushaf">মুসহাফে খুলুন</string>
+  <string name="duas_show_dua_only">শুধু দুআ দেখান</string>
+  <string name="duas_show_whole_ayah">পুরো আয়াত দেখান</string>
+  <string name="duas_translation_hidden">তিলাওয়াতের সময় অনুবাদ লুকানো থাকে</string>
+
+  <string name="duas_mode_listen">শুনুন</string>
+  <string name="duas_mode_recite">তিলাওয়াত করুন</string>
+  <string name="duas_mode_words">শব্দে শব্দে</string>
+
+  <string name="duas_play">চালান</string>
+  <string name="duas_stop">থামান</string>
+  <string name="duas_word_position">%2$dটি শব্দের মধ্যে %1$d</string>
+  <string name="duas_repeat">পুনরাবৃত্তি</string>
+  <string name="duas_repeat_value">%1$d×</string>
+  <string name="duas_speed">গতি</string>
+  <string name="duas_speed_value">%1$s×</string>
+  <string name="duas_downloading">ডাউনলোড হচ্ছে</string>
+  <string name="duas_play_failed">দুআটি চালানো যাচ্ছে না। সংযোগ দেখুন।</string>
+
+  <string name="duas_recite_idle">দুআটি শুরু থেকে বলুন</string>
+  <string name="duas_recite_listening">শুনছি</string>
+  <string name="duas_recite_preparing">তৈরি হচ্ছে</string>
+  <string name="duas_recite_failed">তৈরি করা যায়নি। আবার চেষ্টা করুন।</string>
+  <string name="duas_recite_clean">নির্ভুল তিলাওয়াত</string>
+  <string name="duas_recite_learned">শেখা হয়েছে</string>
+  <string name="duas_recite_progress">%2$dটির মধ্যে %1$dটি নির্ভুল তিলাওয়াত</string>
+  <string name="duas_recite_hide_words">শব্দ লুকান</string>
+  <string name="duas_recite_show_words">শব্দ দেখান</string>
+  <string name="duas_recite_start">তিলাওয়াত শুরু করুন</string>
+  <string name="duas_recite_stop">তিলাওয়াত থামান</string>
+  <string name="duas_review_wrong">এই শব্দটি ঠিক শোনায়নি। শুনতে ছুঁয়ে দেখুন, তারপর আবার বলুন।</string>
+  <string name="duas_review_skipped">এই শব্দটি শোনা যায়নি। শুনতে ছুঁয়ে দেখুন, তারপর আবার বলুন।</string>
+  <string name="duas_review_close">বন্ধ করুন</string>
+
+  <string name="duas_add_word">আমার শব্দে যোগ করুন</string>
+  <string name="duas_word_added">আমার শব্দে আছে</string>
+</resources>

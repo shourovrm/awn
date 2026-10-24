@@ -122,6 +122,9 @@ class ReciteController(
     // the settings collector reads it on the scope while the screen writes it.
     @Volatile private var runActive: Boolean = false
 
+    // The last ayah of a run started with [practiceAyahs]; null for every other run.
+    @Volatile private var lastAyahOfBoundedRun: AyahRef? = null
+
     /**
      * True from [reciteFrom], [practiceFrom] or [reviseAt] until [exit]; the recite bar shows
      * meanwhile.
@@ -192,6 +195,19 @@ class ReciteController(
         load(ayah) { session.setHifzEnabled(hideWords) }
     }
 
+    /**
+     * Starts a run that loads exactly [ayahs] (in reading order, within one surah) and nothing
+     * after them, so a short passage such as a dua is recited on its own. The words are hidden when
+     * [hideWords] is true and shown when it is false, for this run only like [practiceFrom].
+     */
+    fun practiceAyahs(ayahs: List<AyahRef>, hideWords: Boolean) {
+        require(ayahs.isNotEmpty()) { "A bounded run needs at least one ayah." }
+        stopAudioForNewRun()
+        mutableRevising.value = false
+        runActive = true
+        load(ayahs.first(), boundedAyahs = ayahs) { session.setHifzEnabled(hideWords) }
+    }
+
     /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
     fun focusWord(key: WordKey) {
         mutableFocusedWord.value = key
@@ -204,7 +220,14 @@ class ReciteController(
 
     // [beforeLoad] runs after the previous load has finished and before the words are loaded, so
     // a run can set the session's hide-words choice before its first word is shown.
-    private fun load(ayah: AyahRef, beforeLoad: suspend () -> Unit = {}) {
+    // [boundedAyahs], when given, are the only ayahs of the run: the session neither loads the rest
+    // of the page nor extends past the last of them.
+    private fun load(
+        ayah: AyahRef,
+        boundedAyahs: List<AyahRef>? = null,
+        beforeLoad: suspend () -> Unit = {},
+    ) {
+        lastAyahOfBoundedRun = boundedAyahs?.last()
         clearFocus()
         mutableActive.value = true
         val previous = loadJob
@@ -213,7 +236,7 @@ class ReciteController(
             // Before the settings read of [beforeLoad], so the model starts loading at once.
             speech.prepare()
             beforeLoad()
-            session.load(ayahsFrom(ayah))
+            session.load(boundedAyahs ?: ayahsFrom(ayah))
         }
     }
 
@@ -493,6 +516,8 @@ class ReciteController(
     // page, so the page right after the one of [last] may hold nothing new. An empty list means the
     // Quran has ended.
     private suspend fun ayahsOnPageAfter(last: AyahRef): List<AyahRef> {
+        val boundary = lastAyahOfBoundedRun
+        if (boundary != null && last >= boundary) return emptyList()
         val lastPage = quranText.pageCount(pageScript)
         var page = quranText.pageOf(last, pageScript) + 1
         while (page <= lastPage) {
@@ -516,6 +541,7 @@ class ReciteController(
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
+        lastAyahOfBoundedRun = null
         val endedRun = runActive
         runActive = false
         val previous = loadJob

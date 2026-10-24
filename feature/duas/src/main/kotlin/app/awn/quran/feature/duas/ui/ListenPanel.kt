@@ -1,0 +1,178 @@
+package app.awn.quran.feature.duas.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.ui.components.AwnIconButton
+import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnShapes
+import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.softFill
+import app.awn.quran.feature.duas.R
+import app.awn.quran.feature.duas.content.Dua
+import app.awn.quran.player.PlaybackOptions
+import app.awn.quran.player.PlaybackState
+
+internal const val LISTEN_PLAY_TAG = "dua-listen-play"
+internal const val LISTEN_REPEAT_TAG = "dua-listen-repeat"
+internal const val LISTEN_SPEED_TAG = "dua-listen-speed"
+
+/**
+ * The ayah of [dua] that is playing or paused now, or null when the player is on something else.
+ */
+internal fun PlaybackState.ayahOf(dua: Dua): AyahRef? =
+    when (this) {
+        is PlaybackState.Playing -> ayah.takeIf { it in dua.ayahs }
+        is PlaybackState.Paused -> ayah.takeIf { it in dua.ayahs }
+        else -> null
+    }
+
+/** The word the reciter is saying, when the player is playing [dua] and knows the word. */
+internal fun PlaybackState.playingWordOf(dua: Dua): WordKey? {
+    val playing = this as? PlaybackState.Playing ?: return null
+    val wordPosition = playing.wordPosition
+    if (wordPosition == null || playing.ayah !in dua.ayahs) return null
+    return WordKey(playing.ayah.surah, playing.ayah.ayah, wordPosition)
+}
+
+/** What the buttons of the Listen panel do. */
+internal class ListenPanelActions(
+    val onPlay: () -> Unit,
+    val onStop: () -> Unit,
+    val onCycleRepeat: () -> Unit,
+    val onCycleSpeed: () -> Unit,
+)
+
+/**
+ * The Listen controls: play or stop, the reciter's name with the word being said, the repeat count
+ * and the speed. [wordCountOfAyah] gives the length of the playing ayah for "Word 7 of 11".
+ */
+@Composable
+internal fun ListenPanel(
+    dua: Dua,
+    reciterName: String,
+    playback: PlaybackState,
+    options: PlaybackOptions,
+    wordCountOfAyah: (AyahRef) -> Int,
+    actions: ListenPanelActions,
+    modifier: Modifier = Modifier,
+) {
+    val field = Awn.field
+    val isBusy = playback.ayahOf(dua) != null || playback is PlaybackState.Downloading
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(AwnShapes.control)
+                .background(field.softFill)
+                .padding(horizontal = AwnSpacing.small),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AwnIconButton(
+            icon = if (isBusy) R.drawable.ic_duas_stop else R.drawable.ic_duas_play,
+            contentDescription =
+                stringResource(if (isBusy) R.string.duas_stop else R.string.duas_play),
+            onClick = if (isBusy) actions.onStop else actions.onPlay,
+            tint = field.buttonFill,
+            modifier = Modifier.testTag(LISTEN_PLAY_TAG),
+        )
+        Column(Modifier.weight(1f).padding(horizontal = AwnSpacing.small)) {
+            Text(
+                text = reciterName,
+                style = AwnTypography.bodyStrong,
+                color = field.content,
+                maxLines = 1,
+            )
+            ListenStatusLine(dua, playback, wordCountOfAyah)
+        }
+        RepeatButton(count = options.repeatEachAyah, onClick = actions.onCycleRepeat)
+        SpeedButton(speed = options.speed, onClick = actions.onCycleSpeed)
+    }
+}
+
+@Composable
+private fun ListenStatusLine(
+    dua: Dua,
+    playback: PlaybackState,
+    wordCountOfAyah: (AyahRef) -> Int,
+) {
+    val playingWord = playback.playingWordOf(dua)
+    val text =
+        when {
+            playingWord != null ->
+                stringResource(
+                    R.string.duas_word_position,
+                    playingWord.wordPosition,
+                    wordCountOfAyah(AyahRef(playingWord.surah, playingWord.ayah)),
+                )
+            playback is PlaybackState.Downloading -> stringResource(R.string.duas_downloading)
+            playback is PlaybackState.Error -> stringResource(R.string.duas_play_failed)
+            else -> null
+        }
+    if (text != null) {
+        Text(text = text, style = AwnTypography.small, color = Awn.field.content, maxLines = 1)
+    }
+}
+
+@Composable
+private fun RepeatButton(count: Int, onClick: () -> Unit) {
+    val field = Awn.field
+    Row(
+        modifier =
+            Modifier.heightIn(min = AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onClick)
+                .testTag(LISTEN_REPEAT_TAG),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small / 2),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_duas_repeat),
+            contentDescription = stringResource(R.string.duas_repeat),
+            tint = field.content,
+            modifier = Modifier.size(AwnSpacing.iconSize),
+        )
+        Text(
+            text = stringResource(R.string.duas_repeat_value, count),
+            style = AwnTypography.bodyStrong,
+            color = field.content,
+        )
+    }
+}
+
+@Composable
+private fun SpeedButton(speed: Float, onClick: () -> Unit) {
+    Box(
+        modifier =
+            Modifier.heightIn(min = AwnSpacing.touchTarget)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(horizontal = AwnSpacing.small)
+                .testTag(LISTEN_SPEED_TAG),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.duas_speed_value, speedText(speed)),
+            style = AwnTypography.bodyStrong,
+            color = Awn.field.content,
+        )
+    }
+}

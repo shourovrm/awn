@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -36,13 +37,20 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.tabs.TodayItem
 
-/** The Today section: one soft row for each item. The caller leaves it out when there are none. */
+/**
+ * A small heading over one soft row for each item. The caller leaves it out when there are none.
+ * [title] is Today for the day's load and Browse for the collections.
+ */
 @Composable
-internal fun TodaySection(items: List<TodayItem>, modifier: Modifier = Modifier) {
+internal fun TodaySection(
+    items: List<TodayItem>,
+    modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.today_title),
+) {
     val field = Awn.field
     Column(modifier.fillMaxWidth().padding(top = AwnSpacing.large)) {
         Text(
-            text = stringResource(R.string.today_title),
+            text = title,
             style = AwnTypography.bodyStrong,
             color = field.buttonFill,
             modifier = Modifier.padding(bottom = AwnSpacing.small).semantics { heading() },
@@ -51,6 +59,19 @@ internal fun TodaySection(items: List<TodayItem>, modifier: Modifier = Modifier)
             items.forEach { item -> TodayRow(item) }
         }
     }
+}
+
+/** The Browse section: a soft row that opens the Duas collection, with how many duas it holds. */
+@Composable
+internal fun DuasSection(duaCount: Int, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+    val item =
+        TodayItem(
+            title = stringResource(R.string.duas_entry_title),
+            detail = pluralStringResource(R.plurals.duas_entry_count, duaCount, duaCount),
+            icon = R.drawable.ic_app_menu_book,
+            onOpen = onOpen,
+        )
+    TodaySection(listOf(item), modifier, title = stringResource(R.string.browse_title))
 }
 
 @Composable

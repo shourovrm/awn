@@ -2,6 +2,7 @@ package app.awn.quran.services
 
 import android.app.Application
 import app.awn.quran.AppPreferences
+import app.awn.quran.ReciteBarOrDownload
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.MyWords
@@ -10,6 +11,10 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
+import app.awn.quran.feature.duas.DuasDependencies
+import app.awn.quran.feature.duas.content.DuaCatalogueRepository
+import app.awn.quran.feature.duas.data.DataStoreDuaProgressStore
+import app.awn.quran.feature.duas.recite.ControllerDuaRecitation
 import app.awn.quran.feature.hifz.HifzServices
 import app.awn.quran.feature.hifz.PracticeRequest
 import app.awn.quran.feature.hifz.method.PartKind
@@ -211,6 +216,32 @@ class AwnServices(private val application: Application) {
             listeningReciterId = listenSettings.selectedReciterId,
             chosenWordReciterId = listenSettings.wordReciterId,
             catalogue = CatalogueModel(coreData.packs, coreData.packDownloads, applicationScope),
+        )
+    }
+
+    private val duaCatalogue = DuaCatalogueRepository(application.assets)
+
+    /**
+     * What the Duas screens use. Built on first use: it reaches [learnWordSound], whose download
+     * list reads WorkManager, and WorkManager is configured only after this holder exists.
+     */
+    val duasDependencies by lazy {
+        DuasDependencies(
+            loadCatalogue = { duaCatalogue.catalogue() },
+            progress = DataStoreDuaProgressStore(application),
+            quranText = coreData.quranText,
+            translations = coreData.translations,
+            enabledTranslations = readDependencies.settingsStore.settings.map { it.translations },
+            pageScript = readDependencies.settingsStore.settings.map { it.script },
+            audioPlayer = audioPlayer,
+            reciters = coreData.reciters,
+            selectedReciterId = listenSettings.selectedReciterId,
+            recitation = ControllerDuaRecitation(recite),
+            playWord = { word -> learnWordSound.play(word) },
+            myWords = readDependencies.myWords,
+            reciteGate = { onCancel, content ->
+                ReciteBarOrDownload(this, onExit = onCancel, bar = content)
+            },
         )
     }
 
