@@ -27,6 +27,7 @@ import app.awn.quran.core.ui.components.AwnTopBar
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.theme.HideTabBarOnInnerPage
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.ui.HifzActions
 import app.awn.quran.feature.hifz.ui.HifzMainContent
@@ -73,6 +74,7 @@ fun HifzTab(
         else chapter?.nameSimple.orEmpty()
     }
     var page by rememberSaveable { mutableStateOf(HifzPage.Main) }
+    HideTabBarOnInnerPage(page != HifzPage.Main)
     BackHandler(enabled = page != HifzPage.Main) { page = HifzPage.Main }
 
     Column(modifier.fillMaxSize().background(Awn.field.background)) {

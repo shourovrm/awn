@@ -29,6 +29,7 @@ import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
+import app.awn.quran.core.ui.theme.HideTabBarOnInnerPage
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import app.awn.quran.feature.learn.course.LearningArabic
@@ -47,6 +48,7 @@ import app.awn.quran.feature.learn.ui.LearnRouteSaver
 import app.awn.quran.feature.learn.ui.LocalLearnEnvironment
 import app.awn.quran.feature.learn.ui.LocalLearnPageLinks
 import app.awn.quran.feature.learn.ui.LocalOpenAyah
+import app.awn.quran.feature.learn.ui.isLearnTabRoot
 import app.awn.quran.feature.learn.ui.learnBackFrom
 import app.awn.quran.feature.learn.ui.learnStartRoute
 import java.time.ZoneId
@@ -108,6 +110,7 @@ fun LearnScreen(
 
     val routeState = rememberStartRoute(services)
     val route = routeState.value
+    HideTabBarOnInnerPage(!isLearnTabRoot(route))
     OpenRequestedPageWords(pageWordsRequest, routeState, onPageWordsRequestHandled)
 
     val snapshot by remember {
