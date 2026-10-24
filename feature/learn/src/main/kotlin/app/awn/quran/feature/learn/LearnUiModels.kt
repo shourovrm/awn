@@ -4,8 +4,8 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.feature.learn.content.snippetReference
-import app.awn.quran.feature.learn.progress.ProgressCalculator
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
+import app.awn.quran.feature.learn.progress.WeekProgress
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -123,7 +123,7 @@ object LearnUiMapper {
         zone: ZoneId,
         locale: Locale,
     ): ProgressUiState {
-        val week = ProgressCalculator.lastSevenDays(today)
+        val week = WeekProgress.lastSevenDays(today)
         val days = week.mapIndexed { index, day ->
             WeekDay(
                 label = day.dayOfWeek.getDisplayName(TextStyle.SHORT, locale),

@@ -24,13 +24,6 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.core.ui.theme.softFill
 
-/** What the buttons of the Revise screen do. [memorise] is null when Hifz has no page to open. */
-internal class ReviseActions(
-    val onStartClick: () -> Unit,
-    val onReviseEarlyClick: () -> Unit,
-    val memorise: OpenPageAction?,
-)
-
 /**
  * "Revise ayahs" from the Learn hub. With ayahs due it shows the count, the surahs they come from
  * and the next seven days; with none due it says when the next revision is and what to do
@@ -51,7 +44,7 @@ internal fun ReviseAyahsScreen(
         if (state.isSomethingDue) {
             DueToday(state, actions.onStartClick)
         } else {
-            NothingDue(state, actions)
+            NothingDue(state)
         }
         if (state.hasUpcoming) {
             UpcomingStrip(state.upcomingDays)
@@ -113,7 +106,7 @@ private fun ayahSpan(surah: DueSurah): String =
     }
 
 @Composable
-private fun NothingDue(state: ReviseUiState, actions: ReviseActions) {
+private fun NothingDue(state: ReviseUiState) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = AwnSpacing.small),
         verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),

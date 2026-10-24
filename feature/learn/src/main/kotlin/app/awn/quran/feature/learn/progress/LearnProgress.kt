@@ -211,9 +211,9 @@ class LearnProgress(
             dueToday =
                 ProgressCalculator.dueToday(cards, today, zone).map { AyahRef(it.surah, it.ayah) },
             nextDue = ProgressCalculator.nextDue(cards),
-            activeDaysThisWeek = ProgressCalculator.activeDaysThisWeek(eventTimes, today, zone),
-            pagesEachDayThisWeek = ProgressCalculator.pagesEachDayThisWeek(pageOpens, today, zone),
-            dueNextSevenDays = ProgressCalculator.dueCountsNextSevenDays(cards, today, zone),
+            activeDaysThisWeek = WeekProgress.activeDaysThisWeek(eventTimes, today, zone),
+            pagesEachDayThisWeek = WeekProgress.pagesEachDayThisWeek(pageOpens, today, zone),
+            dueNextSevenDays = WeekProgress.dueCountsNextSevenDays(cards, today, zone),
             nextDueAyahs = ProgressCalculator.ayahsDueOnNextDay(cards, zone),
         )
     }

@@ -163,26 +163,51 @@ internal fun CourseRoutes(
         LearnRoute.WordList -> WordListRoute(context, modifier)
         is LearnRoute.WordPage -> WordPageRoute(route, context, modifier)
         is LearnRoute.WordAyahs -> WordAyahsRoute(route, context, modifier)
-        LearnRoute.ReadingProgress -> ReadingProgressRoute(content, context, modifier)
-        LearnRoute.ReviseAyahs -> ReviseAyahsRoute(content, onReviseAt, context, modifier)
-        LearnRoute.Sources ->
-            SourcesScreen(
-                runtime.assets.content.references,
-                onBack = context::goHub,
-                modifier = modifier,
-            )
-        LearnRoute.Progress ->
-            CourseProgressScreen(
-                progress =
-                    buildCourseProgress(
-                        snapshot.wordsMet,
-                        snapshot.knownRanks,
-                        runtime.assets.forms,
-                    ),
-                onBack = context::goHub,
-                modifier = modifier,
-            )
+        LearnRoute.ReadingProgress,
+        LearnRoute.ReviseAyahs ->
+            ReadingOrReviseRoute(route, content, onReviseAt, context, modifier)
+        LearnRoute.Sources,
+        LearnRoute.Progress -> SourcesOrProgressRoute(route, context, modifier)
         else -> error("$route is not a course screen.")
+    }
+}
+
+/** Groups the two screens that are built from the reading history rather than from the course. */
+@Composable
+private fun ReadingOrReviseRoute(
+    route: LearnRoute,
+    content: LearnRouteContent,
+    onReviseAt: ((AyahRef) -> Unit)?,
+    context: CourseScreenContext,
+    modifier: Modifier,
+) {
+    if (route == LearnRoute.ReadingProgress) {
+        ReadingProgressRoute(content, context, modifier)
+    } else {
+        ReviseAyahsRoute(content, onReviseAt, context, modifier)
+    }
+}
+
+@Composable
+private fun SourcesOrProgressRoute(
+    route: LearnRoute,
+    context: CourseScreenContext,
+    modifier: Modifier,
+) {
+    val content = context.runtime.assets
+    if (route == LearnRoute.Sources) {
+        SourcesScreen(content.content.references, onBack = context::goHub, modifier = modifier)
+    } else {
+        CourseProgressScreen(
+            progress =
+                buildCourseProgress(
+                    context.snapshot.wordsMet,
+                    context.snapshot.knownRanks,
+                    content.forms,
+                ),
+            onBack = context::goHub,
+            modifier = modifier,
+        )
     }
 }
 

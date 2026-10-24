@@ -5,6 +5,7 @@ import app.awn.quran.feature.learn.data.AyahEventRow
 import app.awn.quran.feature.learn.data.CardEntity
 import app.awn.quran.feature.learn.data.PageOpenRow
 import app.awn.quran.feature.learn.progress.ProgressCalculator
+import app.awn.quran.feature.learn.progress.WeekProgress
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -219,7 +220,7 @@ class ProgressCalculatorTest {
 
     @Test
     fun lastSevenDaysEndTodayAndStartSixDaysBefore() {
-        val week = ProgressCalculator.lastSevenDays(today)
+        val week = WeekProgress.lastSevenDays(today)
 
         assertEquals(7, week.size)
         assertEquals(today.minusDays(6), week.first())
@@ -238,7 +239,7 @@ class ProgressCalculatorTest {
 
         assertEquals(
             setOf(today, today.minusDays(6)),
-            ProgressCalculator.activeDaysThisWeek(times, today, dhaka),
+            WeekProgress.activeDaysThisWeek(times, today, dhaka),
         )
     }
 
@@ -255,7 +256,7 @@ class ProgressCalculatorTest {
 
         assertEquals(
             listOf(0, 0, 0, 0, 1, 0, 2),
-            ProgressCalculator.pagesEachDayThisWeek(opens, today, dhaka),
+            WeekProgress.pagesEachDayThisWeek(opens, today, dhaka),
         )
     }
 
@@ -273,7 +274,7 @@ class ProgressCalculatorTest {
 
         assertEquals(
             listOf(2, 0, 1, 0, 0, 0, 1),
-            ProgressCalculator.dueCountsNextSevenDays(cards, today, dhaka),
+            WeekProgress.dueCountsNextSevenDays(cards, today, dhaka),
         )
     }
 
