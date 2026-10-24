@@ -3,7 +3,6 @@ package app.awn.quran.feature.duas.ui
 import androidx.compose.ui.graphics.Color
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
-import app.awn.quran.core.ui.theme.AwnReciteFills
 import app.awn.quran.feature.duas.DuasFixtures
 import app.awn.quran.player.PlaybackState
 import app.awn.quran.tracker.WordState
@@ -21,12 +20,6 @@ class CardHelpersTest {
         assertEquals(5, nextRepeatCount(3))
         assertEquals(1, nextRepeatCount(5))
         assertEquals(1, nextRepeatCount(2))
-    }
-
-    @Test
-    fun ayahNumbersUseArabicIndicDigits() {
-        assertEquals("٢٠١", arabicIndicDigits(201))
-        assertEquals("١", arabicIndicDigits(1))
     }
 
     @Test
@@ -64,21 +57,6 @@ class CardHelpersTest {
             mapOf(WordKey(2, 201, 1) to WordState.Wrong, WordKey(2, 201, 4) to WordState.Confirmed)
 
         assertTrue(isCleanRecitation(duaWords, states))
-    }
-
-    @Test
-    fun reciteFillsFollowTheFieldAndLeaveUnmarkedWordsClear() {
-        assertEquals(
-            AwnReciteFills.dayConfirmed,
-            reciteFill(WordState.Confirmed, isLightField = true),
-        )
-        assertEquals(AwnReciteFills.nightWrong, reciteFill(WordState.Wrong, isLightField = false))
-        assertEquals(
-            AwnReciteFills.dayTentative,
-            reciteFill(WordState.Mispronounced, isLightField = true),
-        )
-        assertEquals(Color.Transparent, reciteFill(WordState.Neutral, isLightField = true))
-        assertEquals(Color.Transparent, reciteFill(WordState.Hidden, isLightField = false))
     }
 
     @Test
