@@ -153,6 +153,7 @@ private fun SayingCard(
     modifier: Modifier = Modifier,
 ) {
     val field = Awn.field
+    val arabicFontFamily = LocalLearnEnvironment.current?.arabic?.fontFamily
     Column(
         modifier =
             modifier
@@ -173,7 +174,13 @@ private fun SayingCard(
     ) {
         Text(
             text = saying.arabic,
-            style = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl),
+            // The Mushaf's own font, as the other Learn screens use: the bundled one cannot place
+            // some marks of this text, such as the small rounded zero, and draws dotted circles.
+            style =
+                AwnTypography.quranLead.copy(
+                    fontFamily = arabicFontFamily ?: AwnTypography.quranLead.fontFamily,
+                    textDirection = TextDirection.Rtl,
+                ),
             color = field.content,
             modifier = Modifier.fillMaxWidth().padding(end = AwnSpacing.small),
         )
