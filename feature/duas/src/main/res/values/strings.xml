@@ -42,7 +42,10 @@
 
   <string name="duas_mode_listen">Listen</string>
   <string name="duas_mode_recite">Recite</string>
-  <string name="duas_mode_words">Word by word</string>
+  <string name="duas_layers">Layers</string>
+  <string name="duas_layer_word_by_word">Word by word</string>
+  <string name="duas_layer_translation">Translation</string>
+  <string name="duas_layer_transliteration">Transliteration</string>
 
   <string name="duas_play">Play</string>
   <string name="duas_stop">Stop</string>

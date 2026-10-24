@@ -29,7 +29,7 @@ private val CardScreenStateSaver =
         save = { listOf(it.mode.name, it.showDuaOnly, it.isHidingWords) },
         restore = {
             CardScreenState(
-                mode = DuaCardMode.valueOf(it[0] as String),
+                mode = modeFromStoredName(it[0] as String),
                 showDuaOnly = it[1] as Boolean,
                 isHidingWords = it[2] as Boolean,
             )

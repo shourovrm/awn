@@ -32,19 +32,10 @@ import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.feature.duas.R
 import app.awn.quran.feature.duas.card.DuaCardData
 import app.awn.quran.feature.duas.card.DuaWordTile
+import app.awn.quran.feature.duas.data.CardLayers
 
 internal const val OPEN_MUSHAF_TAG = "dua-open-mushaf"
 internal const val SHOW_DUA_ONLY_TAG = "dua-show-dua-only"
-
-/**
- * The text layers the toggle at the top of the cards turns on, the same three the Mushaf line view
- * has. One choice holds for every dua and topic card.
- */
-internal data class CardLayers(
-    val showWordByWord: Boolean = false,
-    val showTranslation: Boolean = true,
-    val showTransliteration: Boolean = false,
-)
 
 /** What decides how one card looks. */
 internal class CardPageState(
@@ -91,7 +82,7 @@ internal fun DuaCardPage(
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
         ) {
             CardHeader(card)
-            if (state.mode == DuaCardMode.WordByWord) {
+            if (state.layers.showWordByWord) {
                 WordTileGrid(wordTiles, myWords, actions.onPlayWord)
             } else {
                 val textStyle: TextStyle =
@@ -104,7 +95,9 @@ internal fun DuaCardPage(
                     textStyle = textStyle,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                CardTranslation(card.translation, state.isTranslationHidden)
+                if (state.layers.showTranslation) {
+                    CardTranslation(card.translation, state.isTranslationHidden)
+                }
             }
             CardFooter(card, state, actions)
         }
@@ -157,7 +150,7 @@ private fun CardTranslation(translation: String?, isHidden: Boolean) {
 @Composable
 private fun CardFooter(card: DuaCardData, state: CardPageState, actions: CardPageActions) {
     val field = Awn.field
-    val hasToggle = card.hasWordsOutsideDua && state.mode != DuaCardMode.WordByWord
+    val hasToggle = card.hasWordsOutsideDua && !state.layers.showWordByWord
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (hasToggle) Arrangement.SpaceBetween else Arrangement.End,

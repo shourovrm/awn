@@ -42,7 +42,10 @@
 
   <string name="duas_mode_listen">শুনুন</string>
   <string name="duas_mode_recite">তিলাওয়াত করুন</string>
-  <string name="duas_mode_words">শব্দে শব্দে</string>
+  <string name="duas_layers">স্তর</string>
+  <string name="duas_layer_word_by_word">শব্দে শব্দে</string>
+  <string name="duas_layer_translation">অনুবাদ</string>
+  <string name="duas_layer_transliteration">উচ্চারণ</string>
 
   <string name="duas_play">চালান</string>
   <string name="duas_stop">থামান</string>

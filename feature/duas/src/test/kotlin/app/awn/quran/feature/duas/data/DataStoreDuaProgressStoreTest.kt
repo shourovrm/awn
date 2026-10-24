@@ -77,4 +77,29 @@ class DataStoreDuaProgressStoreTest {
         assertEquals(setOf("clean_d1"), progress.savedIds)
         assertEquals(mapOf("d1" to 1), progress.cleanRecitations)
     }
+
+    @Test
+    fun aNewStoreShowsTranslationOnly() = runTest {
+        val layers = newStore().progress.first().layers
+
+        assertEquals(CardLayers(), layers)
+        assertFalse(layers.showWordByWord)
+        assertTrue(layers.showTranslation)
+        assertFalse(layers.showTransliteration)
+    }
+
+    @Test
+    fun chosenLayersAreReadBackAndLeaveSavedIdsAlone() = runTest {
+        val store = newStore()
+        store.toggleSaved("d1")
+        val chosen =
+            CardLayers(showWordByWord = true, showTranslation = false, showTransliteration = true)
+
+        store.setLayers(chosen)
+
+        val progress = store.progress.first()
+        assertEquals(chosen, progress.layers)
+        assertEquals(setOf("d1"), progress.savedIds)
+        assertTrue(progress.cleanRecitations.isEmpty())
+    }
 }

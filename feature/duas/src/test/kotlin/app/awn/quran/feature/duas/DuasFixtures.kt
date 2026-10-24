@@ -24,6 +24,7 @@ import app.awn.quran.feature.duas.content.Topic
 import app.awn.quran.feature.duas.content.TopicCatalogue
 import app.awn.quran.feature.duas.content.TopicCategory
 import app.awn.quran.feature.duas.content.TopicPart
+import app.awn.quran.feature.duas.data.CardLayers
 import app.awn.quran.feature.duas.data.DuaProgress
 import app.awn.quran.feature.duas.data.DuaProgressStore
 import app.awn.quran.feature.duas.recite.DuaRecitation
@@ -217,6 +218,10 @@ class InMemoryDuaProgressStore(initial: DuaProgress = DuaProgress()) : DuaProgre
                 if (duaId in state.savedIds) state.savedIds - duaId else state.savedIds + duaId
             state.copy(savedIds = saved)
         }
+    }
+
+    override suspend fun setLayers(layers: CardLayers) {
+        current.update { state -> state.copy(layers = layers) }
     }
 
     override suspend fun recordCleanRecitation(duaId: String) {

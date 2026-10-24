@@ -3,6 +3,7 @@ package app.awn.quran.feature.duas.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -35,7 +36,11 @@ class DataStoreDuaProgressStore(private val dataStore: DataStore<Preferences>) :
                         }
                     }
                     .toMap()
-            DuaProgress(savedIds = preferences[SAVED_KEY].orEmpty(), cleanRecitations = cleanCounts)
+            DuaProgress(
+                savedIds = preferences[SAVED_KEY].orEmpty(),
+                cleanRecitations = cleanCounts,
+                layers = readLayers(preferences),
+            )
         }
 
     override suspend fun toggleSaved(duaId: String) {
@@ -50,8 +55,29 @@ class DataStoreDuaProgressStore(private val dataStore: DataStore<Preferences>) :
         dataStore.edit { preferences -> preferences[key] = (preferences[key] ?: 0) + 1 }
     }
 
+    override suspend fun setLayers(layers: CardLayers) {
+        dataStore.edit { preferences ->
+            preferences[SHOW_WORD_BY_WORD_KEY] = layers.showWordByWord
+            preferences[SHOW_TRANSLATION_KEY] = layers.showTranslation
+            preferences[SHOW_TRANSLITERATION_KEY] = layers.showTransliteration
+        }
+    }
+
+    private fun readLayers(preferences: Preferences): CardLayers {
+        val defaults = CardLayers()
+        return CardLayers(
+            showWordByWord = preferences[SHOW_WORD_BY_WORD_KEY] ?: defaults.showWordByWord,
+            showTranslation = preferences[SHOW_TRANSLATION_KEY] ?: defaults.showTranslation,
+            showTransliteration =
+                preferences[SHOW_TRANSLITERATION_KEY] ?: defaults.showTransliteration,
+        )
+    }
+
     private companion object {
         const val CLEAN_KEY_PREFIX = "clean_"
         val SAVED_KEY = stringSetPreferencesKey("saved_ids")
+        val SHOW_WORD_BY_WORD_KEY = booleanPreferencesKey("layer_word_by_word")
+        val SHOW_TRANSLATION_KEY = booleanPreferencesKey("layer_translation")
+        val SHOW_TRANSLITERATION_KEY = booleanPreferencesKey("layer_transliteration")
     }
 }

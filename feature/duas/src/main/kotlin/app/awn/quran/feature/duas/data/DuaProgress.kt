@@ -5,10 +5,21 @@ import kotlinx.coroutines.flow.Flow
 /** How many clean recitations mark a dua as learned. */
 const val CLEAN_RECITATIONS_TO_LEARN = 3
 
+/**
+ * The text layers the toggle at the top of the cards turns on, the same three the Mushaf line view
+ * has. One choice holds for every dua and topic card.
+ */
+data class CardLayers(
+    val showWordByWord: Boolean = false,
+    val showTranslation: Boolean = true,
+    val showTransliteration: Boolean = false,
+)
+
 /** What the user has done with the duas on this phone. */
 data class DuaProgress(
     val savedIds: Set<String> = emptySet(),
     val cleanRecitations: Map<String, Int> = emptyMap(),
+    val layers: CardLayers = CardLayers(),
 ) {
     fun isSaved(duaId: String): Boolean = duaId in savedIds
 
@@ -26,4 +37,7 @@ interface DuaProgressStore {
 
     /** Counts one recitation in which every word of the dua was confirmed. */
     suspend fun recordCleanRecitation(duaId: String)
+
+    /** Keeps the text layers the cards show. */
+    suspend fun setLayers(layers: CardLayers)
 }

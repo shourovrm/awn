@@ -27,6 +27,7 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.duas.DuasDependencies
 import app.awn.quran.feature.duas.R
 import app.awn.quran.feature.duas.content.Dua
+import app.awn.quran.feature.duas.data.CardLayers
 import app.awn.quran.feature.duas.state.DuasState
 import app.awn.quran.player.PlaybackState
 import kotlinx.coroutines.launch
@@ -60,6 +61,11 @@ internal fun DuaCardsScreen(
     val screenState = rememberCardScreenState()
     val playback by dependencies.audioPlayer.state.collectAsState(initial = PlaybackState.Idle)
     StopAudioWhenLeavingCard(pagerState, duas, dependencies, playback)
+    val layers = state.progress.layers
+    val scope = rememberCoroutineScope()
+    val saveLayers: (CardLayers) -> Unit = { chosen ->
+        scope.launch { dependencies.progress.setLayers(chosen) }
+    }
 
     Column(modifier.fillMaxSize()) {
         DuasTopBar(
@@ -68,6 +74,7 @@ internal fun DuaCardsScreen(
                 stringResource(R.string.duas_position, pagerState.currentPage + 1, duas.size),
             onBack = actions.onBack,
         ) {
+            CardLayersButton(layers = layers, onLayersChange = saveLayers)
             AwnIconButton(
                 icon = UiR.drawable.ic_ui_search,
                 contentDescription = stringResource(R.string.duas_search_button),
@@ -89,7 +96,6 @@ internal fun DuaCardsScreen(
             actions = actions,
             modifier = Modifier.weight(1f),
         )
-        PageDots(count = duas.size, current = pagerState.currentPage)
         ModePanel(
             dua = dua,
             state = state,
@@ -132,8 +138,8 @@ private fun CardPager(
         val dua = duas[index]
         val isCurrent = index == pagerState.currentPage
         val isReciting = isCurrent && screenState.mode == DuaCardMode.Recite
-        LaunchedEffect(dua.id, screenState.mode) {
-            if (screenState.mode == DuaCardMode.WordByWord) actions.onRequestWordTiles(dua)
+        LaunchedEffect(dua.id, state.progress.layers.showWordByWord) {
+            if (state.progress.layers.showWordByWord) actions.onRequestWordTiles(dua)
         }
         val highlights =
             if (isCurrent) {
@@ -155,6 +161,7 @@ private fun CardPager(
                     showDuaOnly = screenState.showDuaOnly,
                     isTranslationHidden = isReciting && screenState.isHidingWords,
                     highlights = highlights,
+                    layers = state.progress.layers,
                 ),
             myWords = dependencies.myWords,
             actions =
@@ -201,7 +208,6 @@ private fun ModePanel(
                     ),
                 modifier = modifier,
             )
-        DuaCardMode.WordByWord -> PronunciationOffer(dependencies, modifier)
     }
 }
 
