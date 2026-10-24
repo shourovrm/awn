@@ -79,6 +79,26 @@ class IndoPakPageTest {
     }
 
     @Test
+    fun theFirstIndoPakPagesMoveUpSoTheirLinesSitInTheMiddleOfTheFrame() {
+        // Page 1 of the print: the banner on line 8 and words on lines 9 to 15.
+        val bottomLines =
+            headerAbovePage.copy(
+                page = 1,
+                lines =
+                    listOf(PageLine(8, listOf(LineItem.SurahHeader(1)))) +
+                        (9..15).map { PageLine(it, listOf(LineItem.WordItem(word(1, 1, it)))) },
+            )
+
+        val rows = buildPageRows(bottomLines, hasGlyphFont = true)
+
+        // Eight used lines in fifteen slots: three empty above, four below.
+        assertEquals(4, rows.first().slot)
+        assertEquals(11, rows.last().slot)
+        assertEquals(15, frameSlotCountOf(bottomLines))
+        assertEquals(8, buildPageRows(bottomLines.copy(page = 3), hasGlyphFont = true).first().slot)
+    }
+
+    @Test
     fun theFirstPagesOfAnIndoPakPrintAreNotACentredBlock() {
         val first = headerAbovePage.copy(page = 1)
 

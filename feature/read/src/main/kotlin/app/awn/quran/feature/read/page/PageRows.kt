@@ -53,7 +53,22 @@ internal fun buildPageRows(layout: PageLayout, hasGlyphFont: Boolean): List<Page
  */
 internal fun slotShiftOf(layout: PageLayout): Int {
     val firstLine = layout.lines.minOfOrNull { it.line } ?: 1
-    return if (firstLine < 1) 1 - firstLine else 0
+    if (firstLine < 1) return 1 - firstLine
+    return centringShiftOf(layout)
+}
+
+/**
+ * Pages 1 and 2 of the IndoPak prints use only the bottom lines of the frame (the print fills the
+ * space above with ornament the app does not draw), so the block moves up until the empty slots
+ * split evenly above and below it. Every other page keeps its line numbers.
+ */
+private fun centringShiftOf(layout: PageLayout): Int {
+    val isShortFirstPage = layout.page <= 2 && layout.script in indoPakScripts
+    val usedLines = layout.lines.filter { it.items.isNotEmpty() }.map { it.line }
+    if (!isShortFirstPage || usedLines.isEmpty()) return 0
+    val usedCount = usedLines.max() - usedLines.min() + 1
+    val centredFirstLine = (PageGeometry.SLOTS - usedCount) / 2 + 1
+    return minOf(0, centredFirstLine - usedLines.min())
 }
 
 private fun tokensOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): List<LineToken> =
@@ -68,7 +83,7 @@ private fun tokensOf(item: LineItem, script: ScriptId, hasGlyphFont: Boolean): L
 
 /**
  * Pages 1 and 2 of the Madani prints are drawn as a centred block, not in the 15-line frame. The
- * IndoPak prints print them at the bottom of the full frame, which their line numbers already say.
+ * IndoPak prints keep the frame; [slotShiftOf] moves their lines to the middle of it.
  */
 internal fun isCentredBlockPage(layout: PageLayout): Boolean =
     layout.page <= 2 && layout.script !in indoPakScripts
