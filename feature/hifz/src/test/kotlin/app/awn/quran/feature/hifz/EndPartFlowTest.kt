@@ -115,8 +115,10 @@ class EndPartFlowTest {
         )
 
         assertNull(hifz.practice.value)
+        // The log and the plan's cursor reach the screen state through separate queries.
         composeRule.waitUntil(TIMEOUT_MILLIS) {
-            readyState().assignment.newLesson?.isContinuation == true
+            val lesson = readyState().assignment.newLesson
+            lesson?.isContinuation == true && lesson.part.first == ayah(3)
         }
         val lesson = checkNotNull(readyState().assignment.newLesson)
         assertFalse(lesson.isDone)

@@ -216,4 +216,16 @@
   <string name="map_row_action">পৃষ্ঠা %d দেখুন</string>
   <string name="page_sheet_range">%1$s %2$s</string>
   <string name="journal_entry_title">%1$s · %2$s %3$s</string>
+  <string name="setting_spacing">পুরোনো পৃষ্ঠা কখন ফিরে আসবে</string>
+  <string name="spacing_manzil_cycle">মানযিলের চক্র</string>
+  <string name="spacing_fixed_steps">নির্দিষ্ট ধাপে</string>
+  <string name="spacing_adaptive">গ্রেড অনুযায়ী</string>
+  <string name="spacing_hint_cycle">প্রতিটি পুরোনো পৃষ্ঠা প্রতি চক্রে একবার, ক্রমানুসারে।</string>
+  <string name="spacing_hint_fixed">প্রতিটি ধাপ পরপর। কঠিন হলে ধাপটি আবার, ভুলে গেলে শুরু থেকে।</string>
+  <string name="spacing_hint_adaptive">প্রতিটি পৃষ্ঠার বিরতি আপনার গ্রেডের সাথে বাড়ে বা কমে।</string>
+  <string name="spacing_steps">ধাপ</string>
+  <string name="spacing_step_days">%d দিন</string>
+  <string name="spacing_add_step">ধাপ যোগ করুন</string>
+  <string name="spacing_remove_step">%d দিনের ধাপ সরান</string>
+  <string name="spacing_choose_step">পরের ধাপ</string>
 </resources>

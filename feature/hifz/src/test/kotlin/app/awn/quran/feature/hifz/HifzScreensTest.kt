@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -28,10 +29,12 @@ import app.awn.quran.feature.hifz.method.PageStatus
 import app.awn.quran.feature.hifz.method.PageTable
 import app.awn.quran.feature.hifz.method.PartGrade
 import app.awn.quran.feature.hifz.method.PartKind
+import app.awn.quran.feature.hifz.method.RevisionSpacing
 import app.awn.quran.feature.hifz.ui.HifzActions
 import app.awn.quran.feature.hifz.ui.HifzMainContent
 import app.awn.quran.feature.hifz.ui.MarkKnownScreen
 import app.awn.quran.feature.hifz.ui.MethodChooser
+import app.awn.quran.feature.hifz.ui.SPACING_STEP_TAG_PREFIX
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -184,6 +187,25 @@ class HifzScreensTest {
         composeRule.onNodeWithText("Use this method").performScrollTo().performClick()
 
         assertEquals(HifzMethodId.ThreeByThree, chosen?.first)
+    }
+
+    @Test
+    fun fixedStepsCanLoseAStepAndTheChoiceIsUsed() {
+        var chosen: MethodSettings? = null
+        show(ColourMode.Awn) {
+            MethodChooser(
+                initialMethod = HifzMethodId.SabaqSabqiManzil,
+                initialSettings =
+                    MethodSettings(revisionSpacing = RevisionSpacing.FixedSteps(listOf(1, 3, 7))),
+                onUse = { _, settings -> chosen = settings },
+            )
+        }
+
+        composeRule.onNodeWithText("How old pages come back").performScrollTo().assertExists()
+        composeRule.onNodeWithTag(SPACING_STEP_TAG_PREFIX + 3).performScrollTo().performClick()
+        composeRule.onNodeWithText("Use this method").performScrollTo().performClick()
+
+        assertEquals(RevisionSpacing.FixedSteps(listOf(1, 7)), chosen?.revisionSpacing)
     }
 
     @Test

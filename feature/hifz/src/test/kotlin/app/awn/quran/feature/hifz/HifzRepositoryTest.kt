@@ -7,9 +7,11 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.feature.hifz.data.HifzDatabase
 import app.awn.quran.feature.hifz.data.HifzRepository
+import app.awn.quran.feature.hifz.data.toEntity
 import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.LessonPlanner
 import app.awn.quran.feature.hifz.method.LessonSize
+import app.awn.quran.feature.hifz.method.MethodSettings
 import app.awn.quran.feature.hifz.method.MistakeRecord
 import app.awn.quran.feature.hifz.method.MistakeType
 import app.awn.quran.feature.hifz.method.PageLayoutFamily
@@ -17,6 +19,7 @@ import app.awn.quran.feature.hifz.method.PageStatus
 import app.awn.quran.feature.hifz.method.PageTableLoader
 import app.awn.quran.feature.hifz.method.PartGrade
 import app.awn.quran.feature.hifz.method.PartKind
+import app.awn.quran.feature.hifz.method.RevisionSpacing
 import java.time.ZoneOffset
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -63,6 +66,37 @@ class HifzRepositoryTest {
 
         assertEquals(plan, repository.plan())
         assertEquals(plan, repository.observePlan().first())
+    }
+
+    @Test
+    fun aPlanKeepsItsFixedStepsAndAnOlderRowKeepsItsMethodsSpacing() = runBlocking {
+        val fixed =
+            planOf(
+                settings =
+                    MethodSettings(revisionSpacing = RevisionSpacing.FixedSteps(listOf(2, 9, 40))),
+            )
+
+        repository.savePlan(fixed)
+
+        assertEquals(fixed, repository.plan())
+        // A row saved before the setting existed reads as the method's own spacing.
+        database
+            .dao()
+            .upsertPlan(fixed.toEntity().copy(revisionSpacing = null, spacingSteps = null))
+        assertEquals(RevisionSpacing.ManzilCycle, repository.plan()?.settings?.revisionSpacing)
+    }
+
+    @Test
+    fun markingAgainKeepsAPagesHistoryAndASpreadMarkingSpacesFirstRevisions() = runBlocking {
+        repository.markPages(1..30, PageStatus.Memorised)
+        val firstDue = repository.records().values.map { it.card!!.dueMillis }.toSet()
+        assertEquals(30, firstDue.size)
+
+        repository.finishRevision(PartKind.Old, listOf(1), mapOf(1 to PartGrade.Good), null)
+        val revised = repository.records().getValue(1)
+        repository.markPages(1..1, PageStatus.Memorised)
+
+        assertEquals(revised, repository.records().getValue(1))
     }
 
     @Test

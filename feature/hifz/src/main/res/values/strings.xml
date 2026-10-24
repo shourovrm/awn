@@ -216,4 +216,16 @@
   <string name="map_row_action">Show page %d</string>
   <string name="page_sheet_range">%1$s %2$s</string>
   <string name="journal_entry_title">%1$s · %2$s %3$s</string>
+  <string name="setting_spacing">How old pages come back</string>
+  <string name="spacing_manzil_cycle">Manzil cycle</string>
+  <string name="spacing_fixed_steps">Fixed steps</string>
+  <string name="spacing_adaptive">By your grades</string>
+  <string name="spacing_hint_cycle">Every old page once in each cycle, in order.</string>
+  <string name="spacing_hint_fixed">After each step in turn. Hard repeats a step, Forgot starts again.</string>
+  <string name="spacing_hint_adaptive">The gap for each page grows or shrinks with your grades.</string>
+  <string name="spacing_steps">Steps</string>
+  <string name="spacing_step_days">%d d</string>
+  <string name="spacing_add_step">Add step</string>
+  <string name="spacing_remove_step">Remove the %d-day step</string>
+  <string name="spacing_choose_step">Next step</string>
 </resources>

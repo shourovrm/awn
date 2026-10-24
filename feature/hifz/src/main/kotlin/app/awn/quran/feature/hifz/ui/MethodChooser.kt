@@ -131,13 +131,6 @@ private fun MethodSettingsRows(
 ) {
     if (method == HifzMethodId.SabaqSabqiManzil) {
         AwnChoiceRow(
-            label = stringResource(R.string.setting_manzil_cycle),
-            options = MethodSettings.manzilCycleChoices,
-            selected = settings.manzilCycleDays,
-            optionLabel = { daysText(it) },
-            onSelect = { onChange(settings.copy(manzilCycleDays = it)) },
-        )
-        AwnChoiceRow(
             label = stringResource(R.string.setting_lesson_size),
             options = lessonSizeChoices,
             selected = settings.lessonSize,
@@ -153,6 +146,7 @@ private fun MethodSettingsRows(
             onSelect = { onChange(settings.copy(ayahsPerDay = it)) },
         )
     }
+    SpacingSettingsRows(settings, onChange)
     AwnChoiceRow(
         label = stringResource(R.string.setting_revision_limit),
         options = MethodSettings.revisionLimitChoices,
