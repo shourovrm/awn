@@ -11,6 +11,8 @@ dependencies {
     // Dua cards play the ayah, check a recitation and read word timings.
     implementation(project(":player"))
     implementation(project(":feature:recite"))
+    // Dua cards draw their words with the Mushaf line view and open its word card.
+    implementation(project(":feature:read"))
     implementation(project(":tracker"))
 
     implementation(libs.kotlinx.coroutinesCore)

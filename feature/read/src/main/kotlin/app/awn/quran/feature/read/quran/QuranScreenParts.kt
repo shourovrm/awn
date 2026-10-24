@@ -132,7 +132,7 @@ internal fun topBarActions(
  */
 @Suppress("LongMethod") // The card is one column of optional lines.
 @Composable
-internal fun WordPopupCard(
+fun WordPopupCard(
     popup: WordPopup,
     anchor: Rect?,
     topClearancePx: Float,

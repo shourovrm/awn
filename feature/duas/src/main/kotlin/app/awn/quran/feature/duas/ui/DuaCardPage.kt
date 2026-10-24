@@ -36,6 +36,16 @@ import app.awn.quran.feature.duas.card.DuaWordTile
 internal const val OPEN_MUSHAF_TAG = "dua-open-mushaf"
 internal const val SHOW_DUA_ONLY_TAG = "dua-show-dua-only"
 
+/**
+ * The text layers the toggle at the top of the cards turns on, the same three the Mushaf line view
+ * has. One choice holds for every dua and topic card.
+ */
+internal data class CardLayers(
+    val showWordByWord: Boolean = false,
+    val showTranslation: Boolean = true,
+    val showTransliteration: Boolean = false,
+)
+
 /** What decides how one card looks. */
 internal class CardPageState(
     val mode: DuaCardMode,
@@ -43,6 +53,7 @@ internal class CardPageState(
     /** True while reciting with the words hidden, when the translation would give them away. */
     val isTranslationHidden: Boolean,
     val highlights: CardHighlights,
+    val layers: CardLayers = CardLayers(),
 )
 
 /** What the controls on a card do. */

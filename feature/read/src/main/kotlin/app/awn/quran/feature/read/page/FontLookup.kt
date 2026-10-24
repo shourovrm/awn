@@ -92,7 +92,7 @@ private suspend fun loadGlyphOrFallbackFont(
  * builds the Quran screen again; a new empty cache would make every page wait for its font before
  * its first frame, although the page was on screen a moment ago.
  */
-internal object SharedPageFontCache {
+object SharedPageFontCache {
     private var current: Triple<PackRepository, Int, PageFontCache>? = null
 
     /** The cache for [packs] at [revision]; a different pack set or revision gets a new one. */

@@ -53,7 +53,7 @@ import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.tracker.WordState
 
 /** The fills behind ayahs and words in the list views, taken from the colour mode. */
-internal class ReaderFills(
+class ReaderFills(
     val selectedAyah: Color,
     val playingAyah: Color,
     val playingWord: Color,
@@ -61,7 +61,7 @@ internal class ReaderFills(
 )
 
 @Composable
-internal fun readerFills(): ReaderFills {
+fun readerFills(): ReaderFills {
     val field = Awn.field
     return ReaderFills(
         selectedAyah = field.selectedAyahFill,
