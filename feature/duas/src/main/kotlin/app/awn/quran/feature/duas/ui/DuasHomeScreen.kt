@@ -145,7 +145,12 @@ private fun GroupRow(row: DuaGroupRow, language: String, onOpenGroup: (String) -
     val countText = pluralStringResource(R.plurals.duas_count, row.duaCount, row.duaCount)
     val detail =
         if (row.learnedCount > 0) {
-            stringResource(R.string.duas_group_detail_learned, countText, row.learnedCount)
+            pluralStringResource(
+                R.plurals.duas_group_detail_learned,
+                row.learnedCount,
+                countText,
+                row.learnedCount,
+            )
         } else {
             countText
         }

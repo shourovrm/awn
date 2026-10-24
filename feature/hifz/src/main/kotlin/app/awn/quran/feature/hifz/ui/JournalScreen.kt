@@ -111,7 +111,7 @@ private fun filterLabel(filter: JournalFilter): String =
         },
     )
 
-private val stripHeight = 64.dp
+private val stripHeight = AwnSpacing.giant
 
 // How tall a day off is drawn: a short bar, so the day is still visible.
 private const val DAY_OFF_FRACTION = 0.06f

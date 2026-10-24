@@ -23,7 +23,10 @@
   <string name="duas_starters_title">শুরুর জন্য দশটি ছোট দুআ</string>
   <string name="duas_starters_detail">দিনে ৩ মিনিট</string>
   <string name="duas_groups_heading">বিভাগ</string>
-  <string name="duas_group_detail_learned">%1$s · %2$dটি শেখা</string>
+  <plurals name="duas_group_detail_learned">
+    <item quantity="one">%1$s · %2$dটি শেখা</item>
+    <item quantity="other">%1$s · %2$dটি শেখা</item>
+  </plurals>
 
   <string name="duas_position">%2$dটির মধ্যে %1$d</string>
   <string name="duas_save">দুআ সংরক্ষণ করুন</string>
@@ -57,7 +60,10 @@
   <string name="duas_recite_failed">তৈরি করা যায়নি। আবার চেষ্টা করুন।</string>
   <string name="duas_recite_clean">নির্ভুল তিলাওয়াত</string>
   <string name="duas_recite_learned">শেখা হয়েছে</string>
-  <string name="duas_recite_progress">%2$dটির মধ্যে %1$dটি নির্ভুল তিলাওয়াত</string>
+  <plurals name="duas_recite_progress">
+    <item quantity="one">%2$dটির মধ্যে %1$dটি নির্ভুল তিলাওয়াত</item>
+    <item quantity="other">%2$dটির মধ্যে %1$dটি নির্ভুল তিলাওয়াত</item>
+  </plurals>
   <string name="duas_recite_hide_words">শব্দ লুকান</string>
   <string name="duas_recite_show_words">শব্দ দেখান</string>
   <string name="duas_recite_start">তিলাওয়াত শুরু করুন</string>

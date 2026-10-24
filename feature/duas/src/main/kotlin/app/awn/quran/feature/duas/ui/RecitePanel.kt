@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -116,8 +117,9 @@ private fun ReciteStatusLines(state: RecitePanelState) {
     if (state.cleanCount > 0 && state.speechState == SpeechState.Ready) {
         Text(
             text =
-                stringResource(
-                    R.string.duas_recite_progress,
+                pluralStringResource(
+                    R.plurals.duas_recite_progress,
+                    CLEAN_RECITATIONS_TO_LEARN,
                     state.cleanCount.coerceAtMost(CLEAN_RECITATIONS_TO_LEARN),
                     CLEAN_RECITATIONS_TO_LEARN,
                 ),
