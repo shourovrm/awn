@@ -65,12 +65,19 @@ class PackDownloads(
     /** Requests refused because the phone was on mobile data while downloads are Wi-Fi only. */
     private val refusedForWifi = MutableStateFlow<Set<String>>(emptySet())
 
-    /** The scheduler's transfers, plus a failure the user can retry for each refused request. */
-    val transfers: Flow<Map<String, PackTransfer>> =
-        combine(scheduler.transfers, refusedForWifi) { scheduled, refused ->
-            val refusals = refused.associateWith { PackTransfer.Failed(PackFailureReason.WifiOnly) }
-            refusals + scheduled
-        }
+    /**
+     * The scheduler's transfers, plus a failure the user can retry for each refused request. A
+     * getter, not a field: reading the scheduler's flow touches WorkManager, which must not happen
+     * while `AwnApplication` is still building the services WorkManager's configuration needs.
+     */
+    val transfers: Flow<Map<String, PackTransfer>>
+        get() =
+            combine(scheduler.transfers, refusedForWifi) { scheduled, refused ->
+                val refusals = refused.associateWith {
+                    PackTransfer.Failed(PackFailureReason.WifiOnly)
+                }
+                refusals + scheduled
+            }
 
     /**
      * Starts installing, or updating, pack [id]. On mobile data while downloads are Wi-Fi only the
