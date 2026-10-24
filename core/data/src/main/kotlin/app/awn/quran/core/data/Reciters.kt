@@ -36,3 +36,22 @@ interface ReciterRepository {
      */
     suspend fun ayahAudio(reciterId: String, ayah: AyahRef): AyahAudio?
 }
+
+/**
+ * The reciter whose voice plays single words until the user picks another one: Husary reading
+ * slowly for learners.
+ */
+const val DEFAULT_WORD_RECITER_ID = "husary_muallim"
+
+/**
+ * The reciter whose voice plays a single word: the [chosen] one when it has word timings, else
+ * [DEFAULT_WORD_RECITER_ID] when it has them, else the [listening] reciter when it has them, else
+ * the first of [withTimings], else null. A reciter the user chose always wins over the default.
+ */
+fun wordReciterIdFor(chosen: String?, listening: String, withTimings: List<String>): String? =
+    when {
+        chosen != null && chosen in withTimings -> chosen
+        DEFAULT_WORD_RECITER_ID in withTimings -> DEFAULT_WORD_RECITER_ID
+        listening in withTimings -> listening
+        else -> withTimings.firstOrNull()
+    }

@@ -49,11 +49,7 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.Snippet
-import app.awn.quran.feature.learn.content.SnippetRepository
 import app.awn.quran.tabs.TodayItem
-import java.time.LocalDate
-import java.time.ZoneId
 import kotlinx.coroutines.launch
 
 /** What the buttons of the Quran tab open. */
@@ -146,11 +142,7 @@ private fun QuranTabBody(
             IndexMode.Juz -> content.juzRows
         }
     val language = LearnLanguage.of(LocalConfiguration.current.locales[0])
-    val snippet =
-        remember(state.snippets) {
-            val today = LocalDate.now(ZoneId.systemDefault()).toEpochDay()
-            SnippetRepository.forDay(state.snippets, today)
-        }
+    val snippet = rememberDailySnippetCard(state.snippets, content.chapters, language)
     val meanings = rememberSurahMeanings()
     val listState = rememberLazyListState()
     // The rows follow the items above them, so a juz number maps to a list position through this.
@@ -158,7 +150,7 @@ private fun QuranTabBody(
         1 + (if (todayItems.isNotEmpty()) 1 else 0) + (if (snippet != null) 1 else 0) + 1
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            topItems(continueReading, todayItems, snippet, language, actions)
+            topItems(continueReading, todayItems, snippet, actions)
             item(key = "list-header") {
                 ListControls(
                     mode = mode,
@@ -194,8 +186,7 @@ private fun QuranTabBody(
 private fun LazyListScope.topItems(
     continueReading: ContinueReading,
     todayItems: List<TodayItem>,
-    snippet: Snippet?,
-    language: LearnLanguage,
+    snippet: DailySnippetCard?,
     actions: QuranTabActions,
 ) {
     item(key = "continue") {
@@ -217,7 +208,7 @@ private fun LazyListScope.topItems(
     }
     if (snippet != null) {
         item(key = "snippet") {
-            DailySnippet(snippet, language, Modifier.padding(horizontal = AwnSpacing.screenMargin))
+            DailySnippet(snippet, Modifier.padding(horizontal = AwnSpacing.screenMargin))
         }
     }
 }

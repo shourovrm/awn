@@ -41,6 +41,9 @@ LETTERS_PREFIX = "letters:"
 LETTER_ENTRY_PATTERN = re.compile(r"^\[\[([^\]]+)\]\]\s+(.+)$")
 WORDS_PREFIX = "words:"
 TIP_PREFIX = "tip:"
+MOUTH_PREFIX = "mouth:"
+# The areas a mouth block can fill in; `none` fills nothing and shows the labels only.
+MOUTH_AREAS = ("throat", "tongue", "lips", "nose", "open_mouth")
 WORD_LINE_PATTERN = re.compile(r"^- \{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\}(?:\s+\{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\})?\s*\|\s*([^|]+?)\s*(?:\|\s*([\d,\s-]+))?$")
 # The colour a words block gives its marked letters: a tajweed rule, or a grammar ending.
 WORD_MARKS = ("ghunnah", "qalqalah", "madd", "ikhfa", "idgham", "iqlab", "heavy", "silent", "ending")
@@ -204,14 +207,27 @@ def parse_words(paragraph, where, used_keys):
     return {"type": "words", "mark": mark, "items": items}
 
 
+def parse_mouth(text, where):
+    """Reads `mouth: throat lips` as the drawing of the mouth with those areas filled in."""
+    names = text[len(MOUTH_PREFIX) :].split()
+    if names == ["none"]:
+        return {"type": "mouth", "areas": []}
+    unknown = [name for name in names if name not in MOUTH_AREAS]
+    if not names or unknown:
+        raise LessonError(f"{where}: a mouth line names areas from {MOUTH_AREAS} or says none, not {unknown or 'nothing'}.")
+    return {"type": "mouth", "areas": names}
+
+
 def parse_blocks(lines, where, used_keys):
-    """Turns the lines of a screen into blocks: paragraph, bullets, table, ayah, letters, words or tip."""
+    """Turns the lines of a screen into blocks: paragraph, bullets, table, ayah, letters, words, tip or mouth."""
     blocks = []
     for paragraph in split_paragraphs(lines):
         first = paragraph[0]
         text = " ".join(paragraph)
         if first.startswith(WORDS_PREFIX):
             blocks.append(parse_words(paragraph, where, used_keys))
+        elif first.startswith(MOUTH_PREFIX):
+            blocks.append(parse_mouth(text, where))
         elif first.startswith(TIP_PREFIX):
             blocks.append({"type": "tip", "text": scan_text(text[len(TIP_PREFIX) :].strip(), where, used_keys)})
         elif first.startswith(LETTERS_PREFIX):
@@ -516,7 +532,7 @@ def check_clips_exist(lesson_file, clips_folder):
 def shape_of(screens):
     """What a translation must share with the English file: screen kinds and keys per screen."""
     return [
-        (screen["kind"], keys_of_screen(screen), clips_of_screen(screen), marks_of_screen(screen))
+        (screen["kind"], keys_of_screen(screen), clips_of_screen(screen), marks_of_screen(screen), mouths_of_screen(screen))
         for screen in screens
     ]
 
@@ -528,6 +544,11 @@ def marks_of_screen(screen):
         for block in screen.get("blocks", [])
         if block["type"] == "words"
     ]
+
+
+def mouths_of_screen(screen):
+    """The areas a screen's mouth drawings fill in; a translation fills the same ones."""
+    return [block["areas"] for block in screen.get("blocks", []) if block["type"] == "mouth"]
 
 
 def clips_of_screen(screen):

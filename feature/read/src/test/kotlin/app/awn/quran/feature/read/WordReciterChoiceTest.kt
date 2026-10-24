@@ -1,5 +1,6 @@
 package app.awn.quran.feature.read
 
+import app.awn.quran.core.data.DEFAULT_WORD_RECITER_ID
 import app.awn.quran.feature.read.quran.wordReciterFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -20,7 +21,27 @@ class WordReciterChoiceTest {
     }
 
     @Test
-    fun withoutAChoiceTheListeningReciterIsUsedWhenItHasTimings() {
+    fun withoutAChoiceHusaryMuallimIsUsedEvenWhenTheListeningReciterHasTimings() {
+        val withMuallim = withTimings + DEFAULT_WORD_RECITER_ID
+
+        assertEquals(
+            "husary_muallim",
+            wordReciterFor(chosen = null, listening = "alafasy", withMuallim),
+        )
+    }
+
+    @Test
+    fun aChoiceBeatsTheDefaultReciter() {
+        val withMuallim = withTimings + DEFAULT_WORD_RECITER_ID
+
+        assertEquals(
+            "alafasy",
+            wordReciterFor(chosen = "alafasy", listening = "husary", withMuallim),
+        )
+    }
+
+    @Test
+    fun withoutAChoiceAndNoDefaultReciterTheListeningReciterIsUsedWhenItHasTimings() {
         assertEquals("alafasy", wordReciterFor(chosen = null, listening = "alafasy", withTimings))
     }
 

@@ -40,6 +40,7 @@ internal fun LessonBlocks(blocks: List<LessonBlock>, modifier: Modifier = Modifi
                 is LessonBlock.Letters -> LetterGrid(block.items)
                 is LessonBlock.Words -> WordTiles(block)
                 is LessonBlock.Tip -> TipView(block)
+                is LessonBlock.Mouth -> MouthDiagram(block.areas)
             }
         }
     }

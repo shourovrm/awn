@@ -148,14 +148,13 @@ def main():
             {
                 "id": f"quran-{surah}-{ayah}",
                 "arabic": row[0],
-                "reference": f"Quran {surah}:{ayah}",
+                "source": {"type": "quran", "surah": surah, "ayah": ayah},
                 "text_en": english,
                 "text_bn": bangla,
                 "url": None,
                 "grade": None,
             }
         )
-    names = {"bukhari": "Sahih al-Bukhari", "muslim": "Sahih Muslim"}
     for collection, edition, api_number, number, start, end, english, bangla in HADITHS:
         report = editions[edition].get(api_number)
         if report is None:
@@ -164,7 +163,7 @@ def main():
             {
                 "id": f"{collection}-{number}",
                 "arabic": cut_saying(report, start, end),
-                "reference": f"{names[collection]} {number}",
+                "source": {"type": "hadith", "collection": collection, "number": number},
                 "text_en": english,
                 "text_bn": bangla,
                 "url": f"https://sunnah.com/{collection}:{number}",

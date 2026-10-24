@@ -4,7 +4,7 @@ title: Where letters are made
 order: 11
 appears_after: "Reading unit 10, a whole ayah; first tajweed unit"
 reference: "Follows Tajweed Made Easy (Usama Mahida, SMA teachers, 2018), lessons 2 and 4"
-licence: Lesson text is project text, CC BY-SA 4.0.
+licence: Lesson text is project text, CC BY-SA 4.0. Mouth drawing traced from Neutral Sagittal Section.svg by Richard Wright and Dan McCloy, CC0, https://commons.wikimedia.org/wiki/File:Neutral_Sagittal_Section.svg
 examples: [1:1:1, 1:2:1, 1:2:4, 1:7:5, 2:6:1, 2:8:4, 2:11:2, 2:30:2, 79:40:3, 112:1:2, 112:1:4, 113:1:4]
 reviewed_by: ""
 version: 2026-10-23
@@ -12,11 +12,15 @@ version: 2026-10-23
 
 ## Screen 1: Five areas
 
+mouth: none
+
 Every letter is made in one of five areas: the throat, the tongue, the lips, the nose and the open space of the mouth. The exact spot is the letter's makhraj, its point of articulation. The 29 letters, counting hamza, come from 17 such points.
 
 Knowing the area tells you how to say a letter you hear wrongly. [[ح]] and [[ه]] are both h sounds, but [[ح]] is made in the middle of the throat and [[ه]] at its bottom.
 
 ## Screen 2: The throat
+
+mouth: throat
 
 Six letters come from the throat, in three pairs from the bottom up:
 
@@ -36,6 +40,8 @@ tip: Say each word with a hand on your throat. The sound starts lower for [[ء]]
 
 ## Screen 3: The tongue
 
+mouth: tongue
+
 Eighteen letters are made with the tongue against the roof of the mouth or the teeth.
 
 - Back of the tongue: [[ق]] (furthest back) and [[ك]]
@@ -47,6 +53,8 @@ Eighteen letters are made with the tongue against the roof of the mouth or the t
 - Tip near the lower front teeth, with a whistle: [[ص]] [[س]] [[ز]]
 
 ## Screen 4: Lips, nose and the open mouth
+
+mouth: lips nose open_mouth
 
 - Lower lip against the tips of the upper front teeth: [[ف]]
 - Both lips: [[ب]] (moist part), [[م]] (dry part) and [[و]] (lips rounded, not closed)

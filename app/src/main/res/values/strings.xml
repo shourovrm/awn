@@ -38,6 +38,7 @@
   <string name="dialog_cancel">Cancel</string>
   <string name="index_search">Search</string>
   <string name="index_settings">Settings</string>
+  <string name="snippet_show_another">Show another</string>
   <string name="index_tab_surahs">Surahs</string>
   <string name="index_tab_juz">Juz</string>
   <string name="index_tab_bookmarks">Bookmarks</string>
@@ -179,6 +180,8 @@
   <string name="credit_academy_detail">Noorani Qaida video lessons: letter and practice sounds. Creative Commons Attribution. The recordings are screen captures of the Al-Furqan Noorani Qaida program.</string>
   <string name="credit_tajweed_book_name">Usama Mahida and the teachers of SMA, Tajweed Made Easy (2018)</string>
   <string name="credit_tajweed_book_detail">Order and facts of the Tajweed units.</string>
+  <string name="credit_mouth_drawing_name">Richard Wright and Dan McCloy, Neutral Sagittal Section</string>
+  <string name="credit_mouth_drawing_detail">The head in the lesson Where letters are made is traced from this drawing. Public domain (CC0).</string>
   <string name="credit_surah_names_name">Bangla Wikipedia</string>
   <string name="credit_surah_names_detail">Bangla surah names. CC BY-SA 4.0.</string>
 </resources>

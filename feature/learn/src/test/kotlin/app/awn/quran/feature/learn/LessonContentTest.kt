@@ -2,7 +2,9 @@ package app.awn.quran.feature.learn
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.SnippetRepository
+import app.awn.quran.feature.learn.content.snippetReference
 import app.awn.quran.feature.learn.course.CourseContentReader
 import app.awn.quran.feature.learn.course.LessonBlock
 import app.awn.quran.feature.learn.course.LessonCourse
@@ -84,6 +86,7 @@ class LessonContentTest {
             is LessonBlock.Words -> block.items.joinToString(" ") { it.caption }
             is LessonBlock.Tip -> block.text
             is LessonBlock.Ayah,
+            is LessonBlock.Mouth,
             is LessonBlock.Letters -> ""
         }
 
@@ -95,7 +98,7 @@ class LessonContentTest {
         assertEquals(snippets.size, snippets.map { it.id }.toSet().size)
         snippets.forEach { snippet ->
             assertTrue(snippet.arabic.isNotBlank())
-            assertTrue(snippet.reference.isNotBlank())
+            assertTrue(snippetReference(snippet.source, LearnLanguage.English) { "" }.isNotBlank())
             assertTrue(snippet.textEnglish.isNotBlank())
             assertTrue(snippet.textBangla.isNotBlank())
             if (snippet.url != null) assertEquals("sahih", snippet.grade)

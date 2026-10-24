@@ -737,14 +737,20 @@ class QuranViewModel(
 
     /**
      * Starts the chosen reciter's word audio download once per reciter when the network is not
-     * metered, and keeps an open word card in step with the download.
+     * metered (never for the default reciter the user did not pick), and keeps an open word card in
+     * step with the download.
      */
     private suspend fun followWordAudioPack() {
         val requestedPackIds = mutableSetOf<String>()
         wordAudio.selectedPack.collect { row ->
             if (
                 row != null &&
-                    shouldDownloadWordAudio(row, dependencies.isNetworkMetered(), requestedPackIds)
+                    shouldDownloadWordAudio(
+                        row,
+                        wordAudio.isPackOfChosenReciter(row.item.id),
+                        dependencies.isNetworkMetered(),
+                        requestedPackIds,
+                    )
             ) {
                 requestedPackIds += row.item.id
                 wordAudio.download(row.item.id)

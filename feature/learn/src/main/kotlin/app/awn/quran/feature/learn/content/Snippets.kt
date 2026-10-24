@@ -10,7 +10,7 @@ import org.json.JSONObject
 data class Snippet(
     val id: String,
     val arabic: String,
-    val reference: String,
+    val source: SnippetSource,
     val textEnglish: String,
     val textBangla: String,
     val url: String?,
@@ -38,7 +38,7 @@ class SnippetRepository(private val assets: AssetManager) {
                 Snippet(
                     id = entry.getString("id"),
                     arabic = entry.getString("arabic"),
-                    reference = entry.getString("reference"),
+                    source = parseSource(entry.getJSONObject("source")),
                     textEnglish = entry.getString("text_en"),
                     textBangla = entry.getString("text_bn"),
                     url = entry.optStringOrNull("url"),
@@ -47,13 +47,27 @@ class SnippetRepository(private val assets: AssetManager) {
             }
         }
 
+        private fun parseSource(source: JSONObject): SnippetSource =
+            when (val type = source.getString("type")) {
+                "quran" -> SnippetSource.Ayah(source.getInt("surah"), source.getInt("ayah"))
+                "hadith" ->
+                    SnippetSource.Hadith(
+                        HadithCollection.fromKey(source.getString("collection")),
+                        source.getString("number"),
+                    )
+                else -> error("Unknown snippet source type '$type' in $ASSET_PATH.")
+            }
+
         /**
-         * The snippet for a calendar day. Consecutive days give consecutive entries, so no snippet
-         * repeats before the list is used up.
+         * The position of the day's snippet in a list of [snippetCount]. Consecutive days give
+         * consecutive entries, so no snippet repeats before the list is used up.
          */
+        fun indexForDay(snippetCount: Int, epochDay: Long): Int =
+            Math.floorMod(epochDay, snippetCount.toLong()).toInt()
+
+        /** The snippet for a calendar day, or null when there are none. */
         fun forDay(snippets: List<Snippet>, epochDay: Long): Snippet? =
-            if (snippets.isEmpty()) null
-            else snippets[Math.floorMod(epochDay, snippets.size.toLong()).toInt()]
+            if (snippets.isEmpty()) null else snippets[indexForDay(snippets.size, epochDay)]
     }
 }
 

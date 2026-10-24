@@ -147,6 +147,7 @@ class WordCardPlayTest {
     private val timingPackBytes = 3_162_112L
     private val scheduler = RecordingPackWorkScheduler()
     private val selectedReciter = MutableStateFlow(ReadDependencies.DEFAULT_RECITER_ID)
+    private val chosenWordReciter = MutableStateFlow<String?>(null)
 
     private fun reciter(id: String, hasWordTimings: Boolean = true) =
         Reciter(
@@ -173,6 +174,7 @@ class WordCardPlayTest {
                 reciters = reciters,
                 downloads = PackDownloads(InMemoryWantedPackStore(), scheduler),
                 selectedReciterId = selectedReciter,
+                wordReciterId = chosenWordReciter,
                 isNetworkMetered = { isMetered },
             ),
             wordLanguage = "en",
@@ -188,6 +190,7 @@ class WordCardPlayTest {
     @Test
     fun anUnmeteredNetworkDownloadsTheWordAudioOnceWhenTheScreenOpens() = runTest {
         reciterWithTimingPackNotInstalled()
+        chosenWordReciter.value = "alafasy"
         val model = viewModelOnNetwork(isMetered = false)
         model.open(QuranTarget.Page(1))
 
@@ -263,7 +266,7 @@ class WordCardPlayTest {
     }
 
     @Test
-    fun aListeningReciterWithoutWordTimingsDownloadsTheFirstWordReciterAudio() = runTest {
+    fun aWordReciterTheUserDidNotChooseIsOfferedButNeverDownloadedByItself() = runTest {
         // Basfar cannot play words, so the first reciter with word timings is the word reciter.
         reciters.reciterList += reciter("basfar", hasWordTimings = false)
         reciterWithTimingPackNotInstalled("husary")
@@ -271,8 +274,10 @@ class WordCardPlayTest {
         val model = viewModelOnNetwork(isMetered = false)
 
         model.open(QuranTarget.Page(1))
+        model.onWordTapped(firstAyah, secondWord())
 
-        assertEquals(listOf("husary"), scheduler.enqueued)
+        assertTrue(scheduler.enqueued.isEmpty())
+        assertEquals(WordAudioOffer.Download(timingPackBytes), model.card().audioOffer)
     }
 
     @Test
@@ -281,11 +286,54 @@ class WordCardPlayTest {
         val queued = notInstalled.copy(transfer = PackTransfer.Waiting)
         val installed = CatalogueRow(timingPackItem("a", true), null)
 
-        assertTrue(shouldDownloadWordAudio(notInstalled, isNetworkMetered = false, emptySet()))
-        assertFalse(shouldDownloadWordAudio(notInstalled, isNetworkMetered = true, emptySet()))
-        assertFalse(shouldDownloadWordAudio(queued, isNetworkMetered = false, emptySet()))
-        assertFalse(shouldDownloadWordAudio(installed, isNetworkMetered = false, emptySet()))
-        assertFalse(shouldDownloadWordAudio(notInstalled, isNetworkMetered = false, setOf("a")))
+        assertTrue(
+            shouldDownloadWordAudio(
+                notInstalled,
+                isChosenByUser = true,
+                isNetworkMetered = false,
+                emptySet(),
+            ),
+        )
+        assertFalse(
+            shouldDownloadWordAudio(
+                notInstalled,
+                isChosenByUser = false,
+                isNetworkMetered = false,
+                emptySet(),
+            ),
+        )
+        assertFalse(
+            shouldDownloadWordAudio(
+                notInstalled,
+                isChosenByUser = true,
+                isNetworkMetered = true,
+                emptySet(),
+            ),
+        )
+        assertFalse(
+            shouldDownloadWordAudio(
+                queued,
+                isChosenByUser = true,
+                isNetworkMetered = false,
+                emptySet(),
+            ),
+        )
+        assertFalse(
+            shouldDownloadWordAudio(
+                installed,
+                isChosenByUser = true,
+                isNetworkMetered = false,
+                emptySet(),
+            ),
+        )
+        assertFalse(
+            shouldDownloadWordAudio(
+                notInstalled,
+                isChosenByUser = true,
+                isNetworkMetered = false,
+                setOf("a"),
+            ),
+        )
     }
 
     @Test

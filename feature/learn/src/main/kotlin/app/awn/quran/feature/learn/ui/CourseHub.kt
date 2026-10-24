@@ -46,6 +46,7 @@ import app.awn.quran.feature.learn.course.PathState
 import app.awn.quran.feature.learn.course.TrackSummary
 import app.awn.quran.feature.learn.formatCount
 import app.awn.quran.feature.learn.session.TodayPlan
+import app.awn.quran.feature.learn.settings.LessonLanguageSettingsRow
 import kotlin.math.roundToInt
 
 /** Everything the hub shows, already worked out. */
@@ -405,6 +406,7 @@ private fun MoreRows(state: HubState, actions: HubActions) {
         optionLabel = { stringResource(R.string.course_minutes, it) },
         onSelect = actions.onSessionMinutes,
     )
+    LessonLanguageSettingsRow()
     SettingsLinkRow(
         label = stringResource(R.string.course_change_choices),
         onClick = actions.onChangeChoices,

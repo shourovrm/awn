@@ -44,6 +44,24 @@ sealed interface LessonBlock {
 
     /** A short aside on a soft fill: something the reader can try. */
     data class Tip(val text: String) : LessonBlock
+
+    /** The side view of the mouth with [areas] filled in; no areas shows only the labels. */
+    data class Mouth(val areas: Set<MouthArea>) : LessonBlock
+}
+
+/** The areas of the mouth, throat and nose that the lesson on where letters are made names. */
+enum class MouthArea(val stored: String) {
+    Throat("throat"),
+    Tongue("tongue"),
+    Lips("lips"),
+    Nose("nose"),
+    OpenMouth("open_mouth");
+
+    companion object {
+        fun ofStored(stored: String): MouthArea =
+            entries.firstOrNull { it.stored == stored }
+                ?: error("Unknown mouth area $stored in the lesson data.")
+    }
 }
 
 /**
@@ -313,6 +331,10 @@ object CourseContentReader {
                 )
             "words" -> parseWords(block)
             "tip" -> LessonBlock.Tip(block.getString("text"))
+            "mouth" ->
+                LessonBlock.Mouth(
+                    block.getJSONArray("areas").strings().map(MouthArea::ofStored).toSet(),
+                )
             else -> error("Unknown lesson block type $type.")
         }
 

@@ -261,6 +261,37 @@ class WordsBlockTest(unittest.TestCase):
         self.assertEqual(5, build_learn_content.letter_count("ٱلنَّاسِ"))
 
 
+MOUTH_LESSON = ENGLISH_LESSON.replace("{{1:1}}\n\n## Check", "{{1:1}}\n\nmouth: throat lips\n\n## Check")
+
+
+class MouthBlockTest(unittest.TestCase):
+    def build_blocks(self, text):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", text)
+        return fixture.build()["lessons"][0]["languages"]["en"]["screens"][0]["blocks"]
+
+    def test_a_mouth_line_names_the_areas_to_fill_in(self):
+        self.assertEqual({"type": "mouth", "areas": ["throat", "lips"]}, self.build_blocks(MOUTH_LESSON)[4])
+
+    def test_none_fills_in_no_area(self):
+        text = MOUTH_LESSON.replace("mouth: throat lips", "mouth: none")
+
+        self.assertEqual({"type": "mouth", "areas": []}, self.build_blocks(text)[4])
+
+    def test_an_unknown_area_is_refused(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", MOUTH_LESSON.replace("lips", "teeth"))
+        with self.assertRaises(build_learn_content.LessonError) as raised:
+            fixture.build()
+        self.assertIn("teeth", str(raised.exception))
+
+    def test_a_mouth_line_without_areas_is_refused(self):
+        fixture = LessonFixture(self)
+        fixture.write("en", "basics", "01-first.md", MOUTH_LESSON.replace("mouth: throat lips", "mouth:"))
+        with self.assertRaises(build_learn_content.LessonError):
+            fixture.build()
+
+
 class ValidationTest(unittest.TestCase):
     def assert_build_fails(self, text, message_part, language="en", course="basics"):
         fixture = LessonFixture(self)

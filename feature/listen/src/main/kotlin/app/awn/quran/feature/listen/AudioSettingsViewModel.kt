@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
+import app.awn.quran.core.data.wordReciterIdFor
 import app.awn.quran.player.AudioDownloads
 import app.awn.quran.player.AudioPlayer
 import app.awn.quran.player.DownloadAmount
@@ -121,16 +122,11 @@ class AudioSettingsViewModel(
 
 /**
  * The reciter whose voice plays a single word, in the same order as the word card: the chosen word
- * reciter, the listening one, then the first with word timings. Null when [wordReciterIds] is
- * empty.
+ * reciter, the default one, the listening one, then the first with word timings. Null when
+ * [wordReciterIds] is empty.
  */
 internal fun wordReciterIdInUse(
     chosenWordId: String?,
     listeningId: String,
     wordReciterIds: List<String>,
-): String? =
-    when {
-        chosenWordId in wordReciterIds -> chosenWordId
-        listeningId in wordReciterIds -> listeningId
-        else -> wordReciterIds.firstOrNull()
-    }
+): String? = wordReciterIdFor(chosenWordId, listeningId, wordReciterIds)

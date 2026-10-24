@@ -90,12 +90,15 @@ def main():
     counts = {"ayah": 0, "hadith": 0, "url verified": 0, "url unverified": 0, "text matched": 0}
 
     for snippet in snippets:
-        for field in ("arabic", "reference", "text_en", "text_bn"):
+        for field in ("arabic", "text_en", "text_bn"):
             if not snippet.get(field, "").strip():
                 failures.append(f"{snippet['id']}: empty {field}")
         if snippet["url"] is None:
             counts["ayah"] += 1
-            surah, ayah = map(int, snippet["reference"].removeprefix("Quran ").split(":"))
+            source = snippet["source"]
+            surah, ayah = source["surah"], source["ayah"]
+            if snippet["id"] != f"quran-{surah}-{ayah}":
+                failures.append(f"{snippet['id']}: id does not match source {surah}:{ayah}")
             row = database.execute("SELECT text_uthmani FROM ayah WHERE surah=? AND ayah=?", (surah, ayah)).fetchone()
             if row is None or row[0] != snippet["arabic"]:
                 failures.append(f"{snippet['id']}: Arabic differs from the Quran database")
@@ -107,8 +110,8 @@ def main():
             failures.append(f"{snippet['id']}: grade {snippet['grade']}")
         if snippet["url"] != f"https://sunnah.com/{collection}:{number}":
             failures.append(f"{snippet['id']}: url {snippet['url']} does not match the id")
-        if not snippet["reference"].endswith(number):
-            failures.append(f"{snippet['id']}: reference {snippet['reference']} lacks the number")
+        if snippet["source"] != {"type": "hadith", "collection": collection, "number": number}:
+            failures.append(f"{snippet['id']}: source {snippet['source']} does not match the id")
 
         report = editions[collection].get(api_number(number))
         if report is None:

@@ -6,6 +6,7 @@ import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.downloads.CatalogueRow
 import app.awn.quran.core.data.downloads.PackTransfer
+import app.awn.quran.core.data.wordReciterIdFor
 import app.awn.quran.feature.read.ReadDependencies
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -72,8 +73,8 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
 
     /**
      * The reciter whose voice plays single words: the one chosen in Settings > Audio when it has
-     * word timings, else the listening reciter, else the first reciter with timings. Null when no
-     * reciter has word timings.
+     * word timings, else Husary Muallim, else the listening reciter, else the first reciter with
+     * timings. Null when no reciter has word timings.
      */
     private suspend fun wordReciterOf(listeningReciterId: String): Reciter? {
         val reciters = dependencies.reciters?.reciters().orEmpty()
@@ -85,6 +86,16 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
                 withTimings = wordReciters.map { it.id },
             )
         return wordReciters.firstOrNull { it.id == chosenId }
+    }
+
+    /**
+     * True when the user picked the reciter that owns the timing pack [packId] in Settings. The
+     * default word reciter is not a pick, and its pack is never downloaded without being asked.
+     */
+    suspend fun isPackOfChosenReciter(packId: String): Boolean {
+        val chosenId = dependencies.wordReciterId.first() ?: return false
+        val reciters = dependencies.reciters?.reciters().orEmpty()
+        return reciters.firstOrNull { it.id == chosenId }?.timingPack == packId
     }
 
     /** The state of [ayah]'s words for the card; [packRow] is the latest of [selectedPack]. */
@@ -128,31 +139,29 @@ internal class WordAudio(private val dependencies: ReadDependencies, scope: Coro
 
 /**
  * The reciter whose voice plays a single word: [chosen] (Settings > Audio) when it has word
- * timings, else the [listening] reciter when it has them, else the first of [withTimings], else
- * null.
+ * timings, else the default word reciter, else the [listening] reciter, else the first of
+ * [withTimings], else null (see `wordReciterIdFor`).
  */
 fun wordReciterFor(
     chosen: String?,
     listening: String,
     withTimings: List<String>,
-): String? =
-    when {
-        chosen != null && chosen in withTimings -> chosen
-        listening in withTimings -> listening
-        else -> withTimings.firstOrNull()
-    }
+): String? = wordReciterIdFor(chosen, listening, withTimings)
 
 /**
- * True when the timing pack of [row] should download without being asked: it is not on the phone,
- * nothing is queued, the network is not metered and this screen has not asked for it before (so a
- * download the user cancelled or that failed is not started again behind their back).
+ * True when the timing pack of [row] should download without being asked: the user chose its
+ * reciter, it is not on the phone, nothing is queued, the network is not metered and this screen
+ * has not asked for it before (so a download the user cancelled or that failed is not started again
+ * behind their back).
  */
 internal fun shouldDownloadWordAudio(
     row: CatalogueRow,
+    isChosenByUser: Boolean,
     isNetworkMetered: Boolean,
     alreadyRequestedIds: Set<String>,
 ): Boolean =
-    !row.item.isInstalled &&
+    isChosenByUser &&
+        !row.item.isInstalled &&
         row.transfer == null &&
         !isNetworkMetered &&
         row.item.id !in alreadyRequestedIds

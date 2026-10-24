@@ -1,5 +1,7 @@
 package app.awn.quran.index
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,8 +34,6 @@ import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.softFill
-import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.Snippet
 import app.awn.quran.tabs.TodayItem
 
 /** The Today section: one soft row for each item. The caller leaves it out when there are none. */
@@ -86,33 +86,48 @@ private fun TodayRow(item: TodayItem) {
     }
 }
 
-/** The day's snippet: Arabic, its rendering in the app language, and where it is from. */
+/**
+ * The day's snippet: Arabic, its rendering in the app language, and where it is from. A tap on the
+ * card shows another snippet, faded in.
+ */
 @Composable
-internal fun DailySnippet(
-    snippet: Snippet,
-    language: LearnLanguage,
-    modifier: Modifier = Modifier,
-) {
+internal fun DailySnippet(card: DailySnippetCard, modifier: Modifier = Modifier) {
     val field = Awn.field
-    Column(modifier.fillMaxWidth().padding(top = AwnSpacing.large)) {
-        Text(
-            text = snippet.arabic,
-            style = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl),
-            color = field.content,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Text(
-            text =
-                buildAnnotatedString {
-                    append(snippet.rendering(language))
-                    append(" ")
-                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                        append(snippet.reference)
-                    }
-                },
-            style = AwnTypography.small,
-            color = field.content,
-            modifier = Modifier.padding(top = AwnSpacing.small),
-        )
+    Crossfade(
+        targetState = card.snippet,
+        animationSpec = tween(durationMillis = SNIPPET_FADE_MILLIS),
+        label = "snippet",
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(top = AwnSpacing.large)
+                .clickable(
+                    onClickLabel = stringResource(R.string.snippet_show_another),
+                    onClick = card.onShowAnother,
+                ),
+    ) { snippet ->
+        Column(Modifier.fillMaxWidth()) {
+            Text(
+                text = snippet.arabic,
+                style = AwnTypography.quranLead.copy(textDirection = TextDirection.Rtl),
+                color = field.content,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text =
+                    buildAnnotatedString {
+                        append(snippet.rendering(card.language))
+                        append(" ")
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append(card.referenceOf(snippet))
+                        }
+                    },
+                style = AwnTypography.small,
+                color = field.content,
+                modifier = Modifier.padding(top = AwnSpacing.small),
+            )
+        }
     }
 }
+
+private const val SNIPPET_FADE_MILLIS = 200

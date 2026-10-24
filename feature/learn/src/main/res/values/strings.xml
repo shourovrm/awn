@@ -349,4 +349,10 @@
     <item quantity="other">Learn %d new</item>
   </plurals>
   <string name="page_words_empty">No words to show for this page</string>
+  <string name="mouth_diagram_description">Side view of the mouth and throat</string>
+  <string name="mouth_area_throat">Throat</string>
+  <string name="mouth_area_tongue">Tongue</string>
+  <string name="mouth_area_lips">Lips</string>
+  <string name="mouth_area_nose">Nose</string>
+  <string name="mouth_area_open_mouth">Open mouth</string>
 </resources>

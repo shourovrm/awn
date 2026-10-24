@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn.ui
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -20,9 +21,7 @@ class HubChoicesEntryTest {
 
     @get:Rule val composeRule = createComposeRule()
 
-    @Test
-    fun theHubOpensTheCourseChoices() {
-        var opened = 0
+    private fun showHub(onChangeChoices: () -> Unit = {}) {
         val actions =
             HubActions(
                 onStart = {},
@@ -36,7 +35,7 @@ class HubChoicesEntryTest {
                 onSources = {},
                 onDownloadMeanings = {},
                 onLesson = {},
-                onChangeChoices = { opened += 1 },
+                onChangeChoices = onChangeChoices,
             )
         val state =
             HubState(
@@ -54,6 +53,19 @@ class HubChoicesEntryTest {
             )
         composeRule.setContent { AwnTheme { CourseHub(state, actions) } }
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun theHubOffersTheLessonLanguage() {
+        showHub()
+
+        composeRule.onNodeWithText("Lesson language").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theHubOpensTheCourseChoices() {
+        var opened = 0
+        showHub(onChangeChoices = { opened += 1 })
 
         composeRule.onNodeWithText("Letters and daily time").performScrollTo().performClick()
 

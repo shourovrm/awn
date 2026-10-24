@@ -349,4 +349,10 @@
     <item quantity="other">%dটি নতুন শিখুন</item>
   </plurals>
   <string name="page_words_empty">এই পৃষ্ঠার জন্য দেখানোর মতো শব্দ নেই</string>
+  <string name="mouth_diagram_description">মুখ ও কণ্ঠের পাশ থেকে দেখা ছবি</string>
+  <string name="mouth_area_throat">কণ্ঠ</string>
+  <string name="mouth_area_tongue">জিহ্বা</string>
+  <string name="mouth_area_lips">ঠোঁট</string>
+  <string name="mouth_area_nose">নাক</string>
+  <string name="mouth_area_open_mouth">মুখের ফাঁকা জায়গা</string>
 </resources>

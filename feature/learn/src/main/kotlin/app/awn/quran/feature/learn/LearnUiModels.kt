@@ -1,7 +1,9 @@
 package app.awn.quran.feature.learn
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.feature.learn.content.LearnLanguage
 import app.awn.quran.feature.learn.content.Snippet
+import app.awn.quran.feature.learn.content.snippetReference
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -57,13 +59,18 @@ object LearnUiMapper {
         snapshot: ProgressSnapshot,
         lessons: List<LessonSummary>,
         snippet: Snippet?,
+        language: LearnLanguage,
+        surahName: (surah: Int) -> String,
     ): LearnUiState =
         LearnUiState(
             streakDays = snapshot.streakDays,
             pagesThisWeek = snapshot.pagesThisWeek,
             ayahsDueToday = snapshot.dueToday.size,
             lessons = lessons.take(LESSONS_ON_LEARN_SCREEN),
-            snippet = snippet?.let { SnippetLine(it.arabic, it.reference) },
+            snippet =
+                snippet?.let {
+                    SnippetLine(it.arabic, snippetReference(it.source, language, surahName))
+                },
         )
 
     fun progressState(
