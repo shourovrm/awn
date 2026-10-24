@@ -2,19 +2,12 @@ package app.awn.quran.feature.learn.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.core.ui.theme.mutedContent
-import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
 
 /** The word page's bar and position, with [page] drawn once for each word of [plan]. */
@@ -27,25 +20,13 @@ internal fun WordPagerScreen(
 ) {
     val pagerState = rememberPagerState(initialPage = plan.startIndex) { plan.ranks.size }
     Column(modifier = modifier.fillMaxSize()) {
-        LearnBar(
+        PagerBar(
             title = stringResource(R.string.word_title),
-            startLinkLabel = stringResource(R.string.back),
-            onStartLinkClick = onBack,
+            currentPage = pagerState.currentPage,
+            pageCount = plan.ranks.size,
+            onBack = onBack,
         )
-        if (plan.ranks.size > 1) {
-            Text(
-                text =
-                    stringResource(
-                        R.string.word_position,
-                        pagerState.currentPage + 1,
-                        plan.ranks.size,
-                    ),
-                style = AwnTypography.small,
-                color = Awn.field.mutedContent,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        PageDots(plan.ranks.size, pagerState)
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { index ->
             page(plan.ranks[index])
         }

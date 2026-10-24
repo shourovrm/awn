@@ -351,7 +351,6 @@
   <string name="mouth_area_open_mouth">Open mouth</string>
   <string name="words_level_title">Level %1$d · %2$s words</string>
   <string name="words_set_start">Start</string>
-  <string name="word_position">%1$d of %2$d</string>
   <string name="word_sound_download">Download word audio</string>
   <string name="word_sound_downloading">Downloading %1$d%%</string>
   <string name="word_sound_failed">Download failed. Check your connection.</string>
