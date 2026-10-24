@@ -18,7 +18,7 @@
 
 ## Next
 - Phone check of waves 1 and 2, then: IndoPak renderer (15/16-line, data in awn-data/next), data-v2 release after the maintainer's licence decisions (awn-data/next/RELEASE-PLAN.md).
-- Unbundled app: upload the stripped quran.sqlite, manifests and en_transliteration_words to data-v1 (ops.md) before any push; phone-check the recite download card and the starter card.
+- Phone-check the recite download card and the starter card on a fresh install (data-v1 now matches the pins, ops.md).
 - Bundle the Roundo and Noto Serif Bengali fonts; the theme uses the platform sans-serif until then.
 
 ## Gotchas (cross-cutting)

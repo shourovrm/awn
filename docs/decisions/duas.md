@@ -7,9 +7,11 @@
 - `BundledDuaCatalogueTest` checks every start and end word against the bundled quran.sqlite, word overlaps, group sizes and the starters.
 - Screens: home (search, chips, starters, groups), card pager (Listen whole ayahs, Recite and check via `ReciteController.practiceAyahs`, Word by word), saved and learned (three clean recitations) in a DataStore.
 
+- Ayahs by topic: `topics.json` from `tools/topics/topics_source.py` via `build_topics.py` (checks every range against quran.sqlite, at most 8 ayahs a card): 32 topics in 7 categories, 118 parts, 243 passages, reviewed by Opus against Sahih International for mid-thought starts. `TopicCatalogue.asCardCatalogue` turns parts into card groups so topics reuse the dua cards; a passage ends at word 9999 (whole ayahs). Quran tab Browse shows Duas and Topics tiles side by side.
+- Cards: the Listen bar has play, the reciter (opens the app's reciter sheet) and repeat; no speed. Word by word offers the `en_transliteration_words` download when it is missing.
+
 ## Open items
 - Listen and recite play and load whole ayahs; a dua that starts mid-ayah needs a phone check.
-- Topics ("Ayahs by topic") is designed (sessions/duas-topics-mocks 9-11) but not built.
 - Bangla group and screen text needs a native reader's check.
 
 ## Gotchas

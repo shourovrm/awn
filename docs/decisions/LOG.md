@@ -211,3 +211,4 @@
 2026-10-24 | Duas live on the Quran tab (Browse row), not Learn; 89 duas in 17 groups, word ranges checked against quran.sqlite | user chose placement B; reviewed by Opus (duas.md)
 2026-10-24 | End part asks one firmness per ayah and one grade per page; partial saves stay on Today | Finish part's one grade lost partial progress (hifz.md)
 2026-10-24 | Revision spacing: Manzil cycle, fixed steps or adaptive; Hifz journal and map page sheet | user asked for customised spacing and a journal (hifz.md)
+2026-10-24 | Ayahs by topic built on the dua cards (32 topics); dua Listen bar drops speed and opens the reciter sheet | user asked for Topics, a Mushaf-like listen bar and the missing pronunciation (duas.md)
