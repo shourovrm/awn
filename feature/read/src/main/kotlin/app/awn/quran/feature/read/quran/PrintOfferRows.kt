@@ -49,7 +49,7 @@ internal fun EditionRow(
     val text = pageTypeText(script)
     OfferRow(
         isSelected = isSelected,
-        selectionModifier =
+        modifier =
             Modifier.selectable(selected = isSelected, role = Role.RadioButton, onClick = onSelect),
         leading = { EditionThumbnail(text.preview) },
         name = stringResource(text.name),
@@ -69,7 +69,7 @@ internal fun StarterRow(
 ) {
     OfferRow(
         isSelected = isTicked,
-        selectionModifier =
+        modifier =
             Modifier.toggleable(
                 value = isTicked,
                 role = Role.Checkbox,
@@ -86,7 +86,7 @@ internal fun StarterRow(
 @Composable
 private fun OfferRow(
     isSelected: Boolean,
-    selectionModifier: Modifier,
+    modifier: Modifier = Modifier,
     leading: (@Composable () -> Unit)?,
     name: String,
     detail: String,
@@ -100,7 +100,7 @@ private fun OfferRow(
                 .heightIn(min = AwnSpacing.giant)
                 .clip(AwnShapes.menu)
                 .then(if (isSelected) Modifier.background(field.softFill) else Modifier)
-                .then(selectionModifier)
+                .then(modifier)
                 .padding(horizontal = AwnSpacing.medium, vertical = AwnSpacing.small),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
         verticalAlignment = Alignment.CenterVertically,

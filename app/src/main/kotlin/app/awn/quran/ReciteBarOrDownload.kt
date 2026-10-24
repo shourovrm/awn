@@ -14,21 +14,6 @@ import app.awn.quran.notice.NoticeCard
 import app.awn.quran.services.AwnServices
 import kotlinx.coroutines.launch
 
-/** What the first recite shows, in order: the notice, the one-time download, then the bar. */
-internal enum class ReciteEntryStep {
-    Notice,
-    Download,
-    Bar,
-}
-
-/** The notice comes first, so nobody downloads or recites before reading it. */
-internal fun reciteEntryStep(noticeAccepted: Boolean, isModelInstalled: Boolean): ReciteEntryStep =
-    when {
-        !noticeAccepted -> ReciteEntryStep.Notice
-        !isModelInstalled -> ReciteEntryStep.Download
-        else -> ReciteEntryStep.Bar
-    }
-
 /**
  * The recite bar once the notice is accepted and the speech files are on the phone. Before that the
  * user sees the notice, then the card that offers the one-time download; when the download finishes

@@ -98,7 +98,9 @@ data class SpeechModelFiles(val model: File, val tokens: File, val referencePhon
  * Files already in [directory] with the exact size count as installed: earlier app versions copied
  * the same verified files out of the APK into this folder.
  */
-@Suppress("TooManyFunctions") // One small function per step of the download.
+@Suppress("TooManyFunctions", "LongParameterList")
+// One small function per step of the download; every parameter after scope is a test seam with a
+// production default.
 class SpeechModelStore(
     private val directory: File,
     private val scope: CoroutineScope,
