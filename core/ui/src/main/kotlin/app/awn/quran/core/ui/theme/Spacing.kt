@@ -47,7 +47,6 @@ object AwnSpacing {
     val packProgressHeight: Dp = 3.dp
     val groupHeadingTop: Dp = 24.dp
     val smallIconSize: Dp = 20.dp
-    val previewHeight: Dp = 240.dp
 
     // First-launch language screen: the app mark, the two large language blocks and their mark.
     val welcomeTopPadding: Dp = 32.dp

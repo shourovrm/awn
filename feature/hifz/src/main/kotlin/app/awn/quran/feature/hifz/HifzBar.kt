@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -48,6 +50,7 @@ import app.awn.quran.core.ui.theme.AwnFieldColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.raisedSurface
 import app.awn.quran.feature.hifz.method.HifzProgress
 import app.awn.quran.feature.hifz.method.ListenWindow
 import app.awn.quran.feature.hifz.method.PageTable
@@ -79,8 +82,9 @@ const val HIFZ_BAR_GRADE_TAG_PREFIX = "hifz-bar-grade-"
 
 private const val DISABLED_ALPHA = 0.38f
 
-// Six buttons and the pill share 360 dp: with 44 dp buttons the pill keeps about 60 dp.
+// Six buttons and the part chip share 360 dp: with 44 dp buttons the chip keeps about 64 dp.
 private val BAR_PADDING = 4.dp
+private val PILL_ELEVATION = 4.dp
 private val repeatChoices = listOf(1, 3, 5, 10, 20)
 
 /** The colours of the bar; in Awn mode the main button is the ochre of the mushaf's rosettes. */
@@ -105,11 +109,12 @@ internal data class HifzBarColors(
 }
 
 /**
- * The bar of the `hifzBar` slot of the Quran screen while a part is practised: show or hide words,
- * play the listen window with repeat, recite to check, and finish with a grade. The window starts
- * as the part and moves by its own length with Previous and Next ayahs. Words and microphone are
- * the recite controller's own; the page, the word fills and following come from the Quran screen's
- * recite mode, which :app turns on together with the practice.
+ * The bar of the `hifzBar` slot of the Quran screen while a part is practised: one row with the
+ * part chip, show or hide words, previous, play, next, repeat and the microphone, and finish with a
+ * grade. While words are hidden a pill above the bar holds reveal word and reveal ayah. The window
+ * starts as the part and moves by its own length with Previous and Next ayahs. Words and microphone
+ * are the recite controller's own; the page, the word fills and following come from the Quran
+ * screen's recite mode, which :app turns on together with the practice.
  *
  * [playRange] plays the ayahs with the chosen reciter; [onExit] leaves recite mode on the screen.
  * [onOpenPageWords] shows the words of the part's first page in the Learn tab; without it the part
@@ -202,123 +207,153 @@ fun HifzBar(
         modifier
             .padding(horizontal = AwnSpacing.dockFloatGap)
             .padding(bottom = AwnSpacing.dockFloatGap)
-            .fillMaxWidth()
-            .clip(AwnShapes.control)
-            .background(colors.background)
-            .padding(BAR_PADDING)
-            .testTag(HIFZ_BAR_TAG),
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (barMode == ReciteBarMode.Preparing) {
-            PreparingRow(colors) {
-                controller.cancelPractice()
-                onExit()
-            }
-            return@Column
+        // Above the bar, so the bar keeps its height whether words are hidden or not.
+        if (hideWords && barMode == ReciteBarMode.Controls && !isFinishing) {
+            RevealPill(recite)
         }
-        if (isFinishing) {
-            val didRecite = phase == RecitationPhase.Stopped || phase == RecitationPhase.Listening
-            val suggested =
-                if (didRecite) {
-                    HifzProgress.suggestedGrade(
-                        PracticeMistakes.mistakenWords(
-                            reviews,
-                            current.firstAyah..current.lastAyah,
-                        ),
-                        current.ayahCount,
-                    )
-                } else {
-                    null
-                }
-            GradeRow(suggested, colors) { grade ->
-                controller.finishPractice(grade)
-                onExit()
-            }
-            return@Column
-        }
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            PartChip(
-                request = current,
-                currentAyah = currentWord?.let { AyahRef(it.surah, it.ayah) },
-                colors = colors,
-                onFinish = { isFinishing = true },
-                onClose = {
+        Column(
+            Modifier.fillMaxWidth()
+                .clip(AwnShapes.control)
+                .background(colors.background)
+                .padding(BAR_PADDING)
+                .testTag(HIFZ_BAR_TAG),
+        ) {
+            if (barMode == ReciteBarMode.Preparing) {
+                PreparingRow(colors) {
                     controller.cancelPractice()
                     onExit()
-                },
-                modifier = Modifier.weight(1f),
-                onWordsOnPage =
-                    onOpenPageWords?.let { openWords ->
-                        { openWords(current.pages.first()) }
-                    },
-            )
-            BarToggle(
-                icon =
-                    if (hideWords) R.drawable.ic_hifz_hide_words else R.drawable.ic_hifz_show_words,
-                description =
-                    stringResource(
-                        if (hideWords) R.string.bar_show_words else R.string.bar_hide_words,
-                    ),
-                checked = hideWords,
-                onCheckedChange = recite::setHideWords,
-                tag = HIFZ_BAR_HIDE_TAG,
-                colors = colors,
-            )
-            BarButton(
-                icon = R.drawable.ic_hifz_previous_ayahs,
-                description = stringResource(R.string.bar_previous_ayahs),
-                onClick = { previousWindow?.let { moveListenWindow(it) } },
-                tag = HIFZ_BAR_PREVIOUS_TAG,
-                colors = colors,
-                enabled = previousWindow != null,
-            )
-            BarButton(
-                icon = if (isAudioActive) R.drawable.ic_hifz_stop else R.drawable.ic_hifz_play,
-                description =
-                    stringResource(if (isAudioActive) R.string.bar_stop else R.string.bar_play),
-                onClick = {
-                    if (isAudioActive) {
-                        recite.audioPlayer.stop()
+                }
+                return@Column
+            }
+            if (isFinishing) {
+                val didRecite =
+                    phase == RecitationPhase.Stopped || phase == RecitationPhase.Listening
+                val suggested =
+                    if (didRecite) {
+                        HifzProgress.suggestedGrade(
+                            PracticeMistakes.mistakenWords(
+                                reviews,
+                                current.firstAyah..current.lastAyah,
+                            ),
+                            current.ayahCount,
+                        )
                     } else {
-                        playWindow(listenWindow)
+                        null
                     }
-                },
-                tag = HIFZ_BAR_PLAY_TAG,
-                colors = colors,
-            )
-            BarButton(
-                icon = R.drawable.ic_hifz_next_ayahs,
-                description = stringResource(R.string.bar_next_ayahs),
-                onClick = { nextWindow?.let { moveListenWindow(it) } },
-                tag = HIFZ_BAR_NEXT_TAG,
-                colors = colors,
-                enabled = nextWindow != null,
-            )
-            RepeatButton(repeatCount, { repeatCount = it }, colors)
-            MicrophoneButton(
-                listening = listening,
-                enabled = (canListen && !isAudioActive) || listening,
-                colors = colors,
-                onClick = {
-                    when {
-                        listening -> recite.stopMicrophone()
-                        permission.access == MicrophoneAccess.Granted -> session.start()
-                        permission.access == MicrophoneAccess.CanAsk -> permission.requestAccess()
-                        else -> permission.openAppSettings()
-                    }
-                },
-            )
+                GradeRow(suggested, colors) { grade ->
+                    controller.finishPractice(grade)
+                    onExit()
+                }
+                return@Column
+            }
+            // Space between: the chip takes what the six buttons leave and the rest is shared
+            // evenly.
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                PartChip(
+                    request = current,
+                    currentAyah = currentWord?.let { AyahRef(it.surah, it.ayah) },
+                    colors = colors,
+                    onFinish = { isFinishing = true },
+                    onClose = {
+                        controller.cancelPractice()
+                        onExit()
+                    },
+                    modifier = Modifier.weight(1f, fill = false),
+                    onWordsOnPage =
+                        onOpenPageWords?.let { openWords ->
+                            { openWords(current.pages.first()) }
+                        },
+                )
+                BarToggle(
+                    icon =
+                        if (hideWords) R.drawable.ic_hifz_hide_words
+                        else R.drawable.ic_hifz_show_words,
+                    description =
+                        stringResource(
+                            if (hideWords) R.string.bar_show_words else R.string.bar_hide_words,
+                        ),
+                    checked = hideWords,
+                    onCheckedChange = recite::setHideWords,
+                    tag = HIFZ_BAR_HIDE_TAG,
+                    colors = colors,
+                )
+                BarButton(
+                    icon = R.drawable.ic_hifz_previous_ayahs,
+                    description = stringResource(R.string.bar_previous_ayahs),
+                    onClick = { previousWindow?.let { moveListenWindow(it) } },
+                    tag = HIFZ_BAR_PREVIOUS_TAG,
+                    colors = colors,
+                    enabled = previousWindow != null,
+                )
+                BarButton(
+                    icon = if (isAudioActive) R.drawable.ic_hifz_stop else R.drawable.ic_hifz_play,
+                    description =
+                        stringResource(if (isAudioActive) R.string.bar_stop else R.string.bar_play),
+                    onClick = {
+                        if (isAudioActive) {
+                            recite.audioPlayer.stop()
+                        } else {
+                            playWindow(listenWindow)
+                        }
+                    },
+                    tag = HIFZ_BAR_PLAY_TAG,
+                    colors = colors,
+                )
+                BarButton(
+                    icon = R.drawable.ic_hifz_next_ayahs,
+                    description = stringResource(R.string.bar_next_ayahs),
+                    onClick = { nextWindow?.let { moveListenWindow(it) } },
+                    tag = HIFZ_BAR_NEXT_TAG,
+                    colors = colors,
+                    enabled = nextWindow != null,
+                )
+                RepeatButton(repeatCount, { repeatCount = it }, colors)
+                MicrophoneButton(
+                    listening = listening,
+                    enabled = (canListen && !isAudioActive) || listening,
+                    colors = colors,
+                    onClick = {
+                        when {
+                            listening -> recite.stopMicrophone()
+                            permission.access == MicrophoneAccess.Granted -> session.start()
+                            permission.access == MicrophoneAccess.CanAsk ->
+                                permission.requestAccess()
+                            else -> permission.openAppSettings()
+                        }
+                    },
+                )
+            }
         }
-        if (hideWords) RevealRow(recite, colors)
     }
 }
 
-// A second row, because the first has no room for two more 44 dp buttons on a 360 dp screen; it
-// shows only while words are hidden, when the buttons mean something.
+/**
+ * Reveal word and reveal ayah in a small pill centred above the bar while words are hidden. A
+ * second row inside the bar made it taller and left the two buttons alone in one corner.
+ */
 @Composable
-private fun RevealRow(recite: ReciteController, colors: HifzBarColors) {
+private fun RevealPill(recite: ReciteController) {
+    val field = Awn.field
+    // The pill is a surface of its own, so its buttons take the page's ink, not the bar's.
+    val pillColors =
+        HifzBarColors(
+            background = field.raisedSurface,
+            content = field.content,
+            primaryFill = field.buttonFill,
+            onPrimary = field.onButton,
+        )
     Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End,
+        Modifier.padding(bottom = AwnSpacing.small)
+            .shadow(PILL_ELEVATION, CircleShape)
+            .background(pillColors.background, CircleShape)
+            .padding(horizontal = AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ReciteRevealButtons(
@@ -326,7 +361,7 @@ private fun RevealRow(recite: ReciteController, colors: HifzBarColors) {
             wordTag = HIFZ_BAR_REVEAL_WORD_TAG,
             ayahTag = HIFZ_BAR_REVEAL_AYAH_TAG,
         ) { icon, description, onClick, tag ->
-            BarButton(icon, description, onClick, tag, colors)
+            BarButton(icon, description, onClick, tag, pillColors)
         }
     }
 }

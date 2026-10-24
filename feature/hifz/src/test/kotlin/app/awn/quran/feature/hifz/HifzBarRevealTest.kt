@@ -1,9 +1,14 @@
 package app.awn.quran.feature.hifz
 
 import android.content.Context
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -44,6 +49,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -62,7 +68,7 @@ private const val WORDS_PER_AYAH = 2
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w360dp-h800dp")
 class HifzBarRevealTest {
 
     @get:Rule val composeRule = createComposeRule()
@@ -226,4 +232,61 @@ class HifzBarRevealTest {
         composeRule.onNodeWithTag(HIFZ_BAR_REVEAL_WORD_TAG).assertDoesNotExist()
         composeRule.onNodeWithTag(HIFZ_BAR_REVEAL_AYAH_TAG).assertDoesNotExist()
     }
+
+    private fun boundsOf(tag: String) = composeRule.onNodeWithTag(tag).getBoundsInRoot()
+
+    @Test
+    fun theBarKeepsItsHeightWhenTheWordsAreShownAgain() {
+        startPracticeWithWordsHidden()
+        val heightWithWordsHidden = boundsOf(HIFZ_BAR_TAG).height
+
+        recite.setHideWords(false)
+        composeRule.waitForIdle()
+
+        assertEquals(heightWithWordsHidden, boundsOf(HIFZ_BAR_TAG).height)
+    }
+
+    @Test
+    fun theSixButtonsShareOneRowOfTouchTargetsOnA360DpScreen() {
+        startPracticeWithWordsHidden()
+        val buttonTags =
+            listOf(
+                HIFZ_BAR_HIDE_TAG,
+                HIFZ_BAR_PREVIOUS_TAG,
+                HIFZ_BAR_PLAY_TAG,
+                HIFZ_BAR_NEXT_TAG,
+                HIFZ_BAR_REPEAT_TAG,
+                HIFZ_BAR_MIC_TAG,
+            )
+
+        val buttons = buttonTags.map { boundsOf(it) }
+
+        buttons.forEach { bounds ->
+            assertTrue("button is ${bounds.width} wide", bounds.width >= MINIMUM_TARGET)
+            assertTrue("button is ${bounds.height} high", bounds.height >= MINIMUM_TARGET)
+            assertEquals(buttons.first().top, bounds.top)
+        }
+        val bar = boundsOf(HIFZ_BAR_TAG)
+        buttons.forEach { bounds -> assertTrue(bounds.right <= bar.right) }
+    }
+
+    @Test
+    fun theRevealPillSitsCentredAboveTheBar() {
+        startPracticeWithWordsHidden()
+
+        val revealWord = boundsOf(HIFZ_BAR_REVEAL_WORD_TAG)
+        val revealAyah = boundsOf(HIFZ_BAR_REVEAL_AYAH_TAG)
+        val bar = boundsOf(HIFZ_BAR_TAG)
+
+        assertTrue("reveal buttons end above the bar", revealAyah.bottom <= bar.top)
+        assertEquals(revealWord.top, revealAyah.top)
+        val pillCentre = (revealWord.left + revealAyah.right) / 2
+        val barCentre = (bar.left + bar.right) / 2
+        assertTrue(
+            "pill centre $pillCentre against bar centre $barCentre",
+            (pillCentre - barCentre).value in -1f..1f,
+        )
+    }
 }
+
+private val MINIMUM_TARGET: Dp = 44.dp

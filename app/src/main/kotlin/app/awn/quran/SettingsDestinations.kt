@@ -24,7 +24,9 @@ import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.feature.learn.reminder.ReviseReminderSettingsPage
 import app.awn.quran.feature.learn.settings.LessonLanguageSettingsRow
 import app.awn.quran.feature.listen.AudioSettingsPage
+import app.awn.quran.feature.read.R as ReadR
 import app.awn.quran.feature.read.page.MushafSettingsPage
+import app.awn.quran.feature.read.page.PrintsPage
 import app.awn.quran.feature.read.settings.PackListKind
 import app.awn.quran.feature.read.settings.PackListPage
 import app.awn.quran.feature.read.settings.ReadingSettingsPage
@@ -52,6 +54,7 @@ import kotlinx.coroutines.launch
 private const val ROW_ARGUMENT = "row"
 private const val PACK_LIST_ARGUMENT = "kind"
 private const val PACK_LIST_ROUTE = "settings/list"
+private const val PRINTS_ROUTE = "settings/prints"
 
 private val rowArguments =
     listOf(
@@ -226,7 +229,19 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
             onBack = goBack,
             targetRow = entry.targetRow(),
         ) {
-            MushafSettingsPage(services.readDependencies, onOpenPackList = openList)
+            MushafSettingsPage(
+                services.readDependencies,
+                onOpenPrints = { navController.navigate(PRINTS_ROUTE) },
+            )
+        }
+    }
+    composable(PRINTS_ROUTE) {
+        SettingsPage(
+            title = stringResource(ReadR.string.mushaf_print),
+            onBack = goBack,
+            scrolls = false,
+        ) {
+            PrintsPage(services.readDependencies)
         }
     }
     composable(

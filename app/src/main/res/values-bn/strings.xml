@@ -135,8 +135,8 @@
   <string name="settings_search_empty">কোনো সেটিং পাওয়া যায়নি</string>
   <string name="downloads_group_on_phone">এই ফোনে</string>
   <string name="downloads_on_phone_count">%2$d-এর মধ্যে %1$d এই ফোনে আছে</string>
-  <string name="summary_page_details_shown">পৃষ্ঠার তথ্য দেখানো হচ্ছে</string>
-  <string name="summary_page_details_hidden">পৃষ্ঠার তথ্য লুকানো</string>
+  <string name="summary_page_details_shown">পৃষ্ঠা নম্বর দেখানো হচ্ছে</string>
+  <string name="summary_page_details_hidden">পৃষ্ঠা নম্বর লুকানো</string>
   <plurals name="summary_translations">
     <item quantity="one">%d অনুবাদ</item>
     <item quantity="other">%d অনুবাদ</item>

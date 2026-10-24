@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.search
 
+import java.text.BreakIterator
 import java.text.Normalizer
 
 /** Text reduced for matching, with the position of every kept character in the original text. */
@@ -8,7 +9,9 @@ class NormalisedText(val text: String, private val originalIndexOfKept: IntArray
     /**
      * Returns the range of the original text that holds the normalised characters [start] until
      * [endExclusive]. Marks that follow the last character stay inside the range, so a highlighted
-     * word keeps its vowel signs.
+     * word keeps its vowel signs. The range starts and ends on grapheme cluster boundaries: a
+     * normalised character can map to a mark that the original writes on a tatweel (the dagger alef
+     * of ٱلرَّحْمَـٰنِ), and a highlight that began at that mark would draw it on a dotted circle.
      */
     fun originalRange(original: String, start: Int, endExclusive: Int): IntRange {
         val first = originalIndexOfKept[start]
@@ -16,7 +19,12 @@ class NormalisedText(val text: String, private val originalIndexOfKept: IntArray
         while (last + 1 < original.length && SearchNormaliser.isIgnorableMark(original[last + 1])) {
             last += 1
         }
-        return first..last
+        val clusters = BreakIterator.getCharacterInstance()
+        clusters.setText(original)
+        val clusterStart = if (clusters.isBoundary(first)) first else clusters.preceding(first)
+        val clusterEnd =
+            if (clusters.isBoundary(last + 1)) last + 1 else clusters.following(last + 1)
+        return clusterStart until clusterEnd
     }
 }
 

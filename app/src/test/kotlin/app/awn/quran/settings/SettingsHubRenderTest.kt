@@ -46,7 +46,7 @@ class SettingsHubRenderTest(private val mode: ColourMode, private val fontScale:
 
     private val summaries =
         mapOf(
-            SettingsSection.Mushaf to "Tajweed colours · page details shown",
+            SettingsSection.Mushaf to "Tajweed colours · page numbers shown",
             SettingsSection.Audio to "Al-Husary · Wi-Fi only",
             SettingsSection.Downloads to "788 kB used",
         )

@@ -138,6 +138,7 @@ fun awnFieldColors(field: AwnField, mode: ColourMode = ColourMode.Awn): AwnField
 
 private const val MUTED_ALPHA = 0.72f
 private const val SOFT_FILL_ALPHA = 0.08f
+private const val SEARCH_MATCH_ALPHA = 0.55f
 private const val RAISED_LIGHT_MIX = 0.55f
 private const val RAISED_DARK_MIX = 0.09f
 
@@ -148,6 +149,10 @@ val AwnFieldColors.mutedContent: Color
 /** A quiet fill for fields that sit on the page, such as the search field. */
 val AwnFieldColors.softFill: Color
     get() = content.copy(alpha = SOFT_FILL_ALPHA)
+
+/** The block behind the matched text of a search result: ochre, whatever the field. */
+val AwnFieldColors.searchMatchFill: Color
+    get() = AwnColors.ochre.copy(alpha = SEARCH_MATCH_ALPHA)
 
 /** The surface of a menu: the page colour lifted toward white (light modes) or the ink (dark). */
 val AwnFieldColors.raisedSurface: Color

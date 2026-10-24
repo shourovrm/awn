@@ -14,7 +14,7 @@
   <string name="mushaf_year_v4">তাজবিদ রঙসহ ১৪২১ মুদ্রণ</string>
   <string name="mushaf_type_indopak">ইন্দোপাক</string>
   <string name="mushaf_year_indopak">১৫ লাইনের ছাপা</string>
-  <string name="mushaf_show_page_info">পৃষ্ঠার তথ্য</string>
+  <string name="mushaf_show_page_info">পৃষ্ঠায় সূরা, পারা ও পৃষ্ঠা নম্বর দেখান</string>
   <string name="mushaf_preview_description">%1$s, %2$d নম্বর পৃষ্ঠার প্রিভিউ</string>
   <string name="ayah_spoken_with_text">%1$s। %2$s</string>
   <string name="mushaf_print">ছাপা</string>
@@ -35,4 +35,10 @@
   <string name="print_offer_keep_reading">পড়তে থাকুন</string>
   <string name="print_offer_cancel">বাতিল</string>
   <string name="print_offer_failed">ছাপাটি ডাউনলোড হয়নি। সেটিংসে মুসহাফ, ছাপা থেকে আবার চেষ্টা করতে পারবেন।</string>
+  <string name="print_download_sized">ডাউনলোড · %1$s</string>
+  <string name="print_delete">মুছুন</string>
+  <string name="print_delete_title">%1$s মুছবেন?</string>
+  <string name="print_use">ব্যবহার করুন</string>
+  <string name="print_in_use">ব্যবহারে আছে</string>
+  <string name="print_position">%2$dটির মধ্যে %1$d</string>
 </resources>

@@ -34,8 +34,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.AwnButton
@@ -153,18 +155,13 @@ private fun MarkedWord(tile: WordTile, markColor: Color, content: Color) {
     val styled = remember(words, tile.letters, markColor) { colourLetters(words, tile, markColor) }
     val largestSize = AwnTypography.quran.fontSize * WORD_SCALE
     // Two words on one line are too wide for a tile at the full size; they shrink rather than wrap,
-    // because a wrapped pair reads as two separate examples.
+    // because a wrapped pair reads as two separate examples. softWrap is off because a word that
+    // does not fit would otherwise break between letters and maxLines would hide the rest.
     BasicText(
         text = styled,
-        style =
-            AwnTypography.title.copy(
-                fontFamily = environment?.arabic?.fontFamily ?: AwnTypography.title.fontFamily,
-                fontSize = largestSize,
-                color = content,
-                textDirection = TextDirection.Rtl,
-                textAlign = TextAlign.Center,
-            ),
+        style = wordTileTextStyle(environment?.arabic?.fontFamily, largestSize, content),
         maxLines = 1,
+        softWrap = false,
         autoSize =
             TextAutoSize.StepBased(
                 minFontSize = AwnTypography.lead.fontSize,
@@ -172,6 +169,21 @@ private fun MarkedWord(tile: WordTile, markColor: Color, content: Color) {
             ),
     )
 }
+
+/**
+ * The style of a word in a tile: the Quran style, whose 2.2 line height leaves room for the marks
+ * above and below the letters and which has no letter spacing. The interface title style used
+ * before has a 1.05 line height and a negative letter spacing, which cut the marks and shortened
+ * the measured width of the word below its drawn width.
+ */
+internal fun wordTileTextStyle(fontFamily: FontFamily?, fontSize: TextUnit, color: Color) =
+    AwnTypography.quran.copy(
+        fontFamily = fontFamily ?: AwnTypography.quran.fontFamily,
+        fontSize = fontSize,
+        color = color,
+        textDirection = TextDirection.Rtl,
+        textAlign = TextAlign.Center,
+    )
 
 private fun colourLetters(word: String, tile: WordTile, markColor: Color): AnnotatedString {
     val marked = ArabicLetters.rangesAt(word, tile.letters)

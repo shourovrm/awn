@@ -156,8 +156,8 @@
   <string name="settings_search_empty">No settings found</string>
   <string name="downloads_group_on_phone">On this phone</string>
   <string name="downloads_on_phone_count">%1$d of %2$d on this phone</string>
-  <string name="summary_page_details_shown">page details shown</string>
-  <string name="summary_page_details_hidden">page details hidden</string>
+  <string name="summary_page_details_shown">page numbers shown</string>
+  <string name="summary_page_details_hidden">page numbers hidden</string>
   <plurals name="summary_translations">
     <item quantity="one">%d translation</item>
     <item quantity="other">%d translations</item>

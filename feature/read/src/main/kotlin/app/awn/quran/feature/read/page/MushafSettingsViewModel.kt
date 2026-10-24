@@ -12,8 +12,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Drives the Mushaf settings page: which page type is in use, installing and removing the font of
- * each page type, and the "Show page info" switch. A page type that the user installs from here
- * becomes the one in use as soon as its font is on the phone.
+ * each page type, and the "Show surah, juz and page number" switch. A page type that the user
+ * installs from here becomes the one in use as soon as its font is on the phone.
  */
 class MushafSettingsViewModel(private val dependencies: ReadDependencies) : ViewModel() {
 
@@ -49,6 +49,9 @@ class MushafSettingsViewModel(private val dependencies: ReadDependencies) : View
         scriptToUseWhenInstalled = script
         fontPacks.install(script)
     }
+
+    /** Stops the running or queued download of the font of [script]. */
+    fun cancel(script: ScriptId) = fontPacks.cancel(script)
 
     /** Deletes the font of [script]; the page type in use is never removed. */
     fun remove(script: ScriptId) {

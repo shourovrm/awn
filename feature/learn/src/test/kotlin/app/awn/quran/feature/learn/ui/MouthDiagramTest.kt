@@ -1,10 +1,13 @@
 package app.awn.quran.feature.learn.ui
 
+import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
 import app.awn.quran.core.ui.theme.AwnTheme
+import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.CourseContentReader
 import app.awn.quran.feature.learn.course.LessonBlock
 import app.awn.quran.feature.learn.course.MouthArea
@@ -87,5 +90,16 @@ class MouthDiagramTest {
         composeRule.setContent { AwnTheme { LessonBlocks(blocks) } }
 
         composeRule.onNodeWithText("Tongue").assertIsDisplayed()
+    }
+
+    @Test
+    fun theLabelsFollowTheLessonLanguageNotTheAppLanguage() {
+        val appContext = ApplicationProvider.getApplicationContext<Context>()
+
+        val inBangla = contextInLanguage(appContext, "bn")
+
+        assertEquals("Throat", appContext.getString(R.string.mouth_area_throat))
+        assertEquals("কণ্ঠ", inBangla.getString(R.string.mouth_area_throat))
+        assertEquals("ঠোঁট", inBangla.getString(R.string.mouth_area_lips))
     }
 }

@@ -8,10 +8,16 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 /**
- * Six sizes only: 12, 14, 16, 22, 32 and 56 sp. Roundo is not bundled yet, so the platform
+ * Six sizes for the interface: 12, 14, 16, 22, 32 and 56 sp. The search results add a 15 sp
+ * reference line, an 18 sp translation line and a 24 sp Quran line, because a result is read at a
+ * glance and the interface sizes were too small for it. Roundo is not bundled yet, so the platform
  * sans-serif stands in until the font file is added.
  */
 object AwnTypography {
+    // No style sets a letter spacing: Android applies it to Bangla and Arabic text as well, where
+    // it
+    // takes joined letters apart and makes the measured width too small, so a short heading such as
+    // "কণ্ঠ" wrapped letter by letter in a column that had room for it.
     private val interfaceFont = FontFamily.SansSerif
 
     /** Word-by-word meanings under each Quran word. */
@@ -56,7 +62,6 @@ object AwnTypography {
             fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp,
             lineHeight = 1.05.em,
-            letterSpacing = (-0.025).em,
         )
 
     val poster =
@@ -65,7 +70,6 @@ object AwnTypography {
             fontWeight = FontWeight.SemiBold,
             fontSize = 56.sp,
             lineHeight = 1.05.em,
-            letterSpacing = (-0.025).em,
         )
 
     /**
@@ -93,6 +97,34 @@ object AwnTypography {
                 fontSize = 22.sp,
                 lineHeight = 2.0.em,
             )
+
+    /** The Arabic text of a search result: 24 sp with the line height that stacked marks need. */
+    val searchResultArabic: TextStyle
+        get() =
+            TextStyle(
+                fontFamily = HafsFont.family,
+                fontWeight = FontWeight.Normal,
+                fontSize = 24.sp,
+                lineHeight = 2.2.em,
+            )
+
+    /** The translation text of a search result. */
+    val searchResultTranslation =
+        TextStyle(
+            fontFamily = interfaceFont,
+            fontWeight = FontWeight.Normal,
+            fontSize = 18.sp,
+            lineHeight = 1.5.em,
+        )
+
+    /** The line under a search result that names the surah, the ayah and the page. */
+    val searchResultReference =
+        TextStyle(
+            fontFamily = interfaceFont,
+            fontWeight = FontWeight.Medium,
+            fontSize = 15.sp,
+            lineHeight = 1.5.em,
+        )
 
     fun toMaterialTypography(): Typography =
         Typography(

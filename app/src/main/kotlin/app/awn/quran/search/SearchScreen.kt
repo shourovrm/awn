@@ -23,19 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.text.style.TextOverflow
 import app.awn.quran.R
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.search.SearchSource
@@ -46,8 +40,14 @@ import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.searchMatchFill
 
 private const val MAX_RESULT_LINES = 3
+
+// Arabic lines are 2.2 times the font size tall to leave room for the marks, so a block of 0.7 of
+// the line is about the height of the letters with their marks; Latin lines are 1.5 times.
+private const val ARABIC_BLOCK_HEIGHT = 0.7f
+private const val LATIN_BLOCK_HEIGHT = 0.85f
 
 /** One search field over the Arabic and the installed translations, with the matches marked. */
 @Composable
@@ -175,7 +175,7 @@ private fun SearchBar(
             )
         } else {
             AwnIconButton(
-                icon = R.drawable.ic_app_mic,
+                icon = R.drawable.ic_app_recite_person,
                 contentDescription = stringResource(R.string.search_voice_start),
                 onClick = onVoice,
                 tint = field.onBar,
@@ -197,20 +197,19 @@ internal fun ResultRow(row: SearchRow, onClick: () -> Unit) {
                 .clickable(role = Role.Button, onClick = onClick)
                 .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
     ) {
-        Text(
-            text = markMatches(row, field.selectedAyahFill),
+        MatchHighlightedText(
+            text = row.hit.text,
+            matches = row.hit.matches,
+            blockColor = field.searchMatchFill,
+            blockHeightFraction = if (isArabic) ARABIC_BLOCK_HEIGHT else LATIN_BLOCK_HEIGHT,
             style =
                 if (isArabic) {
-                    AwnTypography.body.copy(
-                        fontFamily = AwnTypography.quran.fontFamily,
-                        textDirection = TextDirection.Rtl,
-                    )
+                    AwnTypography.searchResultArabic.copy(textDirection = TextDirection.Rtl)
                 } else {
-                    AwnTypography.body
+                    AwnTypography.searchResultTranslation
                 },
             color = field.content,
             maxLines = MAX_RESULT_LINES,
-            overflow = TextOverflow.Ellipsis,
         )
         Text(
             text =
@@ -221,19 +220,8 @@ internal fun ResultRow(row: SearchRow, onClick: () -> Unit) {
                     row.hit.ayah.ayah,
                     row.page,
                 ),
-            style = AwnTypography.small,
+            style = AwnTypography.searchResultReference,
             color = field.buttonFill,
-        )
-    }
-}
-
-private fun markMatches(row: SearchRow, markColor: Color): AnnotatedString = buildAnnotatedString {
-    append(row.hit.text)
-    row.hit.matches.forEach { range ->
-        addStyle(
-            SpanStyle(background = markColor, fontWeight = FontWeight.SemiBold),
-            range.first,
-            range.last + 1,
         )
     }
 }

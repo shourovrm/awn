@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +46,7 @@ import app.awn.quran.feature.learn.ui.MouthShapes.Anchor
  */
 @Composable
 internal fun MouthDiagram(highlighted: Set<MouthArea>, modifier: Modifier = Modifier) {
-    val description = stringResource(R.string.mouth_diagram_description)
+    val description = lessonString(R.string.mouth_diagram_description)
     val field = Awn.field
     val colours =
         FigureColours(
@@ -89,7 +88,7 @@ private fun BoxWithConstraintsScope.AreaLabelText(label: AreaLabel, isHighlighte
         contentAlignment = if (label.isOnLeft) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
         Text(
-            text = stringResource(label.text),
+            text = lessonString(label.text),
             style = AwnTypography.small,
             fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal,
             color = if (isHighlighted) field.buttonFill else field.mutedContent,
