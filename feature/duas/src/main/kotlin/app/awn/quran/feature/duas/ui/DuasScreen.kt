@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -20,6 +23,7 @@ import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.duas.DuasDependencies
 import app.awn.quran.feature.duas.R
+import app.awn.quran.feature.duas.state.DuasState
 import app.awn.quran.feature.duas.state.DuasViewModel
 import app.awn.quran.feature.duas.state.inLanguage
 import kotlinx.coroutines.launch
@@ -27,7 +31,7 @@ import kotlinx.coroutines.launch
 /**
  * The Duas collection: the home with search, filters and groups, and the cards of the list a tap
  * opened. Back from the cards returns to the home. [onOpenQuran] opens the Quran screen at the page
- * and ayah of a dua.
+ * and ayah of a dua. [initialGroupKey] opens that group's cards once, as Ayahs by topic does.
  */
 @Composable
 fun DuasScreen(
@@ -35,6 +39,7 @@ fun DuasScreen(
     onBack: () -> Unit,
     onOpenQuran: (page: Int, ayah: AyahRef) -> Unit,
     modifier: Modifier = Modifier,
+    initialGroupKey: String? = null,
 ) {
     val viewModel: DuasViewModel =
         viewModel(factory = viewModelFactory { initializer { DuasViewModel(dependencies) } })
@@ -44,6 +49,7 @@ fun DuasScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     BackHandler(enabled = state.deck != null) { viewModel.closeDeck() }
+    OpenGroupOnce(viewModel, state, initialGroupKey)
 
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
         Box(modifier.fillMaxSize()) {
@@ -91,6 +97,18 @@ fun DuasScreen(
                         ),
                 )
             }
+        }
+    }
+}
+
+/** Opens [groupKey]'s cards the first time the collection is read, and never again. */
+@Composable
+private fun OpenGroupOnce(viewModel: DuasViewModel, state: DuasState, groupKey: String?) {
+    var isOpened by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state.catalogue, groupKey) {
+        if (groupKey != null && state.catalogue != null && !isOpened) {
+            viewModel.openGroup(groupKey)
+            isOpened = true
         }
     }
 }

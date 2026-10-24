@@ -12,7 +12,6 @@
   <string name="continue_detail">%1$s · page %2$s · Juz %3$s</string>
   <string name="today_title">Today</string>
   <string name="browse_title">Browse</string>
-  <string name="duas_entry_title">Duas from the Quran</string>
   <plurals name="duas_entry_count">
     <item quantity="one">%d dua</item>
     <item quantity="other">%d duas</item>
@@ -191,4 +190,10 @@
   <string name="credit_mouth_drawing_detail">The head in the lesson Where letters are made is traced from this drawing. Public domain (CC0).</string>
   <string name="credit_surah_names_name">Bangla Wikipedia</string>
   <string name="credit_surah_names_detail">Bangla surah names. CC BY-SA 4.0.</string>
+  <string name="browse_duas">Duas</string>
+  <string name="browse_topics">Topics</string>
+  <plurals name="topics_entry_count">
+    <item quantity="one">%d topic</item>
+    <item quantity="other">%d topics</item>
+  </plurals>
 </resources>

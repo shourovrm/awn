@@ -59,6 +59,7 @@ class QuranTabActions(
     val onSettings: () -> Unit,
     /** Opens the Duas collection. */
     val onDuas: () -> Unit = {},
+    val onTopics: () -> Unit = {},
     /** Opens the Quran screen at [page]. */
     val onOpen: (page: Int, ayah: AyahRef?) -> Unit,
 )
@@ -81,6 +82,7 @@ fun QuranTabScreen(
     actions: QuranTabActions,
     modifier: Modifier = Modifier,
     duaCount: Int? = null,
+    topicCount: Int? = null,
 ) {
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
         Column(modifier.fillMaxSize()) {
@@ -88,7 +90,14 @@ fun QuranTabScreen(
             val content = state.content
             val continueReading = state.continueReading
             if (content != null && continueReading != null) {
-                QuranTabBody(state, content, continueReading, todayItems, duaCount, actions)
+                QuranTabBody(
+                    state,
+                    content,
+                    continueReading,
+                    todayItems,
+                    BrowseCounts(duaCount, topicCount),
+                    actions,
+                )
             }
         }
     }
@@ -134,7 +143,7 @@ private fun QuranTabBody(
     content: IndexContent,
     continueReading: ContinueReading,
     todayItems: List<TodayItem>,
-    duaCount: Int?,
+    browse: BrowseCounts,
     actions: QuranTabActions,
 ) {
     var modeOrdinal by rememberSaveable { mutableIntStateOf(IndexMode.Surahs.ordinal) }
@@ -154,12 +163,12 @@ private fun QuranTabBody(
     val itemsBeforeRows =
         1 +
             (if (todayItems.isNotEmpty()) 1 else 0) +
-            (if (duaCount != null) 1 else 0) +
+            (if (browse.isShown) 1 else 0) +
             (if (snippet != null) 1 else 0) +
             1
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-            topItems(continueReading, todayItems, duaCount, snippet, actions)
+            topItems(continueReading, todayItems, browse, snippet, actions)
             item(key = "list-header") {
                 ListControls(
                     mode = mode,
@@ -195,7 +204,7 @@ private fun QuranTabBody(
 private fun LazyListScope.topItems(
     continueReading: ContinueReading,
     todayItems: List<TodayItem>,
-    duaCount: Int?,
+    browse: BrowseCounts,
     snippet: DailySnippetCard?,
     actions: QuranTabActions,
 ) {
@@ -216,11 +225,13 @@ private fun LazyListScope.topItems(
             TodaySection(todayItems, Modifier.padding(horizontal = AwnSpacing.screenMargin))
         }
     }
-    if (duaCount != null) {
-        item(key = "duas") {
-            DuasSection(
-                duaCount = duaCount,
-                onOpen = actions.onDuas,
+    if (browse.isShown) {
+        item(key = "browse") {
+            BrowseSection(
+                duaCount = browse.duas,
+                topicCount = browse.topics,
+                onDuas = actions.onDuas,
+                onTopics = actions.onTopics,
                 modifier = Modifier.padding(horizontal = AwnSpacing.screenMargin),
             )
         }
@@ -340,4 +351,10 @@ private fun ListControls(
             isCompact = true,
         )
     }
+}
+
+/** How many duas and topics the Browse tiles show; null until that collection has been read. */
+internal data class BrowseCounts(val duas: Int?, val topics: Int?) {
+    val isShown: Boolean
+        get() = duas != null || topics != null
 }

@@ -10,7 +10,6 @@
   <string name="continue_detail">%1$s · পৃষ্ঠা %2$s · পারা %3$s</string>
   <string name="today_title">আজ</string>
   <string name="browse_title">ঘুরে দেখুন</string>
-  <string name="duas_entry_title">কুরআনের দুআ</string>
   <plurals name="duas_entry_count">
     <item quantity="one">%dটি দুআ</item>
     <item quantity="other">%dটি দুআ</item>
@@ -170,4 +169,10 @@
   <string name="credit_mouth_drawing_detail">“অক্ষরের উচ্চারণস্থান” পাঠের মাথার ছবিটি এই ছবি থেকে আঁকা। পাবলিক ডোমেইন (CC0)।</string>
   <string name="credit_surah_names_name">বাংলা উইকিপিডিয়া</string>
   <string name="credit_surah_names_detail">সূরার বাংলা নাম। CC BY-SA 4.0।</string>
+  <string name="browse_duas">দুআ</string>
+  <string name="browse_topics">বিষয়</string>
+  <plurals name="topics_entry_count">
+    <item quantity="one">%d টি বিষয়</item>
+    <item quantity="other">%d টি বিষয়</item>
+  </plurals>
 </resources>

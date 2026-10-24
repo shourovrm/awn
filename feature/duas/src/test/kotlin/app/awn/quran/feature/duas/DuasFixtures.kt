@@ -14,11 +14,16 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.core.data.fakes.FakeReciterRepository
 import app.awn.quran.core.data.fakes.FakeTranslationRepository
+import app.awn.quran.feature.duas.content.AyahPassage
 import app.awn.quran.feature.duas.content.Dua
 import app.awn.quran.feature.duas.content.DuaCatalogue
 import app.awn.quran.feature.duas.content.DuaGroup
 import app.awn.quran.feature.duas.content.DuaOpening
 import app.awn.quran.feature.duas.content.LocalName
+import app.awn.quran.feature.duas.content.Topic
+import app.awn.quran.feature.duas.content.TopicCatalogue
+import app.awn.quran.feature.duas.content.TopicCategory
+import app.awn.quran.feature.duas.content.TopicPart
 import app.awn.quran.feature.duas.data.DuaProgress
 import app.awn.quran.feature.duas.data.DuaProgressStore
 import app.awn.quran.feature.duas.recite.DuaRecitation
@@ -41,6 +46,34 @@ import kotlinx.coroutines.flow.update
  * - `d3` is the whole of 14:41.
  */
 object DuasFixtures {
+    /** One category, one topic with two parts over ayahs the fake Quran text holds. */
+    val topics =
+        TopicCatalogue(
+            categories = listOf(TopicCategory("family", LocalName("Family", "পরিবার"))),
+            topics =
+                listOf(
+                    Topic(
+                        key = "parents",
+                        categoryKey = "family",
+                        name = LocalName("Parents", "মা-বাবা"),
+                        parts =
+                            listOf(
+                                TopicPart(
+                                    "kindness",
+                                    LocalName("Be good to your parents", "সদাচরণ"),
+                                    listOf(AyahPassage(14, 41, 41)),
+                                ),
+                                TopicPart(
+                                    "world",
+                                    LocalName("Good in both worlds", "দুই জগতের কল্যাণ"),
+                                    listOf(AyahPassage(2, 201, 201)),
+                                ),
+                            ),
+                        duasGroupKey = "parents",
+                    ),
+                ),
+        )
+
     val englishTranslation = TranslationId("en_saheeh")
 
     val catalogue =
@@ -270,6 +303,9 @@ class DuasTestEnvironment(
             content()
         }
 
+    val pronunciation = MutableStateFlow(PronunciationState.Installed)
+    var pronunciationRequests = 0
+
     fun dependencies(): DuasDependencies =
         DuasDependencies(
             loadCatalogue = { DuasFixtures.catalogue },
@@ -285,5 +321,12 @@ class DuasTestEnvironment(
             playWord = { playedWords += it },
             myWords = myWords,
             reciteGate = { onCancel, content -> reciteGate(onCancel, content) },
+            reciterPicker = { androidx.compose.material3.Text(RECITER_PICKER_TEXT) },
+            pronunciation = pronunciation,
+            requestPronunciation = { pronunciationRequests++ },
+            loadTopics = { DuasFixtures.topics },
         )
 }
+
+/** What the test reciter picker shows, standing in for the app's reciter sheet. */
+const val RECITER_PICKER_TEXT = "Reciter sheet"

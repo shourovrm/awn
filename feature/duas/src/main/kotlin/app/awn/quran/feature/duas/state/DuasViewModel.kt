@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.duas.DuasDependencies
+import app.awn.quran.feature.duas.PronunciationState
 import app.awn.quran.feature.duas.card.CardRequest
 import app.awn.quran.feature.duas.card.DuaCardLoader
 import app.awn.quran.feature.duas.content.Dua
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -51,6 +54,16 @@ class DuasViewModel(
             }
         }
         viewModelScope.launch { keepCardsCurrent() }
+        viewModelScope.launch { rereadTilesWhenPronunciationArrives() }
+    }
+
+    // Tiles read before the pronunciation was downloaded have no pronunciation line.
+    private suspend fun rereadTilesWhenPronunciationArrives() {
+        dependencies.pronunciation
+            .distinctUntilChanged()
+            .filter { it == PronunciationState.Installed }
+            .drop(1)
+            .collect { mutableState.update { it.copy(wordTiles = emptyMap()) } }
     }
 
     private suspend fun readCatalogue() {
@@ -96,6 +109,12 @@ class DuasViewModel(
     fun openStarters() = openDeck { catalogue, state ->
         val duas = starterDuas(catalogue, state.filter, state.progress)
         DuaDeck(groupKey = null, duas.map { it.id }, startIndex = 0)
+    }
+
+    /** Opens the cards of several groups one after the other, as one deck named [deckKey]. */
+    fun openGroups(groupKeys: List<String>, deckKey: String) = openDeck { catalogue, _ ->
+        val ids = groupKeys.flatMap { key -> catalogue.duasIn(key).map { it.id } }
+        DuaDeck(deckKey, ids, startIndex = 0)
     }
 
     /** Opens the card of a search result among all the duas of its group. */

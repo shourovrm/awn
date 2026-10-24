@@ -201,7 +201,7 @@ private fun ModePanel(
                     ),
                 modifier = modifier,
             )
-        DuaCardMode.WordByWord -> Unit
+        DuaCardMode.WordByWord -> PronunciationOffer(dependencies, modifier)
     }
 }
 

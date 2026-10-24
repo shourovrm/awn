@@ -49,8 +49,6 @@
   <string name="duas_word_position">Word %1$d of %2$d</string>
   <string name="duas_repeat">Repeat</string>
   <string name="duas_repeat_value">%1$d×</string>
-  <string name="duas_speed">Speed</string>
-  <string name="duas_speed_value">%1$s×</string>
   <string name="duas_downloading">Downloading</string>
   <string name="duas_play_failed">Can\'t play this dua. Check your connection.</string>
 
@@ -74,4 +72,29 @@
 
   <string name="duas_add_word">Add to my words</string>
   <string name="duas_word_added">In my words</string>
+  <string name="duas_choose_reciter">Choose reciter</string>
+  <string name="duas_pronunciation_offer">How to say each word · 2.9 MB</string>
+  <string name="duas_pronunciation_download">Download</string>
+  <string name="duas_pronunciation_downloading">Downloading how to say each word</string>
+  <string name="topics_title">Ayahs by topic</string>
+  <plurals name="topics_count">
+    <item quantity="one">%d topic</item>
+    <item quantity="other">%d topics</item>
+  </plurals>
+  <string name="topics_search_hint">Search topics: parents, patience</string>
+  <string name="topics_all">All</string>
+  <string name="topics_heading">Topics</string>
+  <plurals name="topics_ayah_count">
+    <item quantity="one">%d ayah</item>
+    <item quantity="other">%d ayahs</item>
+  </plurals>
+  <string name="topics_detail">%1$s · %2$s</string>
+  <string name="topics_parts_heading">Parts</string>
+  <plurals name="topics_go_through_all">
+    <item quantity="one">Go through the %d ayah</item>
+    <item quantity="other">Go through all %d ayahs</item>
+  </plurals>
+  <string name="topics_related_duas">Related duas</string>
+  <string name="topics_no_results">No ayahs found</string>
+  <string name="topics_results_heading">Ayahs · %d</string>
 </resources>

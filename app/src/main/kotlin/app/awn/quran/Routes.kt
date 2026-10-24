@@ -16,7 +16,13 @@ internal object Routes {
     const val TABS = "tabs"
     const val BOOKMARKS = "bookmarks"
     const val SEARCH = "search"
-    const val DUAS = "duas"
+    const val DUAS = "duas?group={group}"
+    const val TOPICS = "topics"
+    const val DUAS_GROUP_ARGUMENT = "group"
+
+    /** The Duas screen, opened at the cards of [group] when it is given. */
+    fun duas(group: String? = null): String = if (group == null) "duas" else "duas?group=$group"
+
     const val SETTINGS = "settings"
     const val NOTICE = "notice"
     const val CREDITS = "credits"

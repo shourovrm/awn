@@ -22,3 +22,16 @@ internal fun rememberDuaCount(services: AwnServices): Int? {
         }
     return count
 }
+
+/** How many topics the bundled Ayahs by topic list holds, or null until it has been read. */
+@Composable
+internal fun rememberTopicCount(services: AwnServices): Int? {
+    val count by
+        produceState<Int?>(initialValue = null, services) {
+            value =
+                withContext(Dispatchers.Default) {
+                    services.duasDependencies.loadTopics().topics.size
+                }
+        }
+    return count
+}

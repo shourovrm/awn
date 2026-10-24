@@ -19,7 +19,9 @@ internal class TabNavigation(
 
     fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)
 
-    fun openDuas() = navController.navigate(Routes.DUAS)
+    fun openDuas() = navController.navigate(Routes.duas())
+
+    fun openTopics() = navController.navigate(Routes.TOPICS)
 
     /** Closes everything above the tabs and shows [tab]. */
     fun showTab(tab: AwnTab) {
@@ -46,5 +48,6 @@ internal fun TabNavigation.quranTabActions() =
         onBookmarks = ::openBookmarks,
         onSettings = ::openSettings,
         onDuas = ::openDuas,
+        onTopics = ::openTopics,
         onOpen = ::openQuran,
     )

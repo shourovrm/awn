@@ -58,7 +58,7 @@ internal fun DuaFilterChips(
 
 // The chip is 40 dp tall inside a 48 dp touch target.
 @Composable
-private fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+internal fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
     val field = Awn.field
     Box(
         modifier =

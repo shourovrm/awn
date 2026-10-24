@@ -5,7 +5,9 @@ import android.content.ComponentName
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
@@ -86,8 +88,9 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
     private var openedPage: Int? = null
     private var openedToday = false
     private var openedDuas = 0
+    private var openedTopics = 0
 
-    private fun show(todayItems: List<TodayItem>, duaCount: Int? = null) {
+    private fun show(todayItems: List<TodayItem>, duaCount: Int? = null, topicCount: Int? = null) {
         composeRule.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(
@@ -98,12 +101,14 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
                     state = state,
                     todayItems = todayItems,
                     duaCount = duaCount,
+                    topicCount = topicCount,
                     actions =
                         QuranTabActions(
                             onSearch = {},
                             onBookmarks = {},
                             onSettings = {},
                             onDuas = { openedDuas++ },
+                            onTopics = { openedTopics++ },
                             onOpen = { page, _: AyahRef? -> openedPage = page },
                         ),
                 )
@@ -156,21 +161,24 @@ class QuranTabRenderTest(private val mode: ColourMode, private val fontScale: Fl
     }
 
     @Test
-    fun theDuasEntryShowsItsNameAndCountAndOpens() {
-        show(emptyList(), duaCount = 77)
+    fun theBrowseTilesShowDuasAndTopicsWithTheirCountsAndOpenThem() {
+        show(emptyList(), duaCount = 89, topicCount = 32)
 
         composeRule.onNodeWithText("Browse").assertIsDisplayed()
-        composeRule.onNodeWithText("Duas from the Quran").assertIsDisplayed()
-        composeRule.onNodeWithText("77 duas").performClick()
+        composeRule.onNodeWithText("89 duas").performClick()
+        composeRule.onNodeWithText("32 topics").performClick()
 
         assertEquals(1, openedDuas)
+        assertEquals(1, openedTopics)
     }
 
     @Test
-    fun theDuasEntrySitsAboveTheSurahList() {
-        show(emptyList(), duaCount = 77)
+    fun theBrowseTilesSitSideBySideAboveTheSurahList() {
+        show(emptyList(), duaCount = 89, topicCount = 32)
 
-        composeRule.onNodeWithText("Duas from the Quran").assertIsDisplayed()
+        val duas = composeRule.onNodeWithTag(BROWSE_DUAS_TAG).getBoundsInRoot()
+        val topics = composeRule.onNodeWithTag(BROWSE_TOPICS_TAG).getBoundsInRoot()
+        assertEquals(duas.top, topics.top)
         composeRule.onNodeWithText("Show").assertIsDisplayed()
     }
 

@@ -9,10 +9,13 @@ import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.CatalogueModel
+import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.duas.DuasDependencies
+import app.awn.quran.feature.duas.PronunciationState
 import app.awn.quran.feature.duas.content.DuaCatalogueRepository
+import app.awn.quran.feature.duas.content.TopicCatalogueRepository
 import app.awn.quran.feature.duas.data.DataStoreDuaProgressStore
 import app.awn.quran.feature.duas.recite.ControllerDuaRecitation
 import app.awn.quran.feature.hifz.HifzServices
@@ -26,6 +29,7 @@ import app.awn.quran.feature.learn.learnWordIsAdded
 import app.awn.quran.feature.learn.learnWordMarks
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
+import app.awn.quran.feature.listen.ReciterSheet
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.quran.wordReciterFor
@@ -50,6 +54,8 @@ import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -220,6 +226,7 @@ class AwnServices(private val application: Application) {
     }
 
     private val duaCatalogue = DuaCatalogueRepository(application.assets)
+    private val topicCatalogue = TopicCatalogueRepository(application.assets)
 
     /**
      * What the Duas screens use. Built on first use: it reaches [learnWordSound], whose download
@@ -242,6 +249,12 @@ class AwnServices(private val application: Application) {
             reciteGate = { onCancel, content ->
                 ReciteBarOrDownload(this, onExit = onCancel, bar = content)
             },
+            reciterPicker = { onDismiss ->
+                ReciterSheet(audio, page = null, onDismiss = onDismiss)
+            },
+            pronunciation = pronunciationState(),
+            requestPronunciation = { coreData.packDownloads.request(PRONUNCIATION_PACK_ID) },
+            loadTopics = { topicCatalogue.catalogue() },
         )
     }
 
@@ -279,8 +292,23 @@ class AwnServices(private val application: Application) {
             AyahGrade.Forgot -> FsrsRating.Again
         }
 
+    /** Whether the word pronunciation pack is on the phone or on its way, for Word by word. */
+    private fun pronunciationState(): Flow<PronunciationState> =
+        combine(coreData.packs.installed(), coreData.packDownloads.transfers) { installed, transfers
+            ->
+            val transfer = transfers[PRONUNCIATION_PACK_ID]
+            when {
+                installed.any { it.id == PRONUNCIATION_PACK_ID } -> PronunciationState.Installed
+                transfer is PackTransfer.Waiting || transfer is PackTransfer.Running ->
+                    PronunciationState.Downloading
+                else -> PronunciationState.Missing
+            }
+        }
+
     private companion object {
         const val AUDIO_DIRECTORY = "audio"
+        /** The word-by-word pronunciation in Latin letters, as `TranslationRepository` reads it. */
+        const val PRONUNCIATION_PACK_ID = "en_transliteration_words"
         const val MODEL_DIRECTORY = "models"
     }
 }

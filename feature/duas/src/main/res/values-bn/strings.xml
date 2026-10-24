@@ -49,8 +49,6 @@
   <string name="duas_word_position">%2$dটি শব্দের মধ্যে %1$d</string>
   <string name="duas_repeat">পুনরাবৃত্তি</string>
   <string name="duas_repeat_value">%1$d×</string>
-  <string name="duas_speed">গতি</string>
-  <string name="duas_speed_value">%1$s×</string>
   <string name="duas_downloading">ডাউনলোড হচ্ছে</string>
   <string name="duas_play_failed">দুআটি চালানো যাচ্ছে না। সংযোগ দেখুন।</string>
 
@@ -74,4 +72,29 @@
 
   <string name="duas_add_word">আমার শব্দে যোগ করুন</string>
   <string name="duas_word_added">আমার শব্দে আছে</string>
+  <string name="duas_choose_reciter">ক্বারী বাছুন</string>
+  <string name="duas_pronunciation_offer">প্রতিটি শব্দের উচ্চারণ · ২.৯ MB</string>
+  <string name="duas_pronunciation_download">ডাউনলোড</string>
+  <string name="duas_pronunciation_downloading">উচ্চারণ ডাউনলোড হচ্ছে</string>
+  <string name="topics_title">বিষয়ভিত্তিক আয়াত</string>
+  <plurals name="topics_count">
+    <item quantity="one">%d টি বিষয়</item>
+    <item quantity="other">%d টি বিষয়</item>
+  </plurals>
+  <string name="topics_search_hint">বিষয় খুঁজুন: মা-বাবা, ধৈর্য</string>
+  <string name="topics_all">সব</string>
+  <string name="topics_heading">বিষয়</string>
+  <plurals name="topics_ayah_count">
+    <item quantity="one">%d টি আয়াত</item>
+    <item quantity="other">%d টি আয়াত</item>
+  </plurals>
+  <string name="topics_detail">%1$s · %2$s</string>
+  <string name="topics_parts_heading">অংশ</string>
+  <plurals name="topics_go_through_all">
+    <item quantity="one">%d টি আয়াত পড়ুন</item>
+    <item quantity="other">%d টি আয়াত পড়ুন</item>
+  </plurals>
+  <string name="topics_related_duas">সংশ্লিষ্ট দোয়া</string>
+  <string name="topics_no_results">কোনো আয়াত পাওয়া যায়নি</string>
+  <string name="topics_results_heading">আয়াত · %d</string>
 </resources>

@@ -9,10 +9,12 @@ import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationRepository
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.duas.content.DuaCatalogue
+import app.awn.quran.feature.duas.content.TopicCatalogue
 import app.awn.quran.feature.duas.data.DuaProgressStore
 import app.awn.quran.feature.duas.recite.DuaRecitation
 import app.awn.quran.player.AudioPlayer
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /** Everything the Duas screens need from the rest of the app, handed over once by :app. */
 data class DuasDependencies(
@@ -38,4 +40,19 @@ data class DuasDependencies(
      * while the speech files are missing, and calls [onCancel] when the user leaves that card.
      */
     val reciteGate: @Composable (onCancel: () -> Unit, content: @Composable () -> Unit) -> Unit,
+    /** The app's reciter sheet; choosing a reciter there changes [selectedReciterId]. */
+    val reciterPicker: @Composable (onDismiss: () -> Unit) -> Unit = {},
+    /** Whether the word-by-word pronunciation download is on the phone. */
+    val pronunciation: Flow<PronunciationState> = flowOf(PronunciationState.Installed),
+    /** Starts the pronunciation download. */
+    val requestPronunciation: () -> Unit = {},
+    /** Reads the bundled Ayahs by topic list; called off the main thread. */
+    val loadTopics: suspend () -> TopicCatalogue = { TopicCatalogue(emptyList(), emptyList()) },
 )
+
+/** Where the word-by-word pronunciation download stands. */
+enum class PronunciationState {
+    Installed,
+    Downloading,
+    Missing,
+}

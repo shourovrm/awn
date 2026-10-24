@@ -22,6 +22,7 @@ import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.feature.duas.DuasFixtures
 import app.awn.quran.feature.duas.DuasTestEnvironment
+import app.awn.quran.feature.duas.RECITER_PICKER_TEXT
 import app.awn.quran.feature.duas.card.CardRequest
 import app.awn.quran.feature.duas.card.DuaCardLoader
 import app.awn.quran.feature.duas.content.Dua
@@ -260,14 +261,13 @@ class DuaCardsScreenTest {
     }
 
     @Test
-    fun theSpeedButtonStepsTheSpeedUp() {
+    fun theReciterNameOpensTheReciterSheetAndThereIsNoSpeedButton() {
         show()
 
-        composeRule.onNodeWithTag(LISTEN_SPEED_TAG).performClick()
-        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(LISTEN_RECITER_TAG).performClick()
 
-        assertEquals(1.25f, environment.audioPlayer.options.value.speed)
-        composeRule.onNodeWithText("1.25×").assertIsDisplayed()
+        composeRule.onNodeWithText(RECITER_PICKER_TEXT).assertIsDisplayed()
+        composeRule.onNodeWithText("1.25×").assertDoesNotExist()
     }
 
     @Test
