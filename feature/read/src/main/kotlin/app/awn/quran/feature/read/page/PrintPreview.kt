@@ -2,15 +2,12 @@ package app.awn.quran.feature.read.page
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.PagerState
@@ -21,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,7 +26,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.ui.theme.Awn
-import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
@@ -47,17 +42,13 @@ internal fun PrintPreview(script: ScriptId) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            if (text.preview != null) {
-                Image(
-                    painter = painterResource(text.preview),
-                    contentDescription =
-                        stringResource(R.string.mushaf_preview_description, name, PREVIEW_PAGE),
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                PreviewPlaceholder(name)
-            }
+            Image(
+                painter = painterResource(text.preview),
+                contentDescription =
+                    stringResource(R.string.mushaf_preview_description, name, PREVIEW_PAGE),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
         Text(
             text = name,
@@ -73,34 +64,6 @@ internal fun PrintPreview(script: ScriptId) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = AwnSpacing.medium),
         )
-    }
-}
-
-/**
- * Stands in for an edition that has no preview picture: a paper-coloured page with fifteen thin
- * ruled lines, one for each line of the edition.
- */
-@Composable
-private fun PreviewPlaceholder(name: String) {
-    val field = Awn.field
-    Column(
-        modifier =
-            Modifier.fillMaxSize()
-                .aspectRatio(PREVIEW_ASPECT_RATIO, matchHeightConstraintsFirst = true)
-                .clip(AwnShapes.control)
-                .background(field.background)
-                .border(AwnSpacing.switchKnobRing, field.softFill, AwnShapes.control)
-                .padding(AwnSpacing.large)
-                .semantics { contentDescription = name },
-        verticalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        repeat(PLACEHOLDER_LINE_COUNT) {
-            Box(
-                Modifier.fillMaxWidth()
-                    .height(AwnSpacing.switchKnobRing)
-                    .background(field.softFill),
-            )
-        }
     }
 }
 
@@ -120,7 +83,5 @@ internal fun PageDots(pagerState: PagerState) {
     }
 }
 
-private const val PREVIEW_ASPECT_RATIO = 0.62f
-private const val PLACEHOLDER_LINE_COUNT = 15
 private val DOT_SIZE = AwnSpacing.small
 private val DOT_GAP = AwnSpacing.small

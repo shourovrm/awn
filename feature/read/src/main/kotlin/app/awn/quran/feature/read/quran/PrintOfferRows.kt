@@ -121,22 +121,17 @@ private fun OfferRow(
     }
 }
 
-/** The page picture of an edition; Indo-Pak has none, so it gets a soft rectangle of its size. */
+/** The page picture of an edition, cropped to a small page. */
 @Composable
-private fun EditionThumbnail(preview: Int?) {
-    val thumbnailSize =
-        Modifier.size(AwnSpacing.printThumbnailWidth, AwnSpacing.printThumbnailHeight)
-            .clip(AwnShapes.wordBlock)
-    if (preview != null) {
-        Image(
-            painter = painterResource(preview),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = thumbnailSize,
-        )
-    } else {
-        Box(thumbnailSize.background(Awn.field.softFill))
-    }
+private fun EditionThumbnail(preview: Int) {
+    Image(
+        painter = painterResource(preview),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier =
+            Modifier.size(AwnSpacing.printThumbnailWidth, AwnSpacing.printThumbnailHeight)
+                .clip(AwnShapes.wordBlock),
+    )
 }
 
 /** A filled check when selected, an empty ring otherwise; [shape] tells radio from tick box. */

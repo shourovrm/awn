@@ -13,7 +13,7 @@ internal data class PageTypeText(
     @StringRes val name: Int,
     @StringRes val year: Int,
     /** The picture of page 50, or null for an edition without one. */
-    @DrawableRes val preview: Int?,
+    @DrawableRes val preview: Int,
 )
 
 /** The name of the edition [script] as the app shows it, for summaries outside this module. */
@@ -34,7 +34,11 @@ internal fun pageTypeText(script: ScriptId): PageTypeText =
                 R.drawable.mushaf_preview_v4,
             )
         ScriptId.IndoPak15 ->
-            PageTypeText(R.string.mushaf_type_indopak, R.string.mushaf_year_indopak, preview = null)
+            PageTypeText(
+                R.string.mushaf_type_indopak,
+                R.string.mushaf_year_indopak,
+                R.drawable.mushaf_preview_indopak,
+            )
         else ->
             PageTypeText(
                 R.string.mushaf_type_v2,
