@@ -1,19 +1,16 @@
 package app.awn.quran.services
 
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.data.PackRepository
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.CatalogueModel
-import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.wordReciterIdFor
 import app.awn.quran.feature.learn.sound.TimingPackState
 import app.awn.quran.feature.learn.sound.WordSound
 import app.awn.quran.feature.learn.sound.WordSoundStatus
 import app.awn.quran.feature.learn.sound.wordSoundStatusOf
 import app.awn.quran.player.AudioPlayer
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -27,12 +24,9 @@ class LearnWordSound(
     private val audioPlayer: AudioPlayer,
     private val listeningReciterId: Flow<String>,
     private val chosenWordReciterId: Flow<String?>,
-    packs: PackRepository,
-    downloads: PackDownloads,
-    scope: CoroutineScope,
+    // Finds and downloads the word timings, the same way the download lists do.
+    private val catalogue: CatalogueModel,
 ) : WordSound {
-
-    private val catalogue = CatalogueModel(packs, downloads, scope)
 
     override suspend fun play(word: WordKey) {
         audioPlayer.playWordToEnd(

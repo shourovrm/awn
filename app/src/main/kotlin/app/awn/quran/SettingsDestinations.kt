@@ -220,30 +220,7 @@ private fun NavGraphBuilder.moduleSettingsDestinations(
     openList: (PackListKind) -> Unit,
 ) {
     val goBack: () -> Unit = { navController.popBackStack() }
-    composable(
-        route = routePattern(SettingsSection.Mushaf),
-        arguments = rowArguments,
-    ) { entry ->
-        SettingsPage(
-            title = stringResource(R.string.settings_mushaf),
-            onBack = goBack,
-            targetRow = entry.targetRow(),
-        ) {
-            MushafSettingsPage(
-                services.readDependencies,
-                onOpenPrints = { navController.navigate(PRINTS_ROUTE) },
-            )
-        }
-    }
-    composable(PRINTS_ROUTE) {
-        SettingsPage(
-            title = stringResource(ReadR.string.mushaf_print),
-            onBack = goBack,
-            scrolls = false,
-        ) {
-            PrintsPage(services.readDependencies)
-        }
-    }
+    mushafSettingsDestinations(services, navController)
     composable(
         route = routePattern(SettingsSection.Reading),
         arguments = rowArguments,
@@ -289,4 +266,36 @@ private fun ReciteModuleRows(services: AwnServices) {
     ReciteSettingsPage(services.reciteSettings)
     ReviseReminderSettingsPage()
     LessonLanguageSettingsRow()
+}
+
+/** Settings → Mushaf and the prints it opens, one print per page. */
+private fun NavGraphBuilder.mushafSettingsDestinations(
+    services: AwnServices,
+    navController: NavController,
+) {
+    val goBack: () -> Unit = { navController.popBackStack() }
+    composable(
+        route = routePattern(SettingsSection.Mushaf),
+        arguments = rowArguments,
+    ) { entry ->
+        SettingsPage(
+            title = stringResource(R.string.settings_mushaf),
+            onBack = goBack,
+            targetRow = entry.targetRow(),
+        ) {
+            MushafSettingsPage(
+                services.readDependencies,
+                onOpenPrints = { navController.navigate(PRINTS_ROUTE) },
+            )
+        }
+    }
+    composable(PRINTS_ROUTE) {
+        SettingsPage(
+            title = stringResource(ReadR.string.mushaf_print),
+            onBack = goBack,
+            scrolls = false,
+        ) {
+            PrintsPage(services.readDependencies)
+        }
+    }
 }

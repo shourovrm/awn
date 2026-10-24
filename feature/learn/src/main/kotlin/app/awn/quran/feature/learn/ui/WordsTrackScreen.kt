@@ -429,9 +429,9 @@ private fun PathDot(pathState: PathState, isToday: Boolean) {
     }
 }
 
-private val PATH_DOT_COLUMN = 28.dp
-private val PATH_DOT = 14.dp
-private val PATH_TODAY_DOT = 20.dp
+private val PATH_DOT_COLUMN = AwnSpacing.pathDotColumn
+private val PATH_DOT = AwnSpacing.pathDot
+private val PATH_TODAY_DOT = AwnSpacing.pathTodayDot
 private val PATH_LINE = 2.dp
 
 /**

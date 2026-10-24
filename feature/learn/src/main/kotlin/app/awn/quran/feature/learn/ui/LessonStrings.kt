@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import androidx.annotation.StringRes
@@ -22,6 +23,9 @@ internal fun lessonString(@StringRes id: Int): String {
 }
 
 /** [context] with its resources in [languageCode]; [context] itself when the code is null. */
+// The app bundle keeps every language in the base APK (app/build.gradle.kts: bundle { language {
+// enableSplit = false } }), so no language download is needed; lint cannot see that from here.
+@SuppressLint("AppBundleLocaleChanges")
 internal fun contextInLanguage(context: Context, languageCode: String?): Context {
     if (languageCode == null) return context
     val configuration = Configuration(context.resources.configuration)

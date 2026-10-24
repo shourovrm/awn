@@ -83,6 +83,16 @@ object AwnSpacing {
     val switchKnobCorner: Dp = 4.dp
     val menuCorner: Dp = 12.dp
     val searchFieldCorner: Dp = 12.dp
+    // The rounded block behind a search match.
+    val matchBlockCorner: Dp = 6.dp
+
+    // Learn: the coverage chart, the level badge, the listen button and the path of sets.
+    val coverageChartHeight: Dp = 220.dp
+    val levelBadgeSize: Dp = 132.dp
+    val listenButtonSize: Dp = 120.dp
+    val pathDotColumn: Dp = 28.dp
+    val pathDot: Dp = 14.dp
+    val pathTodayDot: Dp = 20.dp
 }
 
 object AwnShapes {

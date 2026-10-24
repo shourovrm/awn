@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
@@ -29,7 +28,7 @@ import app.awn.quran.feature.learn.formatCount
 import app.awn.quran.feature.learn.words.WordLevel
 import app.awn.quran.feature.learn.words.WordLevels
 
-private val BADGE_SIZE = 132.dp
+private val BADGE_SIZE = AwnSpacing.levelBadgeSize
 
 // "Say: My Lord, increase me in knowledge" is the last four words of this ayah.
 private val INCREASE_KNOWLEDGE_AYAH = AyahRef(20, 114)

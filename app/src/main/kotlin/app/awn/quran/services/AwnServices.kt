@@ -7,6 +7,7 @@ import app.awn.quran.core.data.CoreData
 import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.downloads.CatalogueModel
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
 import app.awn.quran.feature.hifz.HifzServices
@@ -207,9 +208,7 @@ class AwnServices(private val application: Application) {
             audioPlayer = audioPlayer,
             listeningReciterId = listenSettings.selectedReciterId,
             chosenWordReciterId = listenSettings.wordReciterId,
-            packs = coreData.packs,
-            downloads = coreData.packDownloads,
-            scope = applicationScope,
+            catalogue = CatalogueModel(coreData.packs, coreData.packDownloads, applicationScope),
         )
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */

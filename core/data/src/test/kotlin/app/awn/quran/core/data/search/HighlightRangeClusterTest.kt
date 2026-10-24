@@ -29,23 +29,22 @@ class HighlightRangeClusterTest {
     @Test
     fun everyMatchRangeStartsAndEndsOnAGraphemeClusterBoundary() {
         for (word in uthmaniWords) {
-            val boundaries = clusterBoundaries(word)
             for (reading in DaggerAlefReading.entries) {
-                val positioned = SearchNormaliser.normaliseWithPositions(word, reading)
-                for (start in positioned.text.indices) {
-                    for (end in start + 1..positioned.text.length) {
-                        val range = positioned.originalRange(word, start, end)
+                assertEveryRangeOnClusters(word, reading)
+            }
+        }
+    }
 
-                        assertTrue(
-                            "$word ($reading, $start until $end): range $range starts inside a cluster",
-                            range.first in boundaries,
-                        )
-                        assertTrue(
-                            "$word ($reading, $start until $end): range $range ends inside a cluster",
-                            range.last + 1 in boundaries,
-                        )
-                    }
-                }
+    // Tries every stretch of the normalised text and maps it back to the original word.
+    private fun assertEveryRangeOnClusters(word: String, reading: DaggerAlefReading) {
+        val boundaries = clusterBoundaries(word)
+        val positioned = SearchNormaliser.normaliseWithPositions(word, reading)
+        for (start in positioned.text.indices) {
+            for (end in start + 1..positioned.text.length) {
+                val range = positioned.originalRange(word, start, end)
+                val where = "$word ($reading, $start until $end): range $range"
+                assertTrue("$where starts inside a cluster", range.first in boundaries)
+                assertTrue("$where ends inside a cluster", range.last + 1 in boundaries)
             }
         }
     }

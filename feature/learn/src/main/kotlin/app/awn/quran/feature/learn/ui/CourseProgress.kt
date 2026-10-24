@@ -48,8 +48,10 @@ internal data class CourseProgress(
 )
 
 private const val PERCENT = 100
+// A share times 1,000 is tenths of a percent; dividing by 10 gives the percent with one decimal.
 private const val PERCENT_DECIMALS_FACTOR = 1_000
-private val CHART_HEIGHT = 220.dp
+private const val TENTHS_PER_PERCENT = 10.0
+private val CHART_HEIGHT = AwnSpacing.coverageChartHeight
 private val BAR_CORNER = 4.dp
 
 internal fun buildCourseProgress(
@@ -173,4 +175,4 @@ private fun BarColumn(bar: ChartBar, modifier: Modifier) {
 private const val BAR_AREA_SHARE = 0.85f
 
 private fun ChartBar.percentOneDecimal(): Double =
-    (share * PERCENT_DECIMALS_FACTOR).roundToInt() / 10.0
+    (share * PERCENT_DECIMALS_FACTOR).roundToInt() / TENTHS_PER_PERCENT

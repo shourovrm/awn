@@ -1,23 +1,18 @@
 package app.awn.quran.feature.read.page
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,15 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -59,11 +49,8 @@ import app.awn.quran.feature.read.settings.failureMessage
 import app.awn.quran.feature.read.settings.sizeText
 import kotlinx.coroutines.flow.first
 
-private const val PREVIEW_ASPECT_RATIO = 0.62f
 private const val PERCENT = 100
 private const val DISABLED_ALPHA = 0.4f
-private val DOT_SIZE = 8.dp
-private val DOT_GAP = 8.dp
 
 /**
  * The Prints screen of Settings, Mushaf: one print per screen in a pager, with the print's name,
@@ -104,69 +91,6 @@ fun PrintsPage(dependencies: ReadDependencies, modifier: Modifier = Modifier) {
             controls = printControlsOf(status, isInUse = script == settings.script),
             viewModel = viewModel,
         )
-    }
-}
-
-/** The picture of page 50 in [script] with the print's name under it. */
-@Composable
-private fun PrintPreview(script: ScriptId) {
-    val text = pageTypeText(script)
-    val name = stringResource(text.name)
-    Column(
-        modifier = Modifier.fillMaxSize().padding(top = AwnSpacing.medium),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            if (text.preview != null) {
-                Image(
-                    painter = painterResource(text.preview),
-                    contentDescription =
-                        stringResource(R.string.mushaf_preview_description, name, PREVIEW_PAGE),
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                PreviewPlaceholder(name)
-            }
-        }
-        Text(
-            text = name,
-            style = AwnTypography.lead,
-            color = Awn.field.content,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = AwnSpacing.medium),
-        )
-    }
-}
-
-/** Stands in for a print that has no preview picture: a plain page shape with the print's name. */
-@Composable
-private fun PreviewPlaceholder(name: String) {
-    Box(
-        modifier =
-            Modifier.fillMaxSize()
-                .aspectRatio(PREVIEW_ASPECT_RATIO, matchHeightConstraintsFirst = true)
-                .clip(AwnShapes.control)
-                .background(Awn.field.softFill),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = name, style = AwnTypography.title, color = Awn.field.mutedContent)
-    }
-}
-
-@Composable
-private fun PageDots(pagerState: PagerState) {
-    val field = Awn.field
-    val position =
-        stringResource(R.string.print_position, pagerState.currentPage + 1, pagerState.pageCount)
-    Row(
-        modifier = Modifier.fillMaxWidth().semantics { contentDescription = position },
-        horizontalArrangement = Arrangement.spacedBy(DOT_GAP, Alignment.CenterHorizontally),
-    ) {
-        repeat(pagerState.pageCount) { index ->
-            val colour = if (index == pagerState.currentPage) field.buttonFill else field.softFill
-            Box(Modifier.size(DOT_SIZE).background(colour, CircleShape))
-        }
     }
 }
 

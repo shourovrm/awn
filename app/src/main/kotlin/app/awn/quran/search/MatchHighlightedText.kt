@@ -17,8 +17,9 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.awn.quran.core.ui.theme.AwnSpacing
 
-private val BLOCK_CORNER_RADIUS = 6.dp
+private val BLOCK_CORNER_RADIUS = AwnSpacing.matchBlockCorner
 private val BLOCK_HORIZONTAL_PADDING = 2.dp
 
 /**

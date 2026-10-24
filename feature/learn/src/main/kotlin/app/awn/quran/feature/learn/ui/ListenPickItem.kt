@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -42,8 +41,8 @@ import app.awn.quran.feature.learn.course.PracticeRun
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import kotlinx.coroutines.launch
 
-private val PLAY_BUTTON_SIZE = 120.dp
-private val PLAY_ICON_SIZE = 48.dp
+private val PLAY_BUTTON_SIZE = AwnSpacing.listenButtonSize
+private val PLAY_ICON_SIZE = AwnSpacing.huge
 private const val OPTIONS_PER_ROW = 2
 
 /**
