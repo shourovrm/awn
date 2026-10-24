@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.translations
 
+import android.database.sqlite.SQLiteDatabase
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.TranslationId
 import app.awn.quran.core.data.TranslationInfo
@@ -80,6 +81,50 @@ class SqliteTranslationRepository(
             if (language == ENGLISH) PhraseRepeats.collapse(ayah, meanings) else meanings
         }
 
+    override suspend fun wordByWord(
+        language: String,
+        ayahs: List<AyahRef>,
+    ): Map<AyahRef, List<String>> =
+        withContext(ioDispatcher) {
+            val record = packOf("wbw_$language", setOf(WORD_PACK_KIND))
+            val file = record?.let { storage.locate(it) }
+            val meaningsByAyah = mutableMapOf<AyahRef, List<String>>()
+            if (file != null) {
+                val database = databases.open(file)
+                ayahs.distinct().chunked(AYAHS_PER_QUERY).forEach { chunk ->
+                    meaningsByAyah.putAll(readWordMeanings(database, chunk))
+                }
+            }
+            ayahs.associateWith { ayah ->
+                val meanings = meaningsByAyah[ayah].orEmpty()
+                // Only the English source repeats a phrase on each of its words.
+                if (language == ENGLISH) PhraseRepeats.collapse(ayah, meanings) else meanings
+            }
+        }
+
+    /** One query for [ayahs]; the rows come ordered, so each ayah's meanings are in word order. */
+    private fun readWordMeanings(
+        database: SQLiteDatabase,
+        ayahs: List<AyahRef>,
+    ): Map<AyahRef, List<String>> {
+        val placeholders = ayahs.joinToString(",") { "(?, ?)" }
+        val arguments = ayahs.flatMap { listOf(it.surah.toString(), it.ayah.toString()) }
+        val meaningsByAyah = mutableMapOf<AyahRef, MutableList<String>>()
+        database
+            .rawQuery(
+                "SELECT surah, ayah, text FROM word_translation " +
+                    "WHERE (surah, ayah) IN (VALUES $placeholders) ORDER BY surah, ayah, position",
+                arguments.toTypedArray(),
+            )
+            .use {
+                while (it.moveToNext()) {
+                    val ayah = AyahRef(it.getInt(0), it.getInt(1))
+                    meaningsByAyah.getOrPut(ayah) { mutableListOf() }.add(it.getString(2))
+                }
+            }
+        return meaningsByAyah
+    }
+
     override suspend fun wordTransliteration(ayah: AyahRef): List<String> =
         withContext(ioDispatcher) {
             val record =
@@ -115,6 +160,9 @@ class SqliteTranslationRepository(
          */
         val AYAH_TEXT_KINDS = setOf("ayah", "transliteration")
         const val WORD_PACK_KIND = "word"
+
+        /** Two bound values per ayah, well under the 999 variables older SQLite builds allow. */
+        const val AYAHS_PER_QUERY = 400
 
         /** The transliteration of each word, which used to be a column of `quran.sqlite`. */
         const val TRANSLITERATION_WORDS_ID = "en_transliteration_words"

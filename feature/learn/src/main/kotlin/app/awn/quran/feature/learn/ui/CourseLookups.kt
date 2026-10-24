@@ -1,6 +1,5 @@
 package app.awn.quran.feature.learn.ui
 
-import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CourseContent
@@ -16,6 +15,7 @@ import app.awn.quran.feature.learn.words.CourseSnapshot
 import app.awn.quran.feature.learn.words.WordFrequency
 import app.awn.quran.feature.learn.words.WordProgress
 import app.awn.quran.feature.learn.words.WordStatus
+import app.awn.quran.feature.learn.words.wordAyahsOf
 import java.time.Duration
 
 /** The generated course data and the figures every course screen builds its state from. */
@@ -125,12 +125,7 @@ internal suspend fun buildWordDetails(
 ): WordDetails {
     val card = snapshot.wordCards[rank]
     val status = WordProgress.statusOf(card)
-    val ayahs =
-        lookups.frequency
-            .occurrences(rank)
-            .map { AyahRef(it.surah, it.ayah) }
-            .distinct()
-            .take(SHOWN_AYAH_COUNT)
+    val ayahs = wordAyahsOf(lookups.frequency.occurrences(rank)).take(SHOWN_AYAH_COUNT)
     return WordDetails(
         rank = rank,
         key = lookups.frequency.representative(rank),

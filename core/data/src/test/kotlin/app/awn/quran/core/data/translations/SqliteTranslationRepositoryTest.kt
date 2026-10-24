@@ -91,6 +91,21 @@ class SqliteTranslationRepositoryTest {
     }
 
     @Test
+    fun wordByWordOfSeveralAyahsMatchesOneAyahAtATime() = runBlocking {
+        val repository = realRepository()
+        val ayahs = listOf(AyahRef(9, 3), AyahRef(1, 1), AyahRef(2, 255), AyahRef(1, 1))
+
+        for (language in listOf("en", "bn", "fr")) {
+            val batch = repository.wordByWord(language, ayahs)
+
+            assertEquals(ayahs.toSet(), batch.keys)
+            for (ayah in ayahs) {
+                assertEquals(repository.wordByWord(language, ayah), batch.getValue(ayah))
+            }
+        }
+    }
+
+    @Test
     fun englishPhraseIsShownOnceInTheBundledPack() = runBlocking {
         val meanings = realRepository().wordByWord("en", AyahRef(9, 3))
 

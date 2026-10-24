@@ -100,14 +100,16 @@ internal fun ArabicWord(
 }
 
 /**
- * An ayah on a paper card: its words right to left, [highlight] marked, the word at [blankPosition]
- * replaced by a gap, and the translation and reference under it when [showTranslation] is set.
+ * An ayah on a paper card: its words right to left, [highlight] and every word of [highlights]
+ * marked, the word at [blankPosition] replaced by a gap, and the translation and reference under it
+ * when [showTranslation] is set.
  */
 @Composable
 internal fun AyahCard(
     ayah: AyahRef,
     modifier: Modifier = Modifier,
     highlight: WordKey? = null,
+    highlights: Set<WordKey> = emptySet(),
     blankPosition: Int? = null,
     showTranslation: Boolean = true,
 ) {
@@ -117,12 +119,12 @@ internal fun AyahCard(
     val translation by rememberTranslation(if (showTranslation) ayah else null)
     val fill = Awn.field.selectedAyahFill
     val line =
-        remember(words, highlight, blankPosition, fill) {
+        remember(words, highlight, highlights, blankPosition, fill) {
             buildAnnotatedString {
                 words?.words?.forEachIndexed { index, word ->
                     if (index > 0) append(" ")
                     val text = if (word.key.wordPosition == blankPosition) BLANK else word.text
-                    if (word.key == highlight) {
+                    if (word.key == highlight || word.key in highlights) {
                         withStyle(SpanStyle(background = fill)) { append(text) }
                     } else {
                         append(text)

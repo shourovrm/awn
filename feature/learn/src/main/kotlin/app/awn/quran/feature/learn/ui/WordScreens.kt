@@ -26,7 +26,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.AwnChoiceRow
 import app.awn.quran.core.ui.components.AwnSearchField
@@ -38,6 +37,7 @@ import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import app.awn.quran.feature.learn.sound.WordSoundStatus
+import app.awn.quran.feature.learn.words.WordAyah
 import app.awn.quran.feature.learn.words.WordStatus
 import kotlinx.coroutines.launch
 
@@ -179,7 +179,7 @@ internal data class WordDetails(
     val status: WordStatus,
     val occurrences: Int,
     val backInDays: Int?,
-    val ayahs: List<AyahRef>,
+    val ayahs: List<WordAyah>,
     val isQueued: Boolean,
 )
 
@@ -226,13 +226,7 @@ internal fun WordPageBody(
             onClick = onOpenAyahs,
         )
         InfoLine(stringResource(R.string.word_state), stateText(details))
-        details.ayahs.forEach {
-            AyahCard(
-                it,
-                highlight =
-                    details.key.takeIf { key -> key.ayah == it.ayah && key.surah == it.surah },
-            )
-        }
+        details.ayahs.forEach { AyahCard(it.ayah, highlights = it.wordKeys.toSet()) }
     }
 }
 

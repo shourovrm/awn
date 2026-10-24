@@ -103,6 +103,6 @@ private fun WordAyahRow(row: WordAyah, onOpenAyah: ((AyahRef) -> Unit)?) {
         row.ayah,
         modifier =
             clickable.padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
-        highlight = row.wordKeys.first(),
+        highlights = row.wordKeys.toSet(),
     )
 }

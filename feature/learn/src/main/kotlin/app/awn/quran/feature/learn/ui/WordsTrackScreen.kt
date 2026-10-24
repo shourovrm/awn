@@ -106,7 +106,9 @@ internal fun WordsTrackScreen(
                     openLevelNumbers =
                         if (isOpen) openLevelNumbers - number else openLevelNumbers + number
                 }
-                if (isOpen) section.rows.forEach { SetsPathRow(it, state, actions, texts) }
+                if (isOpen) {
+                    LevelPath { section.rows.forEach { SetsPathRow(it, state, actions, texts) } }
+                }
             }
             WordListLinks(state.hub, actions.hub)
         }
@@ -336,7 +338,7 @@ private fun GrammarLine(row: PathRow.LessonStep, state: WordsTrackState, actions
             Modifier.fillMaxWidth()
                 .heightIn(min = AwnSpacing.touchTarget)
                 .clickable(role = Role.Button) { actions.onLesson(row.lessonId) }
-                .padding(horizontal = AwnSpacing.small),
+                .padding(start = PATH_DOT_COLUMN + AwnSpacing.small),
         contentAlignment = Alignment.CenterStart,
     ) {
         Text(
@@ -362,54 +364,73 @@ private fun SetRow(
 ) {
     val field = Awn.field
     val isMuted = pathState == PathState.Upcoming && !isToday
-    val lineColour = field.softFill
     Row(
-        modifier =
-            Modifier.fillMaxWidth()
-                .heightIn(min = AwnSpacing.settingsRowTall)
-                .drawBehind {
-                    val lineX = PATH_DOT_COLUMN.toPx() / 2
-                    drawLine(
-                        lineColour,
-                        Offset(lineX, 0f),
-                        Offset(lineX, size.height),
-                        PATH_LINE.toPx(),
-                    )
-                }
-                .clip(AwnShapes.control)
-                .then(
-                    if (isToday) Modifier.border(PATH_LINE, field.buttonFill, AwnShapes.control)
-                    else Modifier,
-                )
-                .clickable(role = Role.Button, onClick = onClick)
-                .padding(vertical = AwnSpacing.small),
+        modifier = Modifier.fillMaxWidth().heightIn(min = AwnSpacing.settingsRowTall),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // The dot sits in its own column, outside the outlined card, centred on the path line.
         PathDot(pathState, isToday)
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = AwnTypography.bodyStrong,
-                color = if (isMuted) field.mutedContent else field.content,
-            )
-            preview?.let {
+        Row(
+            modifier =
+                Modifier.weight(1f)
+                    .clip(AwnShapes.control)
+                    .then(
+                        if (isToday) Modifier.border(PATH_LINE, field.buttonFill, AwnShapes.control)
+                        else Modifier,
+                    )
+                    .clickable(role = Role.Button, onClick = onClick)
+                    .padding(vertical = AwnSpacing.small, horizontal = AwnSpacing.small),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = it,
-                    style = arabicStyle(AwnTypography.body),
-                    color = field.mutedContent,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
+                    text = title,
+                    style = AwnTypography.bodyStrong,
+                    color = if (isMuted) field.mutedContent else field.content,
+                )
+                preview?.let {
+                    Text(
+                        text = it,
+                        style = arabicStyle(AwnTypography.body),
+                        color = field.mutedContent,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            onStart?.let {
+                AwnButton(
+                    label = stringResource(R.string.words_set_start),
+                    onClick = it,
+                    modifier = Modifier.padding(start = AwnSpacing.small),
                 )
             }
         }
-        onStart?.let {
-            AwnButton(
-                label = stringResource(R.string.words_set_start),
-                onClick = it,
-                modifier = Modifier.padding(horizontal = AwnSpacing.small),
-            )
-        }
+    }
+}
+
+/**
+ * The rows of an open level with one vertical line behind them, so the line is not cut by the
+ * grammar lines or by the gaps between rows.
+ */
+@Composable
+private fun LevelPath(content: @Composable () -> Unit) {
+    val lineColour = Awn.field.softFill
+    Column(
+        modifier =
+            Modifier.fillMaxWidth().drawBehind {
+                val lineX = PATH_DOT_COLUMN.toPx() / 2
+                val inset = PATH_LINE_INSET.toPx()
+                drawLine(
+                    lineColour,
+                    Offset(lineX, inset),
+                    Offset(lineX, size.height - inset),
+                    PATH_LINE.toPx(),
+                )
+            },
+    ) {
+        content()
     }
 }
 
@@ -433,6 +454,7 @@ private val PATH_DOT_COLUMN = AwnSpacing.pathDotColumn
 private val PATH_DOT = AwnSpacing.pathDot
 private val PATH_TODAY_DOT = AwnSpacing.pathTodayDot
 private val PATH_LINE = 2.dp
+private val PATH_LINE_INSET = 8.dp
 
 /**
  * Done is a filled disc with a check, the next set a ring with its number, later sets a faint ring.

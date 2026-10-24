@@ -34,6 +34,15 @@ interface TranslationRepository {
     suspend fun wordByWord(language: String, ayah: AyahRef): List<String>
 
     /**
+     * Returns [wordByWord] of every ayah in [ayahs], keyed by ayah. An implementation backed by a
+     * database should read them in fewer queries than one per ayah.
+     */
+    suspend fun wordByWord(language: String, ayahs: List<AyahRef>): Map<AyahRef, List<String>> =
+        ayahs.associateWith {
+            wordByWord(language, it)
+        }
+
+    /**
      * Returns the transliteration of each word of [ayah], one entry per word position. Returns an
      * empty list when the word transliteration pack is not installed.
      */
