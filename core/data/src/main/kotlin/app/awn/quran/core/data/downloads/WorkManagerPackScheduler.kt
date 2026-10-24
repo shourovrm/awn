@@ -21,7 +21,11 @@ import kotlinx.coroutines.flow.map
  * when Android stops the process. Each pack is one unique work item named by [uniqueNameOf]; the
  * work is tagged so one query lists every install.
  */
-class WorkManagerPackScheduler(context: Context) : PackWorkScheduler {
+class WorkManagerPackScheduler(
+    context: Context,
+    /** Read when work is queued: true limits the install to Wi-Fi. */
+    private val isWifiOnly: () -> Boolean = { false },
+) : PackWorkScheduler {
 
     // Created on first use: WorkManager is initialised by AwnApplication's Configuration.Provider,
     // which needs the services object that is still being built when this class is created.
@@ -37,7 +41,9 @@ class WorkManagerPackScheduler(context: Context) : PackWorkScheduler {
                 .addTag(WORK_TAG)
                 .addTag(idTagOf(id))
                 .setConstraints(
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build(),
+                    Constraints.Builder()
+                        .setRequiredNetworkType(networkTypeFor(isWifiOnly()))
+                        .build(),
                 )
                 // Starts at once while the app is open; the install itself shows a notification.
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -67,6 +73,10 @@ class WorkManagerPackScheduler(context: Context) : PackWorkScheduler {
         private const val NO_VALUE = -1L
 
         fun uniqueNameOf(id: String): String = "pack-install:$id"
+
+        /** The network the install waits for: any connection, or Wi-Fi while limited to it. */
+        fun networkTypeFor(wifiOnly: Boolean): NetworkType =
+            if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED
 
         private fun idTagOf(id: String): String = "$ID_TAG_PREFIX$id"
 

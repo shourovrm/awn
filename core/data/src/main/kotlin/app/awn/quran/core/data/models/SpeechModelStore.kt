@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.models
 
+import app.awn.quran.core.data.downloads.DownloadNetworkRule
 import app.awn.quran.core.data.packs.PackDownloader
 import app.awn.quran.core.data.packs.PackFailureReason
 import app.awn.quran.core.data.packs.PackInstallException
@@ -105,6 +106,7 @@ class SpeechModelStore(
     private val baseUrl: String = SpeechModelSpec.RELEASE_URL,
     private val downloader: PackDownloader = PackDownloader(),
     private val usableBytesOf: (File) -> Long = ::usableBytesOnDisk,
+    private val networkRule: DownloadNetworkRule = DownloadNetworkRule.Unrestricted,
 ) {
 
     private val partsDirectory = File(directory, ".downloads")
@@ -192,7 +194,7 @@ class SpeechModelStore(
             mutableState.value = SpeechModelState.Installed
             return
         }
-        if (!hasRoomFor(missing)) return
+        if (!canStart(missing)) return
         var finishedBytes = files.filter(::isInPlace).sumOf { it.bytes }
         mutableState.value = SpeechModelState.Downloading(finishedBytes, totalBytes)
         try {
@@ -216,6 +218,18 @@ class SpeechModelStore(
                     "Could not install the speech model: ${failure.message}",
                 )
         }
+    }
+
+    // Reports why the download cannot start and returns false: Wi-Fi only on mobile data, or no
+    // room.
+    private fun canStart(missing: List<SpeechModelFile>): Boolean {
+        if (networkRule.mayDownload()) return hasRoomFor(missing)
+        mutableState.value =
+            SpeechModelState.Failed(
+                reason = PackFailureReason.WifiOnly,
+                message = "Downloads are limited to Wi-Fi and the phone is on mobile data.",
+            )
+        return false
     }
 
     // Reports the failure and returns false when the phone cannot hold what is still to fetch.

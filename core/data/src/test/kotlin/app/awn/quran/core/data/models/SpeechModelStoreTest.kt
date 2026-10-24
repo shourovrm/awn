@@ -1,5 +1,6 @@
 package app.awn.quran.core.data.models
 
+import app.awn.quran.core.data.downloads.DownloadNetworkRule
 import app.awn.quran.core.data.packs.PackDownloader
 import app.awn.quran.core.data.packs.PackFailureReason
 import com.sun.net.httpserver.HttpServer
@@ -92,6 +93,7 @@ class SpeechModelStoreTest {
     private fun storeIn(
         directory: File,
         usableBytes: Long = Long.MAX_VALUE,
+        networkRule: DownloadNetworkRule = DownloadNetworkRule.Unrestricted,
     ): SpeechModelStore =
         SpeechModelStore(
             directory = directory,
@@ -100,7 +102,16 @@ class SpeechModelStoreTest {
             baseUrl = "http://127.0.0.1:${server.address.port}",
             downloader = PackDownloader(),
             usableBytesOf = { usableBytes },
+            networkRule = networkRule,
         )
+
+    /** Mobile data while downloads are limited to Wi-Fi. */
+    private val wifiOnlyOnMobileData =
+        object : DownloadNetworkRule {
+            override fun isWifiOnly() = true
+
+            override fun isMetered() = true
+        }
 
     private fun finish(store: SpeechModelStore): SpeechModelState = runBlocking {
         withTimeout(30_000) { store.download().join() }
@@ -173,6 +184,17 @@ class SpeechModelStoreTest {
         val state = finish(store)
 
         assertEquals(PackFailureReason.ServerError, (state as SpeechModelState.Failed).reason)
+        assertFalse(store.isInstalled())
+    }
+
+    @Test
+    fun mobileDataWhileWifiOnlyFailsBeforeAnyRequest() {
+        val store = storeIn(temporaryFolder.newFolder("models"), networkRule = wifiOnlyOnMobileData)
+
+        val state = finish(store) as SpeechModelState.Failed
+
+        assertEquals(PackFailureReason.WifiOnly, state.reason)
+        assertEquals(emptyList<String?>(), rangeHeadersSeen)
         assertFalse(store.isInstalled())
     }
 

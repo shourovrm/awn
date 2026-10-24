@@ -35,7 +35,7 @@
 - en_asad (Muhammad Asad, tools/build_asad_pack.py, alquran.cloud edition en.asad, whose terms allow republishing translations with the translator named): 22 source errors fixed in CORRECTIONS; asking The Book Foundation (info@thebook.org) later is optional, like the other translations.
 - No instrumented test for the asset copy on a device.
 - CI and any machine without awn-data/published fetch the pinned quran.sqlite and manifests from data-v1, so the stripped quran.sqlite, the new manifests and `en_transliteration_words.sqlite` must be uploaded there (ops.md).
-- Downloads use any network; there is no Wi-Fi-only switch for packs yet (audio has one).
+- One `DownloadNetworkRule` (core/data/downloads; built in `AwnServices` from `ListenSettings.wifiOnly`, off by default, and `AndroidNetworkStatus.isMetered`) governs every download: `PackDownloads.request` on mobile data while Wi-Fi only is on does not schedule, keeps the wanted flag and shows `PackTransfer.Failed(WifiOnly)` ("Connect to Wi-Fi to download") until the next request or launch; the scheduler sets `NetworkType.UNMETERED` while the switch is on; `SpeechModelStore` fails with `WifiOnly` before any request; audio keeps `UnmeteredOnlyPolicy` on the same setting.
 - The 3x space estimate for font zips is 29 MB short for v4-tajweed; the unpack step then fails with NoSpace.
 
 ## Gotchas

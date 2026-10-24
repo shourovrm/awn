@@ -9,6 +9,7 @@ import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.downloads.CatalogueModel
+import app.awn.quran.core.data.downloads.DownloadNetworkRule
 import app.awn.quran.core.data.downloads.PackTransfer
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.models.SpeechModelStore
@@ -55,10 +56,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import okhttp3.OkHttpClient
 
 /**
@@ -72,8 +76,22 @@ class AwnServices(private val application: Application) {
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val preferences = AppPreferences(application)
-    val coreData = CoreData(application)
     val listenSettings = ListenSettings.create(application)
+    val networkStatus = AndroidNetworkStatus(application)
+
+    /** The Wi-Fi only switch as a value the download code reads without suspending. */
+    private val wifiOnlyNow: StateFlow<Boolean> =
+        listenSettings.wifiOnly.stateIn(applicationScope, SharingStarted.Eagerly, false)
+
+    /** One rule for every download: packs, the recitation checker and the reciter audio. */
+    val downloadNetworkRule =
+        object : DownloadNetworkRule {
+            override fun isWifiOnly(): Boolean = wifiOnlyNow.value
+
+            override fun isMetered(): Boolean = networkStatus.isMetered()
+        }
+
+    val coreData = CoreData(application, downloadNetworkRule)
     val reciteSettings = ReciteSettings(application)
     val learn: LearnServices = LearnServices.get(application)
     val progressEvents: ProgressEvents = learnProgressEvents(application)
@@ -96,8 +114,6 @@ class AwnServices(private val application: Application) {
 
     /** Free space where audio is stored; checked before every audio download. */
     val audioFreeSpace = DirectoryFreeSpace(application, audioRoot)
-
-    val networkStatus = AndroidNetworkStatus(application)
 
     /** Audio downloads run in WorkManager, so they finish after the app closes. */
     private val audioDownloadRunner = WorkManagerDownloadRunner(application)
@@ -166,7 +182,11 @@ class AwnServices(private val application: Application) {
 
     /** The speech model is downloaded after install; recite offers the download first. */
     val speechModel =
-        SpeechModelStore(File(application.filesDir, MODEL_DIRECTORY), applicationScope)
+        SpeechModelStore(
+            File(application.filesDir, MODEL_DIRECTORY),
+            applicationScope,
+            networkRule = downloadNetworkRule,
+        )
 
     /** Loads the model for reciting; the recite entry prepares it again after a download. */
     val speechPreparation = RemoteSpeech.preparation(application, speechModel)

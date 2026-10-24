@@ -16,6 +16,7 @@
   <string name="catalogue_error_no_internet">No connection. Check your internet.</string>
   <string name="catalogue_error_server">Server not available. Try again later.</string>
   <string name="catalogue_error_damaged">Download was damaged. Try again.</string>
+  <string name="catalogue_error_wifi">Connect to Wi-Fi to download</string>
   <string name="catalogue_error_other">Download failed. Try again.</string>
 
   <string name="catalogue_remove_title">Remove %1$s?</string>

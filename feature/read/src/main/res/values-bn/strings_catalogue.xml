@@ -16,6 +16,7 @@
   <string name="catalogue_error_no_internet">সংযোগ নেই। ইন্টারনেট দেখুন।</string>
   <string name="catalogue_error_server">সার্ভার পাওয়া যাচ্ছে না। পরে আবার চেষ্টা করুন।</string>
   <string name="catalogue_error_damaged">ডাউনলোড নষ্ট হয়েছে। আবার চেষ্টা করুন।</string>
+  <string name="catalogue_error_wifi">ডাউনলোড করতে ওয়াই-ফাই চালু করুন</string>
   <string name="catalogue_error_other">ডাউনলোড হয়নি। আবার চেষ্টা করুন।</string>
 
   <string name="catalogue_remove_title">%1$s মুছবেন?</string>

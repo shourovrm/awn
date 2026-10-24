@@ -11,6 +11,7 @@ import app.awn.quran.core.data.packs.PackFailureReason
 import app.awn.quran.core.data.packs.PackInstallException
 import app.awn.quran.core.data.packs.PackKind
 import java.io.IOException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -45,6 +46,65 @@ class PackDownloadsTest {
                     credit = Credit("Credit", "https://example.org", "Not stated"),
                 ),
         )
+
+    /** A rule whose two answers the test sets by hand. */
+    private class FixedNetworkRule(var wifiOnly: Boolean, var metered: Boolean) :
+        DownloadNetworkRule {
+        override fun isWifiOnly() = wifiOnly
+
+        override fun isMetered() = metered
+    }
+
+    @Test
+    fun aRequestOnMobileDataWhileWifiOnlyIsNotScheduledAndShowsARetryableFailure() = runBlocking {
+        val rule = FixedNetworkRule(wifiOnly = true, metered = true)
+        val limited = PackDownloads(wanted, scheduler, rule)
+
+        limited.request("v2")
+
+        assertTrue(scheduler.enqueued.isEmpty())
+        assertEquals(setOf("v2"), wanted.ids())
+        assertEquals(
+            PackTransfer.Failed(PackFailureReason.WifiOnly),
+            limited.transfers.first()["v2"],
+        )
+    }
+
+    @Test
+    fun wifiOnlyAllowsARequestOnWifiAndMobileDataIsAllowedWithoutTheLimit() {
+        PackDownloads(wanted, scheduler, FixedNetworkRule(wifiOnly = true, metered = false))
+            .request("on_wifi")
+        PackDownloads(wanted, scheduler, FixedNetworkRule(wifiOnly = false, metered = true))
+            .request("on_data")
+
+        assertEquals(listOf("on_wifi", "on_data"), scheduler.enqueued)
+    }
+
+    @Test
+    fun cancelDropsARefusedRequest() = runBlocking {
+        val limited =
+            PackDownloads(wanted, scheduler, FixedNetworkRule(wifiOnly = true, metered = true))
+        limited.request("v2")
+
+        limited.cancel("v2")
+
+        assertTrue(wanted.ids().isEmpty())
+        assertTrue(limited.transfers.first().isEmpty())
+    }
+
+    @Test
+    fun aRefusedRequestStartsOnTheNextLaunchAndItsFailureGoes() = runBlocking {
+        val rule = FixedNetworkRule(wifiOnly = true, metered = true)
+        val limited = PackDownloads(wanted, scheduler, rule)
+        limited.request("v2")
+        packs.catalogueItems += item("v2")
+
+        rule.metered = false
+        limited.resumeWanted(packs)
+
+        assertEquals(listOf("v2"), scheduler.enqueued)
+        assertTrue(limited.transfers.first().isEmpty())
+    }
 
     @Test
     fun requestWritesTheWantedFlagAndSchedulesTheInstall() {

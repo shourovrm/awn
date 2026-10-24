@@ -3,6 +3,7 @@ package app.awn.quran.core.data
 import android.content.Context
 import app.awn.quran.core.data.bookmarks.RoomBookmarkRepository
 import app.awn.quran.core.data.database.AwnDatabase
+import app.awn.quran.core.data.downloads.DownloadNetworkRule
 import app.awn.quran.core.data.downloads.PackDownloads
 import app.awn.quran.core.data.downloads.PackInstallRunner
 import app.awn.quran.core.data.downloads.PackWorkerFactory
@@ -24,7 +25,11 @@ import app.awn.quran.core.data.translations.SqliteTranslationRepository
  * The real repositories, wired together. Create one instance per process; the app module holds it
  * and hands the interfaces to the features.
  */
-class CoreData(context: Context) {
+class CoreData(
+    context: Context,
+    /** The Wi-Fi only choice every pack download follows; unrestricted when not given. */
+    downloadNetworkRule: DownloadNetworkRule = DownloadNetworkRule.Unrestricted,
+) {
 
     private val applicationContext = context.applicationContext
     private val catalog = ManifestCatalog(AndroidBundledAssets(applicationContext.assets))
@@ -82,7 +87,12 @@ class CoreData(context: Context) {
     private val wantedPacks = SharedPreferencesWantedPackStore(applicationContext)
 
     /** Background installs: they go on when the app closes and restart on the next launch. */
-    val packDownloads = PackDownloads(wantedPacks, WorkManagerPackScheduler(applicationContext))
+    val packDownloads =
+        PackDownloads(
+            wantedPacks,
+            WorkManagerPackScheduler(applicationContext, downloadNetworkRule::isWifiOnly),
+            downloadNetworkRule,
+        )
 
     /**
      * The factory WorkManager needs to build the install worker with this process's [packs]; the

@@ -1,6 +1,7 @@
 package app.awn.quran.core.data.downloads
 
 import androidx.work.Data
+import androidx.work.NetworkType
 import androidx.work.WorkInfo
 import androidx.work.workDataOf
 import app.awn.quran.core.data.packs.PackFailureReason
@@ -24,6 +25,12 @@ class WorkManagerPackSchedulerTest {
             outputData = output,
             progress = progress,
         )
+
+    @Test
+    fun wifiOnlyMakesTheInstallWaitForAnUnmeteredNetwork() {
+        assertEquals(NetworkType.UNMETERED, WorkManagerPackScheduler.networkTypeFor(true))
+        assertEquals(NetworkType.CONNECTED, WorkManagerPackScheduler.networkTypeFor(false))
+    }
 
     @Test
     fun queuedAndBlockedWorkIsWaiting() {

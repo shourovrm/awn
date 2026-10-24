@@ -22,7 +22,8 @@ private val Context.listenDataStore: DataStore<Preferences> by
 class ListenSettings(private val dataStore: DataStore<Preferences>) {
 
     /** True until the user turns it off: downloads then wait for an unmetered connection. */
-    val wifiOnly: Flow<Boolean> = dataStore.data.map { it[WIFI_ONLY_KEY] ?: true }
+    /** Off by default: downloads use mobile data until the user limits them to Wi-Fi. */
+    val wifiOnly: Flow<Boolean> = dataStore.data.map { it[WIFI_ONLY_KEY] ?: false }
 
     val selectedReciterId: Flow<String> =
         dataStore.data.map { it[SELECTED_RECITER_KEY] ?: DEFAULT_RECITER_ID }

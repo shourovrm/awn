@@ -20,6 +20,9 @@ enum class PackFailureReason {
 
     /** The downloaded file did not match its recorded size or checksum and was discarded. */
     Damaged,
+
+    /** Downloads are limited to Wi-Fi and the phone is on mobile data or a hotspot. */
+    WifiOnly,
     Other;
 
     companion object {

@@ -178,6 +178,7 @@ internal fun failureMessage(
         PackFailureReason.NoInternet -> stringResource(R.string.catalogue_error_no_internet)
         PackFailureReason.ServerError -> stringResource(R.string.catalogue_error_server)
         PackFailureReason.Damaged -> stringResource(R.string.catalogue_error_damaged)
+        PackFailureReason.WifiOnly -> stringResource(R.string.catalogue_error_wifi)
         PackFailureReason.Other -> stringResource(R.string.catalogue_error_other)
     }
 }
