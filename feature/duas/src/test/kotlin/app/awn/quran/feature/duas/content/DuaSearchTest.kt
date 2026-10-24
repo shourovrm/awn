@@ -28,7 +28,7 @@ class DuaSearchTest {
                 parentsDua,
                 arabic = "رَّبِّ ٱرْحَمْهُمَا كَمَا رَبَّيَانِى صَغِيرًۭا",
                 translation = "My Lord, have mercy on them as they raised me when I was small.",
-                groupName = "Parents, family and children",
+                groupName = "Family and children",
             ),
             DuaSearchEntry(
                 forgiveDua,
