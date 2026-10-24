@@ -21,11 +21,11 @@ data class PracticeRun(
 
     /** The questions of the run; a read-aloud item is not one, nothing in it is right or wrong. */
     val questionCount: Int
-        get() = items.count { it is PracticeItem.Question }
+        get() = items.count { it.check != null }
 
     val rightCount: Int
         get() = picks.count { (index, pick) ->
-            (items[index] as? PracticeItem.Question)?.check?.correctIndex == pick
+            items[index].check?.correctIndex == pick
         }
 
     fun pick(optionIndex: Int): PracticeRun =

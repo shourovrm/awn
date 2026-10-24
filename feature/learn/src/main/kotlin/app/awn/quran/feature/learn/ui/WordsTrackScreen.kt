@@ -14,15 +14,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -37,6 +44,7 @@ import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.components.SettingsLinkRow
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.core.ui.theme.AwnColors
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -45,8 +53,11 @@ import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.LearnTrack
+import app.awn.quran.feature.learn.course.LevelSection
+import app.awn.quran.feature.learn.course.LevelState
 import app.awn.quran.feature.learn.course.PathRow
 import app.awn.quran.feature.learn.course.PathState
+import app.awn.quran.feature.learn.formatCount
 import app.awn.quran.feature.learn.words.LearnSets
 import kotlin.math.roundToInt
 
@@ -67,7 +78,8 @@ internal fun WordsTrackScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val texts = rememberWordTexts(state.allKeys)
+    var openLevelNumbers by rememberSaveable { mutableStateOf(state.levels.currentLevelNumbers()) }
+    val texts = rememberWordTexts(state.keysToDraw(openLevelNumbers))
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
             title = trackName(LearnTrack.Words),
@@ -87,7 +99,15 @@ internal fun WordsTrackScreen(
                 state.pageLinks.forEach { PageLink(it, actions.onOpenPageWords) }
             }
             Heading(stringResource(R.string.words_sets_heading))
-            state.path.forEach { SetsPathRow(it, state, actions, texts) }
+            state.levels.forEach { section ->
+                val isOpen = section.level.number in openLevelNumbers
+                LevelHeader(section) {
+                    val number = section.level.number
+                    openLevelNumbers =
+                        if (isOpen) openLevelNumbers - number else openLevelNumbers + number
+                }
+                if (isOpen) section.rows.forEach { SetsPathRow(it, state, actions, texts) }
+            }
             WordListLinks(state.hub, actions.hub)
         }
     }
@@ -240,7 +260,6 @@ private fun SetsPathRow(
     texts: Map<WordKey, String>,
 ) {
     when (row) {
-        is PathRow.Folded -> FoldedSets(row, actions)
         is PathRow.SetStep -> {
             val title =
                 if (row.state == PathState.Done || row.metCount > 0) {
@@ -253,40 +272,61 @@ private fun SetsPathRow(
                 } else {
                     stringResource(R.string.words_set_plain, row.number)
                 }
+            val isToday = row.number == state.todaySet
             SetRow(
-                marker = { SetMarker(row.state, row.number) },
+                pathState = row.state,
                 title = title,
                 preview = previewText(state.previewKeys[row.number], texts),
-                isNext = row.state == PathState.Next,
+                isToday = isToday,
+                onStart = actions.hub.onStart.takeIf { isToday && !state.hub.plan.isEmpty },
                 onClick = { actions.onOpenSet(row.number) },
             )
         }
         is PathRow.LessonStep -> GrammarLine(row, state, actions.hub)
-        is PathRow.Later ->
-            SetRow(
-                marker = { SetMarker(PathState.Upcoming, row.fromSet) },
-                title = stringResource(R.string.course_later_from, row.fromSet),
-                preview = previewText(state.previewKeys[row.fromSet], texts),
-                isNext = false,
-                onClick = { actions.onOpenSet(row.fromSet) },
-            )
+        // Folded and "later" rows belong to the hub path; this page groups by level instead.
+        is PathRow.Folded,
+        is PathRow.Later -> Unit
     }
 }
 
+/** A level's header row; a finished level shows a check, the open one a ring. */
 @Composable
-private fun FoldedSets(row: PathRow.Folded, actions: WordsTrackActions) {
-    val sets = row.sets ?: return
-    val title =
-        if (sets.first == sets.last) stringResource(R.string.course_folded_set, sets.first)
-        else stringResource(R.string.course_folded_sets, sets.first, sets.last)
-    SetRow(
-        marker = { SetMarker(PathState.Done, sets.last) },
-        title = title,
-        preview = null,
-        isNext = false,
-        onClick = { actions.onOpenSet(sets.last) },
-    )
+private fun LevelHeader(section: LevelSection, onToggle: () -> Unit) {
+    val markerState =
+        when (section.state) {
+            LevelState.Finished -> PathState.Done
+            LevelState.Current -> PathState.Next
+            LevelState.Later -> PathState.Upcoming
+        }
+    Row(
+        modifier =
+            Modifier.fillMaxWidth()
+                .heightIn(min = AwnSpacing.settingsRowTall)
+                .clip(AwnShapes.control)
+                .clickable(role = Role.Button, onClick = onToggle)
+                .padding(horizontal = AwnSpacing.small, vertical = AwnSpacing.small),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
+    ) {
+        SetMarker(markerState, section.level.number)
+        Text(
+            text =
+                stringResource(
+                    R.string.words_level_title,
+                    section.level.number,
+                    formatCount(section.level.wordCount),
+                ),
+            style = AwnTypography.bodyStrong,
+            color = Awn.field.content,
+        )
+    }
 }
+
+private fun List<LevelSection>.currentLevelNumbers(): Set<Int> = filter {
+    it.state == LevelState.Current
+}
+    .map { it.level.number }
+    .toSet()
 
 @Composable
 private fun GrammarLine(row: PathRow.LessonStep, state: WordsTrackState, actions: HubActions) {
@@ -307,30 +347,51 @@ private fun GrammarLine(row: PathRow.LessonStep, state: WordsTrackState, actions
     }
 }
 
-/** One set: its marker, "Set 3 · 2 of 10 known" and its first words in Arabic. */
+/**
+ * One set on the path: its dot on the line, "Set 3 · 2 of 10 known" and its first words in Arabic.
+ * Today's set is outlined with a Start button; sets after it are muted but still open.
+ */
 @Composable
 private fun SetRow(
-    marker: @Composable () -> Unit,
+    pathState: PathState,
     title: String,
     preview: String?,
-    isNext: Boolean,
+    isToday: Boolean,
+    onStart: (() -> Unit)?,
     onClick: () -> Unit,
 ) {
     val field = Awn.field
+    val isMuted = pathState == PathState.Upcoming && !isToday
+    val lineColour = field.softFill
     Row(
         modifier =
             Modifier.fillMaxWidth()
                 .heightIn(min = AwnSpacing.settingsRowTall)
+                .drawBehind {
+                    val lineX = PATH_DOT_COLUMN.toPx() / 2
+                    drawLine(
+                        lineColour,
+                        Offset(lineX, 0f),
+                        Offset(lineX, size.height),
+                        PATH_LINE.toPx(),
+                    )
+                }
                 .clip(AwnShapes.control)
-                .then(if (isNext) Modifier.background(field.softFill) else Modifier)
+                .then(
+                    if (isToday) Modifier.border(PATH_LINE, field.buttonFill, AwnShapes.control)
+                    else Modifier,
+                )
                 .clickable(role = Role.Button, onClick = onClick)
-                .padding(horizontal = AwnSpacing.small, vertical = AwnSpacing.small),
+                .padding(vertical = AwnSpacing.small),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium),
     ) {
-        marker()
+        PathDot(pathState, isToday)
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = AwnTypography.bodyStrong, color = field.content)
+            Text(
+                text = title,
+                style = AwnTypography.bodyStrong,
+                color = if (isMuted) field.mutedContent else field.content,
+            )
             preview?.let {
                 Text(
                     text = it,
@@ -342,8 +403,36 @@ private fun SetRow(
                 )
             }
         }
+        onStart?.let {
+            AwnButton(
+                label = stringResource(R.string.words_set_start),
+                onClick = it,
+                modifier = Modifier.padding(horizontal = AwnSpacing.small),
+            )
+        }
     }
 }
+
+/** A done set is a green dot, today's set a larger ochre one, later sets a pale dot. */
+@Composable
+private fun PathDot(pathState: PathState, isToday: Boolean) {
+    val field = Awn.field
+    val colour =
+        when {
+            isToday -> AwnColors.ochre
+            pathState == PathState.Done -> field.buttonFill
+            else -> field.softFill
+        }
+    val size = if (isToday) PATH_TODAY_DOT else PATH_DOT
+    Box(Modifier.width(PATH_DOT_COLUMN), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(size).clip(CircleShape).background(colour))
+    }
+}
+
+private val PATH_DOT_COLUMN = 28.dp
+private val PATH_DOT = 14.dp
+private val PATH_TODAY_DOT = 20.dp
+private val PATH_LINE = 2.dp
 
 /**
  * Done is a filled disc with a check, the next set a ring with its number, later sets a faint ring.

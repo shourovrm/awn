@@ -3,6 +3,8 @@ package app.awn.quran.feature.learn.ui
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CoursePath
+import app.awn.quran.feature.learn.course.LevelSection
+import app.awn.quran.feature.learn.course.LevelSections
 import app.awn.quran.feature.learn.course.PageWords
 import app.awn.quran.feature.learn.course.PathInput
 import app.awn.quran.feature.learn.course.PathRow
@@ -35,14 +37,25 @@ internal data class WordsTrackState(
     val todaySet: Int,
     val todayWords: List<SetWordCell>,
     val pageLinks: List<PageLinkRow>,
-    /** The sets and grammar lessons of the path; the Reading and Basics lessons are left out. */
-    val path: List<PathRow>,
-    /** The first words of each set in [path], for the one-line preview. */
+    /**
+     * The word levels with their sets and grammar lessons; Reading and Basics lessons are left out.
+     */
+    val levels: List<LevelSection>,
+    /** The first words of each set in [levels], for the one-line preview. */
     val previewKeys: Map<Int, List<WordKey>>,
 ) {
-    /** Every word the screen draws in Arabic, so the texts load in one go. */
-    val allKeys: Set<WordKey>
-        get() = todayWords.map { it.key }.toSet() + previewKeys.values.flatten()
+    /**
+     * Every word the screen draws in Arabic while the levels in [openLevelNumbers] are open, so the
+     * texts load in one go and a folded level costs nothing.
+     */
+    fun keysToDraw(openLevelNumbers: Set<Int>): Set<WordKey> {
+        val previewSets =
+            levels
+                .filter { it.level.number in openLevelNumbers }
+                .flatMap { section -> section.rows.filterIsInstance<PathRow.SetStep>() }
+                .map { it.number }
+        return todayWords.map { it.key }.toSet() + previewSets.flatMap { previewKeys[it].orEmpty() }
+    }
 }
 
 private const val PREVIEW_WORD_COUNT = 5
@@ -55,7 +68,7 @@ internal suspend fun buildWordsTrackState(
     quranText: QuranTextRepository?,
 ): WordsTrackState {
     val path =
-        CoursePath.build(
+        CoursePath.buildAllSets(
             PathInput(
                 content = lookups.content,
                 frequency = lookups.frequency,
@@ -74,7 +87,7 @@ internal suspend fun buildWordsTrackState(
         todaySet = todaySet,
         todayWords = setWordCells(lookups, todaySet, hub.meanings == MeaningsState.Ready),
         pageLinks = pageLinkRows(lookups, snapshot, links, quranText),
-        path = path,
+        levels = LevelSections.group(path, todaySet),
         previewKeys = previewKeysOf(lookups, path),
     )
 }
@@ -113,7 +126,6 @@ private fun previewKeysOf(lookups: CourseLookups, path: List<PathRow>): Map<Int,
     val numbers = path.flatMap { row ->
         when (row) {
             is PathRow.SetStep -> listOf(row.number)
-            is PathRow.Later -> listOf(row.fromSet)
             else -> emptyList()
         }
     }

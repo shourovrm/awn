@@ -217,7 +217,6 @@
     <item quantity="one">%d time</item>
     <item quantity="other">%d times</item>
   </plurals>
-  <string name="word_rank">Rank</string>
   <string name="word_state">State</string>
   <plurals name="word_state_known_back">
     <item quantity="one">Known, back in %d day</item>
@@ -255,11 +254,6 @@
   <string name="progress_words_title">Progress</string>
   <string name="progress_known_share">They make up %d%% of all words in the Quran.</string>
   <string name="progress_chart_title">Share of the Quran covered</string>
-  <string name="progress_chart_axis">Words known, most frequent first</string>
-  <plurals name="progress_chart_you">
-    <item quantity="one">You: %1$d word, %2$d%%</item>
-    <item quantity="other">You: %1$d words, %2$d%%</item>
-  </plurals>
   <string name="progress_known_caption">words known</string>
 
   <!-- Sources -->
@@ -355,4 +349,19 @@
   <string name="mouth_area_lips">Lips</string>
   <string name="mouth_area_nose">Nose</string>
   <string name="mouth_area_open_mouth">Open mouth</string>
+  <string name="words_level_title">Level %1$d · %2$s words</string>
+  <string name="words_set_start">Start</string>
+  <string name="word_position">%1$d of %2$d</string>
+  <string name="word_sound_download">Download word audio</string>
+  <string name="word_sound_downloading">Downloading %1$d%%</string>
+  <string name="word_sound_failed">Download failed. Check your connection.</string>
+  <string name="progress_chart_you_label">You</string>
+  <string name="progress_chart_percent">%1$.1f%%</string>
+  <string name="practice_tap_to_hear">Tap to hear again</string>
+  <string name="level_complete_badge">Level</string>
+  <string name="level_complete_title">Level %1$d complete</string>
+  <string name="level_complete_text">Alhamdulillah. You have learnt the %1$s words used most in the Quran.</string>
+  <string name="level_complete_ayah_translation">“My Lord, increase me in knowledge.” 20:114</string>
+  <string name="level_complete_start">Start level %1$d</string>
+  <string name="level_complete_later">Later</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -70,6 +71,18 @@ class LearnSettings(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[COURSE_STARTED_KEY] = true }
     }
 
+    /** The numbers of the word levels whose completion screen the user has seen. */
+    val celebratedLevels: Flow<Set<Int>> =
+        dataStore.data.map { preferences ->
+            preferences[CELEBRATED_LEVELS_KEY].orEmpty().map(String::toInt).toSet()
+        }
+
+    suspend fun markLevelCelebrated(level: Int) {
+        dataStore.edit {
+            it[CELEBRATED_LEVELS_KEY] = it[CELEBRATED_LEVELS_KEY].orEmpty() + level.toString()
+        }
+    }
+
     /** The language of lesson content; follows the app language until the user picks one. */
     val lessonLanguage: Flow<LessonLanguageChoice> =
         dataStore.data.map { LessonLanguageChoice.fromStoredName(it[LESSON_LANGUAGE_KEY]) }
@@ -79,6 +92,7 @@ class LearnSettings(private val dataStore: DataStore<Preferences>) {
     }
 
     companion object {
+        private val CELEBRATED_LEVELS_KEY = stringSetPreferencesKey("celebrated_levels")
         private val LESSON_LANGUAGE_KEY = stringPreferencesKey("lesson_language")
         val SESSION_MINUTE_CHOICES = listOf(5, 10, 15)
         const val DEFAULT_SESSION_MINUTES = 10

@@ -14,8 +14,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.AwnChoiceRow
@@ -33,7 +36,10 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
+import app.awn.quran.feature.learn.sound.LocalUnitSounds
+import app.awn.quran.feature.learn.sound.WordSoundStatus
 import app.awn.quran.feature.learn.words.WordStatus
+import kotlinx.coroutines.launch
 
 /** One row of the word list. */
 internal data class WordListRow(
@@ -177,58 +183,82 @@ internal data class WordDetails(
     val isQueued: Boolean,
 )
 
+/** One word of the word page: the word to tap and hear, its meaning and its example ayahs. */
 @Composable
-internal fun WordPageScreen(
+internal fun WordPageBody(
     details: WordDetails,
     onReviseNow: () -> Unit,
     onAdd: () -> Unit,
-    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isMet = details.status != WordStatus.NotMet
-    Column(modifier = modifier.fillMaxSize()) {
-        LearnBar(
-            title = stringResource(R.string.word_title),
-            startLinkLabel = stringResource(R.string.back),
-            onStartLinkClick = onBack,
+    BodyWithButton(
+        modifier = modifier,
+        buttonLabel =
+            stringResource(
+                when {
+                    isMet -> R.string.word_revise_now
+                    details.isQueued -> R.string.word_added
+                    else -> R.string.word_add
+                },
+            ),
+        onButtonClick = { if (isMet) onReviseNow() else if (!details.isQueued) onAdd() },
+    ) {
+        TappableWord(details.key)
+        Text(
+            text = details.meaning,
+            style = AwnTypography.lead,
+            color = Awn.field.content,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
         )
-        BodyWithButton(
-            buttonLabel =
-                stringResource(
-                    when {
-                        isMet -> R.string.word_revise_now
-                        details.isQueued -> R.string.word_added
-                        else -> R.string.word_add
-                    },
-                ),
-            onButtonClick = { if (isMet) onReviseNow() else if (!details.isQueued) onAdd() },
-        ) {
-            ArabicWord(details.key, style = AwnTypography.poster)
-            Text(
-                text = details.meaning,
-                style = AwnTypography.lead,
-                color = Awn.field.content,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        InfoLine(
+            stringResource(R.string.word_appears),
+            pluralStringResource(
+                R.plurals.word_appears_times,
+                details.occurrences,
+                details.occurrences,
+            ),
+        )
+        InfoLine(stringResource(R.string.word_state), stateText(details))
+        details.ayahs.forEach {
+            AyahCard(
+                it,
+                highlight =
+                    details.key.takeIf { key -> key.ayah == it.ayah && key.surah == it.surah },
             )
-            InfoLine(
-                stringResource(R.string.word_appears),
-                pluralStringResource(
-                    R.plurals.word_appears_times,
-                    details.occurrences,
-                    details.occurrences,
-                ),
-            )
-            InfoLine(stringResource(R.string.word_rank), details.rank.toString())
-            InfoLine(stringResource(R.string.word_state), stateText(details))
-            details.ayahs.forEach {
-                AyahCard(
-                    it,
-                    highlight =
-                        details.key.takeIf { key -> key.ayah == it.ayah && key.surah == it.surah },
-                )
-            }
         }
+    }
+}
+
+/**
+ * The word in large Arabic; a tap plays it. While the word reciter's timings are not on the phone
+ * the tap does nothing and the download is offered under the word.
+ */
+@Composable
+private fun TappableWord(key: WordKey) {
+    val sounds = LocalUnitSounds.current
+    val scope = rememberCoroutineScope()
+    var downloadRequests by remember { mutableIntStateOf(0) }
+    val status by rememberWordSoundStatus(key, sounds, downloadRequests)
+    val canPlay = status == WordSoundStatus.Ready
+    ArabicWord(
+        key = key,
+        style = AwnTypography.poster,
+        modifier =
+            Modifier.clickable(enabled = canPlay, role = Role.Button) {
+                scope.launch { sounds.playWord(key) }
+            },
+    )
+    val missing = status as? WordSoundStatus.Missing
+    if (missing != null) {
+        WordSoundOffer(
+            status = missing,
+            onDownload = {
+                sounds.downloadWordSound(missing.packId)
+                downloadRequests++
+            },
+        )
     }
 }
 

@@ -44,7 +44,6 @@ import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.CheckWithAnswer
 import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.LearnTrack
-import app.awn.quran.feature.learn.course.PracticeDraw
 import app.awn.quran.feature.learn.course.PracticeRun
 import app.awn.quran.feature.learn.course.ScreenKind
 import app.awn.quran.feature.learn.course.TrackUnit
@@ -85,12 +84,7 @@ internal fun UnitScreen(
     var answers by remember(lesson.id) { mutableStateOf(UnitAnswers()) }
     // The seed is saved so that a turned screen keeps the same ten items.
     val practiceSeed = rememberSaveable(lesson.id) { Random.nextLong() }
-    var practiceRun by
-        remember(lesson.id, practiceSeed) {
-            val drawn =
-                PracticeDraw.draw(text.practiceItems, PracticeDraw.ITEMS_PER_VISIT, practiceSeed)
-            mutableStateOf(PracticeRun(drawn))
-        }
+    var practiceRun by rememberPracticeRun(lesson.id, text, practiceSeed)
     var finishReported by rememberSaveable(lesson.id) { mutableStateOf(false) }
     val checks = text.checks
     LaunchedEffect(pagerState.currentPage) {

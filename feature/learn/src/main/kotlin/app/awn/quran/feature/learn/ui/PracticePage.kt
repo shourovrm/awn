@@ -64,6 +64,12 @@ internal fun PracticePage(
                         run.currentPick,
                         onPick = { onRunChange(run.pick(it)) },
                     )
+                is PracticeItem.ListenPick ->
+                    ListenPickItem(
+                        item.check,
+                        run.currentPick,
+                        onPick = { onRunChange(run.pick(it)) },
+                    )
                 is PracticeItem.ReadAloud -> ReadAloudItem(item)
             }
             val isReadAloud = item is PracticeItem.ReadAloud
@@ -193,7 +199,7 @@ private fun OptionTiles(item: LessonCheck, pick: Int?, onPick: (Int) -> Unit) {
 }
 
 @Composable
-private fun OptionTile(
+internal fun OptionTile(
     markup: String,
     state: AnswerRowState,
     onClick: (() -> Unit)?,
@@ -228,7 +234,7 @@ private fun OptionTile(
     }
 }
 
-private fun optionState(item: LessonCheck, pick: Int?, index: Int): AnswerRowState =
+internal fun optionState(item: LessonCheck, pick: Int?, index: Int): AnswerRowState =
     when {
         pick == null -> AnswerRowState.Open
         index == item.correctIndex -> AnswerRowState.Right

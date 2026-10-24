@@ -79,6 +79,8 @@ data class SessionSummary(
     val lastAyah: LastAyah?,
     val tomorrowReviews: Int,
     val tomorrowNewWords: Int,
+    /** The number of the word level this session finished and the user has not seen, or null. */
+    val finishedLevel: Int? = null,
 )
 
 data class LastAyah(val ayah: AyahRef, val words: List<LastAyahWord>) {

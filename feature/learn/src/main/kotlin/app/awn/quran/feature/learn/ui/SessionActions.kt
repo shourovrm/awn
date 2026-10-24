@@ -28,6 +28,8 @@ import app.awn.quran.feature.learn.session.QuestionPrompt
 import app.awn.quran.feature.learn.session.QuestionType
 import app.awn.quran.feature.learn.session.SessionFrame
 import app.awn.quran.feature.learn.session.SessionState
+import app.awn.quran.feature.learn.session.SessionSummary
+import app.awn.quran.feature.learn.words.WordLevels
 
 /** What a session screen asks of its host. */
 internal class SessionActions(
@@ -36,6 +38,8 @@ internal class SessionActions(
     /** The user chose option [Int], or null for "I don't know". */
     val onAnswer: (Int?) -> Unit,
     val onDone: () -> Unit,
+    /** The user has seen the completion screen of word level [Int]. */
+    val onLevelCelebrated: (Int) -> Unit = {},
 )
 
 /** One screen of a session or quiz: the bar above and the frame under it. */
@@ -53,7 +57,7 @@ internal fun SessionScreen(
             is SessionFrame.Reading -> ReadingFrame(frame, actions.onNext)
             is SessionFrame.Ask -> AskFrame(frame, actions.onAnswer)
             is SessionFrame.Answer -> AnswerFrame(frame, actions.onNext)
-            is SessionFrame.Finished -> EndFrame(frame.summary, actions.onDone)
+            is SessionFrame.Finished -> FinishedFrame(frame.summary, actions)
         }
     }
 }
@@ -222,5 +226,29 @@ private fun AnswerFrame(frame: SessionFrame.Answer, onNext: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+}
+
+/** The level-complete screen first when the session finished a level, then the usual end. */
+@Composable
+private fun FinishedFrame(summary: SessionSummary, actions: SessionActions) {
+    var hasSeenLevel by remember(summary) { mutableStateOf(false) }
+    val level =
+        summary.finishedLevel?.let { number -> WordLevels.all.firstOrNull { it.number == number } }
+    if (level == null || hasSeenLevel) {
+        EndFrame(summary, actions.onDone)
+    } else {
+        // The next level's first set is the next session, which the words page starts.
+        LevelCompleteFrame(
+            level = level,
+            onNextLevel = {
+                actions.onLevelCelebrated(level.number)
+                actions.onDone()
+            },
+            onLater = {
+                actions.onLevelCelebrated(level.number)
+                hasSeenLevel = true
+            },
+        )
     }
 }

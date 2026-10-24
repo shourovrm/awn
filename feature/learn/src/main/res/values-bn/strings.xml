@@ -217,7 +217,6 @@
     <item quantity="one">%d বার</item>
     <item quantity="other">%d বার</item>
   </plurals>
-  <string name="word_rank">ক্রম</string>
   <string name="word_state">অবস্থা</string>
   <plurals name="word_state_known_back">
     <item quantity="one">জানা, %d দিন পরে আবার আসবে</item>
@@ -255,11 +254,6 @@
   <string name="progress_words_title">অগ্রগতি</string>
   <string name="progress_known_share">কুরআনের সব শব্দের %d%% এগুলো।</string>
   <string name="progress_chart_title">কুরআনের যতটা ঢাকা পড়েছে</string>
-  <string name="progress_chart_axis">জানা শব্দ, সবচেয়ে বেশি আসা আগে</string>
-  <plurals name="progress_chart_you">
-    <item quantity="one">আপনি: %1$dটি শব্দ, %2$d%%</item>
-    <item quantity="other">আপনি: %1$dটি শব্দ, %2$d%%</item>
-  </plurals>
   <string name="progress_known_caption">জানা শব্দ</string>
 
   <!-- Sources -->
@@ -355,4 +349,19 @@
   <string name="mouth_area_lips">ঠোঁট</string>
   <string name="mouth_area_nose">নাক</string>
   <string name="mouth_area_open_mouth">মুখের ফাঁকা জায়গা</string>
+  <string name="words_level_title">লেভেল %1$d · %2$sটি শব্দ</string>
+  <string name="words_set_start">শুরু করুন</string>
+  <string name="word_position">%2$dটির মধ্যে %1$d</string>
+  <string name="word_sound_download">শব্দের অডিও ডাউনলোড করুন</string>
+  <string name="word_sound_downloading">ডাউনলোড হচ্ছে %1$d%%</string>
+  <string name="word_sound_failed">ডাউনলোড হয়নি। ইন্টারনেট সংযোগ দেখুন।</string>
+  <string name="progress_chart_you_label">আপনি</string>
+  <string name="progress_chart_percent">%1$.1f%%</string>
+  <string name="practice_tap_to_hear">আবার শুনতে ট্যাপ করুন</string>
+  <string name="level_complete_badge">লেভেল</string>
+  <string name="level_complete_title">লেভেল %1$d শেষ</string>
+  <string name="level_complete_text">আলহামদুলিল্লাহ। কুরআনে সবচেয়ে বেশি আসা %1$sটি শব্দ আপনি শিখেছেন।</string>
+  <string name="level_complete_ayah_translation">“হে আমার রব, আমার জ্ঞান বাড়িয়ে দিন।” ২০:১১৪</string>
+  <string name="level_complete_start">লেভেল %1$d শুরু করুন</string>
+  <string name="level_complete_later">পরে</string>
 </resources>

@@ -35,6 +35,7 @@ import app.awn.quran.feature.learn.words.CourseSnapshot
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -74,6 +75,7 @@ internal class CourseRuntime(
             planner = assets.planner,
             choices = choices,
             languageCode = dependencies.languageCode,
+            celebratedLevels = { dependencies.services.settings.celebratedLevels.first() },
         )
 }
 
@@ -263,6 +265,7 @@ private fun SessionRouteOrHub(
             request,
             context.runtime,
             context.choices,
+            context.services.settings,
             onFinished = context::goHub,
             modifier,
         )
@@ -304,13 +307,25 @@ private fun WordListRoute(context: CourseScreenContext, modifier: Modifier) {
     )
 }
 
+/** The word page: swipes between the words of the set it was opened from. */
 @Composable
 private fun WordPageRoute(
     route: LearnRoute.WordPage,
     context: CourseScreenContext,
     modifier: Modifier,
 ) {
-    val rank = route.rank
+    val plan = rememberWordPagerPlan(route, context.runtime.lookups.frequency.formCount)
+    WordPagerScreen(
+        plan = plan,
+        onBack = { context.onRouteChange(learnBackFrom(route) ?: LearnRoute.WordList) },
+        modifier = modifier,
+    ) { rank ->
+        WordPageOfRank(rank, context)
+    }
+}
+
+@Composable
+private fun WordPageOfRank(rank: Int, context: CourseScreenContext) {
     val lookups = context.runtime.lookups
     val snapshot = context.snapshot
     val details by
@@ -322,7 +337,7 @@ private fun WordPageRoute(
                 }
         }
     details?.let { shown ->
-        WordPageScreen(
+        WordPageBody(
             details = shown,
             onReviseNow = {
                 context.scope.launch {
@@ -331,8 +346,6 @@ private fun WordPageRoute(
                 }
             },
             onAdd = { context.scope.launch { context.services.courseRepository.queueWord(rank) } },
-            onBack = { context.onRouteChange(learnBackFrom(route) ?: LearnRoute.WordList) },
-            modifier = modifier,
         )
     }
 }
@@ -386,6 +399,7 @@ private fun SessionRoute(
     request: SessionRequest,
     runtime: CourseRuntime,
     choices: CourseChoices,
+    settings: LearnSettings,
     onFinished: () -> Unit,
     modifier: Modifier,
 ) {
@@ -417,6 +431,9 @@ private fun SessionRoute(
                 onNext = { scope.launch { controller.next() } },
                 onAnswer = { optionIndex -> scope.launch { controller.answer(optionIndex) } },
                 onDone = onFinished,
+                onLevelCelebrated = { level ->
+                    scope.launch { settings.markLevelCelebrated(level) }
+                },
             ),
         modifier = modifier,
     )

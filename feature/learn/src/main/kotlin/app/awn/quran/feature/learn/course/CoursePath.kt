@@ -4,6 +4,7 @@ import app.awn.quran.feature.learn.session.PlanStep
 import app.awn.quran.feature.learn.session.TodayPlan
 import app.awn.quran.feature.learn.words.LearnSets
 import app.awn.quran.feature.learn.words.WordFrequency
+import app.awn.quran.feature.learn.words.WordLevels
 
 /** Where a step of the path stands. */
 enum class PathState {
@@ -80,12 +81,9 @@ object CoursePath {
     const val UPCOMING_SETS = 2
 
     fun build(input: PathInput): List<PathRow> {
-        val steps = orderedSteps(input)
-        val firstNotDone = steps.indexOfFirst { it.stateOrNull() != PathState.Done }
-        val nextIndex = if (firstNotDone == -1) steps.size else firstNotDone
-        val marked = steps.mapIndexed { index, step ->
-            if (index == nextIndex) step.asNext() else step
-        }
+        val steps = orderedSteps(input, lastSet = currentSetNumber(input) + UPCOMING_SETS)
+        val nextIndex = nextStepIndex(steps)
+        val marked = markNext(steps, nextIndex)
         val foldedCount = (nextIndex - VISIBLE_DONE_STEPS).coerceAtLeast(0)
         val rows = mutableListOf<PathRow>()
         if (foldedCount > 0) rows += folded(marked.take(foldedCount))
@@ -94,7 +92,33 @@ object CoursePath {
         return rows
     }
 
-    private fun orderedSteps(input: PathInput): List<PathRow> {
+    /**
+     * Every set of the word levels in order, each grammar lesson after the set that brings it, with
+     * the next step marked. Nothing is folded and there is no "Later" row: the Quran words page
+     * groups the rows by level itself. The list ends at the last set of the last level, or at the
+     * last set that has a word when the word list is shorter.
+     */
+    fun buildAllSets(input: PathInput): List<PathRow> {
+        val steps = orderedSteps(input, lastSet = lastSetOfCourse(input))
+        return markNext(steps, nextStepIndex(steps))
+    }
+
+    private fun lastSetOfCourse(input: PathInput): Int {
+        val setsWithWords = LearnSets.numberOf(input.frequency.formCount)
+        return minOf(setsWithWords, WordLevels.all.last().sets.last)
+    }
+
+    private fun nextStepIndex(steps: List<PathRow>): Int {
+        val firstNotDone = steps.indexOfFirst { it.stateOrNull() != PathState.Done }
+        return if (firstNotDone == -1) steps.size else firstNotDone
+    }
+
+    private fun markNext(steps: List<PathRow>, nextIndex: Int): List<PathRow> =
+        steps.mapIndexed { index, step ->
+            if (index == nextIndex) step.asNext() else step
+        }
+
+    private fun orderedSteps(input: PathInput, lastSet: Int): List<PathRow> {
         val todaySets =
             input.plan
                 ?.steps
@@ -106,8 +130,7 @@ object CoursePath {
         val steps = mutableListOf<PathRow>()
         startLessons(input).forEach { steps += lessonStep(it, input, todayLessons, null, null) }
         val grammar = input.content.inCourse(LessonCourse.Grammar)
-        val currentSet = currentSetNumber(input)
-        for (number in 1..(currentSet + UPCOMING_SETS)) {
+        for (number in 1..lastSet) {
             steps += setStep(number, input, number in todaySets)
             grammar
                 .filter { triggerSetOf(it, input) == number }

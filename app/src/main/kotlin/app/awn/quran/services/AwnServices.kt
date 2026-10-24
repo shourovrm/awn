@@ -18,7 +18,6 @@ import app.awn.quran.feature.learn.learnProgressEvents
 import app.awn.quran.feature.learn.learnRemoveWord
 import app.awn.quran.feature.learn.learnWordIsAdded
 import app.awn.quran.feature.learn.learnWordMarks
-import app.awn.quran.feature.learn.sound.WordSound
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.read.ReadDependencies
@@ -199,19 +198,19 @@ class AwnServices(private val application: Application) {
             myWords = readDependencies.myWords,
         )
 
-    /** Plays the Quran word of a Learn practice item with the word reciter chosen in Settings. */
-    val learnWordSound = WordSound { word ->
-        val withTimings =
-            coreData.reciters
-                .reciters()
-                .filter { it.wordByWord && it.timingPack != null }
-                .map { it.id }
-        val listeningReciterId = listenSettings.selectedReciterId.first()
-        val reciterId =
-            wordReciterFor(listenSettings.wordReciterId.first(), listeningReciterId, withTimings)
-                ?: listeningReciterId
-        audioPlayer.playWordToEnd(reciterId, AyahRef(word.surah, word.ayah), word.wordPosition)
-    }
+    /**
+     * Plays the Quran word of a Learn page or practice item with the word reciter from Settings.
+     */
+    val learnWordSound =
+        LearnWordSound(
+            reciters = coreData.reciters,
+            audioPlayer = audioPlayer,
+            listeningReciterId = listenSettings.selectedReciterId,
+            chosenWordReciterId = listenSettings.wordReciterId,
+            packs = coreData.packs,
+            downloads = coreData.packDownloads,
+            scope = applicationScope,
+        )
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
     val hifz =

@@ -94,4 +94,49 @@ class CoursePathTest {
         val lastSet = rows.filterIsInstance<PathRow.SetStep>().maxOf { it.number }
         assertEquals(lastSet + 1, (rows.last() as PathRow.Later).fromSet)
     }
+
+    private fun allSets(
+        met: Set<Int> = emptySet(),
+        formCount: Int = 200,
+        done: Set<String> = emptySet(),
+    ) =
+        CoursePath.buildAllSets(
+            PathInput(
+                content = fixtureContent(),
+                frequency = FakeFrequency(formCount = formCount),
+                metRanks = met,
+                knownRanks = emptySet(),
+                doneLessonIds = done,
+                includeLetters = false,
+                plan = null,
+                includeStartLessons = false,
+            ),
+        )
+
+    @Test
+    fun theWholeCourseListsEverySetWithoutFoldingOrLater() {
+        val rows = allSets(met = (1..50).toSet(), done = setOf("grammar-03"))
+
+        val sets = rows.filterIsInstance<PathRow.SetStep>()
+        assertEquals((1..20).toList(), sets.map { it.number })
+        assertTrue(rows.none { it is PathRow.Folded || it is PathRow.Later })
+        assertEquals(PathState.Done, sets.first().state)
+        assertEquals(PathState.Next, sets.first { it.number == 6 }.state)
+        assertEquals(PathState.Upcoming, sets.first { it.number == 7 }.state)
+    }
+
+    @Test
+    fun theWholeCourseStopsAtTheLastSetOfTheLastLevel() {
+        val rows = allSets(formCount = 9_000)
+
+        assertEquals(500, rows.filterIsInstance<PathRow.SetStep>().maxOf { it.number })
+    }
+
+    @Test
+    fun theWholeCourseKeepsTheGrammarLessonAfterItsSet() {
+        val rows = allSets(met = (1..20).toSet())
+
+        val setThree = rows.indexOfFirst { it is PathRow.SetStep && it.number == 3 }
+        assertEquals("grammar-03", (rows[setThree + 1] as PathRow.LessonStep).lessonId)
+    }
 }

@@ -15,6 +15,7 @@ import app.awn.quran.feature.learn.data.StepOutcome
 import app.awn.quran.feature.learn.progress.LearnClock
 import app.awn.quran.feature.learn.words.CourseSnapshot
 import app.awn.quran.feature.learn.words.FinishedStep
+import app.awn.quran.feature.learn.words.LevelComplete
 import app.awn.quran.feature.learn.words.WordCourseRepository
 import app.awn.quran.feature.learn.words.WordFrequency
 import app.awn.quran.feature.learn.words.WordProgress
@@ -36,6 +37,8 @@ class SessionDependencies(
     val choices: CourseChoices,
     val languageCode: String,
     val clock: LearnClock = LearnClock.System,
+    /** The word levels whose completion screen the user has already seen. */
+    val celebratedLevels: suspend () -> Set<Int> = { emptySet() },
 )
 
 /**
@@ -337,7 +340,20 @@ class SessionController(
             lastAyah = lastAyahSummary(after),
             tomorrowReviews = tomorrow.reviewCount,
             tomorrowNewWords = tomorrow.newWordCount,
+            finishedLevel = finishedLevelOf(after),
         )
+    }
+
+    // A quiz the user started changes no card, so it never finishes a level.
+    private suspend fun finishedLevelOf(after: CourseSnapshot): Int? {
+        if (isOwnQuiz) return null
+        return LevelComplete.toCelebrate(
+                metBefore = snapshotAtStart.wordCards.keys,
+                metAfter = after.wordCards.keys,
+                formCount = dependencies.frequency.formCount,
+                celebrated = dependencies.celebratedLevels(),
+            )
+            ?.number
     }
 
     private suspend fun lastAyahSummary(after: CourseSnapshot): LastAyah? {

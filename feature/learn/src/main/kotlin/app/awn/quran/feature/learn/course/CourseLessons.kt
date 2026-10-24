@@ -127,7 +127,20 @@ private const val CLIP_SEPARATOR = "+"
 sealed interface PracticeItem {
     val clipIds: List<String>
 
-    data class Question(val check: LessonCheck) : PracticeItem {
+    /** The question to answer; null for a row to read aloud, where nothing is right or wrong. */
+    val check: LessonCheck?
+        get() = null
+
+    data class Question(override val check: LessonCheck) : PracticeItem {
+        override val clipIds: List<String>
+            get() = check.clipIds
+    }
+
+    /**
+     * A sound to listen to and four Arabic options, one of them right. Built from a unit's
+     * read-aloud items when the Learn sounds are installed (see [ListenPick]).
+     */
+    data class ListenPick(override val check: LessonCheck) : PracticeItem {
         override val clipIds: List<String>
             get() = check.clipIds
     }

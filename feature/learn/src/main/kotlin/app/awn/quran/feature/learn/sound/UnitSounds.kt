@@ -14,6 +14,12 @@ import kotlinx.coroutines.withContext
 fun interface WordSound {
     suspend fun play(word: WordKey)
 
+    /** Whether [play] can sound [word] now; a host that cannot tell says it is ready. */
+    suspend fun status(word: WordKey): WordSoundStatus = WordSoundStatus.Ready
+
+    /** Starts the download of the word timings [packId] that a [WordSoundStatus.Missing] named. */
+    fun download(packId: String) = Unit
+
     companion object {
         /** For hosts without word audio: the word is simply not played. */
         val Silent = WordSound {}
@@ -40,6 +46,13 @@ internal interface UnitSounds {
     suspend fun playClips(clipIds: List<String>, speed: Float = NORMAL_SPEED): Boolean
 
     suspend fun playWord(word: WordKey)
+
+    /** True when every clip of [clipIds] is installed, so a question can rely on hearing them. */
+    suspend fun hasClips(clipIds: List<String>): Boolean = false
+
+    suspend fun wordStatus(word: WordKey): WordSoundStatus = WordSoundStatus.Ready
+
+    fun downloadWordSound(packId: String) = Unit
 
     fun stop()
 
@@ -76,6 +89,13 @@ internal class PackUnitSounds(
     }
 
     override suspend fun playWord(word: WordKey) = wordSound.play(word)
+
+    override suspend fun hasClips(clipIds: List<String>): Boolean =
+        withContext(Dispatchers.IO) { clipIds.all { packs.learnAudioFile(it) != null } }
+
+    override suspend fun wordStatus(word: WordKey) = wordSound.status(word)
+
+    override fun downloadWordSound(packId: String) = wordSound.download(packId)
 
     override fun stop() = clipPlayer.stop()
 }

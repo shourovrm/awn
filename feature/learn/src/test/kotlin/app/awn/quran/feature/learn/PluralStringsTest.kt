@@ -27,7 +27,6 @@ class PluralStringsTest {
                 "end_summary",
                 "end_tomorrow_detail",
                 "word_state_known_back",
-                "progress_chart_you",
             )
         counted.forEach { name ->
             assertTrue(
