@@ -59,6 +59,12 @@
     <item quantity="other">%d ফলাফল</item>
   </plurals>
   <string name="search_result_reference">%1$s %2$d:%3$d · পৃষ্ঠা %4$d</string>
+  <string name="search_voice_start">তিলাওয়াত করে খুঁজুন</string>
+  <string name="search_voice_getting_ready">প্রস্তুত হচ্ছে</string>
+  <string name="search_voice_listening">একটি আয়াত তিলাওয়াত করুন</string>
+  <string name="search_voice_stop">থামুন</string>
+  <string name="search_voice_no_match">কোনো আয়াত পাওয়া যায়নি</string>
+  <string name="search_voice_again">আবার তিলাওয়াত করুন</string>
 
   <string name="settings_title">সেটিংস</string>
   <string name="settings_mushaf">মুসহাফ</string>

@@ -1,5 +1,6 @@
 package app.awn.quran.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -56,11 +58,30 @@ fun SearchScreen(
     onBack: () -> Unit,
     onOpen: (page: Int, ayah: AyahRef?) -> Unit,
     onOpenSurah: (surah: Int) -> Unit,
+    voice: VoiceSearchSlot,
     modifier: Modifier = Modifier,
 ) {
+    val isVoiceOpen = voice.state.phase != VoicePhase.Off
+    BackHandler(enabled = isVoiceOpen, onBack = voice.actions.onClose)
     AwnTheme(field = AwnField.Paper, barBehindStatusBar = true) {
         Column(modifier.fillMaxSize()) {
-            SearchBar(typedQuery, onQueryChange, onBack)
+            val keyboard = LocalSoftwareKeyboardController.current
+            SearchBar(
+                query = typedQuery,
+                onQueryChange = { text ->
+                    if (isVoiceOpen) voice.actions.onClose()
+                    onQueryChange(text)
+                },
+                onBack = onBack,
+                onVoice = {
+                    keyboard?.hide()
+                    voice.onOpen()
+                },
+            )
+            if (isVoiceOpen) {
+                VoiceSearchPanel(voice.state, voice.speechModel, voice.actions, onOpen)
+                return@Column
+            }
             val rows = state.rows
             if (rows != null || state.surahs.isNotEmpty()) {
                 if (rows != null) {
@@ -93,8 +114,21 @@ fun SearchScreen(
     }
 }
 
+/** Voice search's state and actions, handed through the search screen to its panel. */
+class VoiceSearchSlot(
+    val state: VoiceSearchUiState,
+    val speechModel: SpeechModelOffer,
+    val actions: VoiceSearchActions,
+    val onOpen: () -> Unit,
+)
+
 @Composable
-private fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: () -> Unit) {
+private fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onBack: () -> Unit,
+    onVoice: () -> Unit,
+) {
     val field = Awn.field
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -139,6 +173,13 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: ()
                 onClick = { onQueryChange("") },
                 tint = field.onBar,
             )
+        } else {
+            AwnIconButton(
+                icon = R.drawable.ic_app_mic,
+                contentDescription = stringResource(R.string.search_voice_start),
+                onClick = onVoice,
+                tint = field.onBar,
+            )
         }
     }
 }
@@ -146,7 +187,7 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: ()
 private const val HINT_ALPHA = 0.6f
 
 @Composable
-private fun ResultRow(row: SearchRow, onClick: () -> Unit) {
+internal fun ResultRow(row: SearchRow, onClick: () -> Unit) {
     val field = Awn.field
     val isArabic = row.hit.source == SearchSource.Arabic
     Column(

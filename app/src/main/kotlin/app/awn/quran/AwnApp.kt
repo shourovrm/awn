@@ -60,6 +60,10 @@ import app.awn.quran.notice.LearnNoticeGate
 import app.awn.quran.onboarding.LanguageScreen
 import app.awn.quran.search.SearchScreen
 import app.awn.quran.search.SearchViewModel
+import app.awn.quran.search.SpeechModelOffer
+import app.awn.quran.search.VoiceSearchActions
+import app.awn.quran.search.VoiceSearchSlot
+import app.awn.quran.search.VoiceSearchViewModel
 import app.awn.quran.services.AwnServices
 import app.awn.quran.tabs.AwnTab
 import app.awn.quran.tabs.TabActions
@@ -185,7 +189,7 @@ private fun AwnNavigation(
         ) { entry ->
             QuranRoute(services, entry, tabNavigation)
         }
-        indexDestinations(navController, viewModelFactory)
+        indexDestinations(navController, viewModelFactory, services)
         settingsDestinations(services, navController, viewModelFactory, colourSettings)
         composable(Routes.TABS) {
             TabsRoute(
@@ -289,6 +293,7 @@ internal fun NavController.openQuran(page: Int?, ayah: AyahRef?) {
 private fun NavGraphBuilder.indexDestinations(
     navController: NavController,
     viewModelFactory: ViewModelProvider.Factory,
+    services: AwnServices,
 ) {
     composable(Routes.BOOKMARKS) {
         val viewModel: IndexViewModel = viewModel(factory = viewModelFactory)
@@ -302,7 +307,10 @@ private fun NavGraphBuilder.indexDestinations(
     }
     composable(Routes.SEARCH) {
         val viewModel: SearchViewModel = viewModel(factory = viewModelFactory)
+        val voiceViewModel: VoiceSearchViewModel = viewModel(factory = viewModelFactory)
         val state by viewModel.state.collectAsStateWithLifecycle()
+        val voiceState by voiceViewModel.state.collectAsStateWithLifecycle()
+        val speechModelState by services.speechModel.state.collectAsStateWithLifecycle()
         val typedQuery by viewModel.typedQuery.collectAsStateWithLifecycle()
         val coroutineScope = rememberCoroutineScope()
         SearchScreen(
@@ -316,6 +324,21 @@ private fun NavGraphBuilder.indexDestinations(
                     navController.openQuran(page = viewModel.firstPageOf(surah), ayah = null)
                 }
             },
+            voice =
+                VoiceSearchSlot(
+                    state = voiceState,
+                    speechModel =
+                        SpeechModelOffer(speechModelState, services.speechModel.totalBytes),
+                    actions =
+                        VoiceSearchActions(
+                            onStart = voiceViewModel::startListening,
+                            onStop = voiceViewModel::stopListening,
+                            onClose = voiceViewModel::close,
+                            onDownloadModel = { services.speechModel.download() },
+                            onCancelDownload = services.speechModel::cancel,
+                        ),
+                    onOpen = voiceViewModel::open,
+                ),
         )
     }
 }

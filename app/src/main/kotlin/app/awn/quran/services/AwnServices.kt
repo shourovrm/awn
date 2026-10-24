@@ -39,6 +39,8 @@ import app.awn.quran.player.ExoAudioPlayer
 import app.awn.quran.player.OkHttpAudioDownloads
 import app.awn.quran.player.UnmeteredOnlyPolicy
 import app.awn.quran.player.WorkManagerDownloadRunner
+import app.awn.quran.search.StoppableInput
+import app.awn.quran.tracker.TrackerInput
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -157,6 +159,14 @@ class AwnServices(private val application: Application) {
 
     /** Loads the model for reciting; the recite entry prepares it again after a download. */
     val speechPreparation = RemoteSpeech.preparation(application, speechModel)
+
+    /** The microphone for voice search; tapping stop ends its recording. */
+    fun openVoiceSearchMicrophone(): StoppableInput {
+        val microphone = MicrophoneTrackerInput(application)
+        return object : StoppableInput, TrackerInput by microphone {
+            override fun stop() = microphone.close()
+        }
+    }
 
     /** Reciting on the Quran screen; the speech model loads when recite starts. */
     val recite =

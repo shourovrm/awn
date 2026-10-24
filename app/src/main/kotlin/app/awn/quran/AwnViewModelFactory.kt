@@ -8,6 +8,7 @@ import app.awn.quran.index.FALLBACK_INDEX_SCRIPT
 import app.awn.quran.index.IndexLoader
 import app.awn.quran.index.IndexViewModel
 import app.awn.quran.search.SearchViewModel
+import app.awn.quran.search.VoiceSearchViewModel
 import app.awn.quran.services.AwnServices
 import app.awn.quran.settings.SettingsViewModel
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,14 @@ class AwnViewModelFactory(private val services: AwnServices) : ViewModelProvider
                         search = services.coreData.search,
                         quranText = services.coreData.quranText,
                         script = FALLBACK_INDEX_SCRIPT,
+                    )
+                VoiceSearchViewModel::class.java ->
+                    VoiceSearchViewModel(
+                        speech = services.speechPreparation,
+                        openMicrophone = services::openVoiceSearchMicrophone,
+                        quranText = services.coreData.quranText,
+                        script = FALLBACK_INDEX_SCRIPT,
+                        isReciteActive = { services.recite.isActive.value },
                     )
                 SettingsViewModel::class.java -> SettingsViewModel(services)
                 else -> throw IllegalArgumentException("No view model for ${modelClass.name}.")

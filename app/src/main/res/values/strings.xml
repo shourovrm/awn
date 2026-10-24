@@ -64,6 +64,12 @@
   </plurals>
   <string name="search_surah_title" translatable="false">%1$d. %2$s</string>
   <string name="search_result_reference">%1$s %2$d:%3$d · page %4$d</string>
+  <string name="search_voice_start">Search by reciting</string>
+  <string name="search_voice_getting_ready">Getting ready</string>
+  <string name="search_voice_listening">Recite an ayah</string>
+  <string name="search_voice_stop">Stop</string>
+  <string name="search_voice_no_match">No ayah found</string>
+  <string name="search_voice_again">Recite again</string>
 
   <string name="settings_title">Settings</string>
   <string name="settings_mushaf">Mushaf</string>
