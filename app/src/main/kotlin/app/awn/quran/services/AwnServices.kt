@@ -201,8 +201,10 @@ class AwnServices(private val application: Application) {
 
     /**
      * Plays the Quran word of a Learn page or practice item with the word reciter from Settings.
+     * Built on first use: its download list reads WorkManager, whose start-up needs this holder to
+     * exist already (AwnApplication.workManagerConfiguration), so building it here crashed.
      */
-    val learnWordSound =
+    val learnWordSound by lazy {
         LearnWordSound(
             reciters = coreData.reciters,
             audioPlayer = audioPlayer,
@@ -210,6 +212,7 @@ class AwnServices(private val application: Application) {
             chosenWordReciterId = listenSettings.wordReciterId,
             catalogue = CatalogueModel(coreData.packs, coreData.packDownloads, applicationScope),
         )
+    }
 
     /** The Hifz tab, its plan and its practice; the pages follow the print the reader shows. */
     val hifz =
