@@ -12,6 +12,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.theme.AwnTheme
+import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.read.page.PageFontCache
 import app.awn.quran.feature.read.quran.AyahBlock
 import app.awn.quran.feature.read.quran.AyahWord
@@ -19,6 +20,9 @@ import app.awn.quran.feature.read.quran.ListPageEnvironment
 import app.awn.quran.feature.read.quran.PageContent
 import app.awn.quran.feature.read.quran.PageItem
 import app.awn.quran.feature.read.quran.PageListView
+import app.awn.quran.feature.read.quran.WordFlowInput
+import app.awn.quran.feature.read.quran.WordsFlow
+import app.awn.quran.feature.read.quran.readerFills
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.tracker.WordState
@@ -154,5 +158,37 @@ class WordsFlowRenderTest {
         show(environment(settings = wordByWord.copy(showWordByWord = false), isReciting = true))
 
         composeRule.onNodeWithText("All praise", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aDimmedWordIsStillShownAndStillTappable() {
+        var tappedWord: AyahWord? = null
+        val input =
+            WordFlowInput(
+                settings = wordByWord,
+                fontCache = PageFontCache(RecordingPackRepository()),
+                dimmedWords = setOf(secondWord.key),
+                onWordTap = { _, word, _ -> tappedWord = word },
+            )
+        composeRule.setContent {
+            AwnTheme {
+                WordsFlow(
+                    block = (content.items.single() as PageItem.Ayah).block,
+                    input = input,
+                    arabicStyle = AwnTypography.quran,
+                    fills = readerFills(),
+                    playingWord = null,
+                    onAyahLongPress = {},
+                )
+            }
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("(is) for Allah", substring = true).assertIsDisplayed()
+        composeRule
+            .onNodeWithText("(is) for Allah", substring = true)
+            .performSemanticsAction(SemanticsActions.OnClick)
+
+        assertEquals(secondWord.key, tappedWord?.key)
     }
 }

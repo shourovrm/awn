@@ -37,6 +37,7 @@ import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.feature.read.R
 import app.awn.quran.feature.read.page.PageFontWord
 import app.awn.quran.feature.read.page.myWordFillColor
@@ -65,16 +66,16 @@ private const val MEANING_MAX_LINES = 2
  * cell holds the meaning alone.
  */
 @Composable
-internal fun WordsFlow(
+fun WordsFlow(
     block: AyahBlock,
-    environment: ListPageEnvironment,
+    input: WordFlowInput,
     arabicStyle: TextStyle,
     fills: ReaderFills,
     playingWord: Int?,
     onAyahLongPress: () -> Unit,
 ) {
-    val hasMeanings = environment.settings.showWordByWord
-    val cellStyles = wordCellStyles(environment.settings, arabicStyle)
+    val hasMeanings = input.settings.showWordByWord
+    val cellStyles = wordCellStyles(input.settings, arabicStyle)
     val wordGap = if (hasMeanings) AwnSpacing.small else PLAIN_WORD_GAP
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         FlowRow(
@@ -87,17 +88,17 @@ internal fun WordsFlow(
                 WordCell(
                     ayah = block.ayah,
                     word = word,
-                    environment = environment,
+                    input = input,
                     styles = cellStyles,
                     fill =
                         wordFill(
-                            environment.wordStates[word.key],
-                            environment.myWordMarks[word.key],
+                            input.wordStates[word.key],
+                            input.myWordMarks[word.key],
                             playingWord,
                             word,
                             fills,
                         ),
-                    isFocused = word.key == environment.focusedWord,
+                    isFocused = word.key == input.focusedWord,
                     onAyahLongPress = onAyahLongPress,
                 )
             }
@@ -150,17 +151,17 @@ private fun wordFill(
 private fun WordCell(
     ayah: AyahRef,
     word: AyahWord,
-    environment: ListPageEnvironment,
+    input: WordFlowInput,
     styles: WordCellStyles,
     fill: Color,
     isFocused: Boolean,
     onAyahLongPress: () -> Unit,
 ) {
-    val settings = environment.settings
-    val state = environment.wordStates[word.key] ?: WordState.Neutral
+    val settings = input.settings
+    val state = input.wordStates[word.key] ?: WordState.Neutral
     val coordinatesHolder = remember { CoordinatesHolder() }
     val tapped = {
-        environment.onWordTap(ayah, word, coordinatesHolder.coordinates?.boundsInWindow())
+        input.onWordTap(ayah, word, coordinatesHolder.coordinates?.boundsInWindow())
     }
     val tapModifier =
         if (settings.showWordByWord) {
@@ -191,7 +192,7 @@ private fun WordCell(
                 .onGloballyPositioned { coordinatesHolder.coordinates = it },
     ) {
         if (settings.showArabic) {
-            ArabicWord(word, styles.arabic, state, environment)
+            ArabicWord(word, styles.arabic, state, input)
         }
         if (settings.showWordByWord && word.meaning != null) {
             Text(
@@ -254,14 +255,16 @@ private fun ArabicWord(
     word: AyahWord,
     style: TextStyle,
     state: WordState,
-    environment: ListPageEnvironment,
+    input: WordFlowInput,
 ) {
     val field = Awn.field
-    val ink = wordColor(state, field)
-    val hintLetter = environment.hintLetters[word.key].takeIf { state == WordState.Hidden }
+    // A recite state keeps its own ink, so a dimmed word still shows how it was recited.
+    val isDimmed = word.key in input.dimmedWords && state == WordState.Neutral
+    val ink = if (isDimmed) field.mutedContent else wordColor(state, field)
+    val hintLetter = input.hintLetters[word.key].takeIf { state == WordState.Hidden }
     // The word is still laid out, invisible, so its block keeps its size under the letter.
     Box(contentAlignment = Alignment.Center) {
-        ArabicWordInk(word, style, ink, environment)
+        ArabicWordInk(word, style, ink, input)
         if (hintLetter != null) Text(text = hintLetter, style = style, color = field.content)
     }
 }
@@ -271,7 +274,7 @@ private fun ArabicWordInk(
     word: AyahWord,
     style: TextStyle,
     ink: Color,
-    environment: ListPageEnvironment,
+    input: WordFlowInput,
 ) {
     val glyphs = word.glyphs
     if (glyphs == null) {
@@ -279,9 +282,9 @@ private fun ArabicWordInk(
     } else {
         PageFontWord(
             word = glyphs.word,
-            script = environment.settings.script,
+            script = input.settings.script,
             page = glyphs.page,
-            fontCache = environment.fontCache,
+            fontCache = input.fontCache,
             fontSize = style.fontSize,
             lineHeight = style.lineHeight,
             color = ink,

@@ -111,6 +111,17 @@ internal class ListPageEnvironment(
     val onUserScrolled: () -> Unit,
 )
 
+private fun ListPageEnvironment.toWordFlowInput() =
+    WordFlowInput(
+        settings = settings,
+        fontCache = fontCache,
+        wordStates = wordStates,
+        myWordMarks = myWordMarks,
+        hintLetters = hintLetters,
+        focusedWord = focusedWord,
+        onWordTap = onWordTap,
+    )
+
 /**
  * One page of the line-by-line view: a list of ayah blocks with a band at each surah. Each block
  * shows the layers the settings tick: Arabic, word by word, transliteration and translations. When
@@ -250,9 +261,10 @@ private fun AyahItem(block: AyahBlock, environment: ListPageEnvironment, fills: 
                 fontFamily = environment.arabicFamily ?: AwnTypography.quran.fontFamily,
             )
         if (usesWordCells(block, settings, environment)) {
+            val wordFlowInput = remember(environment) { environment.toWordFlowInput() }
             WordsFlow(
                 block = block,
-                environment = environment,
+                input = wordFlowInput,
                 arabicStyle = arabicStyle,
                 fills = fills,
                 playingWord = playingWord,
