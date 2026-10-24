@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName") // DuasHomeActions is the contract; the screen follows it.
+
 package app.awn.quran.feature.duas.ui
 
 import androidx.compose.foundation.layout.Column

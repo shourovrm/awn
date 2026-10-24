@@ -2,6 +2,7 @@ package app.awn.quran
 
 import androidx.navigation.NavController
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.index.QuranTabActions
 import app.awn.quran.tabs.AwnTab
 
 /** Moves between the tabs and the screens that open above them. */
@@ -37,3 +38,13 @@ internal class TabNavigation(
         navController.popBackStack(Routes.TABS, inclusive = false)
     }
 }
+
+/** What the Quran tab's buttons and rows open. */
+internal fun TabNavigation.quranTabActions() =
+    QuranTabActions(
+        onSearch = ::openSearch,
+        onBookmarks = ::openBookmarks,
+        onSettings = ::openSettings,
+        onDuas = ::openDuas,
+        onOpen = ::openQuran,
+    )

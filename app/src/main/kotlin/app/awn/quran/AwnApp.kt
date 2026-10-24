@@ -50,7 +50,6 @@ import app.awn.quran.feature.recite.rememberReciteWordProblems
 import app.awn.quran.feature.recite.rememberReciteWordStates
 import app.awn.quran.index.BookmarksScreen
 import app.awn.quran.index.IndexViewModel
-import app.awn.quran.index.QuranTabActions
 import app.awn.quran.index.QuranTabScreen
 import app.awn.quran.language.AppCompatLanguageApplier
 import app.awn.quran.language.AppLanguage
@@ -235,14 +234,7 @@ private fun TabsRoute(
             QuranTabScreen(
                 state = state,
                 todayItems = rememberTodayItems(tabSlots.todayProviders, todayNavigation),
-                actions =
-                    QuranTabActions(
-                        onSearch = navigation::openSearch,
-                        onBookmarks = navigation::openBookmarks,
-                        onSettings = navigation::openSettings,
-                        onDuas = navigation::openDuas,
-                        onOpen = navigation::openQuran,
-                    ),
+                actions = navigation.quranTabActions(),
                 duaCount = rememberDuaCount(services),
             )
         },

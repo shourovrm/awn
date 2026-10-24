@@ -1,3 +1,7 @@
+@file:Suppress(
+    "MatchingDeclarationName",
+) // ReciteSectionActions is the contract; the section follows it.
+
 package app.awn.quran.feature.duas.ui
 
 import androidx.compose.foundation.layout.Arrangement

@@ -1,3 +1,7 @@
+@file:Suppress(
+    "MatchingDeclarationName",
+) // cardWords is the file's subject; CardWord is its result.
+
 package app.awn.quran.feature.duas.ui
 
 import app.awn.quran.core.data.Word

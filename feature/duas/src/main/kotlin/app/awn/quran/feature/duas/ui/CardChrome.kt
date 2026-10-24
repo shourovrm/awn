@@ -1,3 +1,7 @@
+@file:Suppress(
+    "MatchingDeclarationName",
+) // The card's chrome: the mode enum and the bars that switch it.
+
 package app.awn.quran.feature.duas.ui
 
 import androidx.annotation.DrawableRes

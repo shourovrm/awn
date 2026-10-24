@@ -516,8 +516,13 @@ class ReciteController(
     // page, so the page right after the one of [last] may hold nothing new. An empty list means the
     // Quran has ended.
     private suspend fun ayahsOnPageAfter(last: AyahRef): List<AyahRef> {
+        // A bounded run (a dua card) never grows past its last ayah.
         val boundary = lastAyahOfBoundedRun
-        if (boundary != null && last >= boundary) return emptyList()
+        val isPastBoundary = boundary != null && last >= boundary
+        return if (isPastBoundary) emptyList() else ayahsOnPagesAfter(last)
+    }
+
+    private suspend fun ayahsOnPagesAfter(last: AyahRef): List<AyahRef> {
         val lastPage = quranText.pageCount(pageScript)
         var page = quranText.pageOf(last, pageScript) + 1
         while (page <= lastPage) {

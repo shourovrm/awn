@@ -49,10 +49,13 @@ internal fun PlaybackState.ayahOf(dua: Dua): AyahRef? =
 
 /** The word the reciter is saying, when the player is playing [dua] and knows the word. */
 internal fun PlaybackState.playingWordOf(dua: Dua): WordKey? {
-    val playing = this as? PlaybackState.Playing ?: return null
-    val wordPosition = playing.wordPosition
-    if (wordPosition == null || playing.ayah !in dua.ayahs) return null
-    return WordKey(playing.ayah.surah, playing.ayah.ayah, wordPosition)
+    val playing = this as? PlaybackState.Playing
+    val wordPosition = playing?.wordPosition
+    return if (playing == null || wordPosition == null || playing.ayah !in dua.ayahs) {
+        null
+    } else {
+        WordKey(playing.ayah.surah, playing.ayah.ayah, wordPosition)
+    }
 }
 
 /** What the buttons of the Listen panel do. */
