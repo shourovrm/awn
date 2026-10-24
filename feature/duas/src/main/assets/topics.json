@@ -1,0 +1,2371 @@
+{
+ "note": "Ayah ranges chosen by the Awn project; written by tools/topics/build_topics.py.",
+ "categories": [
+  {
+   "key": "family",
+   "name_en": "Family",
+   "name_bn": "পরিবার"
+  },
+  {
+   "key": "daily",
+   "name_en": "Daily life",
+   "name_bn": "দৈনন্দিন জীবন"
+  },
+  {
+   "key": "character",
+   "name_en": "Character",
+   "name_bn": "চরিত্র"
+  },
+  {
+   "key": "faith",
+   "name_en": "Faith",
+   "name_bn": "ঈমান"
+  },
+  {
+   "key": "worship",
+   "name_en": "Worship",
+   "name_bn": "ইবাদত"
+  },
+  {
+   "key": "hereafter",
+   "name_en": "Hereafter",
+   "name_bn": "আখিরাত"
+  },
+  {
+   "key": "society",
+   "name_en": "Society",
+   "name_bn": "সমাজ"
+  }
+ ],
+ "topics": [
+  {
+   "key": "parents",
+   "category": "family",
+   "name_en": "Parents",
+   "name_bn": "মা-বাবা",
+   "duas_group": "family",
+   "parts": [
+    {
+     "key": "kindness",
+     "name_en": "Be good to your parents",
+     "name_bn": "মা-বাবার সাথে সদাচরণ",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 83,
+       "last": 83
+      },
+      {
+       "surah": 4,
+       "first": 36,
+       "last": 36
+      },
+      {
+       "surah": 6,
+       "first": 151,
+       "last": 151
+      },
+      {
+       "surah": 17,
+       "first": 23,
+       "last": 24
+      }
+     ]
+    },
+    {
+     "key": "gratitude",
+     "name_en": "Thank your mother and father",
+     "name_bn": "মা-বাবার প্রতি কৃতজ্ঞতা",
+     "passages": [
+      {
+       "surah": 31,
+       "first": 14,
+       "last": 14
+      },
+      {
+       "surah": 46,
+       "first": 15,
+       "last": 15
+      }
+     ]
+    },
+    {
+     "key": "wrong",
+     "name_en": "When parents ask you to do wrong",
+     "name_bn": "মা-বাবা অন্যায়ের দিকে ডাকলে",
+     "passages": [
+      {
+       "surah": 29,
+       "first": 8,
+       "last": 8
+      },
+      {
+       "surah": 31,
+       "first": 14,
+       "last": 15
+      }
+     ]
+    },
+    {
+     "key": "spending",
+     "name_en": "Spending on parents",
+     "name_bn": "মা-বাবার জন্য খরচ",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 215,
+       "last": 215
+      }
+     ]
+    },
+    {
+     "key": "prophets",
+     "name_en": "Prophets and their parents",
+     "name_bn": "নবীগণ ও তাঁদের মা-বাবা",
+     "passages": [
+      {
+       "surah": 19,
+       "first": 12,
+       "last": 15
+      },
+      {
+       "surah": 19,
+       "first": 30,
+       "last": 33
+      },
+      {
+       "surah": 19,
+       "first": 41,
+       "last": 47
+      },
+      {
+       "surah": 12,
+       "first": 99,
+       "last": 100
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "marriage",
+   "category": "family",
+   "name_en": "Husband and wife",
+   "name_bn": "স্বামী-স্ত্রী",
+   "duas_group": "family",
+   "parts": [
+    {
+     "key": "pairs",
+     "name_en": "Love and mercy between spouses",
+     "name_bn": "দাম্পত্যে ভালোবাসা ও দয়া",
+     "passages": [
+      {
+       "surah": 30,
+       "first": 21,
+       "last": 21
+      },
+      {
+       "surah": 4,
+       "first": 1,
+       "last": 1
+      },
+      {
+       "surah": 25,
+       "first": 74,
+       "last": 74
+      }
+     ]
+    },
+    {
+     "key": "kindness",
+     "name_en": "Living together with kindness",
+     "name_bn": "সদ্ভাবে একসাথে থাকা",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 187,
+       "last": 187
+      },
+      {
+       "surah": 4,
+       "first": 19,
+       "last": 19
+      }
+     ]
+    },
+    {
+     "key": "dispute",
+     "name_en": "When there is a dispute",
+     "name_bn": "মতবিরোধ হলে",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 35,
+       "last": 35
+      },
+      {
+       "surah": 4,
+       "first": 128,
+       "last": 128
+      }
+     ]
+    },
+    {
+     "key": "divorce",
+     "name_en": "If it ends in divorce",
+     "name_bn": "বিচ্ছেদ হলে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 229,
+       "last": 229
+      },
+      {
+       "surah": 2,
+       "first": 231,
+       "last": 231
+      },
+      {
+       "surah": 65,
+       "first": 1,
+       "last": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "children",
+   "category": "family",
+   "name_en": "Children",
+   "name_bn": "সন্তান",
+   "duas_group": "family",
+   "parts": [
+    {
+     "key": "trial",
+     "name_en": "A gift and a test",
+     "name_bn": "নিয়ামত ও পরীক্ষা",
+     "passages": [
+      {
+       "surah": 42,
+       "first": 49,
+       "last": 50
+      },
+      {
+       "surah": 18,
+       "first": 46,
+       "last": 46
+      },
+      {
+       "surah": 8,
+       "first": 28,
+       "last": 28
+      },
+      {
+       "surah": 64,
+       "first": 14,
+       "last": 15
+      }
+     ]
+    },
+    {
+     "key": "distraction",
+     "name_en": "Not distracted from Allah",
+     "name_bn": "সন্তান যেন আল্লাহর স্মরণ ভুলিয়ে না দেয়",
+     "passages": [
+      {
+       "surah": 63,
+       "first": 9,
+       "last": 9
+      }
+     ]
+    },
+    {
+     "key": "luqman",
+     "name_en": "Luqman's advice to his son",
+     "name_bn": "ছেলের প্রতি লুকমানের উপদেশ",
+     "passages": [
+      {
+       "surah": 31,
+       "first": 13,
+       "last": 13
+      },
+      {
+       "surah": 31,
+       "first": 16,
+       "last": 19
+      }
+     ]
+    },
+    {
+     "key": "yaqub",
+     "name_en": "Ibrahim and Yaqub's last advice",
+     "name_bn": "ইবরাহীম ও ইয়াকুবের শেষ উপদেশ",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 132,
+       "last": 133
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "orphans",
+   "category": "family",
+   "name_en": "Orphans",
+   "name_bn": "এতিম",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "wealth",
+     "name_en": "Protect their wealth",
+     "name_bn": "তাদের সম্পদ রক্ষা",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 2,
+       "last": 2
+      },
+      {
+       "surah": 4,
+       "first": 6,
+       "last": 6
+      },
+      {
+       "surah": 4,
+       "first": 10,
+       "last": 10
+      },
+      {
+       "surah": 6,
+       "first": 152,
+       "last": 152
+      }
+     ]
+    },
+    {
+     "key": "kindness",
+     "name_en": "Be kind to them",
+     "name_bn": "তাদের প্রতি দয়া",
+     "passages": [
+      {
+       "surah": 93,
+       "first": 9,
+       "last": 9
+      },
+      {
+       "surah": 89,
+       "first": 17,
+       "last": 17
+      },
+      {
+       "surah": 107,
+       "first": 1,
+       "last": 3
+      },
+      {
+       "surah": 2,
+       "first": 220,
+       "last": 220
+      }
+     ]
+    },
+    {
+     "key": "feeding",
+     "name_en": "Feeding the orphan",
+     "name_bn": "এতিমকে খাওয়ানো",
+     "passages": [
+      {
+       "surah": 76,
+       "first": 8,
+       "last": 9
+      },
+      {
+       "surah": 90,
+       "first": 11,
+       "last": 16
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "relatives",
+   "category": "family",
+   "name_en": "Relatives and neighbours",
+   "name_bn": "আত্মীয় ও প্রতিবেশী",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "rights",
+     "name_en": "Their rights",
+     "name_bn": "তাদের অধিকার",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 36,
+       "last": 36
+      },
+      {
+       "surah": 16,
+       "first": 90,
+       "last": 90
+      },
+      {
+       "surah": 17,
+       "first": 26,
+       "last": 26
+      },
+      {
+       "surah": 2,
+       "first": 177,
+       "last": 177
+      }
+     ]
+    },
+    {
+     "key": "ties",
+     "name_en": "Keeping ties of kinship",
+     "name_bn": "আত্মীয়তার সম্পর্ক রক্ষা",
+     "passages": [
+      {
+       "surah": 13,
+       "first": 21,
+       "last": 21
+      },
+      {
+       "surah": 47,
+       "first": 22,
+       "last": 23
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "provision",
+   "category": "daily",
+   "name_en": "Poverty and provision",
+   "name_bn": "দারিদ্র্য ও রিজিক",
+   "duas_group": "provision",
+   "parts": [
+    {
+     "key": "provider",
+     "name_en": "Allah provides",
+     "name_bn": "আল্লাহই রিজিকদাতা",
+     "passages": [
+      {
+       "surah": 11,
+       "first": 6,
+       "last": 6
+      },
+      {
+       "surah": 29,
+       "first": 60,
+       "last": 60
+      },
+      {
+       "surah": 51,
+       "first": 22,
+       "last": 23
+      },
+      {
+       "surah": 13,
+       "first": 26,
+       "last": 26
+      }
+     ]
+    },
+    {
+     "key": "fear",
+     "name_en": "When you fear poverty",
+     "name_bn": "দারিদ্র্যের ভয় হলে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 268,
+       "last": 268
+      },
+      {
+       "surah": 17,
+       "first": 31,
+       "last": 31
+      },
+      {
+       "surah": 24,
+       "first": 32,
+       "last": 32
+      }
+     ]
+    },
+    {
+     "key": "forgiveness",
+     "name_en": "Asking forgiveness brings provision",
+     "name_bn": "ইস্তিগফারে রিজিক বাড়ে",
+     "passages": [
+      {
+       "surah": 71,
+       "first": 10,
+       "last": 12
+      },
+      {
+       "surah": 11,
+       "first": 52,
+       "last": 52
+      }
+     ]
+    },
+    {
+     "key": "poor",
+     "name_en": "The poor who do not ask",
+     "name_bn": "যে অভাবীরা হাত পাতে না",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 273,
+       "last": 273
+      },
+      {
+       "surah": 51,
+       "first": 19,
+       "last": 19
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "charity",
+   "category": "daily",
+   "name_en": "Charity",
+   "name_bn": "দান-সদকা",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "multiplied",
+     "name_en": "Spending is multiplied",
+     "name_bn": "দানের প্রতিদান বহুগুণ",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 261,
+       "last": 261
+      },
+      {
+       "surah": 2,
+       "first": 245,
+       "last": 245
+      },
+      {
+       "surah": 57,
+       "first": 11,
+       "last": 11
+      }
+     ]
+    },
+    {
+     "key": "manner",
+     "name_en": "Without reminding or hurting",
+     "name_bn": "খোঁটা ও কষ্ট না দিয়ে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 262,
+       "last": 264
+      }
+     ]
+    },
+    {
+     "key": "secret",
+     "name_en": "In secret and in the open",
+     "name_bn": "গোপনে ও প্রকাশ্যে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 271,
+       "last": 271
+      },
+      {
+       "surah": 2,
+       "first": 274,
+       "last": 274
+      }
+     ]
+    },
+    {
+     "key": "zakat",
+     "name_en": "Who receives zakat",
+     "name_bn": "যাকাত কারা পাবে",
+     "passages": [
+      {
+       "surah": 9,
+       "first": 60,
+       "last": 60
+      }
+     ]
+    },
+    {
+     "key": "before_death",
+     "name_en": "Spend before death comes",
+     "name_bn": "মৃত্যুর আগেই দান",
+     "passages": [
+      {
+       "surah": 63,
+       "first": 10,
+       "last": 11
+      },
+      {
+       "surah": 2,
+       "first": 254,
+       "last": 254
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "trade",
+   "category": "daily",
+   "name_en": "Debt and trade",
+   "name_bn": "ঋণ ও ব্যবসা",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "writing",
+     "name_en": "Write down debts",
+     "name_bn": "ঋণ লিখে রাখা",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 282,
+       "last": 283
+      }
+     ]
+    },
+    {
+     "key": "ease",
+     "name_en": "Give the debtor time",
+     "name_bn": "ঋণগ্রস্তকে সময় দেওয়া",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 280,
+       "last": 280
+      }
+     ]
+    },
+    {
+     "key": "interest",
+     "name_en": "Interest",
+     "name_bn": "সুদ",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 275,
+       "last": 276
+      },
+      {
+       "surah": 2,
+       "first": 278,
+       "last": 279
+      },
+      {
+       "surah": 3,
+       "first": 130,
+       "last": 130
+      }
+     ]
+    },
+    {
+     "key": "fairness",
+     "name_en": "Fair weights and honest trade",
+     "name_bn": "সঠিক মাপ ও সৎ ব্যবসা",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 29,
+       "last": 29
+      },
+      {
+       "surah": 17,
+       "first": 35,
+       "last": 35
+      },
+      {
+       "surah": 83,
+       "first": 1,
+       "last": 3
+      },
+      {
+       "surah": 55,
+       "first": 7,
+       "last": 9
+      }
+     ]
+    },
+    {
+     "key": "prayer",
+     "name_en": "Trade and prayer",
+     "name_bn": "ব্যবসা ও নামাজ",
+     "passages": [
+      {
+       "surah": 62,
+       "first": 9,
+       "last": 10
+      },
+      {
+       "surah": 24,
+       "first": 36,
+       "last": 38
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "food",
+   "category": "daily",
+   "name_en": "Food and drink",
+   "name_bn": "খাদ্য ও পানীয়",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "good",
+     "name_en": "Eat what is good",
+     "name_bn": "পবিত্র খাবার খাও",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 168,
+       "last": 168
+      },
+      {
+       "surah": 2,
+       "first": 172,
+       "last": 172
+      },
+      {
+       "surah": 5,
+       "first": 88,
+       "last": 88
+      },
+      {
+       "surah": 7,
+       "first": 31,
+       "last": 31
+      }
+     ]
+    },
+    {
+     "key": "forbidden",
+     "name_en": "What is forbidden",
+     "name_bn": "যা হারাম",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 173,
+       "last": 173
+      },
+      {
+       "surah": 5,
+       "first": 3,
+       "last": 3
+      },
+      {
+       "surah": 6,
+       "first": 145,
+       "last": 145
+      }
+     ]
+    },
+    {
+     "key": "wine",
+     "name_en": "Wine and gambling",
+     "name_bn": "মদ ও জুয়া",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 219,
+       "last": 219
+      },
+      {
+       "surah": 5,
+       "first": 90,
+       "last": 91
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "health",
+   "category": "daily",
+   "name_en": "Illness and healing",
+   "name_bn": "অসুখ ও আরোগ্য",
+   "duas_group": "ease",
+   "parts": [
+    {
+     "key": "healer",
+     "name_en": "Allah heals",
+     "name_bn": "আল্লাহই আরোগ্য দেন",
+     "passages": [
+      {
+       "surah": 26,
+       "first": 78,
+       "last": 81
+      },
+      {
+       "surah": 16,
+       "first": 68,
+       "last": 69
+      }
+     ]
+    },
+    {
+     "key": "quran",
+     "name_en": "The Quran as healing",
+     "name_bn": "কুরআনে আছে আরোগ্য",
+     "passages": [
+      {
+       "surah": 17,
+       "first": 82,
+       "last": 82
+      },
+      {
+       "surah": 10,
+       "first": 57,
+       "last": 57
+      },
+      {
+       "surah": 41,
+       "first": 44,
+       "last": 44
+      }
+     ]
+    },
+    {
+     "key": "ayyub",
+     "name_en": "Patience in illness",
+     "name_bn": "অসুখে ধৈর্য",
+     "passages": [
+      {
+       "surah": 21,
+       "first": 83,
+       "last": 84
+      },
+      {
+       "surah": 38,
+       "first": 41,
+       "last": 44
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "patience",
+   "category": "character",
+   "name_en": "Patience",
+   "name_bn": "ধৈর্য",
+   "duas_group": "patience",
+   "parts": [
+    {
+     "key": "with",
+     "name_en": "Allah is with the patient",
+     "name_bn": "আল্লাহ ধৈর্যশীলদের সাথে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 153,
+       "last": 153
+      },
+      {
+       "surah": 8,
+       "first": 46,
+       "last": 46
+      },
+      {
+       "surah": 2,
+       "first": 249,
+       "last": 249
+      }
+     ]
+    },
+    {
+     "key": "loss",
+     "name_en": "Patience in loss",
+     "name_bn": "বিপদে ধৈর্য",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 155,
+       "last": 157
+      }
+     ]
+    },
+    {
+     "key": "ease",
+     "name_en": "With hardship comes ease",
+     "name_bn": "কষ্টের সাথেই স্বস্তি",
+     "passages": [
+      {
+       "surah": 94,
+       "first": 5,
+       "last": 6
+      },
+      {
+       "surah": 65,
+       "first": 7,
+       "last": 7
+      }
+     ]
+    },
+    {
+     "key": "reward",
+     "name_en": "Reward without measure",
+     "name_bn": "বেহিসাব প্রতিদান",
+     "passages": [
+      {
+       "surah": 39,
+       "first": 10,
+       "last": 10
+      },
+      {
+       "surah": 16,
+       "first": 96,
+       "last": 96
+      }
+     ]
+    },
+    {
+     "key": "beautiful",
+     "name_en": "Beautiful patience",
+     "name_bn": "সুন্দর ধৈর্য",
+     "passages": [
+      {
+       "surah": 12,
+       "first": 18,
+       "last": 18
+      },
+      {
+       "surah": 12,
+       "first": 83,
+       "last": 83
+      },
+      {
+       "surah": 70,
+       "first": 5,
+       "last": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "anger",
+   "category": "character",
+   "name_en": "Anger and forgiving others",
+   "name_bn": "রাগ ও ক্ষমা",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "hold",
+     "name_en": "Hold back anger",
+     "name_bn": "রাগ সংবরণ",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 133,
+       "last": 134
+      },
+      {
+       "surah": 42,
+       "first": 37,
+       "last": 37
+      }
+     ]
+    },
+    {
+     "key": "pardon",
+     "name_en": "Pardon and overlook",
+     "name_bn": "ক্ষমা করে দেওয়া",
+     "passages": [
+      {
+       "surah": 24,
+       "first": 22,
+       "last": 22
+      },
+      {
+       "surah": 7,
+       "first": 199,
+       "last": 199
+      },
+      {
+       "surah": 42,
+       "first": 40,
+       "last": 40
+      },
+      {
+       "surah": 42,
+       "first": 43,
+       "last": 43
+      }
+     ]
+    },
+    {
+     "key": "repel",
+     "name_en": "Repel evil with good",
+     "name_bn": "ভালো দিয়ে মন্দ দূর করা",
+     "passages": [
+      {
+       "surah": 41,
+       "first": 34,
+       "last": 35
+      },
+      {
+       "surah": 13,
+       "first": 22,
+       "last": 22
+      },
+      {
+       "surah": 23,
+       "first": 96,
+       "last": 96
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "honesty",
+   "category": "character",
+   "name_en": "Honesty",
+   "name_bn": "সততা",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "truthful",
+     "name_en": "Be with the truthful",
+     "name_bn": "সত্যবাদীদের সাথে থাকো",
+     "passages": [
+      {
+       "surah": 9,
+       "first": 119,
+       "last": 119
+      },
+      {
+       "surah": 33,
+       "first": 70,
+       "last": 71
+      },
+      {
+       "surah": 39,
+       "first": 33,
+       "last": 33
+      }
+     ]
+    },
+    {
+     "key": "promises",
+     "name_en": "Keep trusts and promises",
+     "name_bn": "আমানত ও ওয়াদা রক্ষা",
+     "passages": [
+      {
+       "surah": 23,
+       "first": 8,
+       "last": 8
+      },
+      {
+       "surah": 17,
+       "first": 34,
+       "last": 34
+      }
+     ]
+    },
+    {
+     "key": "deeds",
+     "name_en": "Do what you say",
+     "name_bn": "যা বলো তা করো",
+     "passages": [
+      {
+       "surah": 61,
+       "first": 2,
+       "last": 3
+      },
+      {
+       "surah": 2,
+       "first": 44,
+       "last": 44
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "humility",
+   "category": "character",
+   "name_en": "Humility and pride",
+   "name_bn": "বিনয় ও অহংকার",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "walk",
+     "name_en": "Walk gently on the earth",
+     "name_bn": "পৃথিবীতে বিনয়ের সাথে চলা",
+     "passages": [
+      {
+       "surah": 25,
+       "first": 63,
+       "last": 63
+      },
+      {
+       "surah": 31,
+       "first": 18,
+       "last": 19
+      },
+      {
+       "surah": 17,
+       "first": 37,
+       "last": 37
+      }
+     ]
+    },
+    {
+     "key": "arrogant",
+     "name_en": "Where pride leads",
+     "name_bn": "অহংকারের পরিণাম",
+     "passages": [
+      {
+       "surah": 16,
+       "first": 23,
+       "last": 23
+      },
+      {
+       "surah": 7,
+       "first": 146,
+       "last": 146
+      },
+      {
+       "surah": 28,
+       "first": 76,
+       "last": 76
+      }
+     ]
+    },
+    {
+     "key": "home",
+     "name_en": "The home of the Hereafter",
+     "name_bn": "আখিরাতের ঘর",
+     "passages": [
+      {
+       "surah": 28,
+       "first": 83,
+       "last": 83
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "speech",
+   "category": "character",
+   "name_en": "Backbiting and rumours",
+   "name_bn": "গিবত ও গুজব",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "verify",
+     "name_en": "Check the news",
+     "name_bn": "খবর যাচাই করা",
+     "passages": [
+      {
+       "surah": 49,
+       "first": 6,
+       "last": 6
+      },
+      {
+       "surah": 24,
+       "first": 15,
+       "last": 16
+      }
+     ]
+    },
+    {
+     "key": "backbiting",
+     "name_en": "Mocking, suspicion and backbiting",
+     "name_bn": "ঠাট্টা, সন্দেহ ও গিবত",
+     "passages": [
+      {
+       "surah": 49,
+       "first": 11,
+       "last": 12
+      }
+     ]
+    },
+    {
+     "key": "slanderer",
+     "name_en": "The slanderer",
+     "name_bn": "নিন্দুক",
+     "passages": [
+      {
+       "surah": 104,
+       "first": 1,
+       "last": 4
+      },
+      {
+       "surah": 68,
+       "first": 10,
+       "last": 11
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "gratitude",
+   "category": "character",
+   "name_en": "Gratitude",
+   "name_bn": "কৃতজ্ঞতা",
+   "duas_group": "gratitude",
+   "parts": [
+    {
+     "key": "increase",
+     "name_en": "Be grateful and I will give more",
+     "name_bn": "কৃতজ্ঞ হলে আরও দেব",
+     "passages": [
+      {
+       "surah": 14,
+       "first": 7,
+       "last": 7
+      },
+      {
+       "surah": 2,
+       "first": 152,
+       "last": 152
+      }
+     ]
+    },
+    {
+     "key": "countless",
+     "name_en": "Blessings you cannot count",
+     "name_bn": "অগণিত নিয়ামত",
+     "passages": [
+      {
+       "surah": 16,
+       "first": 18,
+       "last": 18
+      },
+      {
+       "surah": 14,
+       "first": 34,
+       "last": 34
+      }
+     ]
+    },
+    {
+     "key": "self",
+     "name_en": "Gratitude is for your own good",
+     "name_bn": "কৃতজ্ঞতা নিজেরই কল্যাণে",
+     "passages": [
+      {
+       "surah": 31,
+       "first": 12,
+       "last": 12
+      },
+      {
+       "surah": 27,
+       "first": 40,
+       "last": 40
+      }
+     ]
+    },
+    {
+     "key": "few",
+     "name_en": "Few are grateful",
+     "name_bn": "অল্প লোকই কৃতজ্ঞ",
+     "passages": [
+      {
+       "surah": 34,
+       "first": 13,
+       "last": 13
+      },
+      {
+       "surah": 7,
+       "first": 10,
+       "last": 10
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "trust",
+   "category": "character",
+   "name_en": "Trust in Allah",
+   "name_bn": "আল্লাহর ওপর ভরসা",
+   "duas_group": "reliance",
+   "parts": [
+    {
+     "key": "enough",
+     "name_en": "Allah is enough",
+     "name_bn": "আল্লাহই যথেষ্ট",
+     "passages": [
+      {
+       "surah": 9,
+       "first": 129,
+       "last": 129
+      },
+      {
+       "surah": 3,
+       "first": 173,
+       "last": 173
+      },
+      {
+       "surah": 8,
+       "first": 64,
+       "last": 64
+      }
+     ]
+    },
+    {
+     "key": "consult",
+     "name_en": "Consult, then trust",
+     "name_bn": "পরামর্শ, তারপর ভরসা",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 159,
+       "last": 159
+      }
+     ]
+    },
+    {
+     "key": "written",
+     "name_en": "What Allah has written for us",
+     "name_bn": "আল্লাহ যা লিখে রেখেছেন",
+     "passages": [
+      {
+       "surah": 9,
+       "first": 51,
+       "last": 51
+      },
+      {
+       "surah": 57,
+       "first": 22,
+       "last": 23
+      },
+      {
+       "surah": 64,
+       "first": 11,
+       "last": 11
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "modesty",
+   "category": "character",
+   "name_en": "Modesty",
+   "name_bn": "লজ্জাশীলতা",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "gaze",
+     "name_en": "Lower your gaze",
+     "name_bn": "দৃষ্টি সংযত রাখা",
+     "passages": [
+      {
+       "surah": 24,
+       "first": 30,
+       "last": 31
+      }
+     ]
+    },
+    {
+     "key": "clothing",
+     "name_en": "Clothing",
+     "name_bn": "পোশাক",
+     "passages": [
+      {
+       "surah": 7,
+       "first": 26,
+       "last": 26
+      },
+      {
+       "surah": 33,
+       "first": 59,
+       "last": 59
+      }
+     ]
+    },
+    {
+     "key": "zina",
+     "name_en": "Do not come near zina",
+     "name_bn": "ব্যভিচারের কাছেও যেয়ো না",
+     "passages": [
+      {
+       "surah": 17,
+       "first": 32,
+       "last": 32
+      },
+      {
+       "surah": 25,
+       "first": 68,
+       "last": 69
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "oneness",
+   "category": "faith",
+   "name_en": "Allah is One",
+   "name_bn": "আল্লাহ এক",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "ikhlas",
+     "name_en": "Say: He is Allah, One",
+     "name_bn": "বলো: তিনি আল্লাহ, এক",
+     "passages": [
+      {
+       "surah": 112,
+       "first": 1,
+       "last": 4
+      }
+     ]
+    },
+    {
+     "key": "kursi",
+     "name_en": "The Throne verse",
+     "name_bn": "আয়াতুল কুরসি",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 255,
+       "last": 255
+      }
+     ]
+    },
+    {
+     "key": "names",
+     "name_en": "The names of Allah",
+     "name_bn": "আল্লাহর নামসমূহ",
+     "passages": [
+      {
+       "surah": 59,
+       "first": 22,
+       "last": 24
+      },
+      {
+       "surah": 7,
+       "first": 180,
+       "last": 180
+      },
+      {
+       "surah": 17,
+       "first": 110,
+       "last": 110
+      }
+     ]
+    },
+    {
+     "key": "like",
+     "name_en": "Nothing is like Him",
+     "name_bn": "তাঁর মতো কিছুই নেই",
+     "passages": [
+      {
+       "surah": 42,
+       "first": 11,
+       "last": 11
+      },
+      {
+       "surah": 6,
+       "first": 103,
+       "last": 103
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "repentance",
+   "category": "faith",
+   "name_en": "Repentance",
+   "name_bn": "তওবা",
+   "duas_group": "forgiveness",
+   "parts": [
+    {
+     "key": "despair",
+     "name_en": "Do not despair of Allah's mercy",
+     "name_bn": "আল্লাহর রহমত থেকে নিরাশ হয়ো না",
+     "passages": [
+      {
+       "surah": 39,
+       "first": 53,
+       "last": 54
+      }
+     ]
+    },
+    {
+     "key": "sincere",
+     "name_en": "Sincere repentance",
+     "name_bn": "খাঁটি তওবা",
+     "passages": [
+      {
+       "surah": 66,
+       "first": 8,
+       "last": 8
+      },
+      {
+       "surah": 4,
+       "first": 17,
+       "last": 18
+      }
+     ]
+    },
+    {
+     "key": "changed",
+     "name_en": "Bad deeds turned into good",
+     "name_bn": "মন্দ কাজ ভালো কাজে বদলে যায়",
+     "passages": [
+      {
+       "surah": 25,
+       "first": 68,
+       "last": 71
+      }
+     ]
+    },
+    {
+     "key": "remember",
+     "name_en": "Remembering Allah after a sin",
+     "name_bn": "পাপের পর আল্লাহকে স্মরণ",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 135,
+       "last": 136
+      },
+      {
+       "surah": 4,
+       "first": 110,
+       "last": 110
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "remembrance",
+   "category": "faith",
+   "name_en": "Remembering Allah",
+   "name_bn": "আল্লাহর স্মরণ",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "rest",
+     "name_en": "Hearts find rest",
+     "name_bn": "অন্তর প্রশান্তি পায়",
+     "passages": [
+      {
+       "surah": 13,
+       "first": 28,
+       "last": 28
+      }
+     ]
+    },
+    {
+     "key": "often",
+     "name_en": "Remember Allah often",
+     "name_bn": "আল্লাহকে বেশি বেশি স্মরণ",
+     "passages": [
+      {
+       "surah": 33,
+       "first": 41,
+       "last": 42
+      },
+      {
+       "surah": 8,
+       "first": 45,
+       "last": 45
+      },
+      {
+       "surah": 2,
+       "first": 152,
+       "last": 152
+      }
+     ]
+    },
+    {
+     "key": "always",
+     "name_en": "Standing, sitting and lying down",
+     "name_bn": "দাঁড়িয়ে, বসে ও শুয়ে",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 190,
+       "last": 191
+      }
+     ]
+    },
+    {
+     "key": "prayer",
+     "name_en": "Prayer keeps from wrong",
+     "name_bn": "নামাজ অন্যায় থেকে বিরত রাখে",
+     "passages": [
+      {
+       "surah": 29,
+       "first": 45,
+       "last": 45
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "death",
+   "category": "hereafter",
+   "name_en": "Death and grief",
+   "name_bn": "মৃত্যু ও শোক",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "taste",
+     "name_en": "Every soul will taste death",
+     "name_bn": "প্রত্যেক প্রাণ মৃত্যুর স্বাদ নেবে",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 185,
+       "last": 185
+      },
+      {
+       "surah": 21,
+       "first": 35,
+       "last": 35
+      },
+      {
+       "surah": 29,
+       "first": 57,
+       "last": 57
+      }
+     ]
+    },
+    {
+     "key": "reach",
+     "name_en": "Death will reach you",
+     "name_bn": "মৃত্যু তোমাকে পাবেই",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 78,
+       "last": 78
+      },
+      {
+       "surah": 62,
+       "first": 8,
+       "last": 8
+      },
+      {
+       "surah": 50,
+       "first": 19,
+       "last": 19
+      }
+     ]
+    },
+    {
+     "key": "return",
+     "name_en": "To Allah we return",
+     "name_bn": "আমরা আল্লাহর কাছেই ফিরে যাব",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 155,
+       "last": 157
+      }
+     ]
+    },
+    {
+     "key": "hour",
+     "name_en": "The hour of death",
+     "name_bn": "মৃত্যুর মুহূর্ত",
+     "passages": [
+      {
+       "surah": 56,
+       "first": 83,
+       "last": 87
+      },
+      {
+       "surah": 75,
+       "first": 26,
+       "last": 30
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "prayer",
+   "category": "worship",
+   "name_en": "Prayer",
+   "name_bn": "নামাজ",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "guard",
+     "name_en": "Guard the prayers",
+     "name_bn": "নামাজের হেফাজত",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 238,
+       "last": 239
+      },
+      {
+       "surah": 4,
+       "first": 103,
+       "last": 103
+      }
+     ]
+    },
+    {
+     "key": "times",
+     "name_en": "The times of prayer",
+     "name_bn": "নামাজের সময়",
+     "passages": [
+      {
+       "surah": 11,
+       "first": 114,
+       "last": 114
+      },
+      {
+       "surah": 17,
+       "first": 78,
+       "last": 79
+      },
+      {
+       "surah": 30,
+       "first": 17,
+       "last": 18
+      }
+     ]
+    },
+    {
+     "key": "humility",
+     "name_en": "Humility in prayer",
+     "name_bn": "নামাজে বিনয়",
+     "passages": [
+      {
+       "surah": 23,
+       "first": 1,
+       "last": 2
+      },
+      {
+       "surah": 2,
+       "first": 45,
+       "last": 46
+      }
+     ]
+    },
+    {
+     "key": "heedless",
+     "name_en": "Those careless of prayer",
+     "name_bn": "নামাজে উদাসীন যারা",
+     "passages": [
+      {
+       "surah": 107,
+       "first": 4,
+       "last": 7
+      },
+      {
+       "surah": 19,
+       "first": 59,
+       "last": 60
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "fasting",
+   "category": "worship",
+   "name_en": "Fasting and Ramadan",
+   "name_bn": "রোজা ও রমজান",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "prescribed",
+     "name_en": "Fasting is prescribed",
+     "name_bn": "রোজা ফরজ করা হয়েছে",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 183,
+       "last": 184
+      }
+     ]
+    },
+    {
+     "key": "ramadan",
+     "name_en": "The month of Ramadan",
+     "name_bn": "রমজান মাস",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 185,
+       "last": 185
+      }
+     ]
+    },
+    {
+     "key": "near",
+     "name_en": "I am near",
+     "name_bn": "আমি কাছেই আছি",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 186,
+       "last": 186
+      }
+     ]
+    },
+    {
+     "key": "qadr",
+     "name_en": "The Night of Decree",
+     "name_bn": "লাইলাতুল কদর",
+     "passages": [
+      {
+       "surah": 97,
+       "first": 1,
+       "last": 5
+      },
+      {
+       "surah": 44,
+       "first": 2,
+       "last": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "hajj",
+   "category": "worship",
+   "name_en": "Hajj",
+   "name_bn": "হজ",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "owed",
+     "name_en": "Hajj is owed to Allah",
+     "name_bn": "সামর্থ্যবানের ওপর হজ ফরজ",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 96,
+       "last": 97
+      }
+     ]
+    },
+    {
+     "key": "call",
+     "name_en": "Call people to Hajj",
+     "name_bn": "মানুষকে হজের ডাক",
+     "passages": [
+      {
+       "surah": 22,
+       "first": 26,
+       "last": 28
+      }
+     ]
+    },
+    {
+     "key": "rites",
+     "name_en": "The rites",
+     "name_bn": "হজের বিধান",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 196,
+       "last": 199
+      }
+     ]
+    },
+    {
+     "key": "safa",
+     "name_en": "Safa and Marwa",
+     "name_bn": "সাফা ও মারওয়া",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 158,
+       "last": 158
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "quran",
+   "category": "worship",
+   "name_en": "The Quran",
+   "name_bn": "কুরআন",
+   "duas_group": "knowledge",
+   "parts": [
+    {
+     "key": "reflect",
+     "name_en": "A book to reflect on",
+     "name_bn": "চিন্তা করার কিতাব",
+     "passages": [
+      {
+       "surah": 38,
+       "first": 29,
+       "last": 29
+      },
+      {
+       "surah": 47,
+       "first": 24,
+       "last": 24
+      },
+      {
+       "surah": 4,
+       "first": 82,
+       "last": 82
+      }
+     ]
+    },
+    {
+     "key": "easy",
+     "name_en": "Made easy to remember",
+     "name_bn": "স্মরণের জন্য সহজ",
+     "passages": [
+      {
+       "surah": 54,
+       "first": 17,
+       "last": 17
+      },
+      {
+       "surah": 44,
+       "first": 58,
+       "last": 58
+      }
+     ]
+    },
+    {
+     "key": "preserved",
+     "name_en": "Allah preserves it",
+     "name_bn": "আল্লাহই এর হেফাজতকারী",
+     "passages": [
+      {
+       "surah": 15,
+       "first": 9,
+       "last": 9
+      },
+      {
+       "surah": 41,
+       "first": 41,
+       "last": 42
+      }
+     ]
+    },
+    {
+     "key": "recite",
+     "name_en": "How to recite",
+     "name_bn": "কীভাবে তিলাওয়াত করবে",
+     "passages": [
+      {
+       "surah": 73,
+       "first": 1,
+       "last": 4
+      },
+      {
+       "surah": 16,
+       "first": 98,
+       "last": 98
+      },
+      {
+       "surah": 7,
+       "first": 204,
+       "last": 204
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "paradise",
+   "category": "hereafter",
+   "name_en": "Paradise",
+   "name_bn": "জান্নাত",
+   "duas_group": "hereafter",
+   "parts": [
+    {
+     "key": "width",
+     "name_en": "As wide as the heavens and earth",
+     "name_bn": "আসমান-জমিনের মতো প্রশস্ত",
+     "passages": [
+      {
+       "surah": 3,
+       "first": 133,
+       "last": 133
+      },
+      {
+       "surah": 57,
+       "first": 21,
+       "last": 21
+      }
+     ]
+    },
+    {
+     "key": "rivers",
+     "name_en": "Its rivers",
+     "name_bn": "জান্নাতের নহর",
+     "passages": [
+      {
+       "surah": 47,
+       "first": 15,
+       "last": 15
+      }
+     ]
+    },
+    {
+     "key": "peace",
+     "name_en": "No idle talk, only peace",
+     "name_bn": "অনর্থক কথা নেই, শুধু সালাম",
+     "passages": [
+      {
+       "surah": 56,
+       "first": 25,
+       "last": 26
+      },
+      {
+       "surah": 19,
+       "first": 62,
+       "last": 62
+      }
+     ]
+    },
+    {
+     "key": "hidden",
+     "name_en": "What no soul knows",
+     "name_bn": "যা কেউ জানে না",
+     "passages": [
+      {
+       "surah": 32,
+       "first": 17,
+       "last": 17
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "fire",
+   "category": "hereafter",
+   "name_en": "The Fire",
+   "name_bn": "জাহান্নাম",
+   "duas_group": "hereafter",
+   "parts": [
+    {
+     "key": "families",
+     "name_en": "Protect yourselves and your families",
+     "name_bn": "নিজেকে ও পরিবারকে বাঁচাও",
+     "passages": [
+      {
+       "surah": 66,
+       "first": 6,
+       "last": 6
+      }
+     ]
+    },
+    {
+     "key": "fuel",
+     "name_en": "Its fuel is people and stones",
+     "name_bn": "তার জ্বালানি মানুষ ও পাথর",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 23,
+       "last": 24
+      }
+     ]
+    },
+    {
+     "key": "punishment",
+     "name_en": "Its punishment",
+     "name_bn": "তার শাস্তি",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 56,
+       "last": 56
+      },
+      {
+       "surah": 18,
+       "first": 29,
+       "last": 29
+      },
+      {
+       "surah": 14,
+       "first": 15,
+       "last": 17
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "judgement",
+   "category": "hereafter",
+   "name_en": "The Day of Judgement",
+   "name_bn": "বিচার দিবস",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "shaken",
+     "name_en": "When the earth is shaken",
+     "name_bn": "যখন পৃথিবী কেঁপে উঠবে",
+     "passages": [
+      {
+       "surah": 99,
+       "first": 1,
+       "last": 8
+      }
+     ]
+    },
+    {
+     "key": "qariah",
+     "name_en": "The Striking Hour",
+     "name_bn": "মহাপ্রলয়",
+     "passages": [
+      {
+       "surah": 101,
+       "first": 1,
+       "last": 5
+      },
+      {
+       "surah": 101,
+       "first": 6,
+       "last": 11
+      }
+     ]
+    },
+    {
+     "key": "flee",
+     "name_en": "A man flees from his brother",
+     "name_bn": "মানুষ ভাই থেকে পালাবে",
+     "passages": [
+      {
+       "surah": 80,
+       "first": 33,
+       "last": 37
+      }
+     ]
+    },
+    {
+     "key": "quake",
+     "name_en": "The quake of the Hour",
+     "name_bn": "কিয়ামতের কম্পন",
+     "passages": [
+      {
+       "surah": 22,
+       "first": 1,
+       "last": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "justice",
+   "category": "society",
+   "name_en": "Justice",
+   "name_bn": "ন্যায়বিচার",
+   "duas_group": null,
+   "parts": [
+    {
+     "key": "trusts",
+     "name_en": "Give trusts to their owners",
+     "name_bn": "আমানত মালিককে ফিরিয়ে দাও",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 58,
+       "last": 58
+      }
+     ]
+    },
+    {
+     "key": "firm",
+     "name_en": "Stand firm for justice",
+     "name_bn": "ন্যায়ের ওপর অটল থাকো",
+     "passages": [
+      {
+       "surah": 4,
+       "first": 135,
+       "last": 135
+      },
+      {
+       "surah": 5,
+       "first": 8,
+       "last": 8
+      },
+      {
+       "surah": 16,
+       "first": 90,
+       "last": 90
+      }
+     ]
+    },
+    {
+     "key": "reconcile",
+     "name_en": "Make peace between believers",
+     "name_bn": "মুমিনদের মধ্যে মীমাংসা",
+     "passages": [
+      {
+       "surah": 49,
+       "first": 9,
+       "last": 10
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "knowledge",
+   "category": "society",
+   "name_en": "Knowledge",
+   "name_bn": "জ্ঞান",
+   "duas_group": "knowledge",
+   "parts": [
+    {
+     "key": "read",
+     "name_en": "Read!",
+     "name_bn": "পড়ো!",
+     "passages": [
+      {
+       "surah": 96,
+       "first": 1,
+       "last": 5
+      }
+     ]
+    },
+    {
+     "key": "equal",
+     "name_en": "Are those who know equal?",
+     "name_bn": "যারা জানে আর যারা জানে না, তারা কি সমান?",
+     "passages": [
+      {
+       "surah": 39,
+       "first": 9,
+       "last": 9
+      },
+      {
+       "surah": 58,
+       "first": 11,
+       "last": 11
+      },
+      {
+       "surah": 20,
+       "first": 114,
+       "last": 114
+      }
+     ]
+    },
+    {
+     "key": "fear",
+     "name_en": "The learned fear Allah",
+     "name_bn": "জ্ঞানীরাই আল্লাহকে ভয় করে",
+     "passages": [
+      {
+       "surah": 35,
+       "first": 28,
+       "last": 28
+      }
+     ]
+    },
+    {
+     "key": "follow",
+     "name_en": "Do not follow what you do not know",
+     "name_bn": "যা জানো না তার পেছনে যেয়ো না",
+     "passages": [
+      {
+       "surah": 17,
+       "first": 36,
+       "last": 36
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "key": "hope",
+   "category": "faith",
+   "name_en": "Hope in hard times",
+   "name_bn": "কঠিন সময়ে আশা",
+   "duas_group": "ease",
+   "parts": [
+    {
+     "key": "capacity",
+     "name_en": "No soul is burdened beyond its strength",
+     "name_bn": "সাধ্যের বাইরে বোঝা নেই",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 286,
+       "last": 286
+      },
+      {
+       "surah": 65,
+       "first": 7,
+       "last": 7
+      },
+      {
+       "surah": 23,
+       "first": 62,
+       "last": 62
+      }
+     ]
+    },
+    {
+     "key": "despair",
+     "name_en": "Do not lose hope",
+     "name_bn": "নিরাশ হয়ো না",
+     "passages": [
+      {
+       "surah": 12,
+       "first": 87,
+       "last": 87
+      },
+      {
+       "surah": 15,
+       "first": 55,
+       "last": 56
+      }
+     ]
+    },
+    {
+     "key": "near",
+     "name_en": "Help is near",
+     "name_bn": "সাহায্য কাছেই",
+     "passages": [
+      {
+       "surah": 2,
+       "first": 214,
+       "last": 214
+      },
+      {
+       "surah": 12,
+       "first": 110,
+       "last": 110
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
