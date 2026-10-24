@@ -288,6 +288,8 @@ private fun QuranContent(
     state: QuranUiState,
 ) {
     val context = LocalContext.current
+    // Read in composition so a language change gives the new title.
+    val ayahShareTitle = stringResource(R.string.ayah_share)
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     // Not read here: only the page that holds the playing ayah reads the word position.
@@ -590,7 +592,7 @@ private fun QuranContent(
                                 shareText(
                                     context,
                                     viewModel.shareTextOf(range),
-                                    context.getString(R.string.ayah_share),
+                                    ayahShareTitle,
                                 )
                             }
                         },
