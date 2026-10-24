@@ -6,6 +6,7 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.feature.duas.card.DuaCardData
 import app.awn.quran.feature.read.quran.AyahWord
 import app.awn.quran.feature.read.quran.WordGlyphs
 
@@ -93,3 +94,13 @@ private suspend fun endSignCodeOn(
         .filterIsInstance<LineItem.AyahEnd>()
         .firstOrNull { it.ayah == ayah }
         ?.glyphCode
+
+/** The last word of each ayah on the card; the end marker follows it when it is shown. */
+internal fun lastWordKeysOfAyahs(card: DuaCardData): Map<AyahRef, WordKey> =
+    card.words
+        .groupBy { AyahRef(it.word.key.surah, it.word.key.ayah) }
+        .mapValues { (_, cardWords) -> cardWords.last().word.key }
+
+/** The tag of a word of the card, or of the end marker that follows an ayah. */
+internal fun tagOfCardWord(key: WordKey): String =
+    if (isAyahEndKey(key)) ayahEndTag(AyahRef(key.surah, key.ayah)) else cardWordTag(key)

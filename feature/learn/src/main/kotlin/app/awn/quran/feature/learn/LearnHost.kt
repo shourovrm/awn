@@ -134,9 +134,7 @@ fun LearnScreen(
             assets?.let { CourseRuntime(it, courseDependencies) }
         }
 
-    val unitSounds =
-        remember(packs, wordSound) { PackUnitSounds(packs, MediaClipPlayer(), wordSound) }
-    DisposableEffect(unitSounds) { onDispose { unitSounds.stop() } }
+    val unitSounds = rememberUnitSounds(packs, wordSound)
 
     val current = route ?: return
     CompositionLocalProvider(
@@ -348,4 +346,13 @@ private fun surahNameOf(
     val chapter = chapters.firstOrNull { it.number == surah } ?: return fallback()
     return if (language == LearnLanguage.Bangla) chapter.nameBangla ?: chapter.nameSimple
     else chapter.nameSimple
+}
+
+/** The lesson sounds of the tab; they stop when the tab leaves the screen. */
+@Composable
+private fun rememberUnitSounds(packs: PackRepository, wordSound: WordSound): PackUnitSounds {
+    val unitSounds =
+        remember(packs, wordSound) { PackUnitSounds(packs, MediaClipPlayer(), wordSound) }
+    DisposableEffect(unitSounds) { onDispose { unitSounds.stop() } }
+    return unitSounds
 }

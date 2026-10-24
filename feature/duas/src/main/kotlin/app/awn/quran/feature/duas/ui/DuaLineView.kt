@@ -260,15 +260,6 @@ internal fun ayahBlocksOf(
         }
 }
 
-private fun lastWordKeysOfAyahs(card: DuaCardData): Map<AyahRef, WordKey> =
-    card.words
-        .groupBy { AyahRef(it.word.key.surah, it.word.key.ayah) }
-        .mapValues { (_, cardWords) -> cardWords.last().word.key }
-
-/** The tag of a word of the card, or of the end marker that follows an ayah. */
-private fun tagOfCardWord(key: WordKey): String =
-    if (isAyahEndKey(key)) ayahEndTag(AyahRef(key.surah, key.ayah)) else cardWordTag(key)
-
 /** The words faint on a card of whole ayahs: those outside the dua and the markers after them. */
 private fun dimmedWordsOf(card: DuaCardData): Set<WordKey> {
     val markersAfterOutsideWords =
