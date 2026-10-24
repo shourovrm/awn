@@ -163,11 +163,8 @@ private fun CardPager(
         val isCurrent = index == pagerState.currentPage
         val isReciting = isCurrent && screenState.mode == DuaCardMode.Recite
         // The meanings and the sound of the words come with the tiles.
-        val needsWordTiles =
-            state.progress.layers.showWordByWord || state.progress.layers.showTransliteration
-        LaunchedEffect(dua.id, needsWordTiles) {
-            if (needsWordTiles) actions.onRequestWordTiles(dua)
-        }
+        // Every word opens its card, which shows the meaning, so the meanings load with the card.
+        LaunchedEffect(dua.id) { actions.onRequestWordTiles(dua) }
         val highlights =
             if (isCurrent) {
                 CardHighlights(

@@ -490,4 +490,27 @@ class DuaCardsScreenTest {
         assertTrue(environment.playedWords.isEmpty())
         composeRule.onNodeWithContentDescription("Play").assertIsDisplayed()
     }
+
+    @Test
+    fun theWordCardShowsTheMeaningOfTheTappedWord() {
+        show()
+        turnOnWordByWord()
+
+        composeRule.onNodeWithText("give us").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
+
+        // The screen under the open card is hidden, so this is the card's own line.
+        composeRule.onNodeWithText("give us").assertIsDisplayed()
+    }
+
+    @Test
+    fun withoutWordByWordTheWordCardStillShowsTheMeaning() {
+        show()
+
+        composeRule.onNodeWithTag(cardWordTag(WordKey(2, 201, 5))).performClick()
+        composeRule.waitForIdle()
+
+        assertTrue(DuasFixtures.d1 in requestedTiles)
+        composeRule.onNodeWithText("give us").assertIsDisplayed()
+    }
 }
