@@ -7,7 +7,7 @@
 <p align="center">A free Android app for reading, listening to, reciting and memorising the Quran. No ads, no account, no payment.</p>
 
 <p align="center">
-  <a href="https://github.com/shourovrm/awn/releases/latest"><b>Download the latest APK</b></a>
+  <a href="https://github.com/shourovrm/awn/releases?q=v0&expanded=true"><b>Download the latest APK</b></a>
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@ Awn is free and non-commercial, for everyone's use. I ask only for your dua for 
 
 Awn runs on Android 8.0 or newer. It is not on the Play Store yet, so you install the file yourself:
 
-1. Open the [latest release](https://github.com/shourovrm/awn/releases/latest) and download `app-github-arm64-v8a-release.apk`. That file fits almost every phone sold since 2017. An old 32-bit phone needs `armeabi-v7a` instead.
+1. Open the newest `v0.x` entry on the [releases page](https://github.com/shourovrm/awn/releases?q=v0&expanded=true) and download `app-github-arm64-v8a-release.apk`. That file fits almost every phone sold since 2017. An old 32-bit phone needs `armeabi-v7a` instead.
 2. Open the downloaded file. Android asks once to allow installs from your browser or file manager; allow it.
 3. Open Awn.
 
