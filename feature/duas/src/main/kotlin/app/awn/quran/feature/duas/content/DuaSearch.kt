@@ -17,7 +17,11 @@ enum class DuaMatchField {
 
 data class DuaSearchHit(val dua: Dua, val field: DuaMatchField)
 
-/** Finds duas by Arabic without harakat, translation words, or group name; the content slice writes it. */
+/**
+ * Finds duas by Arabic without harakat, translation words, or group name; the content slice writes
+ * it.
+ */
 object DuaSearch {
-    fun search(query: String, entries: List<DuaSearchEntry>): List<DuaSearchHit> = TODO("content slice")
+    fun search(query: String, entries: List<DuaSearchEntry>): List<DuaSearchHit> =
+        TODO("content slice")
 }

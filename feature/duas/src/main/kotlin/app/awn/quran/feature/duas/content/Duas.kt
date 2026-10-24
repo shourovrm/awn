@@ -25,9 +25,9 @@ enum class DuaOpening {
 data class DuaGroup(val key: String, val name: LocalName)
 
 /**
- * One dua: the words from [start] to [end] inclusive, in one surah. A dua can begin inside an
- * ayah (2:201 starts at word 4, after "and among them is he who says") and can run over several
- * ayahs (20:25 to 20:28). Word positions are the 1-based positions of the bundled Quran text.
+ * One dua: the words from [start] to [end] inclusive, in one surah. A dua can begin inside an ayah
+ * (2:201 starts at word 4, after "and among them is he who says") and can run over several ayahs
+ * (20:25 to 20:28). Word positions are the 1-based positions of the bundled Quran text.
  */
 data class Dua(
     val id: String,
@@ -42,7 +42,10 @@ data class Dua(
 ) {
     init {
         require(start.surah == end.surah) { "Dua $id spans two surahs." }
-        require(start.ayah < end.ayah || (start.ayah == end.ayah && start.wordPosition <= end.wordPosition)) {
+        require(
+            start.ayah < end.ayah ||
+                (start.ayah == end.ayah && start.wordPosition <= end.wordPosition),
+        ) {
             "Dua $id ends before it starts."
         }
     }

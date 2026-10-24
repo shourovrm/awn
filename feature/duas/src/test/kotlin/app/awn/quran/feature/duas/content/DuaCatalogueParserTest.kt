@@ -61,7 +61,8 @@ class DuaCatalogueParserTest {
     fun unknownGroupFailsAndNamesTheDua() {
         val broken = sample.replace("\"group\": \"speech\"", "\"group\": \"missing\"")
 
-        val error = assertThrows(IllegalArgumentException::class.java) { DuaCatalogueParser.parse(broken) }
+        val error =
+            assertThrows(IllegalArgumentException::class.java) { DuaCatalogueParser.parse(broken) }
 
         assertTrue(error.message.orEmpty().contains("20-25"))
     }
@@ -70,7 +71,8 @@ class DuaCatalogueParserTest {
     fun unknownProphetFailsAndNamesTheDua() {
         val broken = sample.replace("\"prophet\": \"musa\"", "\"prophet\": \"harun\"")
 
-        val error = assertThrows(IllegalArgumentException::class.java) { DuaCatalogueParser.parse(broken) }
+        val error =
+            assertThrows(IllegalArgumentException::class.java) { DuaCatalogueParser.parse(broken) }
 
         assertTrue(error.message.orEmpty().contains("20-25"))
     }

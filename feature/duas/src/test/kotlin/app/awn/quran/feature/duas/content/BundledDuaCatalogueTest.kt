@@ -25,7 +25,7 @@ class BundledDuaCatalogueTest {
     private val catalogue = DuaCatalogueParser.parse(json)
     private val quranText =
         SqliteQuranTextRepository(
-            databaseFile = { File("../../core/data/src/main/assets/packs/quran.sqlite") }
+            databaseFile = { File("../../core/data/src/main/assets/packs/quran.sqlite") },
         )
 
     private fun words(ayah: AyahRef): List<Word> = runBlocking { quranText.wordsOfAyah(ayah) }
@@ -63,8 +63,16 @@ class BundledDuaCatalogueTest {
             val entry = duas.getJSONObject(index)
             val dua = catalogue.duas[index]
             assertEquals(dua.id, entry.getString("id"))
-            assertEquals("start of ${dua.id}", entry.getJSONObject("start").getString("text"), wordText(dua.start))
-            assertEquals("end of ${dua.id}", entry.getJSONObject("end").getString("text"), wordText(dua.end))
+            assertEquals(
+                "start of ${dua.id}",
+                entry.getJSONObject("start").getString("text"),
+                wordText(dua.start),
+            )
+            assertEquals(
+                "end of ${dua.id}",
+                entry.getJSONObject("end").getString("text"),
+                wordText(dua.end),
+            )
         }
     }
 
@@ -96,9 +104,11 @@ class BundledDuaCatalogueTest {
 
     private fun isWithin(key: WordKey, dua: Dua): Boolean {
         val afterStart =
-            key.ayah > dua.start.ayah || (key.ayah == dua.start.ayah && key.wordPosition >= dua.start.wordPosition)
+            key.ayah > dua.start.ayah ||
+                (key.ayah == dua.start.ayah && key.wordPosition >= dua.start.wordPosition)
         val beforeEnd =
-            key.ayah < dua.end.ayah || (key.ayah == dua.end.ayah && key.wordPosition <= dua.end.wordPosition)
+            key.ayah < dua.end.ayah ||
+                (key.ayah == dua.end.ayah && key.wordPosition <= dua.end.wordPosition)
         return afterStart && beforeEnd
     }
 }
