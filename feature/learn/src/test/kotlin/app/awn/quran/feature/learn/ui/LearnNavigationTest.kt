@@ -109,6 +109,7 @@ class LearnNavigationTest {
                 LearnRoute.Track(LearnTrack.Tajweed),
                 LearnRoute.CourseUnit("letters-01", LearnTrack.Reading),
                 LearnRoute.CourseUnit("letters-01", track = null),
+                LearnRoute.CourseUnit("grammar-01", LearnTrack.Grammar, isOpenedFromWords = true),
             )
         for (route in routes) {
             assertEquals(route, decodeLearnRoute(encodeLearnRoute(route)))
@@ -119,5 +120,28 @@ class LearnNavigationTest {
     fun aRunningSessionComesBackAsTheHub() {
         val saved = encodeLearnRoute(LearnRoute.Session(isOwnQuiz = false))
         assertEquals(LearnRoute.Hub, decodeLearnRoute(saved))
+    }
+
+    @Test
+    fun backFromAGrammarLessonOpenedFromTheWordsTrackReturnsToTheWordsTrack() {
+        val lesson =
+            LearnRoute.CourseUnit("grammar-01", LearnTrack.Grammar, isOpenedFromWords = true)
+        assertEquals(LearnRoute.Track(LearnTrack.Words), learnBackFrom(lesson))
+    }
+
+    @Test
+    fun backFromAGrammarLessonOpenedFromTheGrammarListReturnsToTheList() {
+        val lesson = LearnRoute.CourseUnit("grammar-01", LearnTrack.Grammar)
+        assertEquals(LearnRoute.Track(LearnTrack.Grammar), learnBackFrom(lesson))
+    }
+
+    @Test
+    fun onlyTheHubAndTheFirstOpenScreenAreTabRoots() {
+        assertEquals(true, isLearnTabRoot(null))
+        assertEquals(true, isLearnTabRoot(LearnRoute.Hub))
+        assertEquals(true, isLearnTabRoot(LearnRoute.FirstOpen))
+        assertEquals(false, isLearnTabRoot(LearnRoute.Track(LearnTrack.Grammar)))
+        assertEquals(false, isLearnTabRoot(LearnRoute.SetPage(1)))
+        assertEquals(false, isLearnTabRoot(LearnRoute.WordList))
     }
 }

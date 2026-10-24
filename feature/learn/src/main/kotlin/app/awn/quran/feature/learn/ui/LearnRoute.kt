@@ -44,13 +44,25 @@ internal sealed interface LearnRoute {
     /** The numbered units of one track. */
     data class Track(val track: LearnTrack) : LearnRoute
 
-    /** A course unit, page by page; [track] is the track it was opened from, if any. */
-    data class CourseUnit(val id: String, val track: LearnTrack?) : LearnRoute
+    /**
+     * A course unit, page by page; [track] is the track it was opened from, if any. A grammar
+     * lesson linked from the Quran words track has [isOpenedFromWords] set, so Back returns there
+     * and not to the grammar list.
+     */
+    data class CourseUnit(
+        val id: String,
+        val track: LearnTrack?,
+        val isOpenedFromWords: Boolean = false,
+    ) : LearnRoute
 }
 
 /** The tab opens on the first-open choices until the course has started, then on the hub. */
 internal fun learnStartRoute(courseStarted: Boolean): LearnRoute =
     if (courseStarted) LearnRoute.Hub else LearnRoute.FirstOpen
+
+/** The Learn tab's main page is the only one that shows the bottom tabs. */
+internal fun isLearnTabRoot(route: LearnRoute?): Boolean =
+    route == null || route == LearnRoute.Hub || route == LearnRoute.FirstOpen
 
 /** The screen Back returns to, or null when Back leaves the tab. */
 internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
@@ -61,9 +73,14 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
         is LearnRoute.WordAyahs -> route.from
         is LearnRoute.SetPage,
         is LearnRoute.PageWords -> LearnRoute.Track(LearnTrack.Words)
-        is LearnRoute.CourseUnit -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
+        is LearnRoute.CourseUnit -> learnBackFromUnit(route)
         else -> LearnRoute.Hub
     }
+
+private fun learnBackFromUnit(route: LearnRoute.CourseUnit): LearnRoute {
+    if (route.isOpenedFromWords) return LearnRoute.Track(LearnTrack.Words)
+    return route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
+}
 
 /**
  * Keeps the route across a turned screen or a recreated activity. A route is saved as one text: its
@@ -103,8 +120,7 @@ internal fun encodeLearnRoute(route: LearnRoute): String =
         is LearnRoute.SetPage -> listOf("set_page", route.number).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.PageWords -> listOf("page_words", route.page).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.Track -> listOf("track", route.track.name).joinToString(ROUTE_SEPARATOR)
-        is LearnRoute.CourseUnit ->
-            listOf("unit", route.track?.name ?: NO_TRACK, route.id).joinToString(ROUTE_SEPARATOR)
+        is LearnRoute.CourseUnit -> encodeUnit(route)
         else -> SIMPLE_ROUTES.entries.first { it.value == route }.key
     }
 
@@ -120,15 +136,22 @@ private fun decodeRouteWithValues(parts: List<String>): LearnRoute? =
         "set_page" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.SetPage(it) }
         "page_words" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.PageWords(it) }
         "track" -> parts.getOrNull(1)?.let { LearnRoute.Track(LearnTrack.valueOf(it)) }
-        "unit" -> decodeUnit(parts)
+        "unit" -> decodeUnit(parts, isOpenedFromWords = false)
+        "unit_from_words" -> decodeUnit(parts, isOpenedFromWords = true)
         else -> null
     }
 
-private fun decodeUnit(parts: List<String>): LearnRoute? {
+private fun encodeUnit(route: LearnRoute.CourseUnit): String {
+    val name = if (route.isOpenedFromWords) "unit_from_words" else "unit"
+    return listOf(name, route.track?.name ?: NO_TRACK, route.id).joinToString(ROUTE_SEPARATOR)
+}
+
+private fun decodeUnit(parts: List<String>, isOpenedFromWords: Boolean): LearnRoute? {
     val trackName = parts.getOrNull(1)
     val unitId = parts.getOrNull(2)
     val track = trackName?.takeUnless { it == NO_TRACK }?.let { LearnTrack.valueOf(it) }
-    return if (trackName == null || unitId == null) null else LearnRoute.CourseUnit(unitId, track)
+    return if (trackName == null || unitId == null) null
+    else LearnRoute.CourseUnit(unitId, track, isOpenedFromWords)
 }
 
 // The screen Back returns to is saved as the rest of the text after the rank, which the split with

@@ -244,10 +244,10 @@ private fun hubActions(
                 wordMeaningsPackId(context.dependencies.languageCode),
             )
         },
+        // Only the Quran words track draws these links, so Back returns to it.
         onLesson = {
-            context.onRouteChange(
-                LearnRoute.CourseUnit(it, LearnTracks.trackOf(it, context.runtime.assets.content)),
-            )
+            val track = LearnTracks.trackOf(it, context.runtime.assets.content)
+            context.onRouteChange(LearnRoute.CourseUnit(it, track, isOpenedFromWords = true))
         },
         onChangeChoices = { context.onRouteChange(LearnRoute.CourseChoices) },
     )

@@ -67,7 +67,7 @@ private fun CourseUnitRoute(
     }
     val openedAtMillis = remember(lesson.id) { Instant.now().toEpochMilli() }
     val soundsOffer = rememberSoundsOffer(context.dependencies)
-    val backRoute = track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
+    val backRoute = learnBackFrom(route) ?: LearnRoute.Hub
     // The unit is drawn again for the next one, so its pages and answers start fresh.
     key(lesson.id) {
         UnitScreen(
@@ -84,7 +84,11 @@ private fun CourseUnitRoute(
                     },
                     onNextUnit = { next ->
                         context.onRouteChange(
-                            LearnRoute.CourseUnit(next.id, track ?: LearnTrack.Reading),
+                            LearnRoute.CourseUnit(
+                                next.id,
+                                track ?: LearnTrack.Reading,
+                                route.isOpenedFromWords,
+                            ),
                         )
                     },
                 ),
