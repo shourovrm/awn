@@ -34,6 +34,20 @@ class LearnNavigationTest {
     }
 
     @Test
+    fun backFromAWordsAyahsReturnsToItsWordPage() {
+        val wordPage = LearnRoute.WordPage(rank = 12, from = LearnRoute.SetPage(2))
+        assertEquals(wordPage, learnBackFrom(LearnRoute.WordAyahs(rank = 12, from = wordPage)))
+    }
+
+    @Test
+    fun aWordsAyahsRouteIsSavedAndRestoredWithItsWordPage() {
+        val route =
+            LearnRoute.WordAyahs(rank = 12, from = LearnRoute.WordPage(12, LearnRoute.SetPage(2)))
+
+        assertEquals(route, decodeLearnRoute(encodeLearnRoute(route)))
+    }
+
+    @Test
     fun backFromEveryOtherScreenReturnsToTheHub() {
         val others =
             listOf(

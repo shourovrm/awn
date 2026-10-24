@@ -183,12 +183,16 @@ internal data class WordDetails(
     val isQueued: Boolean,
 )
 
-/** One word of the word page: the word to tap and hear, its meaning and its example ayahs. */
+/**
+ * One word of the word page: the word to tap and hear, its meaning and its example ayahs. The
+ * "Appears" line opens every ayah the word is in ([onOpenAyahs]).
+ */
 @Composable
 internal fun WordPageBody(
     details: WordDetails,
     onReviseNow: () -> Unit,
     onAdd: () -> Unit,
+    onOpenAyahs: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isMet = details.status != WordStatus.NotMet
@@ -219,6 +223,7 @@ internal fun WordPageBody(
                 details.occurrences,
                 details.occurrences,
             ),
+            onClick = onOpenAyahs,
         )
         InfoLine(stringResource(R.string.word_state), stateText(details))
         details.ayahs.forEach {
@@ -275,9 +280,27 @@ private fun stateText(details: WordDetails): String =
     }
 
 @Composable
-private fun InfoLine(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+private fun InfoLine(label: String, value: String, onClick: (() -> Unit)? = null) {
+    val tappable =
+        if (onClick == null) {
+            Modifier
+        } else {
+            Modifier.heightIn(min = AwnSpacing.touchTarget).clickable(role = Role.Button) {
+                onClick()
+            }
+        }
+    Row(
+        modifier = Modifier.fillMaxWidth().then(tappable),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(text = label, style = AwnTypography.body, color = Awn.field.content)
-        Text(text = value, style = AwnTypography.bodyStrong, color = Awn.field.content)
+        Text(
+            text = if (onClick == null) value else "$value $LINK_MARK",
+            style = AwnTypography.bodyStrong,
+            color = if (onClick == null) Awn.field.content else Awn.field.buttonFill,
+        )
     }
 }
+
+private const val LINK_MARK = "›"

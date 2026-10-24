@@ -364,4 +364,15 @@
   <string name="level_complete_ayah_translation">“হে আমার রব, আমার জ্ঞান বাড়িয়ে দিন।” ২০:১১৪</string>
   <string name="level_complete_start">লেভেল %1$d শুরু করুন</string>
   <string name="level_complete_later">পরে</string>
+  <string name="word_ayahs_title">যেসব আয়াতে এসেছে</string>
+  <string name="word_ayahs_search_hint">সূরা, ২:২৫৫ বা কোনো শব্দ</string>
+  <string name="word_ayahs_clear">মুছুন</string>
+  <plurals name="word_ayahs_count">
+    <item quantity="one">%1$dটি আয়াত</item>
+    <item quantity="other">%1$dটি আয়াত</item>
+  </plurals>
+  <plurals name="word_ayahs_filtered">
+    <item quantity="one">%2$dটির মধ্যে %1$dটি আয়াত</item>
+    <item quantity="other">%2$dটির মধ্যে %1$dটি আয়াত</item>
+  </plurals>
 </resources>

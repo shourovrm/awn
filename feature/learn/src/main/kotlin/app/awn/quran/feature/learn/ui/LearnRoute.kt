@@ -25,6 +25,9 @@ internal sealed interface LearnRoute {
     /** The ten words of one set of the Quran words track. */
     data class SetPage(val number: Int) : LearnRoute
 
+    /** Every ayah the word at [rank] appears in; Back returns to [from]. */
+    data class WordAyahs(val rank: Int, val from: WordPage) : LearnRoute
+
     /** Every distinct word on one Quran page, with the user's progress on each. */
     data class PageWords(val page: Int) : LearnRoute
 
@@ -55,6 +58,7 @@ internal fun learnBackFrom(route: LearnRoute): LearnRoute? =
         LearnRoute.Hub,
         LearnRoute.FirstOpen -> null
         is LearnRoute.WordPage -> route.from ?: LearnRoute.WordList
+        is LearnRoute.WordAyahs -> route.from
         is LearnRoute.SetPage,
         is LearnRoute.PageWords -> LearnRoute.Track(LearnTrack.Words)
         is LearnRoute.CourseUnit -> route.track?.let { LearnRoute.Track(it) } ?: LearnRoute.Hub
@@ -93,6 +97,9 @@ internal fun encodeLearnRoute(route: LearnRoute): String =
     when (route) {
         is LearnRoute.Session -> "hub"
         is LearnRoute.WordPage -> encodeWordPage(route)
+        is LearnRoute.WordAyahs ->
+            listOf("word_ayahs", route.rank, encodeLearnRoute(route.from))
+                .joinToString(ROUTE_SEPARATOR)
         is LearnRoute.SetPage -> listOf("set_page", route.number).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.PageWords -> listOf("page_words", route.page).joinToString(ROUTE_SEPARATOR)
         is LearnRoute.Track -> listOf("track", route.track.name).joinToString(ROUTE_SEPARATOR)
@@ -109,6 +116,7 @@ internal fun decodeLearnRoute(saved: String): LearnRoute? {
 private fun decodeRouteWithValues(parts: List<String>): LearnRoute? =
     when (parts[0]) {
         "word_page" -> decodeWordPage(parts)
+        "word_ayahs" -> decodeWordAyahs(parts)
         "set_page" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.SetPage(it) }
         "page_words" -> parts.getOrNull(1)?.toIntOrNull()?.let { LearnRoute.PageWords(it) }
         "track" -> parts.getOrNull(1)?.let { LearnRoute.Track(LearnTrack.valueOf(it)) }
@@ -134,4 +142,10 @@ private fun encodeWordPage(route: LearnRoute.WordPage): String {
 private fun decodeWordPage(parts: List<String>): LearnRoute? {
     val rank = parts.getOrNull(1)?.toIntOrNull() ?: return null
     return LearnRoute.WordPage(rank, parts.getOrNull(2)?.let(::decodeLearnRoute))
+}
+
+private fun decodeWordAyahs(parts: List<String>): LearnRoute? {
+    val rank = parts.getOrNull(1)?.toIntOrNull() ?: return null
+    val from = parts.getOrNull(2)?.let(::decodeLearnRoute) as? LearnRoute.WordPage
+    return LearnRoute.WordAyahs(rank, from ?: LearnRoute.WordPage(rank))
 }

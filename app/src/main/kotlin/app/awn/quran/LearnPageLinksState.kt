@@ -3,16 +3,19 @@ package app.awn.quran
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.hifz.HifzScreenState
 import app.awn.quran.feature.hifz.HifzToday
 import app.awn.quran.feature.learn.ui.LearnPageLinks
+import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
 import app.awn.quran.services.AwnServices
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * What the Learn tab needs to know about the other tabs: the page the Quran tab continues from, the
@@ -27,6 +30,7 @@ internal fun rememberLearnPageLinks(
     val lastReadPage by
         remember(services) { lastReadPageFlow(services) }.collectAsStateWithLifecycle(null)
     val hifzScreenState by services.hifz.controller.screenState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     val script by
         remember(services) { readScriptFlow(services) }
             .collectAsStateWithLifecycle(ReadSettings().script)
@@ -35,6 +39,15 @@ internal fun rememberLearnPageLinks(
         hifzTodayPage = hifzTodayPageOf(hifzScreenState),
         script = script,
         onOpenPage = { page -> navigation.openQuran(page = page, ayah = null) },
+        onOpenAyahInLines = { ayah ->
+            // The view is a saved choice, the same one the view button of the Quran screen sets.
+            scope.launch {
+                services.readDependencies.settingsStore.update {
+                    it.copy(pageView = PageView.LineByLine)
+                }
+                navigation.openQuran(page = null, ayah = ayah)
+            }
+        },
     )
 }
 

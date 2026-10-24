@@ -158,6 +158,7 @@ internal fun CourseRoutes(
         LearnRoute.QuizStart -> QuizStartRoute(context, modifier)
         LearnRoute.WordList -> WordListRoute(context, modifier)
         is LearnRoute.WordPage -> WordPageRoute(route, context, modifier)
+        is LearnRoute.WordAyahs -> WordAyahsRoute(route, context, modifier)
         LearnRoute.Sources ->
             SourcesScreen(
                 runtime.assets.content.references,
@@ -320,12 +321,14 @@ private fun WordPageRoute(
         onBack = { context.onRouteChange(learnBackFrom(route) ?: LearnRoute.WordList) },
         modifier = modifier,
     ) { rank ->
-        WordPageOfRank(rank, context)
+        WordPageOfRank(rank, context) {
+            context.onRouteChange(LearnRoute.WordAyahs(rank, LearnRoute.WordPage(rank, route.from)))
+        }
     }
 }
 
 @Composable
-private fun WordPageOfRank(rank: Int, context: CourseScreenContext) {
+private fun WordPageOfRank(rank: Int, context: CourseScreenContext, onOpenAyahs: () -> Unit) {
     val lookups = context.runtime.lookups
     val snapshot = context.snapshot
     val details by
@@ -346,6 +349,7 @@ private fun WordPageOfRank(rank: Int, context: CourseScreenContext) {
                 }
             },
             onAdd = { context.scope.launch { context.services.courseRepository.queueWord(rank) } },
+            onOpenAyahs = onOpenAyahs,
         )
     }
 }

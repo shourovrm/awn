@@ -364,4 +364,15 @@
   <string name="level_complete_ayah_translation">“My Lord, increase me in knowledge.” 20:114</string>
   <string name="level_complete_start">Start level %1$d</string>
   <string name="level_complete_later">Later</string>
+  <string name="word_ayahs_title">Where it appears</string>
+  <string name="word_ayahs_search_hint">Surah, 2:255 or a word</string>
+  <string name="word_ayahs_clear">Clear</string>
+  <plurals name="word_ayahs_count">
+    <item quantity="one">%1$d ayah</item>
+    <item quantity="other">%1$d ayahs</item>
+  </plurals>
+  <plurals name="word_ayahs_filtered">
+    <item quantity="one">%1$d of %2$d ayah</item>
+    <item quantity="other">%1$d of %2$d ayahs</item>
+  </plurals>
 </resources>
