@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 // One function per query the repository needs.
@@ -31,13 +32,32 @@ interface HifzDao {
 
     @Query("DELETE FROM page_progress") suspend fun deleteAllPages()
 
-    @Insert suspend fun insertSession(session: SessionEntity)
+    /** Returns the new session's id, which its ayah and page answers refer to. */
+    @Insert suspend fun insertSession(session: SessionEntity): Long
 
-    @Query("SELECT * FROM session WHERE day = :day ORDER BY at ASC")
-    fun observeSessionsOn(day: Long): Flow<List<SessionEntity>>
+    @Insert suspend fun insertSessionAyahs(ayahs: List<SessionAyahEntity>)
 
+    @Insert suspend fun insertSessionPages(pages: List<SessionPageEntity>)
+
+    @Transaction
     @Query("SELECT * FROM session WHERE day = :day ORDER BY at ASC")
-    suspend fun sessionsOn(day: Long): List<SessionEntity>
+    fun observeSessionsOn(day: Long): Flow<List<SessionWithResults>>
+
+    @Transaction
+    @Query("SELECT * FROM session WHERE day = :day ORDER BY at ASC")
+    suspend fun sessionsOn(day: Long): List<SessionWithResults>
+
+    /** Every session from [fromDay] on, newest first, for the journal. */
+    @Transaction
+    @Query("SELECT * FROM session WHERE day >= :fromDay ORDER BY at DESC")
+    fun observeSessionsFrom(fromDay: Long): Flow<List<SessionWithResults>>
+
+    /** Every answer for an ayah, oldest first, so the last one for an ayah is its latest. */
+    @Query(
+        "SELECT session_ayah.* FROM session_ayah JOIN session ON session.id = " +
+            "session_ayah.session_id ORDER BY session.at ASC",
+    )
+    fun observeAyahAnswers(): Flow<List<SessionAyahEntity>>
 
     @Insert suspend fun insertMistakes(mistakes: List<MistakeEntity>)
 

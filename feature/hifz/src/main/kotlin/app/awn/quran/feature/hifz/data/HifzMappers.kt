@@ -7,6 +7,7 @@ import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.LessonSize
+import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.method.MethodSettings
 import app.awn.quran.feature.hifz.method.MistakeRecord
 import app.awn.quran.feature.hifz.method.MistakeType
@@ -46,6 +47,9 @@ internal fun PlanEntity.toPlan(): HifzPlan {
                 recentDays = recentDays,
                 ayahsPerDay = ayahsPerDay,
                 revisionPageLimit = revisionPageLimit,
+                revisionSpacing =
+                    spacingOf(revisionSpacing, spacingSteps)
+                        ?: MethodDefaults.spacingFor(HifzMethodId.fromStoredName(method)),
             ),
         cursor = cursor,
         printLayout = PageLayoutFamily.fromStoredName(printLayout),
@@ -72,6 +76,8 @@ internal fun HifzPlan.toEntity(): PlanEntity {
         cursorAyah = cursor?.ayah,
         printLayout = printLayout.storedName,
         startedOn = startedOn.toEpochDay(),
+        revisionSpacing = settings.revisionSpacing.storedName(),
+        spacingSteps = settings.revisionSpacing.storedSteps(),
     )
 }
 
@@ -98,6 +104,7 @@ internal fun PageProgressEntity.toRecord(): PageRecord {
         learnedOn = learnedOn?.let(LocalDate::ofEpochDay),
         lastRevisedOn = lastRevisedOn?.let(LocalDate::ofEpochDay),
         card = card,
+        spacingStep = spacingStep,
     )
 }
 
@@ -113,9 +120,10 @@ internal fun PageRecord.toEntity(): PageProgressEntity =
         lastReview = card?.lastReviewMillis,
         state = card?.state?.value ?: FsrsState.Review.value,
         step = card?.step ?: 0,
+        spacingStep = spacingStep,
     )
 
-private fun kindOf(stored: String): PartKind =
+internal fun kindOf(stored: String): PartKind =
     when (stored) {
         SessionKind.NEW_LESSON -> PartKind.NewLesson
         SessionKind.RECENT -> PartKind.Recent
@@ -130,16 +138,21 @@ internal fun PartKind.storedName(): String =
         PartKind.Old -> SessionKind.OLD
     }
 
-internal fun SessionEntity.toFinishedPart(): FinishedPart {
-    val first = firstSurah?.let { surah -> firstAyah?.let { AyahRef(surah, it) } }
-    val last = lastSurah?.let { surah -> lastAyah?.let { AyahRef(surah, it) } }
+internal fun SessionWithResults.toFinishedPart(): FinishedPart {
+    val first = session.firstSurah?.let { surah -> session.firstAyah?.let { AyahRef(surah, it) } }
+    val last = session.lastSurah?.let { surah -> session.lastAyah?.let { AyahRef(surah, it) } }
+    val givenPages = session.pages.split(',').filter { it.isNotBlank() }.map { it.trim().toInt() }
+    // Sessions saved before version 2 have no page rows and always covered every page.
+    val graded = if (pages.isEmpty()) givenPages else pages.map { it.page }
     return FinishedPart(
-        day = LocalDate.ofEpochDay(day),
-        kind = kindOf(kind),
-        pages = pages.split(',').filter { it.isNotBlank() }.map { it.trim().toInt() },
+        day = LocalDate.ofEpochDay(session.day),
+        kind = kindOf(session.kind),
+        pages = givenPages,
         firstAyah = first,
         lastAyah = last,
-        grade = PartGrade.valueOf(grade),
+        grade = PartGrade.valueOf(session.grade),
+        isComplete = session.isComplete,
+        gradedPages = graded,
     )
 }
 

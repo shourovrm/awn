@@ -61,6 +61,8 @@ data class MethodSettings(
     val ayahsPerDay: Int = DEFAULT_AYAHS_PER_DAY,
     /** The most pages of revision one day asks for, so a missed day never piles up. */
     val revisionPageLimit: Int = DEFAULT_REVISION_PAGE_LIMIT,
+    /** How old pages come back: Manzil's cycle, the user's own steps, or the memory model. */
+    val revisionSpacing: RevisionSpacing = RevisionSpacing.ManzilCycle,
 ) {
     companion object {
         const val DEFAULT_MANZIL_CYCLE_DAYS = 7
@@ -70,6 +72,30 @@ data class MethodSettings(
         val manzilCycleChoices = listOf(7, 15, 30)
         val revisionLimitChoices = listOf(5, 10, 15, 20)
     }
+}
+
+/** How revision of old pages is spaced. */
+sealed interface RevisionSpacing {
+    /** Every old page once in each Manzil cycle, oldest revised first. */
+    data object ManzilCycle : RevisionSpacing
+
+    /**
+     * A page comes back after each gap of [stepDays] in turn. Good moves one step on, Easy two,
+     * Hard repeats the step and Forgot starts again at the first.
+     */
+    data class FixedSteps(val stepDays: List<Int> = DEFAULT_STEP_DAYS) : RevisionSpacing {
+        init {
+            require(stepDays.isNotEmpty()) { "Fixed spacing needs at least one step." }
+            require(stepDays.all { it >= 1 }) { "Every step is at least one day: $stepDays." }
+        }
+
+        companion object {
+            val DEFAULT_STEP_DAYS = listOf(1, 3, 7, 14, 30, 60)
+        }
+    }
+
+    /** Each page's next day comes from the FSRS memory model and the user's grades. */
+    data object Adaptive : RevisionSpacing
 }
 
 /**
@@ -94,6 +120,8 @@ data class PageRecord(
     val learnedOn: LocalDate? = null,
     val lastRevisedOn: LocalDate? = null,
     val card: FsrsCard? = null,
+    /** The index into [RevisionSpacing.FixedSteps.stepDays] of the page's next gap. */
+    val spacingStep: Int = 0,
 )
 
 /** How the user rates a part, from worst to best. */
@@ -104,6 +132,36 @@ enum class PartGrade {
     Easy,
 }
 
+/**
+ * How firmly the user knows one ayah of a new lesson, from not yet to very firm. [storedName] is
+ * saved in the database, so it never changes.
+ */
+enum class AyahFirmness(val storedName: String) {
+    NotYet("not_yet"),
+    Shaky("shaky"),
+    Firm("firm"),
+    VeryFirm("very_firm");
+
+    val isMemorised: Boolean
+        get() = this != NotYet
+
+    /** The page grade this firmness stands for; Not yet has none, because nothing was memorised. */
+    val pageGrade: PartGrade?
+        get() =
+            when (this) {
+                NotYet -> null
+                Shaky -> PartGrade.Hard
+                Firm -> PartGrade.Good
+                VeryFirm -> PartGrade.Easy
+            }
+
+    companion object {
+        fun fromStoredName(name: String): AyahFirmness =
+            entries.firstOrNull { it.storedName == name }
+                ?: error("Unknown ayah firmness '$name' in the hifz database.")
+    }
+}
+
 /** What a finished part of a day was. */
 enum class PartKind {
     NewLesson,
@@ -111,7 +169,11 @@ enum class PartKind {
     Old,
 }
 
-/** One finished part of a day, read back from the log. */
+/**
+ * One saved part of a day, read back from the log. [pages] are the pages the part was given and
+ * [gradedPages] the ones the user reached; a lesson saved before its last ayah is not [isComplete],
+ * so it stays on Today with what is left.
+ */
 data class FinishedPart(
     val day: LocalDate,
     val kind: PartKind,
@@ -119,4 +181,6 @@ data class FinishedPart(
     val firstAyah: AyahRef?,
     val lastAyah: AyahRef?,
     val grade: PartGrade,
+    val isComplete: Boolean = true,
+    val gradedPages: List<Int> = pages,
 )

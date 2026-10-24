@@ -112,7 +112,7 @@ class HifzDaoTest {
 
         assertEquals(
             listOf(SessionKind.NEW_LESSON, SessionKind.RECENT),
-            dao.sessionsOn(100).map { it.kind },
+            dao.sessionsOn(100).map { it.session.kind },
         )
     }
 

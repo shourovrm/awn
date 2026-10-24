@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -51,7 +50,6 @@ import app.awn.quran.core.ui.theme.AwnShapes
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.raisedSurface
-import app.awn.quran.feature.hifz.method.HifzProgress
 import app.awn.quran.feature.hifz.method.ListenWindow
 import app.awn.quran.feature.hifz.method.PageTable
 import app.awn.quran.feature.hifz.method.PartGrade
@@ -139,6 +137,7 @@ fun HifzBar(
     val hideWords by session.hifzEnabled.collectAsState()
     val currentWord by session.currentWord.collectAsState()
     val reviews by session.reviews.collectAsState()
+    val wordStates by session.wordStates.collectAsState()
     val speechState by recite.speechState.collectAsState()
     val colors = HifzBarColors.of(Awn.field)
     val permission = rememberMicrophonePermission()
@@ -146,6 +145,8 @@ fun HifzBar(
     val isAudioActive = playback !is PlaybackState.Idle && playback !is PlaybackState.Error
     var repeatCount by remember(current) { mutableIntStateOf(current.repeatCount) }
     var isFinishing by remember(current) { mutableStateOf(false) }
+    // The answers live as long as the part, so Keep practising and End part again keep the edits.
+    var endAnswers by remember(current) { mutableStateOf<EndPartAnswers?>(null) }
     var listenWindow by
         remember(current) {
             mutableStateOf(ListenWindow(current.firstAyah, current.lastAyah))
@@ -228,27 +229,6 @@ fun HifzBar(
                 }
                 return@Column
             }
-            if (isFinishing) {
-                val didRecite =
-                    phase == RecitationPhase.Stopped || phase == RecitationPhase.Listening
-                val suggested =
-                    if (didRecite) {
-                        HifzProgress.suggestedGrade(
-                            PracticeMistakes.mistakenWords(
-                                reviews,
-                                current.firstAyah..current.lastAyah,
-                            ),
-                            current.ayahCount,
-                        )
-                    } else {
-                        null
-                    }
-                GradeRow(suggested, colors) { grade ->
-                    controller.finishPractice(grade)
-                    onExit()
-                }
-                return@Column
-            }
             // Space between: the chip takes what the six buttons leave and the rest is shared
             // evenly.
             Row(
@@ -260,7 +240,14 @@ fun HifzBar(
                     request = current,
                     currentAyah = currentWord?.let { AyahRef(it.surah, it.ayah) },
                     colors = colors,
-                    onFinish = { isFinishing = true },
+                    onFinish = {
+                        recite.stopMicrophone()
+                        val pageTable = table
+                        if (endAnswers == null && pageTable != null) {
+                            endAnswers = startingAnswers(current, pageTable, wordStates, reviews)
+                        }
+                        isFinishing = true
+                    },
                     onClose = {
                         controller.cancelPractice()
                         onExit()
@@ -332,6 +319,25 @@ fun HifzBar(
             }
         }
     }
+    val answers = endAnswers
+    if (isFinishing && answers != null) {
+        val ayahTexts = remember(words) { firstWordsByAyah(words) }
+        EndPartSheet(
+            answers = answers,
+            context = endPartContext(current),
+            ayahText = { ayahTexts[it] },
+            onChange = { endAnswers = it },
+            onSave = {
+                when (answers) {
+                    is EndPartAnswers.Lesson -> controller.saveLesson(answers.answers)
+                    is EndPartAnswers.Revision -> controller.saveRevision(answers.grades)
+                }
+                isFinishing = false
+                onExit()
+            },
+            onKeepPractising = { isFinishing = false },
+        )
+    }
 }
 
 /**
@@ -401,42 +407,7 @@ private fun PreparingRow(colors: HifzBarColors, onClose: () -> Unit) {
 
 /** Four grade buttons in a row, the suggested one filled; one tap records the part. */
 @Composable
-private fun GradeRow(
-    suggested: PartGrade?,
-    colors: HifzBarColors,
-    onGrade: (PartGrade) -> Unit,
-) {
-    Text(
-        text = stringResource(R.string.bar_pick_grade),
-        style = AwnTypography.small,
-        color = colors.content,
-        modifier = Modifier.padding(horizontal = AwnSpacing.small),
-    )
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        listOf(PartGrade.Easy, PartGrade.Good, PartGrade.Hard, PartGrade.Forgot).forEach { grade ->
-            val isSuggested = grade == suggested
-            Box(
-                Modifier.weight(1f)
-                    .heightIn(min = AwnSpacing.touchTarget)
-                    .clip(AwnShapes.control)
-                    .background(if (isSuggested) colors.primaryFill else Color.Transparent)
-                    .clickable(role = Role.Button) { onGrade(grade) }
-                    .testTag(HIFZ_BAR_GRADE_TAG_PREFIX + grade.name.lowercase()),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = gradeLabel(grade),
-                    style = AwnTypography.bodyStrong,
-                    color = if (isSuggested) colors.onPrimary else colors.content,
-                    modifier = Modifier.padding(horizontal = AwnSpacing.small),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun gradeLabel(grade: PartGrade): String =
+internal fun gradeLabel(grade: PartGrade): String =
     stringResource(
         when (grade) {
             PartGrade.Easy -> R.string.grade_easy

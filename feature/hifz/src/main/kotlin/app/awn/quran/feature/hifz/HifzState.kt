@@ -10,6 +10,7 @@ import app.awn.quran.feature.hifz.method.HifzProgress
 import app.awn.quran.feature.hifz.method.LessonPart
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.method.MistakeRecord
+import app.awn.quran.feature.hifz.method.PageGroup
 import app.awn.quran.feature.hifz.method.PageRecord
 import app.awn.quran.feature.hifz.method.PageTable
 import app.awn.quran.feature.hifz.method.PartKind
@@ -40,6 +41,11 @@ data class PracticeRequest(
     val repeatCount: Int,
     /** The lesson itself, kept so that finishing it records the same ayahs that were shown. */
     val lesson: LessonPart?,
+    /**
+     * The pages today's revision group was given; [pages] are the ones still left of it, which a
+     * revision saved part way leaves.
+     */
+    val givenPages: List<Int> = pages,
 )
 
 object HifzStateBuilder {
@@ -81,18 +87,19 @@ object HifzStateBuilder {
                         lesson = part,
                     )
                 }
-            PartKind.Recent ->
-                assignment.recent?.let { revisionPractice(state, kind, it.pages, repeat) }
-            PartKind.Old -> assignment.old?.let { revisionPractice(state, kind, it.pages, repeat) }
+            PartKind.Recent -> assignment.recent?.let { revisionPractice(state, kind, it, repeat) }
+            PartKind.Old -> assignment.old?.let { revisionPractice(state, kind, it, repeat) }
         }
     }
 
     private fun revisionPractice(
         state: HifzState,
         kind: PartKind,
-        pages: List<Int>,
+        group: PageGroup,
         repeat: Int,
     ): PracticeRequest {
+        // A finished group can be practised again from its start; otherwise what is left of it.
+        val pages = group.pagesLeft.ifEmpty { group.pages }
         val first = state.table.ayahsOn(pages.first()).first()
         val ayahCount = pages.sumOf { state.table.ayahsStartingOn(it).size }
         return PracticeRequest(
@@ -104,6 +111,7 @@ object HifzStateBuilder {
             ayahCount = ayahCount,
             repeatCount = repeat,
             lesson = null,
+            givenPages = group.pages,
         )
     }
 }

@@ -8,7 +8,12 @@ import app.awn.quran.core.data.fsrs.FsrsState
 import java.time.LocalDate
 
 /** The new state of the pages after a lesson, and where the next lesson starts. */
-data class LessonOutcome(val records: List<PageRecord>, val nextCursor: AyahRef?)
+data class LessonOutcome(
+    val records: List<PageRecord>,
+    val nextCursor: AyahRef?,
+    /** True when every ayah of the lesson was memorised, so the lesson is done for today. */
+    val isComplete: Boolean,
+)
 
 /** How finishing a lesson or a revision changes what the app knows of each page. */
 object PageProgressRules {
@@ -34,33 +39,46 @@ object PageProgressRules {
         }
 
     /**
-     * Applies a graded new lesson. A forgotten lesson leaves the pages Learning and the cursor
-     * where it was, so the same lesson comes back. Any other grade moves the cursor past the
-     * lesson; a page whose last ayah is inside the lesson becomes Memorised, a page that is only
-     * partly covered stays Learning.
+     * Applies a saved new lesson. [firmness] holds what the user said of each ayah of [part]; an
+     * ayah without an entry counts as Not yet. The ayahs memorised in a row from the lesson's first
+     * ayah move the lesson on: the cursor goes to the first Not yet ayah, or past the lesson when
+     * there is none, so a lesson saved at ayah 4 of 7 starts at ayah 5 next time. A page whose
+     * ayahs all lie inside that run becomes Memorised, graded by its weakest ayah of the lesson;
+     * every other page of the lesson is Learning.
      */
-    // The lesson, the day, the time, the records and the scheduler are all inputs of one rule.
+    // The lesson, the answers, the day, the time, the records and the scheduler are all inputs of
+    // one rule.
     @Suppress("LongParameterList")
     fun completeLesson(
         table: PageTable,
         part: LessonPart,
-        grade: PartGrade,
+        firmness: Map<AyahRef, AyahFirmness>,
         today: LocalDate,
         nowMillis: Long,
         records: Map<Int, PageRecord>,
         scheduler: FsrsScheduler = dailyScheduler(),
     ): LessonOutcome {
+        val lessonAyahs = table.allAyahs.filter { it in part.first..part.last }
+        val memorisedRun = lessonAyahs.takeWhile {
+            (firmness[it] ?: AyahFirmness.NotYet).isMemorised
+        }
+        val runEnd = memorisedRun.lastOrNull()
         val updated =
             (part.firstPage..part.lastPage).map { page ->
                 val existing = records[page] ?: PageRecord(page, PageStatus.NotStarted)
-                val isComplete = table.ayahsOn(page).all { it <= part.last }
-                when {
-                    grade == PartGrade.Forgot || !isComplete -> startLearning(existing, today)
-                    else -> memorise(existing, grade, today, nowMillis, scheduler)
+                val pageAyahs = table.ayahsOn(page)
+                val isComplete = runEnd != null && pageAyahs.all { it <= runEnd }
+                if (isComplete) {
+                    val weakest =
+                        memorisedRun.filter { it in pageAyahs }.minOf { firmness.getValue(it) }
+                    memorise(existing, checkNotNull(weakest.pageGrade), today, nowMillis, scheduler)
+                } else {
+                    startLearning(existing, today)
                 }
             }
-        val cursor = if (grade == PartGrade.Forgot) part.first else table.ayahAfter(part.last)
-        return LessonOutcome(updated, cursor)
+        val firstNotYet = lessonAyahs.getOrNull(memorisedRun.size)
+        val cursor = firstNotYet ?: table.ayahAfter(part.last)
+        return LessonOutcome(updated, cursor, isComplete = firstNotYet == null)
     }
 
     private fun startLearning(existing: PageRecord, today: LocalDate): PageRecord =
@@ -85,8 +103,18 @@ object PageProgressRules {
             learnedOn = today,
             lastRevisedOn = today,
             card = card,
+            spacingStep = 0,
         )
     }
+
+    /** The next fixed-spacing step after [grade]; the schedule caps it at its last step. */
+    fun nextSpacingStep(current: Int, grade: PartGrade): Int =
+        when (grade) {
+            PartGrade.Forgot -> 0
+            PartGrade.Hard -> current
+            PartGrade.Good -> current + 1
+            PartGrade.Easy -> current + 2
+        }
 
     /**
      * Applies a graded revision of one page. Forgot sends the page back to Learning and makes it a
@@ -116,12 +144,14 @@ object PageProgressRules {
                 learnedOn = today,
                 lastRevisedOn = today,
                 card = card,
+                spacingStep = 0,
             )
         }
         return record.copy(
             status = statusFor(card, PageStatus.Memorised),
             lastRevisedOn = today,
             card = card,
+            spacingStep = nextSpacingStep(record.spacingStep, grade),
         )
     }
 

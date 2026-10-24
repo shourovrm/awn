@@ -118,11 +118,9 @@
   <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">বন্ধ করুন</string>
   <string name="bar_words_on_page">এই পৃষ্ঠার শব্দ</string>
-  <string name="bar_finish_part">অংশ শেষ করুন</string>
   <string name="bar_getting_ready">প্রস্তুত হচ্ছে</string>
   <string name="bar_ayah">আয়াত %d</string>
   <string name="bar_page">পৃষ্ঠা %d</string>
-  <string name="bar_pick_grade">একটি গ্রেড বাছুন</string>
   <string name="bar_previous_ayahs">আগের আয়াত</string>
   <string name="bar_next_ayahs">পরের আয়াত</string>
   <string name="grade_easy">সহজ</string>
@@ -138,4 +136,29 @@
     <item quantity="other">%d পৃষ্ঠা পুনরাবৃত্তি</item>
   </plurals>
   <string name="today_line_done">শেষ</string>
+  <string name="bar_end_part">অংশ শেষ করুন</string>
+  <string name="bar_leave_without_saving">সংরক্ষণ না করে বের হোন</string>
+  <string name="firmness_not_yet">এখনো না</string>
+  <string name="firmness_shaky">কাঁচা</string>
+  <string name="firmness_firm">পাকা</string>
+  <string name="firmness_very_firm">খুব পাকা</string>
+  <plurals name="end_lesson_summary">
+    <item quantity="one">%2$d আয়াতের %1$d টি মুখস্থ</item>
+    <item quantity="other">%2$d আয়াতের %1$d টি মুখস্থ</item>
+  </plurals>
+  <plurals name="end_revision_summary">
+    <item quantity="one">%2$d পৃষ্ঠার %1$d টি পড়া হয়েছে</item>
+    <item quantity="other">%2$d পৃষ্ঠার %1$d টি পড়া হয়েছে</item>
+  </plurals>
+  <string name="end_next_start">পরের বার শুরু %s থেকে।</string>
+  <string name="end_lesson_complete">পরের পাঠ এর পর থেকে শুরু হবে।</string>
+  <string name="end_no_mistakes">কোনো ভুল নেই</string>
+  <string name="end_not_recited">পড়া হয়নি</string>
+  <plurals name="end_words_wrong">
+    <item quantity="one">%d টি শব্দ ভুল</item>
+    <item quantity="other">%d টি শব্দ ভুল</item>
+  </plurals>
+  <string name="end_save">সংরক্ষণ করুন</string>
+  <string name="end_keep_practising">আরও অনুশীলন করুন</string>
+  <string name="end_context">%1$s · %2$s</string>
 </resources>

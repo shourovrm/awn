@@ -1,14 +1,35 @@
 package app.awn.quran.feature.hifz.method
 
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** A group of pages to revise today; [isDone] once the user finished it today. */
-data class PageGroup(val pages: List<Int>, val isDone: Boolean)
+/**
+ * A group of pages to revise today. [donePages] are the ones already graded today; a revision saved
+ * before its last page leaves the rest on Today.
+ */
+data class PageGroup(val pages: List<Int>, val donePages: Set<Int>) {
+    constructor(
+        pages: List<Int>,
+        isDone: Boolean,
+    ) : this(pages, if (isDone) pages.toSet() else emptySet())
 
-/** Today's new lesson; [isDone] once the user finished it today. */
-data class AssignedLesson(val part: LessonPart, val isDone: Boolean)
+    val isDone: Boolean
+        get() = donePages.containsAll(pages)
+
+    /** The pages still to revise today, in page order. */
+    val pagesLeft: List<Int>
+        get() = pages.filter { it !in donePages }
+}
+
+/**
+ * Today's new lesson; [isDone] once the user finished all of it today. [isContinuation] marks a
+ * lesson the user already saved part of today, so the tab can say how much is left.
+ */
+data class AssignedLesson(
+    val part: LessonPart,
+    val isDone: Boolean,
+    val isContinuation: Boolean = false,
+)
 
 /**
  * What the plan asks for today. [recent] and [old] are the revision, [revisionPageLimit] the most
@@ -39,8 +60,8 @@ data class DayAssignment(
 
 /**
  * Builds today's assignment. Nothing is carried over from earlier days: a missed day only means
- * that its pages were not revised, so the oldest-revised pages come first the next time and the
- * load of one day never grows past the limit.
+ * that its pages were not revised, so the pages that waited longest come first the next time and
+ * the load of one day never grows past the limit.
  */
 object AssignmentGenerator {
 
@@ -59,32 +80,37 @@ object AssignmentGenerator {
             return DayAssignment.empty(settings.revisionPageLimit)
 
         val lesson = assignLesson(plan, table, records, finishedToday)
+        val due = DueRevision(settings.revisionSpacing, today, zone)
         return when (plan.method) {
             HifzMethodId.SabaqSabqiManzil ->
-                splitRevision(plan, lesson, records, finishedToday, today)
-            else -> dueRevision(plan, lesson, records, finishedToday, today, zone)
+                splitRevision(plan, lesson, records, finishedToday, due)
+            else -> singleRevision(plan, lesson, records, finishedToday, due)
         }
     }
 
-    // A finished lesson, then no lesson left, then the next lesson: three exits by design.
-    @Suppress("ReturnCount")
+    /**
+     * A lesson finished in full today is shown done. Otherwise the next lesson starts at the
+     * cursor, which a partly saved lesson has moved to its first Not yet ayah.
+     */
+    @Suppress("ReturnCount") // A finished lesson, then no lesson left, then the next lesson.
     private fun assignLesson(
         plan: HifzPlan,
         table: PageTable,
         records: Map<Int, PageRecord>,
         finishedToday: List<FinishedPart>,
     ): AssignedLesson? {
-        val done = finishedToday.lastOrNull { it.kind == PartKind.NewLesson }
-        val doneFirst = done?.firstAyah
-        val doneLast = done?.lastAyah
-        if (doneFirst != null && doneLast != null) {
-            return AssignedLesson(LessonPlanner.partBetween(table, doneFirst, doneLast), true)
+        val savedToday = finishedToday.filter { it.kind == PartKind.NewLesson }
+        val completed = savedToday.lastOrNull { it.isComplete }
+        val firstSaved = savedToday.firstOrNull()?.firstAyah
+        val completedLast = completed?.lastAyah
+        if (firstSaved != null && completedLast != null) {
+            return AssignedLesson(LessonPlanner.partBetween(table, firstSaved, completedLast), true)
         }
         val part =
             LessonPlanner.nextPart(table, lessonSizeOf(plan), plan.cursor) {
                 records[it]?.status ?: PageStatus.NotStarted
             } ?: return null
-        return AssignedLesson(part, false)
+        return AssignedLesson(part, isDone = false, isContinuation = savedToday.isNotEmpty())
     }
 
     private fun lessonSizeOf(plan: HifzPlan): LessonSize =
@@ -93,36 +119,50 @@ object AssignmentGenerator {
             else -> LessonSize.Ayahs(plan.settings.ayahsPerDay)
         }
 
+    /**
+     * Today's group of [kind] as first given, with the pages graded since; null before any save.
+     */
+    private fun savedGroup(kind: PartKind, finishedToday: List<FinishedPart>): PageGroup? {
+        val saved = finishedToday.filter { it.kind == kind }
+        if (saved.isEmpty()) return null
+        return PageGroup(saved.first().pages, saved.flatMap { it.gradedPages }.toSet())
+    }
+
     private fun splitRevision(
         plan: HifzPlan,
         lesson: AssignedLesson?,
         records: Map<Int, PageRecord>,
         finishedToday: List<FinishedPart>,
-        today: LocalDate,
+        due: DueRevision,
     ): DayAssignment {
         val settings = plan.settings
         val limit = settings.revisionPageLimit
-        val windowStart = today.minusDays(settings.recentDays.toLong())
+        val windowStart = due.today.minusDays(settings.recentDays.toLong())
 
-        val doneRecent = finishedToday.lastOrNull { it.kind == PartKind.Recent }
-        val recentPages =
-            doneRecent?.pages
+        val recent =
+            savedGroup(PartKind.Recent, finishedToday)
                 ?: records.values
-                    .filter { isRecent(it, windowStart, today) }
+                    .filter { isRecent(it, windowStart, due.today) }
                     .sortedWith(compareByDescending<PageRecord> { it.learnedOn }.thenBy { it.page })
                     .take(limit)
                     .map { it.page }
                     .sorted()
+                    .let { PageGroup(it, emptySet()) }
 
-        val doneOld = finishedToday.lastOrNull { it.kind == PartKind.Old }
-        val oldPages =
-            doneOld?.pages ?: oldPagesFor(records, windowStart, settings, limit - recentPages.size)
+        val oldCandidates =
+            records.values.filter { record ->
+                record.status.isKnown && (record.learnedOn?.let { it < windowStart } ?: true)
+            }
+        val old =
+            savedGroup(PartKind.Old, finishedToday)
+                ?: due.pick(oldCandidates, settings, limit - recent.pages.size).let {
+                    PageGroup(it, emptySet())
+                }
 
         return DayAssignment(
             newLesson = lesson,
-            recent =
-                recentPages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneRecent != null) },
-            old = oldPages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneOld != null) },
+            recent = recent.takeIf { it.pages.isNotEmpty() },
+            old = old.takeIf { it.pages.isNotEmpty() },
             revisionPageLimit = limit,
         )
     }
@@ -135,67 +175,30 @@ object AssignmentGenerator {
         return isInProgress && learnedOn >= windowStart && learnedOn < today
     }
 
-    // The oldest-revised pages first, as many as one cycle needs per day, never past the room left.
-    @Suppress("ReturnCount")
-    private fun oldPagesFor(
-        records: Map<Int, PageRecord>,
-        windowStart: LocalDate,
-        settings: MethodSettings,
-        room: Int,
-    ): List<Int> {
-        if (room <= 0) return emptyList()
-        val old =
-            records.values.filter { record ->
-                record.status.isKnown && (record.learnedOn?.let { it < windowStart } ?: true)
-            }
-        if (old.isEmpty()) return emptyList()
-        val perDay = (old.size + settings.manzilCycleDays - 1) / settings.manzilCycleDays
-        return old.sortedWith(
-                compareBy<PageRecord, LocalDate?>(nullsFirst()) { it.lastRevisedOn }
-                    .thenBy { it.page },
-            )
-            .take(minOf(perDay, room))
-            .map { it.page }
-            .sorted()
-    }
-
     @Suppress("LongParameterList")
-    private fun dueRevision(
+    private fun singleRevision(
         plan: HifzPlan,
         lesson: AssignedLesson?,
         records: Map<Int, PageRecord>,
         finishedToday: List<FinishedPart>,
-        today: LocalDate,
-        zone: ZoneId,
+        due: DueRevision,
     ): DayAssignment {
         val limit = plan.settings.revisionPageLimit
-        val doneOld = finishedToday.lastOrNull { it.kind == PartKind.Old }
-        val pages =
-            doneOld?.pages
-                ?: records.values
-                    .filter { record -> isDue(record, today, zone) }
-                    .sortedWith(compareBy<PageRecord> { dueDay(it, zone) }.thenBy { it.page })
-                    .take(limit)
-                    .map { it.page }
-                    .sorted()
+        val candidates =
+            records.values.filter { record ->
+                val taughtToday = record.learnedOn == due.today
+                !taughtToday && (record.status.isKnown || record.card != null)
+            }
+        val old =
+            savedGroup(PartKind.Old, finishedToday)
+                ?: PageGroup(due.pick(candidates, plan.settings, limit), emptySet())
         return DayAssignment(
             newLesson = lesson,
             recent = null,
-            old = pages.takeIf { it.isNotEmpty() }?.let { PageGroup(it, doneOld != null) },
+            old = old.takeIf { it.pages.isNotEmpty() },
             revisionPageLimit = limit,
         )
     }
-
-    private fun isDue(record: PageRecord, today: LocalDate, zone: ZoneId): Boolean {
-        val card = record.card ?: return false
-        val taughtToday = record.learnedOn == today
-        return record.status != PageStatus.NotStarted &&
-            !taughtToday &&
-            Instant.ofEpochMilli(card.dueMillis).atZone(zone).toLocalDate() <= today
-    }
-
-    private fun dueDay(record: PageRecord, zone: ZoneId): LocalDate =
-        Instant.ofEpochMilli(checkNotNull(record.card).dueMillis).atZone(zone).toLocalDate()
 }
 
 /** Rough minutes for a part, shown to the user as a guide. */

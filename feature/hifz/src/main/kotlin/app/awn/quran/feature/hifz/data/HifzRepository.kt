@@ -2,6 +2,7 @@ package app.awn.quran.feature.hifz.data
 
 import androidx.room.withTransaction
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.LessonPart
@@ -102,8 +103,17 @@ class HifzRepository(
         }
     }
 
-    /** Records a graded new lesson: its pages, the plan's cursor and the log. */
-    suspend fun finishLesson(table: PageTable, part: LessonPart, grade: PartGrade) {
+    /**
+     * Records a saved new lesson: its pages, the plan's cursor, the log and what the user said of
+     * each ayah. The session's grade is the weakest page grade, or Forgot when nothing was
+     * memorised; [durationMillis] is how long the practice lasted.
+     */
+    suspend fun finishLesson(
+        table: PageTable,
+        part: LessonPart,
+        firmness: Map<AyahRef, AyahFirmness>,
+        durationMillis: Long?,
+    ) {
         val nowMillis = clock()
         val day = today()
         database.withTransaction {
@@ -112,7 +122,7 @@ class HifzRepository(
                 PageProgressRules.completeLesson(
                     table = table,
                     part = part,
-                    grade = grade,
+                    firmness = firmness,
                     today = day,
                     nowMillis = nowMillis,
                     records = records(),
@@ -124,49 +134,78 @@ class HifzRepository(
                     cursorAyah = outcome.nextCursor?.ayah,
                 ),
             )
-            dao.insertSession(
-                SessionEntity(
-                    day = day.toEpochDay(),
-                    kind = PartKind.NewLesson.storedName(),
-                    pages = (part.firstPage..part.lastPage).joinToString(","),
-                    firstSurah = part.first.surah,
-                    firstAyah = part.first.ayah,
-                    lastSurah = part.last.surah,
-                    lastAyah = part.last.ayah,
-                    grade = grade.name,
-                    at = nowMillis,
-                ),
+            val weakest = firmness.values.filter { it.isMemorised }.minOrNull()
+            val sessionId =
+                dao.insertSession(
+                    SessionEntity(
+                        day = day.toEpochDay(),
+                        kind = PartKind.NewLesson.storedName(),
+                        pages = (part.firstPage..part.lastPage).joinToString(","),
+                        firstSurah = part.first.surah,
+                        firstAyah = part.first.ayah,
+                        lastSurah = part.last.surah,
+                        lastAyah = part.last.ayah,
+                        grade = (weakest?.pageGrade ?: PartGrade.Forgot).name,
+                        at = nowMillis,
+                        isComplete = outcome.isComplete,
+                        durationMillis = durationMillis,
+                    ),
+                )
+            dao.insertSessionAyahs(
+                firmness.map { (ayah, answer) ->
+                    SessionAyahEntity(sessionId, ayah.surah, ayah.ayah, answer.storedName)
+                },
             )
         }
     }
 
-    /** Records a graded revision of [pages], one grade for the whole group. */
-    suspend fun finishRevision(kind: PartKind, pages: List<Int>, grade: PartGrade) {
+    /**
+     * Records a saved revision of the [pages] the part was given. Only the pages in [grades] were
+     * reached: they are graded one by one, the others stay on Today. Nothing is written when no
+     * page was reached.
+     */
+    suspend fun finishRevision(
+        kind: PartKind,
+        pages: List<Int>,
+        grades: Map<Int, PartGrade>,
+        durationMillis: Long?,
+    ) {
         require(kind != PartKind.NewLesson) { "A new lesson is finished with finishLesson." }
+        if (grades.isEmpty()) return
         val nowMillis = clock()
         val day = today()
         database.withTransaction {
             val current = records()
-            val updated = pages.map { page ->
+            val updated = grades.map { (page, grade) ->
                 val record = current[page] ?: PageRecord(page, PageStatus.NotStarted)
                 PageProgressRules.gradeRevision(record, grade, day, nowMillis)
             }
             dao.upsertPages(updated.map { it.toEntity() })
-            dao.insertSession(
-                SessionEntity(
-                    day = day.toEpochDay(),
-                    kind = kind.storedName(),
-                    pages = pages.joinToString(","),
-                    firstSurah = null,
-                    firstAyah = null,
-                    lastSurah = null,
-                    lastAyah = null,
-                    grade = grade.name,
-                    at = nowMillis,
-                ),
+            val donePages = finishedOn(day, kind).flatMap { it.gradedPages }.toSet() + grades.keys
+            val sessionId =
+                dao.insertSession(
+                    SessionEntity(
+                        day = day.toEpochDay(),
+                        kind = kind.storedName(),
+                        pages = pages.joinToString(","),
+                        firstSurah = null,
+                        firstAyah = null,
+                        lastSurah = null,
+                        lastAyah = null,
+                        grade = grades.values.min().name,
+                        at = nowMillis,
+                        isComplete = donePages.containsAll(pages),
+                        durationMillis = durationMillis,
+                    ),
+                )
+            dao.insertSessionPages(
+                grades.map { (page, grade) -> SessionPageEntity(sessionId, page, grade.name) },
             )
         }
     }
+
+    private suspend fun finishedOn(day: LocalDate, kind: PartKind): List<FinishedPart> =
+        dao.sessionsOn(day.toEpochDay()).map { it.toFinishedPart() }.filter { it.kind == kind }
 
     suspend fun recordMistakes(mistakes: List<MistakeRecord>) {
         if (mistakes.isEmpty()) return

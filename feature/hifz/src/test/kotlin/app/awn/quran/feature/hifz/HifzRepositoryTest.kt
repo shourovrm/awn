@@ -7,6 +7,7 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
 import app.awn.quran.feature.hifz.data.HifzDatabase
 import app.awn.quran.feature.hifz.data.HifzRepository
+import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.LessonPlanner
 import app.awn.quran.feature.hifz.method.LessonSize
 import app.awn.quran.feature.hifz.method.MistakeRecord
@@ -21,7 +22,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,7 +83,11 @@ class HifzRepositoryTest {
         val part =
             LessonPlanner.nextPart(table, LessonSize.OnePage, null) { PageStatus.NotStarted }!!
 
-        repository.finishLesson(table, part, PartGrade.Good)
+        val answers =
+            table.allAyahs
+                .filter { it in part.first..part.last }
+                .associateWith { AyahFirmness.Firm }
+        repository.finishLesson(table, part, answers, durationMillis = 600_000L)
 
         assertEquals(PageStatus.Memorised, repository.records().getValue(1).status)
         assertEquals(ayah(5), repository.plan()?.cursor)
@@ -93,11 +100,57 @@ class HifzRepositoryTest {
     }
 
     @Test
+    fun aLessonSavedPartWayIsKeptOpenAndStartsAtItsFirstNotYetAyah() = runBlocking {
+        repository.savePlan(planOf())
+        val table = smallTable()
+        val part = LessonPlanner.partBetween(table, ayah(1), ayah(7))
+        val answers =
+            table.allAyahs
+                .filter { it in part.first..part.last }
+                .associateWith { if (it <= ayah(4)) AyahFirmness.Firm else AyahFirmness.NotYet }
+
+        repository.finishLesson(table, part, answers, durationMillis = null)
+
+        assertEquals(ayah(5), repository.plan()?.cursor)
+        val finished = repository.observeFinishedOn(testDay).first().single()
+        assertFalse(finished.isComplete)
+    }
+
+    @Test
+    fun aRevisionSavedPartWayGradesOnlyThePagesReached() = runBlocking {
+        repository.savePlan(planOf())
+        repository.markPages(1..3, PageStatus.Memorised)
+
+        repository.finishRevision(PartKind.Old, listOf(1, 2, 3), mapOf(1 to PartGrade.Good), null)
+
+        assertEquals(testDay, repository.records().getValue(1).lastRevisedOn)
+        assertNull(repository.records().getValue(2).lastRevisedOn)
+        val finished = repository.observeFinishedOn(testDay).first().single()
+        assertEquals(listOf(1, 2, 3), finished.pages)
+        assertEquals(listOf(1), finished.gradedPages)
+        assertFalse(finished.isComplete)
+
+        repository.finishRevision(
+            PartKind.Old,
+            listOf(1, 2, 3),
+            mapOf(2 to PartGrade.Hard, 3 to PartGrade.Good),
+            null,
+        )
+
+        assertTrue(repository.observeFinishedOn(testDay).first().last().isComplete)
+    }
+
+    @Test
     fun finishingARevisionGradesEveryPageOfTheGroup() = runBlocking {
         repository.savePlan(planOf())
         repository.markPages(1..2, PageStatus.Memorised)
 
-        repository.finishRevision(PartKind.Old, listOf(1, 2), PartGrade.Forgot)
+        repository.finishRevision(
+            PartKind.Old,
+            listOf(1, 2),
+            mapOf(1 to PartGrade.Forgot, 2 to PartGrade.Forgot),
+            null,
+        )
 
         assertEquals(PageStatus.Learning, repository.records().getValue(1).status)
         assertEquals(PageStatus.Learning, repository.records().getValue(2).status)

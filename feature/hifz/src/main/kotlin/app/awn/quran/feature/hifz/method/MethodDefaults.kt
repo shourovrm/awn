@@ -10,10 +10,23 @@ object MethodDefaults {
 
     fun settingsFor(method: HifzMethodId): MethodSettings =
         when (method) {
-            HifzMethodId.ThreeByThree -> MethodSettings(ayahsPerDay = THREE_BY_THREE_AYAHS)
-            HifzMethodId.AyahChain -> MethodSettings(ayahsPerDay = CHAIN_AYAHS)
-            else -> MethodSettings()
+            HifzMethodId.ThreeByThree ->
+                MethodSettings(
+                    ayahsPerDay = THREE_BY_THREE_AYAHS,
+                    revisionSpacing = spacingFor(method),
+                )
+            HifzMethodId.AyahChain ->
+                MethodSettings(ayahsPerDay = CHAIN_AYAHS, revisionSpacing = spacingFor(method))
+            else -> MethodSettings(revisionSpacing = spacingFor(method))
         }
+
+    /**
+     * The spacing a method starts with: the Manzil cycle for Sabaq, Sabqi, Manzil, as taught in
+     * madrasas, and the memory model for the others, which is how they always scheduled revision.
+     */
+    fun spacingFor(method: HifzMethodId): RevisionSpacing =
+        if (method == HifzMethodId.SabaqSabqiManzil) RevisionSpacing.ManzilCycle
+        else RevisionSpacing.Adaptive
 
     /** How many times the audio repeats during practice. */
     fun repeatCountFor(method: HifzMethodId): Int =

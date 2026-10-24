@@ -3,6 +3,7 @@ package app.awn.quran.feature.hifz
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.feature.hifz.data.HifzRepository
+import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.HifzProgress
@@ -50,8 +51,10 @@ class HifzController(
     private val tables: PageTableLoader,
     private val scripts: Flow<ScriptId>,
     private val scope: CoroutineScope,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val mutablePractice = MutableStateFlow<PracticeRequest?>(null)
+    private var practiceStartedAtMillis: Long? = null
 
     /** The part being practised on the Quran screen, null when none is. */
     val practice: StateFlow<PracticeRequest?> = mutablePractice.asStateFlow()
@@ -149,6 +152,7 @@ class HifzController(
         val ready = screenState.value as? HifzScreenState.Ready ?: return null
         val request = HifzStateBuilder.practiceFor(ready.state, kind) ?: return null
         mutablePractice.value = request
+        practiceStartedAtMillis = clock()
         return request
     }
 
@@ -163,21 +167,38 @@ class HifzController(
     /** Leaves practice without recording anything. */
     fun cancelPractice() {
         mutablePractice.value = null
+        practiceStartedAtMillis = null
     }
 
-    /** Records the finished practice with the user's [grade] and leaves practice. */
-    fun finishPractice(grade: PartGrade) {
+    /**
+     * Records the practised lesson with what the user said of each ayah and leaves practice. Ayahs
+     * after the first Not yet stay for the next lesson.
+     */
+    fun saveLesson(firmness: Map<AyahRef, AyahFirmness>) {
         val request = mutablePractice.value ?: return
-        mutablePractice.value = null
+        val lesson = checkNotNull(request.lesson) { "Only a new lesson has ayah answers." }
+        val duration = practiceDuration()
+        cancelPractice()
         scope.launch {
-            val lesson = request.lesson
-            if (request.kind == PartKind.NewLesson && lesson != null) {
-                val plan = checkNotNull(repository.plan()) { "Practice ended without a plan." }
-                repository.finishLesson(tables.load(plan.printLayout), lesson, grade)
-            } else {
-                repository.finishRevision(request.kind, request.pages, grade)
-            }
+            val plan = checkNotNull(repository.plan()) { "Practice ended without a plan." }
+            repository.finishLesson(tables.load(plan.printLayout), lesson, firmness, duration)
         }
+    }
+
+    /** Records the practised revision with one grade per page reached and leaves practice. */
+    fun saveRevision(grades: Map<Int, PartGrade>) {
+        val request = mutablePractice.value ?: return
+        require(request.kind != PartKind.NewLesson) { "A new lesson is saved with saveLesson." }
+        val duration = practiceDuration()
+        cancelPractice()
+        scope.launch {
+            repository.finishRevision(request.kind, request.givenPages, grades, duration)
+        }
+    }
+
+    // A practice left open overnight is not a practice of many hours.
+    private fun practiceDuration(): Long? = practiceStartedAtMillis?.let { started ->
+        (clock() - started).coerceIn(0, MAX_PRACTICE_MILLIS)
     }
 
     fun recordMistakes(mistakes: List<MistakeRecord>) {
@@ -194,6 +215,7 @@ class HifzController(
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+        const val MAX_PRACTICE_MILLIS = 3 * 60 * 60 * 1_000L
         const val WEAK_SPOT_DAYS = 7L
     }
 }

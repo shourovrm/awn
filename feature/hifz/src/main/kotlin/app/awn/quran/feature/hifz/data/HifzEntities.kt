@@ -1,9 +1,11 @@
 package app.awn.quran.feature.hifz.data
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 /**
  * The one plan of the user; the table holds at most one row, with [SINGLE_ROW_ID]. Text values
@@ -26,6 +28,12 @@ data class PlanEntity(
     /** Which pagination the page numbers of this database follow; see `PageLayoutFamily`. */
     @ColumnInfo(name = "print_layout") val printLayout: String,
     @ColumnInfo(name = "started_on") val startedOn: Long,
+    /**
+     * `RevisionSpacingName`; null keeps the method's own spacing (plans saved before version 2).
+     */
+    @ColumnInfo(name = "revision_spacing") val revisionSpacing: String? = null,
+    /** The fixed steps in days, comma separated; null uses the default steps. */
+    @ColumnInfo(name = "spacing_steps") val spacingSteps: String? = null,
 ) {
     companion object {
         const val SINGLE_ROW_ID = 1
@@ -52,6 +60,8 @@ data class PageProgressEntity(
     @ColumnInfo(name = "last_review") val lastReview: Long?,
     val state: Int,
     @ColumnInfo(defaultValue = "0") val step: Int = 0,
+    /** The page's place in the fixed spacing steps. */
+    @ColumnInfo(name = "spacing_step", defaultValue = "0") val spacingStep: Int = 0,
 )
 
 /** What a finished part of a day was; the text values are stored, so they never change. */
@@ -62,8 +72,10 @@ object SessionKind {
 }
 
 /**
- * One finished part of a day. [pages] lists the pages it covered, comma separated. The ayah columns
- * are set for a new lesson and null for revision. [grade] is the name of the grade the user gave.
+ * One saved part of a day. [pages] lists the pages it was given, comma separated. The ayah columns
+ * are set for a new lesson and null for revision. [grade] is the name of the weakest grade the user
+ * gave. A part saved before its end is not [isComplete]; parts saved before version 2 always were.
+ * The answers for each ayah and page are in [SessionAyahEntity] and [SessionPageEntity].
  */
 @Entity(tableName = "session", indices = [Index("day")])
 data class SessionEntity(
@@ -79,6 +91,35 @@ data class SessionEntity(
     val grade: String,
     /** Epoch milliseconds. */
     val at: Long,
+    @ColumnInfo(name = "is_complete", defaultValue = "1") val isComplete: Boolean = true,
+    /** How long the practice lasted; null for parts saved before version 2. */
+    @ColumnInfo(name = "duration_millis") val durationMillis: Long? = null,
+)
+
+/**
+ * What the user said of one ayah of a saved new lesson; [firmness] is `AyahFirmness.storedName`.
+ */
+@Entity(tableName = "session_ayah", primaryKeys = ["session_id", "surah", "ayah"])
+data class SessionAyahEntity(
+    @ColumnInfo(name = "session_id") val sessionId: Long,
+    val surah: Int,
+    val ayah: Int,
+    val firmness: String,
+)
+
+/** The grade of one page of a saved revision; a page the user did not reach has no row. */
+@Entity(tableName = "session_page", primaryKeys = ["session_id", "page"])
+data class SessionPageEntity(
+    @ColumnInfo(name = "session_id") val sessionId: Long,
+    val page: Int,
+    val grade: String,
+)
+
+/** A saved part with its answers, read in one transaction. */
+data class SessionWithResults(
+    @Embedded val session: SessionEntity,
+    @Relation(parentColumn = "id", entityColumn = "session_id") val ayahs: List<SessionAyahEntity>,
+    @Relation(parentColumn = "id", entityColumn = "session_id") val pages: List<SessionPageEntity>,
 )
 
 /** What went wrong in an ayah; the text values are stored, so they never change. */

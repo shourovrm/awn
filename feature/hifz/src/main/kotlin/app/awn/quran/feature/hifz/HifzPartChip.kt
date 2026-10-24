@@ -157,7 +157,7 @@ private fun PartMenu(
             modifier = Modifier.padding(horizontal = AwnSpacing.medium, vertical = 4.dp),
         )
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.bar_finish_part), style = AwnTypography.body) },
+            text = { Text(stringResource(R.string.bar_end_part), style = AwnTypography.body) },
             onClick = onFinish,
             modifier = Modifier.testTag(HIFZ_BAR_FINISH_TAG),
         )
@@ -171,7 +171,9 @@ private fun PartMenu(
             )
         }
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.bar_close), style = AwnTypography.body) },
+            text = {
+                Text(stringResource(R.string.bar_leave_without_saving), style = AwnTypography.body)
+            },
             onClick = onClose,
             modifier = Modifier.testTag(HIFZ_BAR_CLOSE_TAG),
         )

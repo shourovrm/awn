@@ -13,6 +13,8 @@ import androidx.room.migration.Migration
             PageProgressEntity::class,
             SessionEntity::class,
             MistakeEntity::class,
+            SessionAyahEntity::class,
+            SessionPageEntity::class,
         ],
     version = HifzDatabase.CURRENT_VERSION,
     exportSchema = true,
@@ -22,14 +24,14 @@ abstract class HifzDatabase : RoomDatabase() {
     abstract fun dao(): HifzDao
 
     companion object {
-        const val CURRENT_VERSION = 1
+        const val CURRENT_VERSION = 2
         const val FILE_NAME = "hifz.db"
 
         /**
          * Every schema change, oldest first. A migration moves forward by exactly one version and
          * only adds to the schema, so a database written by an older app opens in a newer one.
          */
-        val migrations: List<Migration> = emptyList()
+        val migrations: List<Migration> = listOf(HifzMigrations.ONE_TO_TWO)
 
         /**
          * Opens the memorisation database. There is deliberately no destructive-migration fallback:

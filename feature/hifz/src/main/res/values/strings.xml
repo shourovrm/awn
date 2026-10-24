@@ -118,11 +118,9 @@
   <string name="bar_part_chip">%1$s %2$s</string>
   <string name="bar_close">Close</string>
   <string name="bar_words_on_page">Words on this page</string>
-  <string name="bar_finish_part">Finish part</string>
   <string name="bar_getting_ready">Getting ready</string>
   <string name="bar_ayah">Ayah %d</string>
   <string name="bar_page">Page %d</string>
-  <string name="bar_pick_grade">Pick a grade</string>
   <string name="bar_previous_ayahs">Previous ayahs</string>
   <string name="bar_next_ayahs">Next ayahs</string>
   <string name="grade_easy">Easy</string>
@@ -138,4 +136,29 @@
     <item quantity="other">revise %d pages</item>
   </plurals>
   <string name="today_line_done">Done</string>
+  <string name="bar_end_part">End part</string>
+  <string name="bar_leave_without_saving">Leave without saving</string>
+  <string name="firmness_not_yet">Not yet</string>
+  <string name="firmness_shaky">Shaky</string>
+  <string name="firmness_firm">Firm</string>
+  <string name="firmness_very_firm">Very firm</string>
+  <plurals name="end_lesson_summary">
+    <item quantity="one">%1$d of %2$d ayah memorised</item>
+    <item quantity="other">%1$d of %2$d ayahs memorised</item>
+  </plurals>
+  <plurals name="end_revision_summary">
+    <item quantity="one">%1$d of %2$d page revised</item>
+    <item quantity="other">%1$d of %2$d pages revised</item>
+  </plurals>
+  <string name="end_next_start">Next time starts at %s.</string>
+  <string name="end_lesson_complete">The next lesson starts after this one.</string>
+  <string name="end_no_mistakes">No mistakes</string>
+  <string name="end_not_recited">Not recited</string>
+  <plurals name="end_words_wrong">
+    <item quantity="one">%d word wrong</item>
+    <item quantity="other">%d words wrong</item>
+  </plurals>
+  <string name="end_save">Save</string>
+  <string name="end_keep_practising">Keep practising</string>
+  <string name="end_context">%1$s · %2$s</string>
 </resources>

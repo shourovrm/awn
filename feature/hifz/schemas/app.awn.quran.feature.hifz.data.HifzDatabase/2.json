@@ -1,0 +1,402 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "cc43f485f17b9b888c1f396f9e4ced68",
+    "entities": [
+      {
+        "tableName": "plan",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `method` TEXT NOT NULL, `lesson_kind` TEXT NOT NULL, `lesson_ayahs` INTEGER NOT NULL, `manzil_cycle_days` INTEGER NOT NULL, `recent_days` INTEGER NOT NULL, `ayahs_per_day` INTEGER NOT NULL, `revision_page_limit` INTEGER NOT NULL, `cursor_surah` INTEGER, `cursor_ayah` INTEGER, `print_layout` TEXT NOT NULL, `started_on` INTEGER NOT NULL, `revision_spacing` TEXT, `spacing_steps` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "method",
+            "columnName": "method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lessonKind",
+            "columnName": "lesson_kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lessonAyahs",
+            "columnName": "lesson_ayahs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "manzilCycleDays",
+            "columnName": "manzil_cycle_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recentDays",
+            "columnName": "recent_days",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ayahsPerDay",
+            "columnName": "ayahs_per_day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revisionPageLimit",
+            "columnName": "revision_page_limit",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cursorSurah",
+            "columnName": "cursor_surah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "cursorAyah",
+            "columnName": "cursor_ayah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "printLayout",
+            "columnName": "print_layout",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedOn",
+            "columnName": "started_on",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revisionSpacing",
+            "columnName": "revision_spacing",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "spacingSteps",
+            "columnName": "spacing_steps",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "page_progress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`page` INTEGER NOT NULL, `status` INTEGER NOT NULL, `learned_on` INTEGER, `last_revised_on` INTEGER, `stability` REAL, `difficulty` REAL, `due` INTEGER, `last_review` INTEGER, `state` INTEGER NOT NULL, `step` INTEGER NOT NULL DEFAULT 0, `spacing_step` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`page`))",
+        "fields": [
+          {
+            "fieldPath": "page",
+            "columnName": "page",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "learnedOn",
+            "columnName": "learned_on",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastRevisedOn",
+            "columnName": "last_revised_on",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stability",
+            "columnName": "stability",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "difficulty",
+            "columnName": "difficulty",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "due",
+            "columnName": "due",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastReview",
+            "columnName": "last_review",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "step",
+            "columnName": "step",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "spacingStep",
+            "columnName": "spacing_step",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "page"
+          ]
+        }
+      },
+      {
+        "tableName": "session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `day` INTEGER NOT NULL, `kind` TEXT NOT NULL, `pages` TEXT NOT NULL, `first_surah` INTEGER, `first_ayah` INTEGER, `last_surah` INTEGER, `last_ayah` INTEGER, `grade` TEXT NOT NULL, `at` INTEGER NOT NULL, `is_complete` INTEGER NOT NULL DEFAULT 1, `duration_millis` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "day",
+            "columnName": "day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pages",
+            "columnName": "pages",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstSurah",
+            "columnName": "first_surah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "firstAyah",
+            "columnName": "first_ayah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastSurah",
+            "columnName": "last_surah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastAyah",
+            "columnName": "last_ayah",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "grade",
+            "columnName": "grade",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "at",
+            "columnName": "at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isComplete",
+            "columnName": "is_complete",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "durationMillis",
+            "columnName": "duration_millis",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_day",
+            "unique": false,
+            "columnNames": [
+              "day"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_day` ON `${TABLE_NAME}` (`day`)"
+          }
+        ]
+      },
+      {
+        "tableName": "mistake",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `surah` INTEGER NOT NULL, `ayah` INTEGER NOT NULL, `kind` TEXT NOT NULL, `at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "surah",
+            "columnName": "surah",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ayah",
+            "columnName": "ayah",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "at",
+            "columnName": "at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mistake_surah_ayah",
+            "unique": false,
+            "columnNames": [
+              "surah",
+              "ayah"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mistake_surah_ayah` ON `${TABLE_NAME}` (`surah`, `ayah`)"
+          },
+          {
+            "name": "index_mistake_at",
+            "unique": false,
+            "columnNames": [
+              "at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_mistake_at` ON `${TABLE_NAME}` (`at`)"
+          }
+        ]
+      },
+      {
+        "tableName": "session_ayah",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` INTEGER NOT NULL, `surah` INTEGER NOT NULL, `ayah` INTEGER NOT NULL, `firmness` TEXT NOT NULL, PRIMARY KEY(`session_id`, `surah`, `ayah`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "surah",
+            "columnName": "surah",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ayah",
+            "columnName": "ayah",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firmness",
+            "columnName": "firmness",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id",
+            "surah",
+            "ayah"
+          ]
+        }
+      },
+      {
+        "tableName": "session_page",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` INTEGER NOT NULL, `page` INTEGER NOT NULL, `grade` TEXT NOT NULL, PRIMARY KEY(`session_id`, `page`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "page",
+            "columnName": "page",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grade",
+            "columnName": "grade",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id",
+            "page"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cc43f485f17b9b888c1f396f9e4ced68')"
+    ]
+  }
+}
