@@ -9,13 +9,12 @@ Use these words for these things, and no other word for the same thing.
 |---|---|
 | page | one page of the printed Mushaf, 1 to 604 |
 | ayah, surah, juz, hizb | the Quran's own units; never "verse", "chapter" or "part" |
-| Mushaf | the printed-page view |
-| print | a page type: Madani 1421, Madani 1405, Tajweed colours, IndoPak (610 pages) |
+| Mushaf | the printed-page view, and the edition it shows: Madinah Mushaf · 1421, Madinah Mushaf · 1405, Madinah, tajweed colours, Indo-Pak, 15 lines; never "print" or "page type" in the UI |
 | translation | one translator's text; "Translation" is also the view that lists them |
 | word by word | the view and setting with each word's meaning |
 | reciter | a person whose recitation plays |
 | recite | the user reading aloud to the app |
-| download | getting a print, translation or recitation onto the phone |
+| download | getting a Mushaf, translation or recitation onto the phone |
 | bookmark | a saved page or ayah |
 | memorise, revise | learning by heart and coming back to it |
 | hint | the first letter of the next word, on request |

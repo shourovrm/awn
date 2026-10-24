@@ -144,7 +144,7 @@
   <string name="notice_english" translatable="false">This app is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</string>
   <string name="notice_bangla" translatable="false">এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।</string>
   <string name="notice_arabic" translatable="false">هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.</string>
-  <string name="downloads_page_types">Prints</string>
+  <string name="downloads_page_types">Mushaf</string>
   <string name="settings_group_reading">Reading</string>
   <string name="settings_group_listening">Listening</string>
   <string name="settings_group_app">App</string>

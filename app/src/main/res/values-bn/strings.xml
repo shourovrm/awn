@@ -123,7 +123,7 @@
   <string name="notice_learn_practice">আওন পাঠের ফাঁকে অনুশীলনে সাহায্য করে। এটি আপনার শিক্ষকের বিকল্প নয়।</string>
   <string name="notice_learn_listening">আওন যখন আপনার তিলাওয়াত শোনে, তখন একটি কম্পিউটার মডেল শোনে, আর তা ভুল করতে পারে। সন্দেহ হলে শিক্ষককে জিজ্ঞেস করুন।</string>
   <string name="notice_accept">আমি বুঝেছি</string>
-  <string name="downloads_page_types">ছাপা</string>
+  <string name="downloads_page_types">মুসহাফ</string>
   <string name="settings_group_reading">পড়া</string>
   <string name="settings_group_listening">শোনা</string>
   <string name="settings_group_app">অ্যাপ</string>
