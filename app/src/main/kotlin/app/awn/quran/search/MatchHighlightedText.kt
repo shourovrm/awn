@@ -28,7 +28,9 @@ private val BLOCK_HORIZONTAL_PADDING = 2.dp
  * blocks are drawn from the text layout instead. The text itself keeps one style from end to end,
  * so a highlight never splits the shaping of a letter from its marks.
  *
- * [blockHeightFraction] is the height of a block as a share of the line height.
+ * [blockHeightFraction] is the height of a block as a share of the line height. When the first
+ * match would fall behind the ellipsis of the [maxLines] shown, the text starts a few words before
+ * it instead (see [windowBeforeFirstMatch]).
  */
 @Composable
 internal fun MatchHighlightedText(
@@ -42,19 +44,26 @@ internal fun MatchHighlightedText(
     modifier: Modifier = Modifier,
 ) {
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var window by remember(text, matches) { mutableStateOf<ResultWindow?>(null) }
+    val shown = window ?: ResultWindow(text, matches)
     Text(
-        text = text,
+        text = shown.text,
         style = style,
         color = color,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
-        onTextLayout = { layout = it },
+        onTextLayout = { measured ->
+            layout = measured
+            if (window == null && isFirstMatchHidden(measured, matches, maxLines)) {
+                window = windowBeforeFirstMatch(text, matches)
+            }
+        },
         modifier =
             modifier.drawBehind {
                 val measured = layout ?: return@drawBehind
                 val padding = BLOCK_HORIZONTAL_PADDING.toPx()
                 val radius = CornerRadius(BLOCK_CORNER_RADIUS.toPx())
-                matches
+                shown.matches
                     .flatMap { match -> matchBlocks(measured, match, blockHeightFraction) }
                     .forEach { block ->
                         drawRoundRect(
@@ -66,6 +75,17 @@ internal fun MatchHighlightedText(
                     }
             },
     )
+}
+
+/** True when the first of [matches] starts after the last visible character of [maxLines] lines. */
+internal fun isFirstMatchHidden(
+    layout: TextLayoutResult,
+    matches: List<IntRange>,
+    maxLines: Int,
+): Boolean {
+    val firstMatchStart = matches.firstOrNull()?.first ?: return false
+    val lastVisibleLine = (minOf(maxLines, layout.lineCount) - 1).coerceAtLeast(0)
+    return firstMatchStart >= layout.getLineEnd(lastVisibleLine, visibleEnd = true)
 }
 
 /**

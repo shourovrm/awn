@@ -96,6 +96,18 @@ fun SearchScreen(
                         color = Awn.field.content,
                         modifier = Modifier.padding(AwnSpacing.screenMargin),
                     )
+                    if (state.isCloseMatch && rows.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.search_close_matches),
+                            style = AwnTypography.small,
+                            color = Awn.field.content,
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = AwnSpacing.screenMargin,
+                                    vertical = AwnSpacing.small,
+                                ),
+                        )
+                    }
                 }
                 val ayahRows = rows.orEmpty()
                 LazyColumn(Modifier.fillMaxSize()) {

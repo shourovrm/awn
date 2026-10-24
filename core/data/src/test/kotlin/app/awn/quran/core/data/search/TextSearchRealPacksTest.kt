@@ -75,7 +75,25 @@ class TextSearchRealPacksTest {
         assertTrue("first query $loadMillis ms", loadMillis < FIRST_QUERY_MILLIS)
     }
 
+    @Test
+    fun closeMatchesForATypoAreFoundInTime() = runBlocking {
+        val texts = realTexts()
+        val engine = TextSearch(texts::load)
+        engine.search("ab")
+
+        for (typo in listOf("mercyy", "patiense", "الرحمنن")) {
+            var results: SearchResults? = null
+            val millis = measureTimeMillis { results = engine.search(typo) }
+            val found = checkNotNull(results)
+            println("close search '$typo': ${found.count} ayahs in $millis ms")
+            assertTrue("'$typo' is a close match", found.isCloseMatch)
+            assertTrue("'$typo' found ayahs", found.count > 0)
+            assertTrue("'$typo' took $millis ms", millis < SLOWEST_CLOSE_QUERY_MILLIS)
+        }
+    }
+
     private companion object {
+        const val SLOWEST_CLOSE_QUERY_MILLIS = 2_000L
         const val SLOWEST_QUERY_MILLIS = 400L
         const val FIRST_QUERY_MILLIS = 8_000L
     }

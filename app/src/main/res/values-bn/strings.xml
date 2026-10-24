@@ -55,6 +55,7 @@
 
   <string name="search_hint">কুরআনে খুঁজুন</string>
   <string name="search_clear">মুছুন</string>
+  <string name="search_close_matches">কাছাকাছি ফলাফল</string>
   <plurals name="search_result_count">
     <item quantity="one">%d ফলাফল</item>
     <item quantity="other">%d ফলাফল</item>

@@ -66,4 +66,23 @@ class SearchViewModelSurahTest {
             assertTrue(model.state.value.surahs.isEmpty())
             collector.cancel()
         }
+
+    @Test
+    fun theStateCarriesWhetherTheHitsAreCloseMatches() =
+        runTest(dispatcher) {
+            val search = FakeSearchRepository(isCloseMatch = true)
+            val model =
+                SearchViewModel(
+                    search = search,
+                    quranText = FakeQuranTextRepository(chapterList = chapters),
+                    script = ScriptId.V2,
+                )
+            val collector = launch { model.state.collect {} }
+
+            model.setQuery("mercyy")
+            advanceUntilIdle()
+
+            assertTrue(model.state.value.isCloseMatch)
+            collector.cancel()
+        }
 }

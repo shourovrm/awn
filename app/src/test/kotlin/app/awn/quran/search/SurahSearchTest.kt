@@ -198,4 +198,57 @@ class SurahSearchTest {
     fun textThatIsInNoNameFindsNothing() {
         assertTrue(numbersFor("zzz").isEmpty())
     }
+
+    @Test
+    fun theLatinArticleInAnySpellingIsOptional() {
+        for (query in
+            listOf("alrahman", "arrahman", "al rahman", "al-rahman", "ar-rahman", "rahman")) {
+            assertEquals(query, listOf(55), numbersFor(query))
+        }
+    }
+
+    @Test
+    fun aDoubledVowelOrLetterFoldsToOne() {
+        assertEquals(listOf(55), numbersFor("rahmaan"))
+        assertEquals(listOf(36), numbersFor("yasin"))
+        assertEquals(listOf(36), numbersFor("yaseen"))
+        assertEquals(listOf(112), numbersFor("ikhlas"))
+        assertEquals(listOf(112), numbersFor("ikhlaas"))
+    }
+
+    @Test
+    fun qAndKAreTheSameLetter() {
+        assertEquals(listOf(67), numbersFor("mulk"))
+        assertEquals(listOf(67), numbersFor("mulq"))
+        assertEquals(listOf(50), numbersFor("kaf"))
+    }
+
+    @Test
+    fun aTypoIsForgivenWhenNoNameContainsTheQuery() {
+        assertEquals(listOf(112), numbersFor("iklas"))
+        assertEquals(listOf(55), numbersFor("rahmn"))
+        assertEquals(listOf(18), numbersFor("kahaf"))
+    }
+
+    @Test
+    fun aThreeLetterQueryWithATypoFindsNothing() {
+        assertTrue(numbersFor("mux").isEmpty())
+    }
+
+    @Test
+    fun aSevenLetterQueryForgivesTwoTypos() {
+        assertEquals(listOf(2), numbersFor("bxqxrah"))
+    }
+
+    @Test
+    fun containedNamesComeBeforeNearOnes() {
+        // "ikhlas" is contained in a name, so the near match for "iklas" never joins it.
+        assertEquals(listOf(112), numbersFor("ikhlas"))
+    }
+
+    @Test
+    fun aMistypedBanglaNameIsNotGuessed() {
+        assertTrue(numbersFor("মুলকক").isNotEmpty())
+        assertTrue(numbersFor("বাকারাজজ").isEmpty())
+    }
 }

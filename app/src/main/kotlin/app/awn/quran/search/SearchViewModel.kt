@@ -8,6 +8,7 @@ import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.search.SearchHit
 import app.awn.quran.core.data.search.SearchRepository
+import app.awn.quran.core.data.search.SearchResults
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,8 @@ data class SearchUiState(
     val rows: List<SearchRow>? = null,
     /** Surahs whose name or number matches [query]. */
     val surahs: List<Chapter> = emptyList(),
+    /** True when nothing matched exactly and [rows] hold ayahs with a word one letter off. */
+    val isCloseMatch: Boolean = false,
 )
 
 /** Searches while the user types, after a short pause so each letter does not start a search. */
@@ -61,7 +64,9 @@ class SearchViewModel(
 
     private suspend fun stateFor(text: String): SearchUiState {
         val surahs = surahsMatching(text, quranText.chapters())
-        return SearchUiState(text, rowsFor(text), surahs)
+        if (text.isBlank()) return SearchUiState(text, rows = null, surahs = surahs)
+        val results = search.search(text)
+        return SearchUiState(text, rowsFor(results), surahs, results.isCloseMatch)
     }
 
     /** The page a surah starts on, for the surah rows. */
@@ -70,10 +75,9 @@ class SearchViewModel(
     private suspend fun pageOf(ayah: AyahRef): Int =
         pageCache.getOrPut(ayah) { quranText.pageOf(ayah, script) }
 
-    private suspend fun rowsFor(text: String): List<SearchRow>? {
-        if (text.isBlank()) return null
+    private suspend fun rowsFor(results: SearchResults): List<SearchRow> {
         val names = quranText.chapters().associate { it.number to it.nameSimple }
-        return search.search(text).hits.map { hit ->
+        return results.hits.map { hit ->
             SearchRow(
                 hit = hit,
                 surahName = names[hit.ayah.surah].orEmpty(),

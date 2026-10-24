@@ -24,7 +24,9 @@ private enum class MatchRank {
  * Arabic-Indic or Bangla digits) or part of the transliterated, Arabic or spoken Bangla name or of
  * the Bangla meaning; hyphens, apostrophes, spaces, diacritics, the article ("Al-", "ال", "আল-")
  * and a leading "সূরা" do not matter, and Bangla spellings that sound alike are equal (see
- * [foldedWords]). A query shorter than 2 characters finds nothing unless it is a number.
+ * [foldedWords]). Latin spellings are folded too (see [withLatinVariantsFolded]), and when no name
+ * contains the query, names one or two letters away from a Latin query are returned last. A query
+ * shorter than 2 characters finds nothing unless it is a number.
  */
 internal fun surahsMatching(query: String, chapters: List<Chapter>): List<Chapter> {
     val foldedQuery = withoutSuraWord(foldedWords(query.trim())).trim()
@@ -32,14 +34,19 @@ internal fun surahsMatching(query: String, chapters: List<Chapter>): List<Chapte
     return if (isNumber) {
         chapters.filter { it.number == foldedQuery.toIntOrNull() }
     } else {
-        surahsNamed(wantedSpellings(foldedQuery), chapters)
+        val wanted = wantedSpellings(foldedQuery)
+        surahsNamed(wanted, chapters).ifEmpty { surahsNearlyNamed(wanted, chapters, ::nameFormsOf) }
     }
 }
 
-/** The query as typed and without its Bangla article, because the article is optional. */
+/** The query as typed and without its Bangla or Latin article, because the article is optional. */
 private fun wantedSpellings(foldedQuery: String): List<String> =
-    listOf(foldedQuery, withoutBanglaArticle(foldedQuery))
-        .map(::squeezed)
+    listOf(
+            foldedQuery,
+            withoutBanglaArticle(foldedQuery),
+            withoutLatinArticle(foldedQuery),
+        )
+        .map { withLatinVariantsFolded(squeezed(it)) }
         .filter { it.length >= MINIMUM_QUERY_LENGTH }
         .distinct()
 
@@ -63,7 +70,7 @@ private fun rankOf(wanted: String, nameForms: List<String>): MatchRank? =
  * Every spelling of the chapter's names that a user may type, with and without the article. The
  * Bangla meaning is searched as well, so "গুহা" finds Al-Kahf.
  */
-private fun nameFormsOf(chapter: Chapter): List<String> {
+internal fun nameFormsOf(chapter: Chapter): List<String> {
     val forms = mutableListOf<String>()
 
     val simpleName = chapter.nameSimple.lowercase(Locale.ROOT)
@@ -80,5 +87,5 @@ private fun nameFormsOf(chapter: Chapter): List<String> {
 
     forms += squeezed(foldedWords(chapter.nameBanglaMeaning.orEmpty()))
 
-    return forms.filter { it.isNotEmpty() }
+    return forms.filter { it.isNotEmpty() }.map(::withLatinVariantsFolded)
 }

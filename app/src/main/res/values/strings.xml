@@ -59,6 +59,7 @@
 
   <string name="search_hint">Search the Quran</string>
   <string name="search_clear">Clear</string>
+  <string name="search_close_matches">Close matches</string>
   <plurals name="search_result_count">
     <item quantity="one">%d result</item>
     <item quantity="other">%d results</item>

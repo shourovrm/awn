@@ -52,8 +52,74 @@ class TextSearch(
             for (indexed in loadIndex()) {
                 collectHits(indexed, normalisedQueries, hitsByAyah)
             }
-            SearchResults(query, hitsByAyah.values.sortedBy { it.ayah })
+            if (hitsByAyah.isEmpty()) {
+                closeMatches(query, normalisedQueries)
+            } else {
+                SearchResults(query, hitsByAyah.values.sortedBy { it.ayah })
+            }
         }
+
+    /**
+     * Runs only when the exact search found nothing, so a normal query pays nothing for it. It
+     * compares word by word, which is slower than `contains`, and a short query would match too
+     * much.
+     */
+    private suspend fun closeMatches(
+        query: String,
+        normalisedQueries: List<String>,
+    ): SearchResults {
+        val wordLists =
+            normalisedQueries
+                .filter { CloseMatches.letterCount(it) >= CloseMatches.MINIMUM_LETTERS }
+                .map(CloseMatches::wordsOf)
+        val hitsByAyah = LinkedHashMap<AyahRef, SearchHit>()
+        if (wordLists.isNotEmpty()) {
+            for (indexed in loadIndex()) {
+                collectCloseHits(indexed, wordLists, hitsByAyah)
+            }
+        }
+        val hits = hitsByAyah.values.sortedBy { it.ayah }
+        return SearchResults(query, hits, isCloseMatch = hits.isNotEmpty())
+    }
+
+    private fun collectCloseHits(
+        indexed: IndexedTexts,
+        wordLists: List<List<String>>,
+        hitsByAyah: MutableMap<AyahRef, SearchHit>,
+    ) {
+        for (position in indexed.normalisedReadings.indices) {
+            val ayah = indexed.texts.ayahs[position]
+            val isNewMatch =
+                ayah !in hitsByAyah &&
+                    indexed.normalisedReadings[position].any { reading ->
+                        wordLists.any { CloseMatches.windows(reading, it).isNotEmpty() }
+                    }
+            if (isNewMatch) {
+                val original = indexed.texts.texts[position]
+                hitsByAyah[ayah] =
+                    SearchHit(
+                        ayah,
+                        indexed.texts.source,
+                        original,
+                        closeRanges(original, wordLists),
+                    )
+            }
+        }
+    }
+
+    /** Like [markedRanges], for the words that are one letter off. */
+    private fun closeRanges(original: String, wordLists: List<List<String>>): List<IntRange> {
+        for (reading in DaggerAlefReading.entries) {
+            val positioned = SearchNormaliser.normaliseWithPositions(original, reading)
+            for (words in wordLists) {
+                val windows = CloseMatches.windows(positioned.text, words)
+                if (windows.isNotEmpty()) {
+                    return windows.map { positioned.originalRange(original, it.first, it.last + 1) }
+                }
+            }
+        }
+        return emptyList()
+    }
 
     private suspend fun loadIndex(): List<IndexedTexts> = loadLock.withLock {
         index
