@@ -55,6 +55,58 @@ class NormaliseTest(unittest.TestCase):
         self.assertEqual(build_learn_words.normalise("هُ"), build_learn_words.normalise("هُۥ"))
 
 
+class BaseSpellingTest(unittest.TestCase):
+    """An attached prefix is split off only when the rest appears on its own in the Quran."""
+
+    STANDALONE = {
+        "قَالَ", "مَا", "رَبِّ", "ٱلْأَرْضِ", "ٱلنَّاسِ", "لِى", "جَدُّ", "قَدْ", "مَثَلِ", "مَّا",
+        "لَّا", "هُمْ", "هُنَّ", "هُوَ",
+    }
+
+    def base(self, text):
+        return build_learn_words.base_spelling(text, self.STANDALONE)
+
+    def test_and_and_so_are_split_off(self):
+        self.assertEqual("قَالَ", self.base("وَقَالَ"))
+        self.assertEqual("قَالَ", self.base("فَقَالَ"))
+        self.assertEqual("مَا", self.base("وَمَا"))
+
+    def test_with_for_and_like_are_split_off(self):
+        self.assertEqual("رَبِّ", self.base("بِرَبِّ"))
+        self.assertEqual("قَدْ", self.base("لَقَدْ"))
+        self.assertEqual("مَثَلِ", self.base("كَمَثَلِ"))
+
+    def test_two_prefixes_are_split_off(self):
+        self.assertEqual("ٱلْأَرْضِ", self.base("وَبِٱلْأَرْضِ"))
+
+    def test_lam_before_the_article_gives_the_word_with_the_article(self):
+        # لِلنَّاسِ is لِ + ٱلنَّاسِ; the alef of the article is not written.
+        self.assertEqual("ٱلنَّاسِ", self.base("لِلنَّاسِ"))
+
+    def test_a_word_whose_own_first_letter_looks_like_a_prefix_is_kept(self):
+        # وَلِىٌّ (a guardian) is not وَ + لِى, and وَجَدَ (he found) is not وَ + جَدُّ: the vowelled
+        # rest never appears on its own.
+        self.assertEqual("وَلِىٌّ", self.base("وَلِىٌّ"))
+        self.assertEqual("وَجَدَ", self.base("وَجَدَ"))
+
+    def test_a_word_with_a_doubled_letter_after_the_first_is_kept(self):
+        # لَمَّا (when) and كَلَّا (no indeed) are words of their own; a joined prefix never stands
+        # before a doubled letter.
+        self.assertEqual("لَمَّا", self.base("لَمَّا"))
+        self.assertEqual("كَلَّا", self.base("كَلَّا"))
+
+    def test_lam_before_a_pronoun_ending_is_kept(self):
+        # لَهُمْ is "for them": هُمْ there is an attached ending, not the word "they".
+        self.assertEqual("لَهُمْ", self.base("لَهُمْ"))
+        self.assertEqual("لَهُنَّ", self.base("لَهُنَّ"))
+
+    def test_the_lam_of_emphasis_before_he_is_split_off(self):
+        self.assertEqual("هُوَ", self.base("لَهُوَ"))
+
+    def test_a_word_without_a_prefix_is_kept(self):
+        self.assertEqual("قَالَ", self.base("قَالَ"))
+
+
 class FileTest(unittest.TestCase):
     def build_fixture(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -78,6 +130,21 @@ class FileTest(unittest.TestCase):
         self.assertEqual(3, representatives[0])
         # بسم has one spelling, so its first word wins.
         self.assertEqual(0, representatives[1])
+
+    def test_a_prefixed_word_shares_the_rank_of_its_base_and_is_not_its_representative(self):
+        words = [
+            (1, 1, 1, "قَالَ"),
+            (1, 1, 2, "وَقَالَ"),
+            (1, 2, 1, "وَقَالَ"),
+            (1, 2, 2, "وَقَالَ"),
+            (2, 1, 1, "مَا"),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            data = build_learn_words.build(write_database(directory, words))
+        _, _, form_ranks, representatives = build_learn_words.decode(data)
+        self.assertEqual([1, 1, 1, 1, 2], form_ranks)
+        # وَقَالَ is the commoner spelling, but the word shown for the form is the bare قَالَ.
+        self.assertEqual(0, representatives[0])
 
     def test_an_unknown_file_is_refused(self):
         with self.assertRaises(ValueError):

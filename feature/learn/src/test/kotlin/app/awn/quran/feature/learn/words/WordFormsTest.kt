@@ -120,7 +120,8 @@ class WordFormsTest {
         val assets = ApplicationProvider.getApplicationContext<Context>().assets
         val real = WordForms.read(assets.open(WordFormsAsset.PATH))
 
-        assertEquals(2763, real.occurrenceCount(1))
+        // من: مِن and مَن, with the joined و, ف and لِ split off (وَمَن counts as مَن).
+        assertEquals(3285, real.occurrenceCount(1))
         for (rank in 2..real.formCount) {
             assertTrue(real.occurrenceCount(rank - 1) >= real.occurrenceCount(rank))
         }

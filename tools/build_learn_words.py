@@ -8,8 +8,16 @@ text pack, so the output is not committed.
 Why forms and not base words: no base-word (lemma) data with a usable licence is available. The
 Quranic Arabic Corpus is GPL and forbids changes, and QUL's morphology states no licence. A form is
 the written word with every vowel mark, stop sign and tatweel removed and the alef wasla written as
-a plain alef, so a word with an attached article or particle (`ولا`) is its own form. The Kotlin
-side reads the result through one interface, so base-word data can replace this file later.
+a plain alef. Before that, the one-letter words written joined to the front of a word (وَ "and",
+فَ "so", بِ "with", لِ and لَ "for" or "indeed", كَ "like") are split off when what remains,
+with its vowel marks, appears on its own somewhere in the Quran: وَقَالَ and فَقَالَ count as
+قَالَ, لِلنَّاسِ as ٱلنَّاسِ. The vowelled check keeps words whose own first letter is و or ف,
+such as وَلِىٌّ (a guardian), which is not وَ + لِى. Two cases are kept whole although the rest
+stands alone: a doubled first letter (لَمَّا "when" is not لَ + مَّا) and a pronoun ending after
+a preposition (لَهُمْ "for them" is not لَ + هُمْ "they"). Endings (رَبُّكَ) and verb forms stay
+separate forms. Splitting cut the forms from 14,814 to 13,145 and raised the share of the Quran
+that the 1,000 commonest forms cover from 66.3% to 70.7% (measured 2026-10-24). The Kotlin side
+reads the result through one interface, so base-word data can replace this file later.
 
 File format, version 1, all numbers big-endian:
     4 bytes   magic "AWLW"
@@ -47,6 +55,15 @@ ALEF_WASLA = "ٱ"
 ALEF = "ا"
 IGNORED_CATEGORIES = {"Mn", "Me", "Cf"}
 
+# The joined one-letter words, each with the vowel it is written with.
+PREFIXES = ("وَ", "فَ", "بِ", "لِ", "لَ", "كَ")
+# لِ before the article drops the article's alef: لِ + ٱلنَّاسِ is written لِلنَّاسِ.
+LAM_BEFORE_ARTICLE = "لِل"
+SHADDA = "\u0651"
+# After لَ, لِ or بِ these are pronoun endings (لَهُمْ "for them"), not the words "they" or "them".
+PRONOUN_ENDING_FORMS = {"هم", "هن", "هما"}
+PREPOSITIONS_BEFORE_ENDINGS = ("لَ", "لِ", "بِ")
+
 
 def normalise(text):
     """Returns the written form of [text]: letters only, alef wasla as alef."""
@@ -78,12 +95,65 @@ def read_words(quran_database):
     return ayah_counts, words
 
 
-def rank_forms(words):
+def base_spelling(text, spellings):
+    """Returns [text] without its joined one-letter words, or [text] itself.
+
+    A prefix is split off only when the rest, after any further split, is in [spellings] (every
+    vowelled spelling that stands as a word in the Quran).
+    """
+    for rest in prefix_rests(text):
+        base = base_spelling(rest, spellings)
+        if base in spellings:
+            return base
+    return text
+
+
+def prefix_rests(text):
+    """The possible texts left after one joined one-letter word, longest prefix first."""
+    rests = []
+    if text.startswith(LAM_BEFORE_ARTICLE):
+        rests.append(ALEF_WASLA + text[len("لِ"):])
+    for prefix in PREFIXES:
+        if text.startswith(prefix) and is_possible_rest(prefix, text[len(prefix):]):
+            rests.append(text[len(prefix):])
+    return rests
+
+
+def marks_after_first_letter(text):
+    """The combining marks written on the first letter of [text], in any order."""
+    marks = []
+    for character in text[1:]:
+        if unicodedata.category(character) != "Mn":
+            break
+        marks.append(character)
+    return marks
+
+
+def is_possible_rest(prefix, rest):
+    """False when [prefix] cannot be a joined word in front of [rest].
+
+    A doubled first letter means the letter before belongs to the word (لَمَّا, كَلَّا), and a
+    pronoun after a preposition is an ending (لَهُمْ).
+    """
+    if len(rest) < 2 or SHADDA in marks_after_first_letter(rest):
+        return False
+    is_ending = prefix in PREPOSITIONS_BEFORE_ENDINGS and normalise(rest) in PRONOUN_ENDING_FORMS
+    return not is_ending
+
+
+def base_spellings(words):
+    """Returns the base spelling of each word (see base_spelling)."""
+    spellings = {word[3] for word in words}
+    return [base_spelling(word[3], spellings) for word in words]
+
+
+def rank_forms(words, bases):
     """Returns (form_of_word, order): the form text of each word and the forms by rank.
 
-    Equal counts are ordered by the first appearance in reading order, so the order is stable.
+    [bases] holds each word's base spelling. Equal counts are ordered by the first appearance in
+    reading order, so the order is stable.
     """
-    form_of_word = [normalise(word[3]) for word in words]
+    form_of_word = [normalise(base) for base in bases]
     counts = collections.Counter(form_of_word)
     first_index = {}
     for index, form in enumerate(form_of_word):
@@ -92,11 +162,17 @@ def rank_forms(words):
     return form_of_word, order
 
 
-def representative_indexes(words, form_of_word, order):
-    """Returns the representative word index of each form, in rank order."""
+def representative_indexes(words, bases, form_of_word, order):
+    """Returns the representative word index of each form, in rank order.
+
+    Only words written without a joined prefix can represent a form, so the app shows قَالَ, not
+    وَقَالَ, for the form قال. Every form has one: a prefix is split off only when the base spelling
+    stands on its own somewhere.
+    """
     indexes_of_form = collections.defaultdict(list)
     for index, form in enumerate(form_of_word):
-        indexes_of_form[form].append(index)
+        if words[index][3] == bases[index]:
+            indexes_of_form[form].append(index)
     representatives = []
     for form in order:
         indexes = indexes_of_form[form]
@@ -158,8 +234,9 @@ def decode(data):
 
 def build(quran_database):
     ayah_counts, words = read_words(quran_database)
-    form_of_word, order = rank_forms(words)
-    representatives = representative_indexes(words, form_of_word, order)
+    bases = base_spellings(words)
+    form_of_word, order = rank_forms(words, bases)
+    representatives = representative_indexes(words, bases, form_of_word, order)
     return encode(ayah_counts, words, form_of_word, order, representatives)
 
 
