@@ -86,6 +86,9 @@ private fun TodayRow(item: TodayItem) {
     }
 }
 
+// Names the animation in the layout inspector; it is never shown to the user.
+private const val SNIPPET_FADE_LABEL = "snippet"
+
 /**
  * The day's snippet: Arabic, its rendering in the app language, and where it is from. A tap on the
  * card shows another snippet, faded in.
@@ -96,7 +99,7 @@ internal fun DailySnippet(card: DailySnippetCard, modifier: Modifier = Modifier)
     Crossfade(
         targetState = card.snippet,
         animationSpec = tween(durationMillis = SNIPPET_FADE_MILLIS),
-        label = "snippet",
+        label = SNIPPET_FADE_LABEL,
         modifier =
             modifier
                 .fillMaxWidth()

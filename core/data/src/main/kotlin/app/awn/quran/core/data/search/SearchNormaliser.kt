@@ -151,6 +151,11 @@ object SearchNormaliser {
             return
         }
         if (BanglaSpelling.appendFolded(character, into)) return
+        appendOtherScripts(character, into)
+    }
+
+    // Arabic letters and marks, punctuation and Latin, after the Uthmani and Bangla rules.
+    private fun appendOtherScripts(character: Char, into: StringBuilder) {
         when {
             isIgnorableMark(character) -> Unit
             character in alefForms -> into.append(ALEF)

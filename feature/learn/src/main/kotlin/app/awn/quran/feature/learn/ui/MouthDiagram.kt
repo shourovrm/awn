@@ -28,11 +28,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
+import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.core.ui.theme.softFill
@@ -83,10 +82,10 @@ private fun BoxWithConstraintsScope.AreaLabelText(label: AreaLabel, isHighlighte
         modifier =
             Modifier.absoluteOffset(
                     x = maxWidth * startFraction,
-                    y = maxHeight * label.centerY - LABEL_HEIGHT / 2,
+                    y = maxHeight * label.centerY - AwnSpacing.huge / 2,
                 )
                 .width(maxWidth * LABEL_WIDTH)
-                .height(LABEL_HEIGHT),
+                .height(AwnSpacing.huge),
         contentAlignment = if (label.isOnLeft) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
         Text(
@@ -219,7 +218,6 @@ private const val LABEL_WIDTH = 0.23f
 
 // The drawing is 95 by 145 mm and takes half the width, so the frame is 0.8 times as high as wide.
 private const val FRAME_ASPECT = 1.25f
-private val LABEL_HEIGHT: Dp = 40.dp
 
 private const val BODY_ALPHA = 0.12f
 private const val OUTLINE_ALPHA = 0.55f

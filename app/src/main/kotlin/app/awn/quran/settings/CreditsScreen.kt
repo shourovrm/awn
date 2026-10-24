@@ -130,8 +130,7 @@ private fun DetailedCreditRow(
 
 private const val MOUTH_DRAWING_URL =
     "https://commons.wikimedia.org/wiki/File:Neutral_Sagittal_Section.svg"
-private const val SURAH_NAMES_URL =
-    "https://bn.wikipedia.org/wiki/%E0%A6%95%E0%A7%81%E0%A6%B0%E0%A6%86%E0%A6%A8%E0%A7%87%E0%A6%B0_%E0%A6%B8%E0%A7%82%E0%A6%B0%E0%A6%BE%E0%A6%B0_%E0%A6%A4%E0%A6%BE%E0%A6%B2%E0%A6%BF%E0%A6%95%E0%A6%BE"
+private const val SURAH_NAMES_URL = "https://bn.wikipedia.org/wiki/কুরআনের_সূরার_তালিকা"
 private const val ACADEMY_URL = "https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng"
 
 private fun openLink(context: Context, url: String) {
