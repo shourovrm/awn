@@ -23,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import data_paths
+import snippet_text
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 SNIPPETS = REPOSITORY / "feature/learn/src/main/assets/snippets.json"
@@ -100,7 +101,7 @@ def main():
             if snippet["id"] != f"quran-{surah}-{ayah}":
                 failures.append(f"{snippet['id']}: id does not match source {surah}:{ayah}")
             row = database.execute("SELECT text_uthmani FROM ayah WHERE surah=? AND ayah=?", (surah, ayah)).fetchone()
-            if row is None or row[0] != snippet["arabic"]:
+            if row is None or snippet_text.quran_snippet_text(row[0], ayah) != snippet["arabic"]:
                 failures.append(f"{snippet['id']}: Arabic differs from the Quran database")
             continue
 

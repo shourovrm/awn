@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import data_paths
+import snippet_text
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 OUTPUT = REPOSITORY / "feature/learn/src/main/assets/snippets.json"
@@ -147,7 +148,7 @@ def main():
         snippets.append(
             {
                 "id": f"quran-{surah}-{ayah}",
-                "arabic": row[0],
+                "arabic": snippet_text.quran_snippet_text(row[0], ayah),
                 "source": {"type": "quran", "surah": surah, "ayah": ayah},
                 "text_en": english,
                 "text_bn": bangla,
