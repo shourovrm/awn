@@ -131,11 +131,12 @@ abstract class SpeechModelCardChecks {
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp")
 class SpeechModelCardEnglishTest : SpeechModelCardChecks() {
-    override val titleLine = "Download for recite"
-    override val bodyLine = "Recite needs a one-time download of 88 MB. Wi‑Fi recommended."
+    override val titleLine = "Recite with Awn listening"
+    override val bodyLine =
+        "A one-time download of 88 MB. Awn then follows your words offline. Wi‑Fi recommended."
     override val downloadLabel = "Download 88 MB"
     override val notNowLabel = "Not now"
-    override val downloadingLine = "Downloading for recite"
+    override val downloadingLine = "Downloading"
     override val progressLine = "42% of 88 MB"
     override val cancelLabel = "Cancel"
     override val noInternetLine = "No connection. Check your internet."
@@ -144,11 +145,12 @@ class SpeechModelCardEnglishTest : SpeechModelCardChecks() {
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "bn-w411dp-h891dp")
 class SpeechModelCardBanglaTest : SpeechModelCardChecks() {
-    override val titleLine = "তিলাওয়াতের জন্য ডাউনলোড"
-    override val bodyLine = "তিলাওয়াতের জন্য একবার ৮৮ এমবি ডাউনলোড করতে হবে। ওয়াই-ফাই ভালো।"
+    override val titleLine = "আওন শুনছে, আপনি তিলাওয়াত করুন"
+    override val bodyLine =
+        "একবার ৮৮ এমবি ডাউনলোড করতে হবে। তারপর আওন ইন্টারনেট ছাড়াই আপনার তিলাওয়াত অনুসরণ করবে। ওয়াই-ফাই ভালো।"
     override val downloadLabel = "ডাউনলোড ৮৮ এমবি"
     override val notNowLabel = "এখন নয়"
-    override val downloadingLine = "তিলাওয়াতের জন্য ডাউনলোড হচ্ছে"
+    override val downloadingLine = "ডাউনলোড হচ্ছে"
     override val progressLine = "৮৮ এমবির ৪২%"
     override val cancelLabel = "বাতিল"
     override val noInternetLine = "সংযোগ নেই। ইন্টারনেট দেখুন।"

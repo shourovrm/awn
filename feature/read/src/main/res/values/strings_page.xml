@@ -20,11 +20,9 @@
   <string name="mushaf_print">Mushaf</string>
   <string name="mushaf_print_value">%1$s, %2$s</string>
   <string name="print_offer_title">Choose your Mushaf</string>
-  <string name="print_offer_body">Wi‑Fi recommended. You can keep reading while it downloads.</string>
-  <string name="print_offer_detail_v2">Exact printed pages</string>
-  <string name="print_offer_detail_v1">Older print</string>
-  <string name="print_offer_detail_v4">Rules in colour</string>
-  <string name="print_offer_detail_indopak">Nastaleeq lettering</string>
+  <string name="print_offer_body">Until then the page shows plain Arabic text. Wi‑Fi recommended.</string>
+  <string name="starter_translation_name">%1$s translation</string>
+  <string name="starter_translation_detail">With the meaning of each word</string>
   <string name="print_offer_size">%1$d MB</string>
   <string name="print_offer_download">Download</string>
   <string name="print_offer_download_sized">Download %1$s</string>

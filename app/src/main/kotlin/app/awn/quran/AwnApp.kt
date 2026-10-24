@@ -108,7 +108,7 @@ fun AwnApp(
                         coroutineScope.launch {
                             // The flag is written first: applying the language recreates the
                             // activity, and the screen must not come back afterwards.
-                            preferences.markLanguageChosen(language.languageTag)
+                            preferences.markLanguageChosen()
                             languageApplier.apply(language)
                         }
                     },
@@ -407,7 +407,6 @@ private fun QuranRoute(
     AwnTheme(field = ReadField) {
         Box(Modifier.fillMaxSize()) {
             QuranScreen(dependencies = services.readDependencies, slots = slots, target = target)
-            StarterOfferOverlay(services)
         }
     }
 }

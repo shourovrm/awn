@@ -57,7 +57,7 @@ abstract class CardsRenderChecks {
                 FontPackStatus(ScriptId.V4Tajweed, false, downloadBytes = 69_000_000L),
         )
 
-    private val noActions = PrintOfferActions({}, {}, {}, {}, {})
+    private val noActions = PrintOfferActions({}, {}, {}, {}, {}, {})
 
     private fun show(mode: ColourMode, fontScale: Float, content: @Composable () -> Unit) {
         composeRule.setContent {
@@ -90,7 +90,11 @@ abstract class CardsRenderChecks {
             statuses + (ScriptId.V2 to statuses.getValue(ScriptId.V2).copy(progress = 0.42f))
         show(mode, fontScale) {
             PrintOfferCard(
-                PrintOfferState(isOpen = true, downloading = setOf(ScriptId.V2)),
+                PrintOfferState(
+                    isOpen = true,
+                    downloading = setOf(ScriptId.V2),
+                    startedBytes = 137_000_000L,
+                ),
                 running,
                 noActions,
             )
@@ -203,7 +207,7 @@ abstract class CardsRenderChecks {
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp")
 class CardsRenderEnglishTest : CardsRenderChecks() {
-    override val chooseTitle = "Choose a print"
+    override val chooseTitle = "Choose your Mushaf"
     override val downloadLabel = "Download 137 MB"
     override val notNowLabel = "Not now"
     override val keepReadingLabel = "Keep reading"
@@ -214,7 +218,7 @@ class CardsRenderEnglishTest : CardsRenderChecks() {
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "bn-w411dp-h891dp")
 class CardsRenderBanglaTest : CardsRenderChecks() {
-    override val chooseTitle = "ছাপা বেছে নিন"
+    override val chooseTitle = "আপনার মুসহাফ বেছে নিন"
     override val downloadLabel = "ডাউনলোড ১৩৭ এমবি"
     override val notNowLabel = "এখন নয়"
     override val keepReadingLabel = "পড়তে থাকুন"

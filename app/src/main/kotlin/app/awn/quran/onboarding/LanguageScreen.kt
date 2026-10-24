@@ -82,12 +82,6 @@ fun LanguageScreen(
                 )
                 LanguageBlocks(selected, onSelect, colours)
                 Spacer(Modifier.weight(1f))
-                Text(
-                    text = stringResource(R.string.language_hint),
-                    style = AwnTypography.small,
-                    color = colours.mutedText,
-                    modifier = Modifier.padding(vertical = AwnSpacing.medium),
-                )
                 AwnButton(
                     label = stringResource(R.string.language_continue),
                     onClick = onContinue,

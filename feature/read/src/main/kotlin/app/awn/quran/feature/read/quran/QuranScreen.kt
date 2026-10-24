@@ -668,6 +668,7 @@ private fun QuranContent(
                 actions =
                     PrintOfferActions(
                         onChoose = viewModel::choosePrint,
+                        onToggleStarter = viewModel::toggleStarterDownload,
                         onDownload = viewModel::downloadPrint,
                         onNotNow = viewModel::dismissPrintOffer,
                         onKeepReading = viewModel::keepReadingDuringPrintDownload,

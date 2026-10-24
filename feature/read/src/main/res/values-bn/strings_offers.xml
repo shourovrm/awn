@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="speech_offer_title">তিলাওয়াতের জন্য ডাউনলোড</string>
-  <string name="speech_offer_body">তিলাওয়াতের জন্য একবার %1$s ডাউনলোড করতে হবে। ওয়াই-ফাই ভালো।</string>
+  <string name="speech_offer_title">আওন শুনছে, আপনি তিলাওয়াত করুন</string>
+  <string name="speech_offer_body">একবার %1$s ডাউনলোড করতে হবে। তারপর আওন ইন্টারনেট ছাড়াই আপনার তিলাওয়াত অনুসরণ করবে। ওয়াই-ফাই ভালো।</string>
   <string name="speech_offer_download_sized">ডাউনলোড %1$s</string>
   <string name="speech_offer_not_now">এখন নয়</string>
-  <string name="speech_offer_downloading">তিলাওয়াতের জন্য ডাউনলোড হচ্ছে</string>
+  <string name="speech_offer_downloading">ডাউনলোড হচ্ছে</string>
   <string name="speech_offer_progress">%2$sর %1$d%%</string>
   <string name="speech_offer_cancel">বাতিল</string>
   <string name="speech_row_title">তিলাওয়াত</string>
-  <string name="starter_offer_title">অনুবাদ ও শব্দের অর্থ</string>
-  <string name="starter_offer_body">%1$s, প্রতিটি শব্দের অর্থসহ। ওয়াই-ফাই ভালো।</string>
-  <string name="starter_offer_download_sized">ডাউনলোড %1$s</string>
-  <string name="starter_offer_not_now">এখন নয়</string>
-  <string name="starter_offer_downloading">অনুবাদ ডাউনলোড হচ্ছে</string>
-  <string name="starter_offer_progress">%2$sর %1$d%%</string>
-  <string name="starter_offer_keep_reading">পড়তে থাকুন</string>
-  <string name="starter_offer_cancel">বাতিল</string>
 </resources>

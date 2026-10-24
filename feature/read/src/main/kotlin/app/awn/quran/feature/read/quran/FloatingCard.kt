@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -35,7 +37,7 @@ import app.awn.quran.core.ui.theme.scrim
  * rises above the keyboard so a focused field stays visible.
  */
 @Composable
-internal fun FloatingCard(
+fun FloatingCard(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
@@ -62,6 +64,8 @@ internal fun FloatingCard(
                     .shadow(AwnSpacing.cardElevation, AwnShapes.control)
                     .clip(AwnShapes.control)
                     .background(field.raisedSurface)
+                    // The card is as tall as the screen allows; longer content scrolls inside it.
+                    .verticalScroll(rememberScrollState())
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,

@@ -44,6 +44,10 @@ object AwnSpacing {
     val stepperValueWidth: Dp = 56.dp
     val tickBoxSize: Dp = 22.dp
     val tickBoxCorner: Dp = 6.dp
+
+    // The page thumbnail at the start of an edition row in the welcome card.
+    val printThumbnailWidth: Dp = 44.dp
+    val printThumbnailHeight: Dp = 60.dp
     val packProgressHeight: Dp = 3.dp
     val groupHeadingTop: Dp = 24.dp
     val smallIconSize: Dp = 20.dp

@@ -22,7 +22,6 @@ import app.awn.quran.feature.read.page.FontPackController
 import app.awn.quran.feature.read.page.FontPackStatus
 import app.awn.quran.feature.read.page.JuzTable
 import app.awn.quran.feature.read.page.PageLoad
-import app.awn.quran.feature.read.page.pageTypeScripts
 import app.awn.quran.feature.read.settings.ENGLISH_WORD_LANGUAGE
 import app.awn.quran.feature.read.settings.PageView
 import app.awn.quran.feature.read.settings.ReadSettings
@@ -215,6 +214,10 @@ class QuranViewModel(
 ) : ViewModel() {
     private val fontPacks =
         FontPackController(dependencies.packs, dependencies.downloads, viewModelScope)
+
+    // Shared by the word-language follower and the welcome card's translation download.
+    private val catalogue =
+        CatalogueModel(dependencies.packs, dependencies.downloads, viewModelScope)
 
     private val mutableState = MutableStateFlow(QuranUiState())
     val state: StateFlow<QuranUiState> = mutableState
@@ -961,7 +964,6 @@ class QuranViewModel(
      * Keeps [QuranUiState.wordLanguageShown] right when the choice or the installed packs change.
      */
     private suspend fun followWordLanguage() {
-        val catalogue = CatalogueModel(dependencies.packs, dependencies.downloads, viewModelScope)
         combine(dependencies.settingsStore.settings, catalogue.state) { settings, catalogueState ->
                 wordLanguageShown(
                     chosen = settings.wordByWordLanguage,
@@ -1032,50 +1034,77 @@ class QuranViewModel(
         return stored.copy(script = readablePrint)
     }
 
-    /** Opens the print offer card once, on a new installation that has no print yet. */
+    /** Opens the welcome card once, on a new installation that has no print yet. */
     private suspend fun openPrintOfferIfPending() {
         val isPending = dependencies.printOffer.isPending.first()
         val installedIds = dependencies.packs.installed().first().map { it.id }.toSet()
         if (!shouldOpenPrintOffer(isPending, installedIds)) return
-        mutableState.update { it.copy(printOffer = it.printOffer.copy(isOpen = true)) }
+        mutableState.update {
+            val offer = it.printOffer
+            it.copy(
+                printOffer =
+                    offer.copy(isOpen = true, selectedScript = preselectedPrintFor(appLanguage)),
+            )
+        }
     }
 
-    /** Ticks or unticks [script] in the print offer card; the Download label shows the sum. */
+    /** Selects [script] in the welcome card, replacing the edition selected before. */
     fun choosePrint(script: ScriptId) {
+        mutableState.update { it.copy(printOffer = it.printOffer.copy(selectedScript = script)) }
+    }
+
+    /** Ticks or unticks the translation and word-by-word row of the welcome card. */
+    fun toggleStarterDownload() {
         mutableState.update {
-            val choices = it.printOffer.choices
-            val toggledChoices = if (script in choices) choices - script else choices + script
-            it.copy(printOffer = it.printOffer.copy(choices = toggledChoices))
+            val offer = it.printOffer
+            it.copy(printOffer = offer.copy(isStarterTicked = !offer.isStarterTicked))
         }
     }
 
     /**
-     * Installs every ticked print and sets the first one in card order as the page type. The pages
-     * keep the bundled font until a pack is installed, then switch. Nothing ticked does nothing.
+     * Installs the selected edition and the ticked translation downloads. The pages keep the
+     * bundled font until the edition is installed, then switch.
      */
     fun downloadPrint() {
         val offer = mutableState.value.printOffer
-        if (offer.choices.isEmpty()) return
-        val tickedPrints = pageTypeScripts.filter { it in offer.choices }
-        val firstTickedPrint = tickedPrints.first()
-        val isReadableAtOnce = firstTickedPrint !in indoPakScripts
+        val script = offer.selectedScript
+        val starterRows = offer.tickedStarterRows
+        val isReadableAtOnce = script !in indoPakScripts
+        val statuses = mutableState.value.printStatuses
         markPrintOfferHandled()
         mutableState.update {
             it.copy(
                 printOffer =
                     offer.copy(
-                        downloading = offer.choices,
+                        downloading = setOf(script),
+                        downloadingPackIds = starterRows.map { row -> row.item.id }.toSet(),
+                        startedBytes = printOfferDownloadBytes(offer, statuses),
                         previousScript = it.settings.script,
-                        scriptWhenInstalled = firstTickedPrint.takeUnless { isReadableAtOnce },
+                        scriptWhenInstalled = script.takeUnless { isReadableAtOnce },
                     ),
             )
         }
-        if (isReadableAtOnce) {
-            viewModelScope.launch {
-                dependencies.settingsStore.update { it.copy(script = firstTickedPrint) }
+        viewModelScope.launch {
+            dependencies.settingsStore.update { settings ->
+                val withPrint = if (isReadableAtOnce) settings.copy(script = script) else settings
+                withTranslationAndMeanings(withPrint, offer)
             }
         }
-        tickedPrints.forEach { fontPacks.install(it) }
+        fontPacks.install(script)
+        starterRows.forEach { catalogue.install(it.item.id) }
+    }
+
+    /** Shows the translation and the word-by-word meanings once the card starts their download. */
+    private fun withTranslationAndMeanings(
+        settings: ReadSettings,
+        offer: PrintOfferState,
+    ): ReadSettings {
+        val translationRow = offer.tickedStarterRows.firstOrNull() ?: return settings
+        return settings.copy(
+            translations =
+                settings.translations.withTranslation(TranslationId(translationRow.item.id), true),
+            showWordByWord = true,
+        )
     }
 
     /** Not now, or Back on the question: closes the card for good. */
@@ -1089,11 +1118,12 @@ class QuranViewModel(
         closePrintOfferCard()
     }
 
-    /** Cancel: stops the download and shows the question again with the page type as before. */
+    /** Cancel: stops everything started and shows the question again, page type as before. */
     fun cancelPrintDownload() {
         val offer = mutableState.value.printOffer
-        if (offer.downloading.isEmpty()) return
+        if (!offer.isDownloading) return
         offer.downloading.forEach { fontPacks.cancel(it) }
+        offer.downloadingPackIds.forEach { catalogue.cancel(it) }
         val previous = offer.previousScript
         viewModelScope.launch {
             dependencies.settingsStore.update {
@@ -1109,6 +1139,8 @@ class QuranViewModel(
                 printOffer =
                     it.printOffer.copy(
                         downloading = emptySet(),
+                        downloadingPackIds = emptySet(),
+                        startedBytes = 0L,
                         previousScript = null,
                         scriptWhenInstalled = null,
                     ),
@@ -1116,6 +1148,7 @@ class QuranViewModel(
         }
     }
 
+    /** Marks the stored welcome offer handled, so the card never returns. */
     private fun markPrintOfferHandled() {
         viewModelScope.launch { dependencies.printOffer.markHandled() }
     }
@@ -1125,11 +1158,13 @@ class QuranViewModel(
     }
 
     private suspend fun followFontStatus() {
-        fontPacks.statuses.collect { statuses ->
+        combine(fontPacks.statuses, catalogue.state, ::Pair).collect { (statuses, catalogueState) ->
+            val starterRows = starterRowsFor(appLanguage, catalogueState)
             mutableState.update {
                 it.copy(
                     printStatuses = statuses,
-                    printOffer = settledOffer(it.printOffer, statuses),
+                    printOffer =
+                        settledPrintOffer(it.printOffer.copy(starterRows = starterRows), statuses),
                 )
             }
             useOfferedPrintOnceInstalled(statuses)
@@ -1143,30 +1178,6 @@ class QuranViewModel(
         viewModelScope.launch {
             dependencies.settingsStore.update { it.copy(script = waitingPrint) }
         }
-    }
-
-    /**
-     * Follows the downloads started from the card. An installed print leaves the set, a failed one
-     * leaves it too and, when the card is closed, counts for the screen's note. The card closes
-     * only when every chosen print is installed; a failure leaves it open on the question.
-     */
-    private fun settledOffer(
-        offer: PrintOfferState,
-        statuses: Map<ScriptId, FontPackStatus>,
-    ): PrintOfferState {
-        if (offer.downloading.isEmpty()) return offer
-        val installedPrints = offer.downloading.filter { statuses[it]?.isInstalled == true }.toSet()
-        val failedPrints =
-            offer.downloading.filter { statuses[it]?.failed == true }.toSet() - installedPrints
-        val runningPrints = offer.downloading - installedPrints - failedPrints
-        val failuresCountedWhenClosed = if (offer.isOpen) 0 else failedPrints.size
-        val settled =
-            offer.copy(
-                downloading = runningPrints,
-                closedFailureCount = offer.closedFailureCount + failuresCountedWhenClosed,
-            )
-        val everyChosenPrintInstalled = runningPrints.isEmpty() && failedPrints.isEmpty()
-        return if (everyChosenPrintInstalled) settled.copy(isOpen = false) else settled
     }
 
     /**

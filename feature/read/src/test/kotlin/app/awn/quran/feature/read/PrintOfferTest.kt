@@ -10,7 +10,9 @@ import app.awn.quran.core.data.fakes.fakeCatalogueItem
 import app.awn.quran.core.data.packs.PackFailureReason
 import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.quran.QuranViewModel
+import app.awn.quran.feature.read.quran.preselectedPrintFor
 import app.awn.quran.feature.read.quran.printOfferDownloadBytes
+import app.awn.quran.feature.read.quran.printOfferProgress
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -45,9 +47,18 @@ class PrintOfferTest {
             isInstalled = installed,
         )
 
+    private fun starterItem(id: String, group: CatalogueGroup, megabytes: Long) =
+        fakeCatalogueItem(
+            id = id,
+            group = group,
+            language = null,
+            downloadBytes = megabytes * 1_000_000L,
+        )
+
     private fun viewModelWith(
         isPending: Boolean,
         installed: Set<ScriptId> = emptySet(),
+        language: String = "ar",
     ): Pair<QuranViewModel, MemoryPrintOfferStore> {
         val store = MemoryPrintOfferStore(isPending)
         fixture.packs.catalogueItems +=
@@ -56,13 +67,17 @@ class PrintOfferTest {
                 printItem(ScriptId.V1, 55, ScriptId.V1 in installed),
                 printItem(ScriptId.V4Tajweed, 69, ScriptId.V4Tajweed in installed),
                 printItem(ScriptId.IndoPak15, 6, ScriptId.IndoPak15 in installed),
+                starterItem("en_saheeh", CatalogueGroup.Translation, 9),
+                starterItem("wbw_en", CatalogueGroup.WordByWord, 3),
+                starterItem("bn_zakaria", CatalogueGroup.Translation, 8),
+                starterItem("wbw_bn", CatalogueGroup.WordByWord, 4),
             )
         val dependencies =
             fixture.dependencies.copy(
                 downloads = PackDownloads(InMemoryWantedPackStore(), scheduler),
                 printOffer = store,
             )
-        return QuranViewModel(dependencies, wordLanguage = "en") to store
+        return QuranViewModel(dependencies, wordLanguage = language) to store
     }
 
     @Test
@@ -72,7 +87,7 @@ class PrintOfferTest {
         viewModel.open(null)
 
         assertTrue(viewModel.state.value.printOffer.isOpen)
-        assertEquals(setOf(ScriptId.V2), viewModel.state.value.printOffer.choices)
+        assertEquals(ScriptId.V2, viewModel.state.value.printOffer.selectedScript)
         assertEquals(137_000_000L, viewModel.state.value.printStatuses[ScriptId.V2]?.downloadBytes)
     }
 
@@ -120,67 +135,6 @@ class PrintOfferTest {
     }
 
     @Test
-    fun tickingAPrintAddsItToTheChoices() = runTest {
-        val (viewModel, _) = viewModelWith(isPending = true)
-        viewModel.open(null)
-
-        viewModel.choosePrint(ScriptId.V4Tajweed)
-
-        val state = viewModel.state.value
-        assertEquals(setOf(ScriptId.V2, ScriptId.V4Tajweed), state.printOffer.choices)
-        assertEquals(
-            (137L + 69L) * 1_000_000L,
-            printOfferDownloadBytes(state.printOffer, state.printStatuses),
-        )
-    }
-
-    @Test
-    fun tickingATickedPrintAgainTakesItOut() = runTest {
-        val (viewModel, _) = viewModelWith(isPending = true)
-        viewModel.open(null)
-
-        viewModel.choosePrint(ScriptId.V2)
-        viewModel.choosePrint(ScriptId.V1)
-
-        val state = viewModel.state.value
-        assertEquals(setOf(ScriptId.V1), state.printOffer.choices)
-        assertEquals(55_000_000L, printOfferDownloadBytes(state.printOffer, state.printStatuses))
-    }
-
-    @Test
-    fun withNothingTickedDownloadDoesNothing() = runTest {
-        val (viewModel, store) = viewModelWith(isPending = true)
-        viewModel.open(null)
-        viewModel.choosePrint(ScriptId.V2)
-
-        viewModel.downloadPrint()
-
-        assertTrue(viewModel.state.value.printOffer.choices.isEmpty())
-        assertTrue(scheduler.enqueued.isEmpty())
-        assertTrue(viewModel.state.value.printOffer.isOpen)
-        assertTrue(store.pending.value)
-    }
-
-    @Test
-    fun downloadingSeveralPrintsInstallsEachAndShowsTheFirstInCardOrder() = runTest {
-        val (viewModel, _) = viewModelWith(isPending = true)
-        viewModel.open(null)
-        viewModel.choosePrint(ScriptId.V4Tajweed)
-        viewModel.choosePrint(ScriptId.V1)
-
-        viewModel.downloadPrint()
-
-        assertEquals(setOf("v2", "v1", "v4-tajweed"), scheduler.enqueued.toSet())
-        assertEquals(3, scheduler.enqueued.size)
-        // The card lists 1421 (V2) first, so the page shows it while the others download.
-        assertEquals(ScriptId.V2, fixture.store.settings.first().script)
-        assertEquals(
-            setOf(ScriptId.V2, ScriptId.V1, ScriptId.V4Tajweed),
-            viewModel.state.value.printOffer.downloading,
-        )
-    }
-
-    @Test
     fun theCardOffersTheIndoPakPrintWithItsSize() = runTest {
         val (viewModel, _) = viewModelWith(isPending = true)
 
@@ -195,7 +149,6 @@ class PrintOfferTest {
     fun anIndoPakPrintOnItsOwnIsUsedOnlyOnceItIsInstalled() = runTest {
         val (viewModel, _) = viewModelWith(isPending = true)
         viewModel.open(null)
-        viewModel.choosePrint(ScriptId.V2)
         viewModel.choosePrint(ScriptId.IndoPak15)
 
         viewModel.downloadPrint()
@@ -210,34 +163,20 @@ class PrintOfferTest {
     }
 
     @Test
-    fun theCardClosesOnlyWhenEveryChosenPrintIsInstalled() = runTest {
-        val (viewModel, _) = viewModelWith(isPending = true)
+    fun theCardClosesOnlyWhenEverythingStartedIsInstalled() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
         viewModel.open(null)
-        viewModel.choosePrint(ScriptId.V1)
         viewModel.downloadPrint()
 
         fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "v2" }.entry) {}
 
         assertTrue(viewModel.state.value.printOffer.isOpen)
 
-        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "v1" }.entry) {}
+        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "en_saheeh" }.entry) {}
+        fixture.packs.install(fixture.packs.catalogueItems.first { it.id == "wbw_en" }.entry) {}
 
         assertFalse(viewModel.state.value.printOffer.isOpen)
         assertTrue(viewModel.state.value.printOffer.downloading.isEmpty())
-    }
-
-    @Test
-    fun cancelStopsEveryChosenDownload() = runTest {
-        val (viewModel, _) = viewModelWith(isPending = true)
-        viewModel.open(null)
-        viewModel.choosePrint(ScriptId.V1)
-        viewModel.downloadPrint()
-
-        viewModel.cancelPrintDownload()
-
-        assertEquals(setOf("v2", "v1"), scheduler.cancelled.toSet())
-        assertTrue(viewModel.state.value.printOffer.downloading.isEmpty())
-        assertTrue(viewModel.state.value.printOffer.isOpen)
     }
 
     @Test
@@ -245,7 +184,6 @@ class PrintOfferTest {
         val (viewModel, store) = viewModelWith(isPending = true)
         viewModel.open(null)
         viewModel.choosePrint(ScriptId.V4Tajweed)
-        viewModel.choosePrint(ScriptId.V2)
 
         viewModel.downloadPrint()
 
@@ -285,7 +223,6 @@ class PrintOfferTest {
         val (viewModel, _) = viewModelWith(isPending = true)
         viewModel.open(null)
         viewModel.choosePrint(ScriptId.V1)
-        viewModel.choosePrint(ScriptId.V2)
         viewModel.downloadPrint()
 
         viewModel.cancelPrintDownload()
@@ -326,5 +263,119 @@ class PrintOfferTest {
             mapOf("v2" to PackTransfer.Failed(PackFailureReason.NoInternet))
 
         assertEquals(1, viewModel.state.value.printOffer.closedFailureCount)
+    }
+
+    @Test
+    fun banglaPreselectsIndoPakAndEveryOtherLanguageTheMadinahPrint() = runTest {
+        assertEquals(ScriptId.IndoPak15, preselectedPrintFor("bn"))
+        assertEquals(ScriptId.V2, preselectedPrintFor("en"))
+        assertEquals(ScriptId.V2, preselectedPrintFor("ar"))
+
+        val (viewModel, _) = viewModelWith(isPending = true, language = "bn")
+        viewModel.open(null)
+
+        assertEquals(ScriptId.IndoPak15, viewModel.state.value.printOffer.selectedScript)
+    }
+
+    @Test
+    fun choosingAnotherEditionReplacesTheSelectedOne() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true)
+        viewModel.open(null)
+
+        viewModel.choosePrint(ScriptId.V4Tajweed)
+        viewModel.choosePrint(ScriptId.V1)
+
+        val state = viewModel.state.value
+        assertEquals(ScriptId.V1, state.printOffer.selectedScript)
+        assertEquals(55_000_000L, printOfferDownloadBytes(state.printOffer, state.printStatuses))
+    }
+
+    @Test
+    fun theTotalIsTheEditionPlusTheTickedTranslationDownloads() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
+        viewModel.open(null)
+
+        val ticked = viewModel.state.value
+        assertTrue(ticked.printOffer.offersStarter)
+        assertEquals(
+            (137L + 9L + 3L) * 1_000_000L,
+            printOfferDownloadBytes(ticked.printOffer, ticked.printStatuses),
+        )
+
+        viewModel.toggleStarterDownload()
+
+        val unticked = viewModel.state.value
+        assertEquals(
+            137_000_000L,
+            printOfferDownloadBytes(unticked.printOffer, unticked.printStatuses),
+        )
+    }
+
+    @Test
+    fun aLanguageWithoutStarterDownloadsOffersNoTickBox() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "ar")
+
+        viewModel.open(null)
+
+        assertFalse(viewModel.state.value.printOffer.offersStarter)
+    }
+
+    @Test
+    fun downloadInstallsTheEditionAndTheTickedTranslationAndTurnsThemOn() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
+        viewModel.open(null)
+
+        viewModel.downloadPrint()
+
+        assertEquals(setOf("v2", "en_saheeh", "wbw_en"), scheduler.enqueued.toSet())
+        val settings = fixture.store.settings.first()
+        assertTrue(settings.translations.any { it.id == "en_saheeh" })
+        assertTrue(settings.showWordByWord)
+        assertEquals(149_000_000L, viewModel.state.value.printOffer.startedBytes)
+    }
+
+    @Test
+    fun downloadWithTheTranslationUntickedInstallsOnlyTheEdition() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
+        viewModel.open(null)
+        viewModel.toggleStarterDownload()
+
+        viewModel.downloadPrint()
+
+        assertEquals(listOf("v2"), scheduler.enqueued)
+    }
+
+    @Test
+    fun cancelStopsTheEditionAndTheTranslationDownloads() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
+        viewModel.open(null)
+        viewModel.downloadPrint()
+
+        viewModel.cancelPrintDownload()
+
+        assertEquals(setOf("v2", "en_saheeh", "wbw_en"), scheduler.cancelled.toSet())
+        assertFalse(viewModel.state.value.printOffer.isDownloading)
+        assertTrue(viewModel.state.value.printOffer.isOpen)
+    }
+
+    @Test
+    fun progressIsWeightedBytesOverEverythingStarted() = runTest {
+        val (viewModel, _) = viewModelWith(isPending = true, language = "en")
+        viewModel.open(null)
+        viewModel.downloadPrint()
+
+        scheduler.transferStates.value =
+            mapOf(
+                "v2" to PackTransfer.Running(0.5f),
+                "en_saheeh" to PackTransfer.Running(0f),
+                "wbw_en" to PackTransfer.Running(0f),
+            )
+
+        val state = viewModel.state.value
+        assertEquals(
+            68.5f / 149f,
+            printOfferProgress(state.printOffer, state.printStatuses),
+            0.001f,
+        )
     }
 }

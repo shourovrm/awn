@@ -20,11 +20,9 @@
   <string name="mushaf_print">মুসহাফ</string>
   <string name="mushaf_print_value">%1$s, %2$s</string>
   <string name="print_offer_title">আপনার মুসহাফ বেছে নিন</string>
-  <string name="print_offer_body">ওয়াই-ফাই ভালো। ডাউনলোডের সময়ও পড়তে পারবেন।</string>
-  <string name="print_offer_detail_v2">হুবহু ছাপা পাতা</string>
-  <string name="print_offer_detail_v1">পুরোনো ছাপা</string>
-  <string name="print_offer_detail_v4">নিয়ম রঙে</string>
-  <string name="print_offer_detail_indopak">নাস্তালিক হরফ</string>
+  <string name="print_offer_body">ততক্ষণ পাতায় সাধারণ আরবি লেখা দেখাবে। ওয়াই-ফাই ভালো।</string>
+  <string name="starter_translation_name">%1$s অনুবাদ</string>
+  <string name="starter_translation_detail">প্রতিটি শব্দের অর্থসহ</string>
   <string name="print_offer_size">%1$d এমবি</string>
   <string name="print_offer_download">ডাউনলোড</string>
   <string name="print_offer_download_sized">ডাউনলোড %1$s</string>
