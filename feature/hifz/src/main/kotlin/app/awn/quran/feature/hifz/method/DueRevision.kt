@@ -59,10 +59,18 @@ class DueRevision(
     private fun cardDay(dueMillis: Long): LocalDate =
         Instant.ofEpochMilli(dueMillis).atZone(zone).toLocalDate()
 
-    // A page with no dates at all was marked known without a review, so it is due at once.
+    // A page marked known by hand has no dates yet; it waits for the first revision day its
+    // marking spread it to, or is due at once without one.
     private fun fixedDay(record: PageRecord, spacing: RevisionSpacing.FixedSteps): LocalDate {
-        val from = record.lastRevisedOn ?: record.learnedOn ?: return today
-        val stepIndex = record.spacingStep.coerceIn(0, spacing.stepDays.lastIndex)
-        return from.plusDays(spacing.stepDays[stepIndex].toLong())
+        val from = record.lastRevisedOn ?: record.learnedOn
+        val card = record.card
+        return when {
+            from != null -> from.plusDays(spacing.stepDays[stepIndex(record, spacing)].toLong())
+            card != null -> cardDay(card.dueMillis)
+            else -> today
+        }
     }
+
+    private fun stepIndex(record: PageRecord, spacing: RevisionSpacing.FixedSteps): Int =
+        record.spacingStep.coerceIn(0, spacing.stepDays.lastIndex)
 }

@@ -161,4 +161,59 @@
   <string name="end_save">Save</string>
   <string name="end_keep_practising">Keep practising</string>
   <string name="end_context">%1$s · %2$s</string>
+  <plurals name="today_ayahs_left">
+    <item quantity="one">%d ayah left</item>
+    <item quantity="other">%d ayahs left</item>
+  </plurals>
+  <string name="part_detail_with_left">%1$s · %2$s</string>
+  <string name="revision_detail_left">%1$s left of %2$s</string>
+  <string name="continue_part">Continue %1$s at %2$s</string>
+  <string name="week_title">This week</string>
+  <string name="week_new_ayahs">New ayahs</string>
+  <string name="week_pages_revised">Pages revised</string>
+  <string name="week_practice">Practice</string>
+  <plurals name="week_practice_days">
+    <item quantity="one">%1$s · %2$d day</item>
+    <item quantity="other">%1$s · %2$d days</item>
+  </plurals>
+  <string name="duration_hours_minutes">%1$d h %2$d min</string>
+  <string name="journal_title">Journal</string>
+  <string name="journal_open">Open journal</string>
+  <string name="journal_filter_all">All</string>
+  <string name="journal_filter_lessons">New lessons</string>
+  <string name="journal_filter_revision">Revision</string>
+  <string name="journal_filter_mistakes">Mistakes</string>
+  <string name="journal_week_minutes">This week · %s</string>
+  <string name="journal_today">Today</string>
+  <string name="journal_yesterday">Yesterday</string>
+  <string name="journal_empty">Nothing saved in the last 60 days.</string>
+  <plurals name="journal_lesson_result">
+    <item quantity="one">%1$d of %2$d ayah memorised</item>
+    <item quantity="other">%1$d of %2$d ayahs memorised</item>
+  </plurals>
+  <plurals name="journal_revision_result">
+    <item quantity="one">%1$d of %2$d page revised</item>
+    <item quantity="other">%1$d of %2$d pages revised</item>
+  </plurals>
+  <plurals name="journal_mistakes">
+    <item quantity="one">%d mistake</item>
+    <item quantity="other">%d mistakes</item>
+  </plurals>
+  <string name="journal_ayah_mistakes">%1$s · %2$s</string>
+  <string name="page_sheet_title">Page %1$d · %2$s</string>
+  <plurals name="page_sheet_ayahs">
+    <item quantity="one">%1$d of %2$d ayah memorised</item>
+    <item quantity="other">%1$d of %2$d ayahs memorised</item>
+  </plurals>
+  <string name="page_sheet_started">Started</string>
+  <string name="page_sheet_last_revised">Last revised</string>
+  <string name="page_sheet_next_revision">Next revision</string>
+  <string name="page_sheet_in_cycle">In the Manzil cycle</string>
+  <string name="page_sheet_mistakes">Mistakes this week</string>
+  <string name="page_sheet_change_state">Change state</string>
+  <string name="page_sheet_open">Open page %d</string>
+  <string name="page_sheet_none">—</string>
+  <string name="map_row_action">Show page %d</string>
+  <string name="page_sheet_range">%1$s %2$s</string>
+  <string name="journal_entry_title">%1$s · %2$s %3$s</string>
 </resources>

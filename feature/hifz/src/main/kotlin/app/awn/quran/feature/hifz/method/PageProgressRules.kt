@@ -4,7 +4,6 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.fsrs.FsrsCard
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.fsrs.FsrsScheduler
-import app.awn.quran.core.data.fsrs.FsrsState
 import java.time.LocalDate
 
 /** The new state of the pages after a lesson, and where the next lesson starts. */
@@ -23,8 +22,6 @@ object PageProgressRules {
      * week's spacing reach it, which is when a page needs no special care any more.
      */
     const val SOLID_STABILITY_DAYS = 21.0
-
-    private const val MILLIS_PER_DAY = 86_400_000L
 
     /** Minute-long learning steps make no sense for pages, so a new card is due after days. */
     fun dailyScheduler(): FsrsScheduler =
@@ -160,45 +157,4 @@ object PageProgressRules {
             card.stability ?: return current.takeIf { it.isKnown } ?: PageStatus.Memorised
         return if (stability >= SOLID_STABILITY_DAYS) PageStatus.Solid else PageStatus.Memorised
     }
-
-    /**
-     * What the user says they know about a page. Memorised starts the memory state with one Good
-     * review so the page joins the revision; Solid starts it at [SOLID_STABILITY_DAYS]; Learning
-     * and Not started keep no memory state. A page marked this way is an old page, not a recent
-     * lesson, so it never floods the recent revision.
-     */
-    fun markPage(
-        page: Int,
-        status: PageStatus,
-        today: LocalDate,
-        nowMillis: Long,
-        scheduler: FsrsScheduler = dailyScheduler(),
-    ): PageRecord =
-        when (status) {
-            PageStatus.NotStarted -> PageRecord(page, PageStatus.NotStarted)
-            PageStatus.Learning -> PageRecord(page, PageStatus.Learning, learnedOn = today)
-            PageStatus.Memorised ->
-                PageRecord(
-                    page,
-                    PageStatus.Memorised,
-                    card =
-                        scheduler.reviewCard(
-                            scheduler.newCard(nowMillis),
-                            FsrsRating.Good,
-                            nowMillis,
-                        ),
-                )
-            PageStatus.Solid -> PageRecord(page, PageStatus.Solid, card = solidCard(nowMillis))
-        }
-
-    private const val SOLID_DIFFICULTY = 5.0
-
-    private fun solidCard(nowMillis: Long): FsrsCard =
-        FsrsCard(
-            state = FsrsState.Review,
-            stability = SOLID_STABILITY_DAYS,
-            difficulty = SOLID_DIFFICULTY,
-            dueMillis = nowMillis + SOLID_STABILITY_DAYS.toLong() * MILLIS_PER_DAY,
-            lastReviewMillis = nowMillis,
-        )
 }

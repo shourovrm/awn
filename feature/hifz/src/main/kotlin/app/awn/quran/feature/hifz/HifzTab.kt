@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -29,15 +30,20 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.ui.HifzActions
 import app.awn.quran.feature.hifz.ui.HifzMainContent
+import app.awn.quran.feature.hifz.ui.JournalContent
+import app.awn.quran.feature.hifz.ui.JournalScreen
 import app.awn.quran.feature.hifz.ui.KnownUpToScreen
 import app.awn.quran.feature.hifz.ui.MarkKnownScreen
 import app.awn.quran.feature.hifz.ui.MethodChooser
+import app.awn.quran.feature.hifz.ui.PageFacts
+import app.awn.quran.feature.hifz.ui.PageSheet
 
-private enum class HifzPage {
+private enum class HifzPage(val hasOwnBar: Boolean = false) {
     Main,
     Method,
-    Mark,
-    KnownUpTo,
+    Mark(hasOwnBar = true),
+    KnownUpTo(hasOwnBar = true),
+    Journal(hasOwnBar = true),
 }
 
 /**
@@ -70,7 +76,7 @@ fun HifzTab(
     BackHandler(enabled = page != HifzPage.Main) { page = HifzPage.Main }
 
     Column(modifier.fillMaxSize().background(Awn.field.background)) {
-        if (showTopBar && page != HifzPage.Mark && page != HifzPage.KnownUpTo) {
+        if (showTopBar && !page.hasOwnBar) {
             AwnTopBar(title = stringResource(R.string.hifz_title), actions = topBarActions)
         }
         when (val state = screenState) {
@@ -88,20 +94,8 @@ fun HifzTab(
             is HifzScreenState.Ready ->
                 when (page) {
                     HifzPage.Main ->
-                        ScrollingPage {
-                            HifzMainContent(
-                                state = state.state,
-                                surahName = surahName,
-                                actions =
-                                    HifzActions(
-                                        onOpenMethod = { page = HifzPage.Method },
-                                        onStartPart = { kind ->
-                                            controller.startPractice(kind)?.let(onStartPractice)
-                                        },
-                                        onOpenMark = { page = HifzPage.Mark },
-                                        onOpenWeakSpot = onOpenAyah,
-                                    ),
-                            )
+                        MainPage(controller, state.state, surahName, onStartPractice, onOpenAyah) {
+                            page = it
                         }
                     HifzPage.Method ->
                         ScrollingPage {
@@ -127,6 +121,10 @@ fun HifzTab(
                             onOpenKnownUpTo = { page = HifzPage.KnownUpTo },
                             onBack = { page = HifzPage.Main },
                         )
+                    HifzPage.Journal ->
+                        JournalPage(controller, state.state, surahName, onOpenAyah) {
+                            page = HifzPage.Main
+                        }
                     HifzPage.KnownUpTo ->
                         KnownUpToScreen(
                             table = state.state.table,
@@ -137,6 +135,81 @@ fun HifzTab(
                 }
         }
     }
+}
+
+/** The main page and the sheet its map opens. */
+@Composable
+private fun MainPage(
+    controller: HifzController,
+    state: HifzState,
+    surahName: (Int) -> String,
+    onStartPractice: (PracticeRequest) -> Unit,
+    onOpenAyah: (AyahRef) -> Unit,
+    onOpen: (HifzPage) -> Unit,
+) {
+    var sheetPage by rememberSaveable { mutableStateOf<Int?>(null) }
+    ScrollingPage {
+        HifzMainContent(
+            state = state,
+            surahName = surahName,
+            actions =
+                HifzActions(
+                    onOpenMethod = { onOpen(HifzPage.Method) },
+                    onStartPart = { kind -> controller.startPractice(kind)?.let(onStartPractice) },
+                    onOpenMark = { onOpen(HifzPage.Mark) },
+                    onOpenWeakSpot = onOpenAyah,
+                    onOpenJournal = { onOpen(HifzPage.Journal) },
+                    onOpenPage = { sheetPage = it },
+                ),
+        )
+    }
+    sheetPage?.let { shown ->
+        MapPageSheet(controller, state, shown, surahName, onOpenAyah) { sheetPage = null }
+    }
+}
+
+@Composable
+private fun MapPageSheet(
+    controller: HifzController,
+    state: HifzState,
+    page: Int,
+    surahName: (Int) -> String,
+    onOpenAyah: (AyahRef) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val latestAnswers by
+        remember(controller) { controller.latestAnswers() }.collectAsStateWithLifecycle(emptyMap())
+    PageSheet(
+        facts = PageFacts.of(state, page, latestAnswers),
+        surahName = surahName,
+        onChangeState = { status -> controller.markPages(page..page, status) },
+        onOpenPage = { ayah ->
+            onDismiss()
+            onOpenAyah(ayah)
+        },
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun JournalPage(
+    controller: HifzController,
+    state: HifzState,
+    surahName: (Int) -> String,
+    onOpenAyah: (AyahRef) -> Unit,
+    onBack: () -> Unit,
+) {
+    val entries by
+        remember(controller) { controller.journal() }.collectAsStateWithLifecycle(emptyList())
+    val mistakes by
+        remember(controller) { controller.journalMistakes() }
+            .collectAsStateWithLifecycle(emptyList())
+    JournalScreen(
+        content = JournalContent(entries, mistakes, state.plan.method, state.today),
+        surahName = surahName,
+        onOpenAyah = onOpenAyah,
+        onBack = onBack,
+    )
 }
 
 @Composable

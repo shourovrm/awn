@@ -161,4 +161,59 @@
   <string name="end_save">সংরক্ষণ করুন</string>
   <string name="end_keep_practising">আরও অনুশীলন করুন</string>
   <string name="end_context">%1$s · %2$s</string>
+  <plurals name="today_ayahs_left">
+    <item quantity="one">%d আয়াত বাকি</item>
+    <item quantity="other">%d আয়াত বাকি</item>
+  </plurals>
+  <string name="part_detail_with_left">%1$s · %2$s</string>
+  <string name="revision_detail_left">%2$s এর মধ্যে %1$s বাকি</string>
+  <string name="continue_part">%2$s থেকে %1$s চালিয়ে যান</string>
+  <string name="week_title">এই সপ্তাহ</string>
+  <string name="week_new_ayahs">নতুন আয়াত</string>
+  <string name="week_pages_revised">পুনরাবৃত্তি করা পৃষ্ঠা</string>
+  <string name="week_practice">অনুশীলন</string>
+  <plurals name="week_practice_days">
+    <item quantity="one">%1$s · %2$d দিন</item>
+    <item quantity="other">%1$s · %2$d দিন</item>
+  </plurals>
+  <string name="duration_hours_minutes">%1$d ঘণ্টা %2$d মিনিট</string>
+  <string name="journal_title">দিনলিপি</string>
+  <string name="journal_open">দিনলিপি খুলুন</string>
+  <string name="journal_filter_all">সব</string>
+  <string name="journal_filter_lessons">নতুন পাঠ</string>
+  <string name="journal_filter_revision">পুনরাবৃত্তি</string>
+  <string name="journal_filter_mistakes">ভুল</string>
+  <string name="journal_week_minutes">এই সপ্তাহ · %s</string>
+  <string name="journal_today">আজ</string>
+  <string name="journal_yesterday">গতকাল</string>
+  <string name="journal_empty">গত ৬০ দিনে কিছু সংরক্ষণ করা হয়নি।</string>
+  <plurals name="journal_lesson_result">
+    <item quantity="one">%2$d আয়াতের %1$d টি মুখস্থ</item>
+    <item quantity="other">%2$d আয়াতের %1$d টি মুখস্থ</item>
+  </plurals>
+  <plurals name="journal_revision_result">
+    <item quantity="one">%2$d পৃষ্ঠার %1$d টি পড়া হয়েছে</item>
+    <item quantity="other">%2$d পৃষ্ঠার %1$d টি পড়া হয়েছে</item>
+  </plurals>
+  <plurals name="journal_mistakes">
+    <item quantity="one">%d টি ভুল</item>
+    <item quantity="other">%d টি ভুল</item>
+  </plurals>
+  <string name="journal_ayah_mistakes">%1$s · %2$s</string>
+  <string name="page_sheet_title">পৃষ্ঠা %1$d · %2$s</string>
+  <plurals name="page_sheet_ayahs">
+    <item quantity="one">%2$d আয়াতের %1$d টি মুখস্থ</item>
+    <item quantity="other">%2$d আয়াতের %1$d টি মুখস্থ</item>
+  </plurals>
+  <string name="page_sheet_started">শুরু</string>
+  <string name="page_sheet_last_revised">শেষ পুনরাবৃত্তি</string>
+  <string name="page_sheet_next_revision">পরের পুনরাবৃত্তি</string>
+  <string name="page_sheet_in_cycle">মানযিলের চক্রে</string>
+  <string name="page_sheet_mistakes">এই সপ্তাহের ভুল</string>
+  <string name="page_sheet_change_state">অবস্থা বদলান</string>
+  <string name="page_sheet_open">পৃষ্ঠা %d খুলুন</string>
+  <string name="page_sheet_none">—</string>
+  <string name="map_row_action">পৃষ্ঠা %d দেখুন</string>
+  <string name="page_sheet_range">%1$s %2$s</string>
+  <string name="journal_entry_title">%1$s · %2$s %3$s</string>
 </resources>

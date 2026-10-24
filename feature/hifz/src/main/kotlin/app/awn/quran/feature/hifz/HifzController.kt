@@ -7,6 +7,8 @@ import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.HifzProgress
+import app.awn.quran.feature.hifz.method.Journal
+import app.awn.quran.feature.hifz.method.JournalEntry
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.method.MethodSettings
 import app.awn.quran.feature.hifz.method.MistakeRecord
@@ -81,7 +83,8 @@ class HifzController(
             repository.observeRecords(),
             repository.observeFinishedOn(today),
             repository.observeMistakesSince(sinceMillis),
-        ) { plan, records, finished, mistakes ->
+            repository.observeJournalFrom(today.minusDays(Journal.WEEK_DAYS - 1)),
+        ) { plan, records, finished, mistakes, week ->
             if (plan == null) {
                 HifzScreenState.NoPlan
             } else if (plan.printLayout != currentFamily) {
@@ -97,6 +100,7 @@ class HifzController(
                         finished,
                         mistakes,
                         today,
+                        week,
                     ),
                 )
             }
@@ -201,6 +205,21 @@ class HifzController(
         (clock() - started).coerceIn(0, MAX_PRACTICE_MILLIS)
     }
 
+    /** Every saved part of the last [JOURNAL_DAYS] days, newest first, for the journal. */
+    fun journal(): Flow<List<JournalEntry>> =
+        repository.observeJournalFrom(repository.today().minusDays(JOURNAL_DAYS - 1))
+
+    /** The mistakes of the journal's days, to count those of each entry. */
+    fun journalMistakes(): Flow<List<MistakeRecord>> {
+        val firstDay = repository.today().minusDays(JOURNAL_DAYS - 1)
+        return repository.observeMistakesSince(
+            firstDay.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        )
+    }
+
+    /** What the user last said of each ayah, for the page sheet of the map. */
+    fun latestAnswers(): Flow<Map<AyahRef, AyahFirmness>> = repository.observeLatestAnswers()
+
     fun recordMistakes(mistakes: List<MistakeRecord>) {
         scope.launch { repository.recordMistakes(mistakes) }
     }
@@ -216,6 +235,7 @@ class HifzController(
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
         const val MAX_PRACTICE_MILLIS = 3 * 60 * 60 * 1_000L
+        const val JOURNAL_DAYS = 60L
         const val WEAK_SPOT_DAYS = 7L
     }
 }

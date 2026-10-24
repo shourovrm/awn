@@ -2,6 +2,7 @@ package app.awn.quran.feature.hifz.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,8 +26,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -72,9 +76,17 @@ internal data class StatusColors(
     }
 }
 
-/** One row per juz, one square per page, then the legend. */
+/**
+ * One row per juz, one square per page, then the legend. Tapping a square opens that page with
+ * [onOpenPage]; a screen reader gets one action per row that opens the row's first page, because a
+ * square is far smaller than a touch target.
+ */
 @Composable
-internal fun ProgressMapView(map: ProgressMap, modifier: Modifier = Modifier) {
+internal fun ProgressMapView(
+    map: ProgressMap,
+    onOpenPage: (page: Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = StatusColors.of(Awn.field)
     Column(modifier.fillMaxWidth()) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -83,15 +95,27 @@ internal fun ProgressMapView(map: ProgressMap, modifier: Modifier = Modifier) {
             val squareSize: Dp =
                 (maxWidth - labelWidth - gap * (WIDEST_ROW_PAGES - 1)) / WIDEST_ROW_PAGES
             Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-                map.rows.forEach { row -> MapRow(row, colors, squareSize, gap, labelWidth) }
+                map.rows.forEach { row ->
+                    MapRow(row, colors, MapGeometry(squareSize, gap, labelWidth), onOpenPage)
+                }
             }
         }
         Legend(colors, Modifier.padding(top = AwnSpacing.medium))
     }
 }
 
+/** The sizes of one map row: the square, the gap between squares and the juz label's width. */
+private data class MapGeometry(val square: Dp, val gap: Dp, val labelWidth: Dp)
+
 @Composable
-private fun MapRow(row: JuzRow, colors: StatusColors, square: Dp, gap: Dp, labelWidth: Dp) {
+private fun MapRow(
+    row: JuzRow,
+    colors: StatusColors,
+    geometry: MapGeometry,
+    onOpenPage: (page: Int) -> Unit,
+) {
+    val (square, gap, labelWidth) = geometry
+    val openFirstPage = stringResource(R.string.map_row_action, row.firstPage)
     val memorised = row.statuses.count { it.isKnown }
     val description =
         pluralStringResource(
@@ -102,7 +126,13 @@ private fun MapRow(row: JuzRow, colors: StatusColors, square: Dp, gap: Dp, label
             row.statuses.size,
         )
     Row(
-        Modifier.semantics(mergeDescendants = true) { contentDescription = description },
+        Modifier.semantics(mergeDescendants = true) {
+            contentDescription = description
+            onClick(label = openFirstPage) {
+                onOpenPage(row.firstPage)
+                true
+            }
+        },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -112,7 +142,12 @@ private fun MapRow(row: JuzRow, colors: StatusColors, square: Dp, gap: Dp, label
             modifier = Modifier.width(labelWidth),
         )
         Canvas(
-            Modifier.height(square).width((square + gap) * row.statuses.size),
+            Modifier.height(square).width((square + gap) * row.statuses.size).pointerInput(row) {
+                detectTapGestures { offset ->
+                    val index = (offset.x / (square + gap).toPx()).toInt()
+                    if (index in row.statuses.indices) onOpenPage(row.firstPage + index)
+                }
+            },
         ) {
             val step = (square + gap).toPx()
             val corner = CornerRadius(2.dp.toPx())

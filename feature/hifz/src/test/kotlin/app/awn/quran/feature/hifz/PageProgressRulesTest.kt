@@ -5,6 +5,7 @@ import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.LessonPart
 import app.awn.quran.feature.hifz.method.LessonPlanner
 import app.awn.quran.feature.hifz.method.LessonSize
+import app.awn.quran.feature.hifz.method.PageMarking
 import app.awn.quran.feature.hifz.method.PageProgressRules
 import app.awn.quran.feature.hifz.method.PageRecord
 import app.awn.quran.feature.hifz.method.PageStatus
@@ -152,7 +153,7 @@ class PageProgressRulesTest {
 
     @Test
     fun forgettingARevisedPageSendsItBackToLearningAsARecentLesson() {
-        val record = PageProgressRules.markPage(5, PageStatus.Memorised, testDay, nowMillis)
+        val record = PageMarking.markPage(5, PageStatus.Memorised, testDay, nowMillis)
 
         val after = PageProgressRules.gradeRevision(record, PartGrade.Forgot, testDay, nowMillis)
 
@@ -164,7 +165,7 @@ class PageProgressRulesTest {
     @Test
     fun reviewingALearningPageWithACardGoodMemorisesItAgain() {
         val record =
-            PageProgressRules.markPage(5, PageStatus.Memorised, testDay, nowMillis)
+            PageMarking.markPage(5, PageStatus.Memorised, testDay, nowMillis)
                 .copy(status = PageStatus.Learning)
 
         val after = PageProgressRules.gradeRevision(record, PartGrade.Good, testDay, nowMillis)
@@ -185,7 +186,7 @@ class PageProgressRulesTest {
 
     @Test
     fun aPageBecomesSolidWhenItsMemoryReachesThreeWeeks() {
-        var record = PageProgressRules.markPage(5, PageStatus.Memorised, testDay, nowMillis)
+        var record = PageMarking.markPage(5, PageStatus.Memorised, testDay, nowMillis)
         var moment = nowMillis
         var reviews = 0
         while (record.status != PageStatus.Solid && reviews < 20) {
@@ -200,7 +201,7 @@ class PageProgressRulesTest {
 
     @Test
     fun markingAPageSolidStartsItAtThreeWeeksOfMemory() {
-        val record = PageProgressRules.markPage(7, PageStatus.Solid, testDay, nowMillis)
+        val record = PageMarking.markPage(7, PageStatus.Solid, testDay, nowMillis)
 
         assertEquals(PageProgressRules.SOLID_STABILITY_DAYS, record.card?.stability)
         assertNull(record.learnedOn)
@@ -208,7 +209,7 @@ class PageProgressRulesTest {
 
     @Test
     fun markingAPageNotStartedClearsEverything() {
-        val record = PageProgressRules.markPage(7, PageStatus.NotStarted, testDay, nowMillis)
+        val record = PageMarking.markPage(7, PageStatus.NotStarted, testDay, nowMillis)
 
         assertEquals(PageRecord(7, PageStatus.NotStarted), record)
     }

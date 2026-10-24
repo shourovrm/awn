@@ -5,8 +5,10 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.feature.hifz.method.AyahFirmness
 import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzPlan
+import app.awn.quran.feature.hifz.method.JournalEntry
 import app.awn.quran.feature.hifz.method.LessonPart
 import app.awn.quran.feature.hifz.method.MistakeRecord
+import app.awn.quran.feature.hifz.method.PageMarking
 import app.awn.quran.feature.hifz.method.PageProgressRules
 import app.awn.quran.feature.hifz.method.PageRecord
 import app.awn.quran.feature.hifz.method.PageStatus
@@ -42,6 +44,16 @@ class HifzRepository(
     fun observeFinishedOn(day: LocalDate): Flow<List<FinishedPart>> =
         dao.observeSessionsOn(day.toEpochDay()).map { rows -> rows.map { it.toFinishedPart() } }
 
+    /** Every saved part from [firstDay] on, newest first. */
+    fun observeJournalFrom(firstDay: LocalDate): Flow<List<JournalEntry>> =
+        dao.observeSessionsFrom(firstDay.toEpochDay()).map { rows ->
+            rows.map { it.toJournalEntry() }
+        }
+
+    /** What the user last said of each ayah they saved a lesson answer for. */
+    fun observeLatestAnswers(): Flow<Map<AyahRef, AyahFirmness>> =
+        dao.observeAyahAnswers().map { it.latestByAyah() }
+
     fun observeMistakesSince(sinceMillis: Long): Flow<List<MistakeRecord>> =
         dao.observeMistakesSince(sinceMillis).map { rows -> rows.map { it.toRecord() } }
 
@@ -61,7 +73,11 @@ class HifzRepository(
         }
     }
 
-    /** Sets what the user says they know about [pages]; Not started removes the rows. */
+    /**
+     * Sets what the user says they know about [pages]; Not started removes the rows. A page that
+     * stays known keeps its history, and newly known pages come back spread over up to
+     * [PageMarking.SPREAD_DAYS] days.
+     */
     suspend fun markPages(pages: IntRange, status: PageStatus) {
         val nowMillis = clock()
         val day = today()
@@ -69,8 +85,20 @@ class HifzRepository(
             if (status == PageStatus.NotStarted) {
                 dao.deletePages(pages.toList())
             } else {
+                val existing = records()
+                val pageList = pages.toList()
                 dao.upsertPages(
-                    pages.map { PageProgressRules.markPage(it, status, day, nowMillis).toEntity() },
+                    pageList.mapIndexed { index, page ->
+                        PageMarking.markPage(
+                                page = page,
+                                status = status,
+                                today = day,
+                                nowMillis = nowMillis,
+                                existing = existing[page],
+                                firstRevisionInDays = PageMarking.spreadDays(index, pageList.size),
+                            )
+                            .toEntity()
+                    },
                 )
             }
         }
@@ -93,8 +121,15 @@ class HifzRepository(
                     page !in knownPages && table.ayahsOn(page).all { it <= ayah }
                 }
             dao.upsertPages(
-                pagesBefore.map {
-                    PageProgressRules.markPage(it, PageStatus.Memorised, day, nowMillis).toEntity()
+                pagesBefore.mapIndexed { index, page ->
+                    PageMarking.markPage(
+                            page = page,
+                            status = PageStatus.Memorised,
+                            today = day,
+                            nowMillis = nowMillis,
+                            firstRevisionInDays = PageMarking.spreadDays(index, pagesBefore.size),
+                        )
+                        .toEntity()
                 },
             )
             // After the last ayah there is nothing left to learn, so the cursor stays where it is.

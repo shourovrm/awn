@@ -5,7 +5,7 @@ import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.LessonSize
 import app.awn.quran.feature.hifz.method.MethodSettings
-import app.awn.quran.feature.hifz.method.PageProgressRules
+import app.awn.quran.feature.hifz.method.PageMarking
 import app.awn.quran.feature.hifz.method.PageRecord
 import app.awn.quran.feature.hifz.method.PageStatus
 import app.awn.quran.feature.hifz.method.PartGrade
@@ -218,7 +218,7 @@ class AssignmentGeneratorTest {
         val nowMillis = testDay.atStartOfDay(zone).toInstant().toEpochMilli()
         val dueCard =
             checkNotNull(
-                PageProgressRules.markPage(1, PageStatus.Memorised, testDay, nowMillis).card,
+                PageMarking.markPage(1, PageStatus.Memorised, testDay, nowMillis).card,
             )
         val dueNow = known(1).copy(card = dueCard.copy(dueMillis = nowMillis - 1_000))
         val notDue = known(2).copy(card = dueCard.copy(dueMillis = nowMillis + 5 * 86_400_000L))

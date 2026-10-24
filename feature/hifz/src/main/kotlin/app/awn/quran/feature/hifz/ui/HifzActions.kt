@@ -9,4 +9,6 @@ internal data class HifzActions(
     val onStartPart: (PartKind) -> Unit,
     val onOpenMark: () -> Unit,
     val onOpenWeakSpot: (AyahRef) -> Unit,
+    val onOpenJournal: () -> Unit = {},
+    val onOpenPage: (page: Int) -> Unit = {},
 )

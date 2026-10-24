@@ -38,9 +38,11 @@ import app.awn.quran.core.ui.theme.mutedContent
 import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.feature.hifz.HifzState
 import app.awn.quran.feature.hifz.R
+import app.awn.quran.feature.hifz.method.AssignedLesson
 import app.awn.quran.feature.hifz.method.DayAssignment
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.MistakeType
+import app.awn.quran.feature.hifz.method.PageGroup
 import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.hifz.method.PartMinutes
 import app.awn.quran.feature.hifz.method.WeakSpot
@@ -66,6 +68,8 @@ internal fun HifzMainContent(
         if (method != HifzMethodId.TrackOnly) {
             TodaySection(state, actions)
         }
+        WeekSection(state.week)
+        JournalRow(state.latestEntry, actions.onOpenJournal)
         Heading(stringResource(R.string.progress_map), Modifier.padding(top = AwnSpacing.medium))
         Text(
             text = state.progressMap.memorisedPages.toString(),
@@ -82,7 +86,11 @@ internal fun HifzMainContent(
             style = AwnTypography.body,
             color = Awn.field.content,
         )
-        ProgressMapView(state.progressMap, Modifier.padding(top = AwnSpacing.small))
+        ProgressMapView(
+            state.progressMap,
+            onOpenPage = actions.onOpenPage,
+            modifier = Modifier.padding(top = AwnSpacing.small),
+        )
         ActionRow(
             icon = R.drawable.ic_hifz_bookmark,
             title = stringResource(R.string.mark_title),
@@ -102,24 +110,16 @@ private fun TodaySection(state: HifzState, actions: HifzActions) {
     val assignment = state.assignment
     val method = state.plan.method
     Heading(stringResource(R.string.today), Modifier.padding(top = AwnSpacing.small))
-    assignment.newLesson?.let { lesson ->
-        PartRow(
-            kind = PartKind.NewLesson,
-            method = method,
-            icon = R.drawable.ic_hifz_hide_words,
-            detail = lessonDetailText(lesson.part),
-            minutes = PartMinutes.forLesson(lesson.part.ayahCount),
-            isDone = lesson.isDone,
-            onClick = actions.onStartPart,
-        )
-    }
+    assignment.newLesson?.let { LessonRow(it, method, actions) }
     assignment.recent?.let { group ->
         PartRow(
             kind = PartKind.Recent,
             method = method,
             icon = R.drawable.ic_hifz_revise,
-            detail = stringResource(R.string.revision_detail_recent, pagesText(group.pages)),
-            minutes = PartMinutes.forRevision(group.pages.size),
+            detail =
+                groupLeftText(group)
+                    ?: stringResource(R.string.revision_detail_recent, pagesText(group.pages)),
+            minutes = PartMinutes.forRevision(group.pagesLeft.size),
             isDone = group.isDone,
             onClick = actions.onStartPart,
         )
@@ -127,14 +127,15 @@ private fun TodaySection(state: HifzState, actions: HifzActions) {
     assignment.old?.let { group ->
         val isSabaq = method == HifzMethodId.SabaqSabqiManzil
         val detail =
-            if (isSabaq) stringResource(R.string.revision_detail_old, pagesText(group.pages))
-            else pagesText(group.pages)
+            groupLeftText(group)
+                ?: if (isSabaq) stringResource(R.string.revision_detail_old, pagesText(group.pages))
+                else pagesText(group.pages)
         PartRow(
             kind = PartKind.Old,
             method = method,
             icon = R.drawable.ic_hifz_revise,
             detail = detail,
-            minutes = PartMinutes.forRevision(group.pages.size),
+            minutes = PartMinutes.forRevision(group.pagesLeft.size),
             isDone = group.isDone,
             onClick = actions.onStartPart,
         )
@@ -142,10 +143,64 @@ private fun TodaySection(state: HifzState, actions: HifzActions) {
     if (assignment.revisionPageCount > 0) RevisionLoad(assignment)
     assignment.nextPart()?.let { next ->
         AwnButton(
-            label = startLabel(next, method),
+            label = primaryLabel(next, assignment, method),
             onClick = { actions.onStartPart(next) },
             modifier = Modifier.fillMaxWidth().padding(top = AwnSpacing.small),
         )
+    }
+}
+
+@Composable
+private fun LessonRow(lesson: AssignedLesson, method: HifzMethodId, actions: HifzActions) {
+    val detail =
+        if (lesson.isContinuation && !lesson.isDone) {
+            stringResource(
+                R.string.part_detail_with_left,
+                lessonDetailText(lesson.part),
+                pluralStringResource(
+                    R.plurals.today_ayahs_left,
+                    lesson.part.ayahCount,
+                    lesson.part.ayahCount,
+                ),
+            )
+        } else {
+            lessonDetailText(lesson.part)
+        }
+    PartRow(
+        kind = PartKind.NewLesson,
+        method = method,
+        icon = R.drawable.ic_hifz_hide_words,
+        detail = detail,
+        minutes = PartMinutes.forLesson(lesson.part.ayahCount),
+        isDone = lesson.isDone,
+        onClick = actions.onStartPart,
+    )
+}
+
+/** "Pages 22-23 left of 19-23" for a group revised part way today, null otherwise. */
+@Composable
+private fun groupLeftText(group: PageGroup): String? =
+    if (group.donePages.isEmpty() || group.isDone) null
+    else
+        stringResource(
+            R.string.revision_detail_left,
+            pagesText(group.pagesLeft),
+            pagesText(group.pages),
+        )
+
+/** "Continue Sabaq at 2:158" for a lesson saved part way today, else the usual start label. */
+@Composable
+private fun primaryLabel(next: PartKind, assignment: DayAssignment, method: HifzMethodId): String {
+    val lesson = assignment.newLesson
+    return if (next == PartKind.NewLesson && lesson != null && lesson.isContinuation) {
+        val first = lesson.part.first
+        stringResource(
+            R.string.continue_part,
+            partTitle(next, method),
+            "${first.surah}:${first.ayah}",
+        )
+    } else {
+        startLabel(next, method)
     }
 }
 
@@ -215,7 +270,7 @@ private fun PartRow(
 
 /** A soft row with an icon, a title, an optional detail line and optional text at the end. */
 @Composable
-private fun ActionRow(
+internal fun ActionRow(
     @DrawableRes icon: Int,
     title: String,
     detail: String?,

@@ -7,6 +7,8 @@ import app.awn.quran.feature.hifz.method.FinishedPart
 import app.awn.quran.feature.hifz.method.HifzMethodId
 import app.awn.quran.feature.hifz.method.HifzPlan
 import app.awn.quran.feature.hifz.method.HifzProgress
+import app.awn.quran.feature.hifz.method.Journal
+import app.awn.quran.feature.hifz.method.JournalEntry
 import app.awn.quran.feature.hifz.method.LessonPart
 import app.awn.quran.feature.hifz.method.MethodDefaults
 import app.awn.quran.feature.hifz.method.MistakeRecord
@@ -17,6 +19,7 @@ import app.awn.quran.feature.hifz.method.PartKind
 import app.awn.quran.feature.hifz.method.ProgressMap
 import app.awn.quran.feature.hifz.method.WeakSpot
 import app.awn.quran.feature.hifz.method.WeakSpots
+import app.awn.quran.feature.hifz.method.WeekSummary
 import java.time.LocalDate
 
 /** Everything the Hifz tab draws once a plan exists. */
@@ -27,6 +30,14 @@ data class HifzState(
     val weakSpots: List<WeakSpot>,
     /** Page by page, for the surah and juz pickers of "Mark what I know". */
     val table: PageTable,
+    /** Every page with a record, for the page sheet of the map. */
+    val records: Map<Int, PageRecord> = emptyMap(),
+    /** The mistakes of the last week, for the page sheet of the map. */
+    val recentMistakes: List<MistakeRecord> = emptyList(),
+    val week: WeekSummary = WeekSummary.EMPTY,
+    /** The newest saved part, for the Journal row. */
+    val latestEntry: JournalEntry? = null,
+    val today: LocalDate = LocalDate.now(),
 )
 
 /** What the user is practising on the Quran screen. */
@@ -59,6 +70,7 @@ object HifzStateBuilder {
         finishedToday: List<FinishedPart>,
         mistakes: List<MistakeRecord>,
         today: LocalDate,
+        recentEntries: List<JournalEntry> = emptyList(),
     ): HifzState =
         HifzState(
             plan = plan,
@@ -66,6 +78,11 @@ object HifzStateBuilder {
             progressMap = HifzProgress.map(table, records),
             weakSpots = WeakSpots.of(mistakes),
             table = table,
+            records = records,
+            recentMistakes = mistakes,
+            week = Journal.weekOf(recentEntries, today),
+            latestEntry = recentEntries.firstOrNull(),
+            today = today,
         )
 
     /** The practice for [kind] today, or null when the assignment has no such part. */
