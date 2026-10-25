@@ -127,7 +127,9 @@ class DownloadingAudioPlayer(
             if (!networkPolicy.mayDownload()) return true
             val missingBytes =
                 downloads.estimateBytes(reciterId, ayahs)?.let { it - onDisk.presentBytes }
-            if (missingBytes != null && needsPrompt(missingBytes)) {
+            val needsPrompt =
+                missingBytes != null && (missingBytes > promptAboveBytes || network.isMetered())
+            if (needsPrompt) {
                 if (!askToDownload(missingBytes)) return true
                 askedByUser = true
             }
@@ -148,9 +150,6 @@ class DownloadingAudioPlayer(
             return true
         }
     }
-
-    private fun needsPrompt(missingBytes: Long): Boolean =
-        missingBytes > promptAboveBytes || network.isMetered()
 
     /** Shows the size and waits for the user's answer; true means download. */
     private suspend fun askToDownload(missingBytes: Long): Boolean {

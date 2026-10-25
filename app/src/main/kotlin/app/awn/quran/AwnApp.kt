@@ -166,22 +166,15 @@ private fun AwnNavigation(
     // A page whose words the Learn tab should open; cleared once the tab has shown it.
     var learnPageWordsRequest by rememberSaveable { mutableStateOf<Int?>(null) }
     // Where Back from those page words goes: the Quran page they were opened from.
-    var pageWordsReturnPage by rememberSaveable { mutableStateOf<Int?>(null) }
-    var pageWordsReturnTabName by rememberSaveable { mutableStateOf(AwnTab.Quran.name) }
+    val pageWordsReturn = rememberPageWordsReturn()
     val tabNavigation =
         TabNavigation(
             navController = navController,
             selectTab = { selectedTabName = it.name },
             requestPageWords = { page -> learnPageWordsRequest = page },
             currentTab = AwnTab.valueOf(selectedTabName),
-            pageWordsReturn =
-                pageWordsReturnPage?.let {
-                    PageWordsReturn(it, AwnTab.valueOf(pageWordsReturnTabName))
-                },
-            rememberPageWordsReturn = { destination ->
-                pageWordsReturnPage = destination?.quranPage
-                destination?.let { pageWordsReturnTabName = it.tab.name }
-            },
+            pageWordsReturn = pageWordsReturn.value,
+            rememberPageWordsReturn = { destination -> pageWordsReturn.value = destination },
         )
     NavHost(
         navController = navController,

@@ -31,7 +31,6 @@ import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.HideTabBarOnInnerPage
 import app.awn.quran.feature.learn.content.LearnLanguage
-import app.awn.quran.feature.learn.content.LessonLanguageChoice
 import app.awn.quran.feature.learn.course.LearningArabic
 import app.awn.quran.feature.learn.progress.ProgressSnapshot
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
@@ -101,38 +100,28 @@ fun LearnScreen(
     onPageWordsBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val services = remember { LearnServices.get(context) }
     val locale = LocalConfiguration.current.locales[0]
-    val lessonLanguageChoice by
-        services.settings.lessonLanguage.collectAsState(initial = LessonLanguageChoice.FollowApp)
-    val language = LearnLanguage.resolve(lessonLanguageChoice, locale)
+    val language = rememberLessonLanguage(services, locale)
     val scope = rememberCoroutineScope()
 
     val routeState = rememberStartRoute(services)
     val route = routeState.value
     HideTabBarOnInnerPage(!isLearnTabRoot(route))
-    val requestedWordsPage = rememberSaveable { mutableStateOf<Int?>(null) }
-    OpenRequestedPageWords(
-        page = pageWordsRequest,
-        routeState = routeState,
-        requestedPage = requestedWordsPage.takeIf { onPageWordsBack != null },
-        onHandled = onPageWordsRequestHandled,
-    )
-    val leaveRequestedWords = rememberLeaveRequestedWords(requestedWordsPage, onPageWordsBack)
-    // Registered after the route's own handler, so it wins while the requested page is shown.
-    BackHandler(enabled = isRequestedPageWordsOpen(route, requestedWordsPage.value)) {
-        leaveRequestedWords()
-    }
+    val requestedWords =
+        rememberRequestedPageWords(
+            pageWordsRequest,
+            routeState,
+            onPageWordsRequestHandled,
+            onPageWordsBack,
+        )
 
     val snapshot by remember {
         services.progress.observeSnapshot()
     }
         .collectAsState(initial = EMPTY_SNAPSHOT)
     val chapters by produceState(emptyList<Chapter>(), quranText) { value = quranText.chapters() }
-    val surahName = { surah: Int ->
-        surahNameOf(chapters, surah, language) { resources.getString(R.string.surah_number, surah) }
-    }
+    val surahName = rememberSurahName(chapters, language)
 
     val languageCode = if (language == LearnLanguage.Bangla) "bn" else "en"
     val arabic = remember(quranText, packs) { LearningArabic(quranText, packs) }
@@ -157,13 +146,7 @@ fun LearnScreen(
     ) {
         LearnRoutes(
             route = current,
-            onRouteChange = { next ->
-                if (isLeavingRequestedPageWords(route, next, requestedWordsPage.value)) {
-                    leaveRequestedWords()
-                } else {
-                    routeState.value = next
-                }
-            },
+            onRouteChange = requestedWords::changeRoute,
             content =
                 LearnRouteContent(
                     snapshot = snapshot,
@@ -177,22 +160,6 @@ fun LearnScreen(
             barActions = barActions,
             modifier = modifier,
         )
-    }
-}
-
-@Composable
-private fun OpenRequestedPageWords(
-    page: Int?,
-    routeState: MutableState<LearnRoute?>,
-    requestedPage: MutableState<Int?>?,
-    onHandled: () -> Unit,
-) {
-    LaunchedEffect(page) {
-        if (page != null) {
-            requestedPage?.value = page
-            routeState.value = LearnRoute.PageWords(page)
-            onHandled()
-        }
     }
 }
 
@@ -343,17 +310,6 @@ private fun RevisionHost(
         onBackClick = onBackClick,
         modifier = modifier,
     )
-}
-
-private fun surahNameOf(
-    chapters: List<Chapter>,
-    surah: Int,
-    language: LearnLanguage,
-    fallback: () -> String,
-): String {
-    val chapter = chapters.firstOrNull { it.number == surah } ?: return fallback()
-    return if (language == LearnLanguage.Bangla) chapter.nameBangla ?: chapter.nameSimple
-    else chapter.nameSimple
 }
 
 /** The lesson sounds of the tab; they stop when the tab leaves the screen. */
