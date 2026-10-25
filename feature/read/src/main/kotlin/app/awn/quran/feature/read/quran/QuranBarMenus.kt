@@ -194,7 +194,6 @@ internal fun OverflowItems(
         onClick = actions.onBookmarkPage,
     )
     MenuItem(R.string.bar_rotate, R.drawable.ic_read_screen_rotation, actions.onRotate)
-    MenuItem(R.string.menu_learn, R.drawable.ic_read_learn, actions.onLearn)
     actions.onWordsOnPage?.let {
         MenuItem(R.string.menu_words_on_page, R.drawable.ic_read_learn, it)
     }

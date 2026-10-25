@@ -82,7 +82,6 @@ class AccessibilityTest {
             onGoToPage = doNothing,
             onBookmarkPage = doNothing,
             onRotate = doNothing,
-            onLearn = doNothing,
             onSettings = doNothing,
         )
 

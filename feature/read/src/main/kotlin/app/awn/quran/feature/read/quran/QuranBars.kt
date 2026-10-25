@@ -45,7 +45,6 @@ internal class TopBarActions(
     val onGoToPage: () -> Unit,
     val onBookmarkPage: () -> Unit,
     val onRotate: () -> Unit,
-    val onLearn: () -> Unit,
     val onSettings: () -> Unit,
     /** Opens the words of the page in the Learn tab; null hides the menu item. */
     val onWordsOnPage: (() -> Unit)? = null,

@@ -105,10 +105,6 @@ internal fun topBarActions(
             viewModel.closePopup()
             viewModel.rotate(isLandscapeNow = isLandscape)
         },
-        onLearn = {
-            viewModel.closePopup()
-            slots.onOpenLearn()
-        },
         onSettings = {
             viewModel.closePopup()
             slots.onOpenSettings()

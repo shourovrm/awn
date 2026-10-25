@@ -29,7 +29,6 @@
   <string name="menu_go_to_page">Go to page</string>
   <string name="menu_bookmark_page">Bookmark this page</string>
   <string name="menu_remove_page_bookmark">Remove bookmark</string>
-  <string name="menu_learn">Learn</string>
   <string name="menu_words_on_page">Words on this page</string>
   <string name="menu_show_my_words">Show my words</string>
   <string name="menu_settings">Settings</string>
@@ -80,6 +79,7 @@
   <string name="setting_word_by_word">Word by word</string>
   <string name="setting_highlight_bookmarks">Highlight bookmarks</string>
   <string name="setting_volume_keys">Volume keys turn pages</string>
+  <string name="setting_keep_screen_on">Keep screen on</string>
   <string name="reading_group_layers">Shown under the Arabic</string>
   <string name="reading_group_size">Text size</string>
   <string name="reading_group_page">Page</string>
