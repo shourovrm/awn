@@ -211,7 +211,7 @@ class RecitationSession(
             return
         }
         val (referenceWords, displayWords) = loaded
-        val newTracker = trackerFactory.create(TrackerConfig(mutableSpeed.value))
+        val newTracker = trackerFactory.create(TrackerConfig.fromSpeed(mutableSpeed.value))
         newTracker.load(referenceWords, startIndex = 0)
         synchronized(lock) {
             tracker = newTracker
@@ -388,7 +388,7 @@ class RecitationSession(
     fun setSpeed(speed: Float) {
         val clamped = speed.coerceIn(0f, 1f)
         mutableSpeed.value = clamped
-        synchronized(lock) { tracker?.setConfig(TrackerConfig(clamped)) }
+        synchronized(lock) { tracker?.setConfig(TrackerConfig.fromSpeed(clamped)) }
     }
 
     /**
@@ -637,7 +637,10 @@ class RecitationSession(
             is TrackerEvent.Duration -> event.check.wordIndex
             is TrackerEvent.Substitution -> event.wordIndex
             is TrackerEvent.Inserted,
-            is TrackerEvent.Anchored -> null
+            is TrackerEvent.Anchored,
+            is TrackerEvent.Repeated,
+            is TrackerEvent.Corrected,
+            is TrackerEvent.JumpedAhead -> null
         }
 
     private fun apply(event: TrackerEvent) {
@@ -662,6 +665,9 @@ class RecitationSession(
                 substitutionFindings =
                     substitutionFindings + (key to substitutionFindings[key].orEmpty() + event)
             }
+            is TrackerEvent.Repeated,
+            is TrackerEvent.Corrected,
+            is TrackerEvent.JumpedAhead -> Unit
         }
     }
 
@@ -766,6 +772,9 @@ class RecitationSession(
                 is TrackerEvent.Anchored -> event.index
                 is TrackerEvent.Duration -> event.check.wordIndex
                 is TrackerEvent.Substitution -> event.wordIndex
+                is TrackerEvent.Repeated -> event.firstWord
+                is TrackerEvent.Corrected -> event.index
+                is TrackerEvent.JumpedAhead -> event.toWord
             }
         return AyahRef(wordKeys[index].surah, wordKeys[index].ayah)
     }

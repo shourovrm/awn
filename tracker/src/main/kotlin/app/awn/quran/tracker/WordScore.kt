@@ -7,8 +7,7 @@ package app.awn.quran.tracker
  * [MISSING_COST], a sound swapped for an unrelated one [UNRELATED_COST], a sound swapped for a near
  * one (see [nearSoundCosts]) less, and an extra sound [EXTRA_COST]. The cost of a word is the sum
  * divided by the number of phonemes of the word, so one wrong sound weighs less in a long word. A
- * word passes when its cost is within [allowedCost], a share that also grows a little with the
- * length of the word.
+ * word passes when its cost is within [allowedCost], a share that is larger for longer words.
  *
  * The costs and the budget are Awn's own and were tuned on the tracker fixtures
  * (docs/decisions/tracker.md).
@@ -31,16 +30,10 @@ object WordScore {
     private const val BACK_OF_MOUTH_PAIR_COST = 0.5
     private const val SHORT_VOWEL_PAIR_COST = 0.5
 
-    // The share of the word that may differ is this much for a word of SHORT_WORD_LENGTH phonemes
-    // or fewer, grows by this much for each phoneme beyond that, and stops growing at the maximum.
-    private const val SHORT_WORD_LENGTH = 3
-    private const val SHORT_WORD_ALLOWED_SHARE = 0.22
-    private const val ALLOWED_SHARE_PER_EXTRA_PHONEME = 0.02
-    private const val MAXIMUM_ALLOWED_SHARE = 0.34
-
     private const val FATHA = '\u064E'
     private const val DAMMA = '\u064F'
     private const val KASRA = '\u0650'
+    private val shortVowels = setOf(FATHA, DAMMA, KASRA)
 
     private val nearSoundCosts: Map<Set<Char>, Double> = buildMap {
         fun addPairs(cost: Double, vararg pairs: Pair<Char, Char>) {
@@ -80,12 +73,19 @@ object WordScore {
         return total / referenceLength
     }
 
-    /** The largest [cost] that still counts as said, for a word of [referenceLength] phonemes. */
-    fun allowedCost(referenceLength: Int): Double {
-        val phonemesBeyondShort = (referenceLength - SHORT_WORD_LENGTH).coerceAtLeast(0)
-        val share = SHORT_WORD_ALLOWED_SHARE + ALLOWED_SHARE_PER_EXTRA_PHONEME * phonemesBeyondShort
-        return share.coerceAtMost(MAXIMUM_ALLOWED_SHARE)
-    }
+    /**
+     * The largest [cost] that still counts as said, for a word of [referenceLength] phonemes, at
+     * [Strictness.Normal]; the tracker reads the row of its own level from [AlignmentThresholds].
+     */
+    fun allowedCost(referenceLength: Int): Double =
+        AlignmentThresholds.forStrictness(Strictness.Normal).allowedCost(referenceLength)
+
+    /** True when [heard] for [expected] is one short vowel for another. */
+    fun isShortVowelSwap(heard: String, expected: String): Boolean =
+        heard.length == 1 &&
+            expected.length == 1 &&
+            heard[0] in shortVowels &&
+            expected[0] in shortVowels
 
     fun passes(cost: Double, referenceLength: Int): Boolean = cost <= allowedCost(referenceLength)
 }

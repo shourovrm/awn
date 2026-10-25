@@ -97,6 +97,40 @@ class TrackingFixtureTest {
     }
 
     @Test
+    fun noUpdateColoursMoreThanTwoWordsRed() {
+        assumeTrue(TestPaths.fixturesAvailable())
+        for (result in results.values) {
+            if (result.pageWideRedUpdates == 0) continue
+            println(
+                "${result.fixture.name}: page-wide red updates ${result.pageWideRedUpdates}, " +
+                    "beyond one left-out ayah ${result.pageWideRedUpdatesBeyondOneLeftOutAyah}",
+            )
+        }
+        val all = results.values.sumOf { it.pageWideRedUpdates }
+        val beyond = results.values.sumOf { it.pageWideRedUpdatesBeyondOneLeftOutAyah }
+
+        println(
+            "GATE page-wide red updates on ${results.size} fixtures: $all, beyond one left-out " +
+                "ayah $beyond (gate 0)",
+        )
+        assertEquals(0, beyond)
+    }
+
+    @Test
+    fun noJumpsOnCleanAndCutRecitations() {
+        assumeTrue(TestPaths.fixturesAvailable())
+        val clean = resultsOf(FixtureKind.Full) + resultsOf(FixtureKind.Stretch)
+        val cut = resultsOf(FixtureKind.Cut)
+
+        val cleanJumps = clean.sumOf { it.jumpCount }
+        val cutJumps = cut.sumOf { it.jumpCount }
+
+        println("GATE jumps: clean $cleanJumps, cut $cutJumps (gate 0 and 0)")
+        assertEquals(0, cleanJumps)
+        assertEquals(0, cutJumps)
+    }
+
+    @Test
     fun skipsFlaggedOnCutRecitations() {
         assumeTrue(TestPaths.fixturesAvailable())
         val cuts = resultsOf(FixtureKind.Cut)
@@ -282,15 +316,15 @@ class TrackingFixtureTest {
         const val RECORDED_GREEN_SHORT_SURAHS = 87
         const val LONG_SET_GREEN_PERCENT = 95f
         const val RECORDED_FALSE_SKIPS_UNMODIFIED = 0
-        const val RECORDED_CUTS_FLAGGED = 10
-        const val RECORDED_SPLICES_FLAGGED = 7
+        const val RECORDED_CUTS_FLAGGED = 9
+        const val RECORDED_SPLICES_FLAGGED = 9
         const val MINIMUM_STRETCH_TARGET_SECONDS = 0.16f
         const val STRETCH_TARGET_COUNT = 10
         const val MADD_SLOWDOWN = 3f
-        const val RECORDED_STRETCHED_FLAGGED = 8
+        const val RECORDED_STRETCHED_FLAGGED = 7
         const val RECORDED_ORIGINALS_NOT_OK = 0
         const val RECORDED_FALSE_SUBSTITUTIONS_SHORT_SURAHS = 0
         const val RECORDED_FALSE_SUBSTITUTIONS_LONG_SETS = 2
-        const val RECORDED_SPLICES_WITH_SUBSTITUTION = 3
+        const val RECORDED_SPLICES_WITH_SUBSTITUTION = 0
     }
 }

@@ -52,10 +52,37 @@ data class DurationCheck(
 )
 
 /**
- * [speed] runs from 0 (slow and patient) to 1 (fast and eager) and maps to the alignment thresholds
- * inside the implementation.
+ * How strict the tracker is about a word being said: each level is one row of thresholds (see
+ * docs/decisions/tracker.md). Strict allows fewer differences before a word is said; Lenient more.
  */
-data class TrackerConfig(val speed: Float = 0.5f)
+enum class Strictness {
+    Lenient,
+    Normal,
+    Strict;
+
+    companion object {
+        private const val LENIENT_BELOW_SPEED = 1f / 3
+        private const val STRICT_ABOVE_SPEED = 2f / 3
+
+        /**
+         * The level for the speed value the settings store, 0 (patient) to 1 (eager): a patient
+         * reader wants forgiveness, an eager one wants every slip flagged.
+         */
+        fun fromSpeed(speed: Float): Strictness =
+            when {
+                speed < LENIENT_BELOW_SPEED -> Lenient
+                speed > STRICT_ABOVE_SPEED -> Strict
+                else -> Normal
+            }
+    }
+}
+
+data class TrackerConfig(val strictness: Strictness = Strictness.Normal) {
+    companion object {
+        /** The config for the speed the settings and the speed popup still store. */
+        fun fromSpeed(speed: Float): TrackerConfig = TrackerConfig(Strictness.fromSpeed(speed))
+    }
+}
 
 /** A change the tracker reports; indexes refer to positions in the list given to [Tracker.load]. */
 sealed interface TrackerEvent {
@@ -84,6 +111,21 @@ sealed interface TrackerEvent {
 
     /** The tracker re-synchronised to the word at [index] after losing the place. */
     data class Anchored(val index: Int) : TrackerEvent
+
+    /**
+     * The user went back and said the words from [firstWord] again, having reached [lastWord].
+     * Every mark stays; the word being said now moves back to the word after [firstWord].
+     */
+    data class Repeated(val firstWord: Int, val lastWord: Int) : TrackerEvent
+
+    /** The word at [index] was wrong or left out and has now been said right; it is Confirmed. */
+    data class Corrected(val index: Int) : TrackerEvent
+
+    /**
+     * The user went on at [toWord], far past [fromWord], the word they were expected to say. The
+     * words in between are [WordState.Unread]: not recited, and not a mistake.
+     */
+    data class JumpedAhead(val fromWord: Int, val toWord: Int) : TrackerEvent
 }
 
 /**
@@ -108,7 +150,10 @@ interface Tracker {
     /** Returns the state of the word at [index], [WordState.Neutral] when nothing was heard yet. */
     fun stateOfWord(index: Int): WordState
 
-    /** Returns the index of the first word not yet confirmed or skipped. */
+    /**
+     * Returns the index of the word the user is expected to say next: after the last word said, so
+     * it moves back while the user repeats words already said.
+     */
     fun currentIndex(): Int
 
     /** Applies [config] to the phonemes fed from now on. */

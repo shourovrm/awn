@@ -31,7 +31,7 @@ class PassedWordVerdictTest {
     }
 
     private fun newTracker(): AlignmentTracker =
-        AlignmentTracker(TrackerConfig(0.5f)).also { it.load(reference) }
+        AlignmentTracker(TrackerConfig()).also { it.load(reference) }
 
     private fun AlignmentTracker.hear(text: String): List<TrackerEvent> {
         val reported = mutableListOf<TrackerEvent>()

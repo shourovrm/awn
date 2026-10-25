@@ -59,6 +59,43 @@ class TrackingResult(
     val anchors: List<TimedEvent>
         get() = events.filter { it.event is TrackerEvent.Anchored }
 
+    /** Forward jumps and re-anchoring: moves of the cursor through the whole text. */
+    val jumpCount: Int
+        get() = events.count {
+            it.event is TrackerEvent.JumpedAhead || it.event is TrackerEvent.Anchored
+        }
+
+    /** Updates that coloured more than two words red at once. */
+    val pageWideRedUpdates: Int
+        get() = redWordsPerUpdate().count { it.size > 2 }
+
+    /**
+     * The same, leaving out an update whose red words are exactly one ayah left out (all skipped,
+     * all in one ayah): the one case where the tracker marks more than two words at once.
+     */
+    val pageWideRedUpdatesBeyondOneLeftOutAyah: Int
+        get() = redWordsPerUpdate().count { it.size > 2 && !isOneLeftOutAyah(it) }
+
+    private fun redWordsPerUpdate(): List<Set<Int>> =
+        events
+            .groupBy { it.seconds }
+            .values
+            .map { update ->
+                update
+                    .map { it.event }
+                    .filter { it is TrackerEvent.WordChanged && it.state == WordState.Wrong }
+                    .map { (it as TrackerEvent.WordChanged).index }
+                    .toSet()
+            }
+
+    private fun isOneLeftOutAyah(words: Set<Int>): Boolean {
+        val skipped = skippedWordIndices.toSet()
+        val ayahs = words.map { surah.ayahOfWord(it) }.toSet()
+        return words.all { it in skipped } &&
+            ayahs.size == 1 &&
+            words == surah.wordIndices(ayahs.single()).toSet()
+    }
+
     /** Anchors that point at an ayah other than the one heard around the moment of the anchor. */
     val wrongAyahAnchorCount: Int
         get() = anchors.count { timed -> !anchorMatchesTruth(timed) }

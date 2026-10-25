@@ -13,6 +13,12 @@ enum class WordState {
     Mispronounced,
     Wrong,
     Hidden,
+
+    /**
+     * The user went on further ahead and did not recite this word: drawn without a mark, not a
+     * mistake, and not counted by Hifz.
+     */
+    Unread,
 }
 
 /**

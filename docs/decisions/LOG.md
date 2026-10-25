@@ -223,3 +223,9 @@
 2026-10-25 | AyahFinder returns the matched word span (firstWord, lastWord) per ayah | Voice search rows highlight the recited words; accuracy and speed unchanged
 2026-10-25 | Search rows drop the space before pause marks; voice rows mark the recited span | no dotted circles; shows what was heard
 2026-10-25 | About shows the developer's name and the README's free, non-commercial and dua line | maintainer's request
+2026-10-25 | Tracker is a word cursor over a few candidates; no re-routing, at most 2 red per step | slips reddened whole pages (tracker.md)
+2026-10-25 | A word passes on cost, 70 % coverage and closure; short words need bounds | a hint of a letter passed as said (tracker.md)
+2026-10-25 | Global search needs 30 failed phonemes and a unique place; jumps leave Unread words | chance phrases caused page-wide reds (tracker.md)
+2026-10-25 | Repeats and corrections are tracker events with every mark kept | repeating an ayah turned words red (tracker.md)
+2026-10-25 | Strictness levels Lenient, Normal, Strict replace the tracker speed; the stored speed maps to them | maintainer approved named levels (tracker.md)
+2026-10-25 | Ayah left out whose opening equals the next ayah's is flagged, turning its opening red | mutashabihat slips (tracker.md)

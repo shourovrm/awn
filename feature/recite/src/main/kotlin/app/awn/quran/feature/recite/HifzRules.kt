@@ -25,6 +25,7 @@ internal object HifzRules {
             WordState.Wrong -> trackerState
             WordState.Neutral,
             WordState.Tentative,
+            WordState.Unread,
             WordState.Hidden -> if (revealed) WordState.Neutral else WordState.Hidden
         }
     }

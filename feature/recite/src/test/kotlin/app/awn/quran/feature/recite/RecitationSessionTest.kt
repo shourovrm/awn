@@ -3,6 +3,7 @@ package app.awn.quran.feature.recite
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.tracker.DurationCheck
 import app.awn.quran.tracker.DurationVerdict
+import app.awn.quran.tracker.Strictness
 import app.awn.quran.tracker.TrackerConfig
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordProblem
@@ -114,7 +115,7 @@ class RecitationSessionTest {
 
         fixture.session.setSpeed(0.8f)
 
-        assertEquals(TrackerConfig(0.8f), fixture.tracker.config)
+        assertEquals(TrackerConfig.fromSpeed(0.8f), fixture.tracker.config)
         assertEquals(0.8f, fixture.session.speed.value)
     }
 
@@ -125,7 +126,8 @@ class RecitationSessionTest {
 
         fixture.session.setSpeed(3f)
 
-        assertEquals(1f, fixture.tracker.config.speed)
+        assertEquals(1f, fixture.session.speed.value)
+        assertEquals(Strictness.Strict, fixture.tracker.config.strictness)
     }
 
     @Test

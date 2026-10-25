@@ -27,8 +27,8 @@ class AlignmentTrackerTest {
         ReferenceWord(key, text.map { it.toString() })
     }
 
-    private fun newTracker(speed: Float = 0.5f): AlignmentTracker {
-        val tracker = AlignmentTracker(TrackerConfig(speed))
+    private fun newTracker(strictness: Strictness = Strictness.Normal): AlignmentTracker {
+        val tracker = AlignmentTracker(TrackerConfig(strictness))
         tracker.load(reference)
         return tracker
     }
@@ -167,30 +167,39 @@ class AlignmentTrackerTest {
     }
 
     @Test
-    fun jumpingFarAheadAnchorsToTheNewPlace() {
+    fun jumpingFarAheadMarksTheWordsBetweenUnreadAndNotWrong() {
         val tracker = newTracker()
         tracker.hear(wordTexts.take(3).joinToString(""))
 
-        // Ayah 5 starts at word 12, beyond the window of the current and next two ayahs.
-        val events = tracker.hear(wordTexts[12] + wordTexts[13] + wordTexts[14])
+        // Ayahs 2 and 3 are left out: the user goes on at ayah 4 and keeps reciting.
+        val events = tracker.hear(wordTexts.slice(9 until 15).joinToString(""))
 
-        assertEquals(
-            listOf(TrackerEvent.Anchored(12)),
-            events.filterIsInstance<TrackerEvent.Anchored>(),
-        )
+        val jumps = events.filterIsInstance<TrackerEvent.JumpedAhead>()
+        assertEquals("events $events", 1, jumps.size)
+        assertEquals(3, jumps.single().fromWord)
+        assertTrue(events.filterIsInstance<TrackerEvent.Anchored>().isNotEmpty())
+        for (index in 3 until 9) {
+            assertEquals("word $index", WordState.Unread, tracker.stateOfWord(index))
+        }
         assertEquals(WordState.Confirmed, tracker.stateOfWord(13))
+        assertTrue(events.none { it is TrackerEvent.Skipped })
     }
 
     @Test
-    fun goingBackToAnEarlierAyahAnchorsThereAndClearsLaterWords() {
+    fun goingBackToAnEarlierAyahKeepsEveryMark() {
         val tracker = newTracker()
         tracker.hear(wordTexts.take(9).joinToString(""))
-        assertEquals(WordState.Confirmed, tracker.stateOfWord(6))
 
-        val events = tracker.hear(wordTexts[3] + wordTexts[4] + wordTexts[5])
+        // The user goes back to ayah 2 and recites ayahs 2 and 3 again, then goes on.
+        val events = tracker.hear(wordTexts.slice(3 until 10).joinToString(""))
 
-        assertTrue("events $events", TrackerEvent.Anchored(3) in events)
-        assertEquals(WordState.Confirmed, tracker.stateOfWord(4))
+        assertTrue("events $events", events.any { it is TrackerEvent.Anchored })
+        val marked = events.filterIsInstance<TrackerEvent.WordChanged>().map { it.state }
+        assertTrue("marks $marked", marked.none { it == WordState.Wrong || it == WordState.Unread })
+        for (index in 0 until 10) {
+            assertEquals("word $index", WordState.Confirmed, tracker.stateOfWord(index))
+        }
+        assertEquals(10, tracker.currentIndex())
     }
 
     @Test
@@ -216,28 +225,35 @@ class AlignmentTrackerTest {
     }
 
     @Test
-    fun defaultSpeedGivesTheThresholdsOfThePlan() {
-        val thresholds = AlignmentThresholds.forSpeed(0.5f)
+    fun normalStrictnessGivesTheTunedThresholds() {
+        val thresholds = AlignmentThresholds.forStrictness(Strictness.Normal)
 
+        assertEquals(0.20, thresholds.allowedCost(3), 0.0)
+        assertEquals(0.26, thresholds.allowedCost(4), 0.0)
+        assertEquals(0.30, thresholds.allowedCost(8), 0.0)
         assertEquals(6, thresholds.insertionPhonemes)
-        assertEquals(12, thresholds.reanchorPhonemes)
-        assertEquals(2, thresholds.wrongSubstitutions)
+        assertEquals(30, thresholds.lostPhonemes)
     }
 
     @Test
-    fun fasterSpeedAsksForLessBeforeJudging() {
-        val patient = AlignmentThresholds.forSpeed(0f)
-        val eager = AlignmentThresholds.forSpeed(1f)
+    fun aStricterLevelAllowsLessInEveryLengthClass() {
+        val lenient = AlignmentThresholds.forStrictness(Strictness.Lenient)
+        val normal = AlignmentThresholds.forStrictness(Strictness.Normal)
+        val strict = AlignmentThresholds.forStrictness(Strictness.Strict)
 
-        assertTrue(eager.insertionPhonemes < patient.insertionPhonemes)
-        assertTrue(eager.reanchorPhonemes < patient.reanchorPhonemes)
-        assertTrue(eager.skipEvidencePhonemes < patient.skipEvidencePhonemes)
+        for (length in listOf(2, 5, 9)) {
+            assertTrue(strict.allowedCost(length) < normal.allowedCost(length))
+            assertTrue(normal.allowedCost(length) < lenient.allowedCost(length))
+        }
     }
 
     @Test
-    fun speedOutsideZeroToOneIsClamped() {
-        assertEquals(AlignmentThresholds.forSpeed(1f), AlignmentThresholds.forSpeed(7f))
-        assertEquals(AlignmentThresholds.forSpeed(0f), AlignmentThresholds.forSpeed(-3f))
+    fun theOldSpeedValueMapsToTheThreeLevels() {
+        assertEquals(Strictness.Lenient, Strictness.fromSpeed(0f))
+        assertEquals(Strictness.Normal, Strictness.fromSpeed(0.5f))
+        assertEquals(Strictness.Strict, Strictness.fromSpeed(1f))
+        assertEquals(Strictness.Strict, Strictness.fromSpeed(7f))
+        assertEquals(Strictness.Lenient, Strictness.fromSpeed(-3f))
     }
 
     @Test
@@ -256,7 +272,7 @@ class AlignmentTrackerTest {
 
     @Test
     fun appendedWordsContinueWithoutForgettingEarlierResults() {
-        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        val tracker = AlignmentTracker(TrackerConfig())
         tracker.loadFirst(6)
         tracker.hear(wordTexts.take(5).joinToString(""))
 
@@ -271,7 +287,7 @@ class AlignmentTrackerTest {
 
     @Test
     fun theLastLoadedWordSettlesOnceTheUserReachesAppendedWords() {
-        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        val tracker = AlignmentTracker(TrackerConfig())
         tracker.loadFirst(6)
         tracker.hear(wordTexts.take(6).joinToString(""))
         assertEquals(6, tracker.currentIndex())
@@ -288,7 +304,7 @@ class AlignmentTrackerTest {
 
     @Test
     fun appendedWordsReportEventsWithIndexesAfterTheLoadedOnes() {
-        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        val tracker = AlignmentTracker(TrackerConfig())
         tracker.loadFirst(6)
         tracker.hear(wordTexts.take(6).joinToString(""))
         tracker.append(reference.drop(6).take(6))
@@ -304,7 +320,7 @@ class AlignmentTrackerTest {
 
     @Test
     fun appendingNothingChangesNothing() {
-        val tracker = AlignmentTracker(TrackerConfig(0.5f))
+        val tracker = AlignmentTracker(TrackerConfig())
         tracker.loadFirst(6)
         tracker.hear(wordTexts.take(3).joinToString(""))
 
@@ -316,7 +332,7 @@ class AlignmentTrackerTest {
 
     @Test
     fun appendingSeveralTimesIsTheSameAsLoadingEverythingAtOnce() {
-        val grown = AlignmentTracker(TrackerConfig(0.5f))
+        val grown = AlignmentTracker(TrackerConfig())
         grown.loadFirst(3)
         grown.append(reference.subList(3, 9))
         grown.append(reference.subList(9, reference.size))
