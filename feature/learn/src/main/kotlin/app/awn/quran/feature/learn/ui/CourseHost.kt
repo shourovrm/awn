@@ -466,6 +466,7 @@ private fun SessionRoute(
             SessionActions(
                 onClose = leave,
                 onNext = { scope.launch { controller.next() } },
+                onRate = { rating -> scope.launch { controller.rate(rating) } },
                 onAnswer = { optionIndex -> scope.launch { controller.answer(optionIndex) } },
                 onDone = onFinished,
                 onLevelCelebrated = { level ->

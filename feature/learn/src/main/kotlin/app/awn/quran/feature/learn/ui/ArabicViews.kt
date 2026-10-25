@@ -129,6 +129,7 @@ internal fun AyahCard(
             color = colors.content,
             showEndMarker = false,
             highlightedPositions = highlightedPositions,
+            highlightColor = colors.playingWordFill,
             blankPosition = blankPosition,
         )
         translation?.let {

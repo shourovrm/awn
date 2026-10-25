@@ -50,6 +50,7 @@ class QuestionFactory(
             options = options,
             correctIndex = optionInfos.indexOfFirst { it.rank == rank },
             answerWord = target.representative,
+            answerOccurrences = occurrencesInAyahOf(target.representative, rank),
         )
     }
 
@@ -68,6 +69,11 @@ class QuestionFactory(
             explanation = text.answerBlocks,
         )
     }
+
+    // The same form often stands twice in one ayah (ثُمَّ in 2:28); marking one of them looks
+    // wrong.
+    private fun occurrencesInAyahOf(word: WordKey, rank: Int): List<WordKey> =
+        frequency.occurrences(rank).filter { it.surah == word.surah && it.ayah == word.ayah }
 
     private suspend fun distractorsFor(target: WordInfo): List<WordInfo> {
         val candidates =

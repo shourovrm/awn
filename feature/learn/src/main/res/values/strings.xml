@@ -195,9 +195,21 @@
   <string name="question_dont_know">I don\'t know</string>
   <string name="question_check">Check</string>
   <string name="answer_next">Next</string>
-  <plurals name="answer_back_in">
-    <item quantity="one">Back in %d day</item>
-    <item quantity="other">Back in %d days</item>
+  <plurals name="interval_days">
+    <item quantity="one">%d d</item>
+    <item quantity="other">%d d</item>
+  </plurals>
+  <plurals name="interval_weeks">
+    <item quantity="one">%d wk</item>
+    <item quantity="other">%d wk</item>
+  </plurals>
+  <plurals name="interval_months">
+    <item quantity="one">%d mo</item>
+    <item quantity="other">%d mo</item>
+  </plurals>
+  <plurals name="interval_years">
+    <item quantity="one">%d yr</item>
+    <item quantity="other">%d yr</item>
   </plurals>
   <string name="answer_right">Right</string>
   <string name="answer_your_choice">You chose</string>

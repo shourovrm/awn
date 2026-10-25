@@ -45,9 +45,10 @@ class SessionDependencies(
  * Runs one session or quiz: the steps of a [TodayPlan] one screen at a time. [state] holds the
  * screen to draw; the user's presses call [next], [answer] and [close].
  *
- * Each answer is rated and stored at once, so a user who leaves halfway keeps what was done. In a
- * quiz the user started ([isOwnQuiz]) answers are only logged: no card and no date changes. Reviews
- * rate Good for a right answer and Again for a wrong one or "I don't know".
+ * An answer in a plan is rated when the user taps one of the four ratings on the answer screen
+ * ([rate]), so a user who leaves halfway keeps what was rated. The rating the answer earned (Good
+ * when right, Again when wrong or "I don't know") is the one the screen suggests. In a quiz the
+ * user started ([isOwnQuiz]) answers are only logged at once: no card and no date changes.
  */
 // One method per button on a session screen, plus the steps that build the next screen.
 @Suppress("TooManyFunctions")
@@ -72,6 +73,9 @@ class SessionController(
     private var introduced = 0
     private var correct = 0
     private var lastAyahWord: WordKey? = null
+
+    // How long the user took to answer, kept apart from the time spent choosing a rating.
+    private var answerMillis = 0L
     private var pace = Pace.Default
 
     /** Loads the state the questions need and shows the first screen. */
@@ -87,9 +91,22 @@ class SessionController(
         when (val frame = mutableState.value.frame) {
             is SessionFrame.NewWord -> finishNewWord(frame)
             is SessionFrame.Reading -> subIndex++
-            is SessionFrame.Answer -> finishAnswer(frame)
+            is SessionFrame.Answer -> {
+                // A rated answer moves on through rate(); only a quiz answer has a Next button.
+                if (frame.ratingChoices != null) return
+                finishAnswer(frame)
+            }
             else -> return
         }
+        showCurrent()
+    }
+
+    /** The user tapped [rating] on the answer screen: it is stored and the session moves on. */
+    suspend fun rate(rating: FsrsRating) {
+        val frame = mutableState.value.frame as? SessionFrame.Answer ?: return
+        if (frame.ratingChoices == null) return
+        record(frame.question, rating, outcomeOf(frame.question, frame.chosenIndex), answerMillis)
+        finishAnswer(frame)
         showCurrent()
     }
 
@@ -99,16 +116,30 @@ class SessionController(
         val question = frame.question
         val isRight = optionIndex == question.correctIndex
         if (isRight) correct++
-        val rating = if (isRight) FsrsRating.Good else FsrsRating.Again
-        val outcome =
-            when {
-                optionIndex == null -> StepOutcome.DONT_KNOW
-                isRight -> StepOutcome.CORRECT
-                else -> StepOutcome.WRONG
-            }
-        val backInDays = record(question, rating, outcome)
+        answerMillis = nowMillis() - shownAtMillis
+        val ratingChoices = if (isOwnQuiz) null else ratingChoicesFor(question, isRight)
+        if (ratingChoices == null) {
+            record(question, FsrsRating.Good, outcomeOf(question, optionIndex), answerMillis)
+        }
         question.answerWord?.let { lastAyahWord = it }
-        publish(SessionFrame.Answer(question, optionIndex, backInDays, frame.label))
+        publish(SessionFrame.Answer(question, optionIndex, ratingChoices, frame.label))
+    }
+
+    private fun outcomeOf(question: Question, optionIndex: Int?): String =
+        when {
+            optionIndex == null -> StepOutcome.DONT_KNOW
+            optionIndex == question.correctIndex -> StepOutcome.CORRECT
+            else -> StepOutcome.WRONG
+        }
+
+    private suspend fun ratingChoicesFor(question: Question, isRight: Boolean): RatingChoices {
+        val dueByRating =
+            when (val subject = question.subject) {
+                is ItemRef.Word -> repository.previewWord(subject.rank)
+                is ItemRef.Grammar -> repository.previewGrammar(subject.lessonId)
+            }
+        val earned = if (isRight) FsrsRating.Good else FsrsRating.Again
+        return RatingChoices(earned, dueByRating.mapValues { daysUntil(it.value) })
     }
 
     /**
@@ -152,18 +183,16 @@ class SessionController(
         val info = dependencies.infoSource.info(step.rank) ?: return null
         val ordinal = steps.filterIsInstance<PlanStep.NewWord>().indexOf(step) + 1
         val total = steps.count { it is PlanStep.NewWord }
-        val candidates =
-            dependencies.frequency
-                .occurrences(step.rank)
-                .map { AyahRef(it.surah, it.ayah) }
-                .distinct()
+        val occurrences = dependencies.frequency.occurrences(step.rank)
+        val candidates = occurrences.map { AyahRef(it.surah, it.ayah) }.distinct()
         val ayahs =
             candidates
                 .map { it to dependencies.arabic.ayah(it).words.size }
                 .sortedBy { it.second }
                 .take(NEW_WORD_AYAHS)
                 .map { it.first }
-        return SessionFrame.NewWord(info, ayahs, FrameLabel.NewWord(ordinal, total))
+        val shown = occurrences.filter { AyahRef(it.surah, it.ayah) in ayahs }
+        return SessionFrame.NewWord(info, ayahs, FrameLabel.NewWord(ordinal, total), shown)
     }
 
     private suspend fun askFrame(step: PlanStep.Review): SessionFrame? {
@@ -221,9 +250,13 @@ class SessionController(
                 }
         }
 
-    /** Rates or logs the answer; returns the days until the item returns, or null in a quiz. */
-    private suspend fun record(question: Question, rating: FsrsRating, outcome: String): Int? {
-        val elapsed = nowMillis() - shownAtMillis
+    /** Logs the answer of a quiz, or rates the answer of a plan with [rating]. */
+    private suspend fun record(
+        question: Question,
+        rating: FsrsRating,
+        outcome: String,
+        elapsed: Long,
+    ) {
         val subject = question.subject
         val step =
             FinishedStep(
@@ -241,15 +274,13 @@ class SessionController(
             )
         if (isOwnQuiz) {
             repository.logStep(step)
-            return null
+            return
         }
         if (steps.getOrNull(stepIndex) is PlanStep.Review) revised++
-        val dueMillis =
-            when (subject) {
-                is ItemRef.Word -> repository.rateWord(subject.rank, rating, step)
-                is ItemRef.Grammar -> repository.rateGrammar(subject.lessonId, rating, step)
-            }
-        return daysUntil(dueMillis)
+        when (subject) {
+            is ItemRef.Word -> repository.rateWord(subject.rank, rating, step)
+            is ItemRef.Grammar -> repository.rateGrammar(subject.lessonId, rating, step)
+        }
     }
 
     private suspend fun finishNewWord(frame: SessionFrame.NewWord) {

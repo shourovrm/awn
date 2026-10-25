@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,10 +15,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.ui.components.AwnButton
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
@@ -35,6 +36,8 @@ import app.awn.quran.feature.learn.words.WordLevels
 internal class SessionActions(
     val onClose: () -> Unit,
     val onNext: () -> Unit,
+    /** The user tapped [FsrsRating] on the answer screen of a plan. */
+    val onRate: (FsrsRating) -> Unit = {},
     /** The user chose option [Int], or null for "I don't know". */
     val onAnswer: (Int?) -> Unit,
     val onDone: () -> Unit,
@@ -56,7 +59,7 @@ internal fun SessionScreen(
             is SessionFrame.NewWord -> NewWordFrame(frame, actions.onNext)
             is SessionFrame.Reading -> ReadingFrame(frame, actions.onNext)
             is SessionFrame.Ask -> AskFrame(frame, actions.onAnswer)
-            is SessionFrame.Answer -> AnswerFrame(frame, actions.onNext)
+            is SessionFrame.Answer -> AnswerFrame(frame, actions.onNext, actions.onRate)
             is SessionFrame.Finished -> FinishedFrame(frame.summary, actions)
         }
     }
@@ -70,6 +73,26 @@ internal fun BodyWithButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    BodyWithBottom(
+        bottom = {
+            AwnButton(
+                label = buttonLabel,
+                onClick = onButtonClick,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        modifier = modifier,
+        content = content,
+    )
+}
+
+/** A scrolling body with [bottom] pinned under it, at the screen margin. */
+@Composable
+internal fun BodyWithBottom(
+    bottom: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     Column(modifier = modifier.fillMaxSize()) {
         Column(
             modifier =
@@ -80,11 +103,7 @@ internal fun BodyWithButton(
         ) {
             content()
         }
-        AwnButton(
-            label = buttonLabel,
-            onClick = onButtonClick,
-            modifier = Modifier.fillMaxWidth().padding(AwnSpacing.screenMargin),
-        )
+        Box(Modifier.fillMaxWidth().padding(AwnSpacing.screenMargin)) { bottom() }
     }
 }
 
@@ -104,13 +123,9 @@ private fun NewWordFrame(frame: SessionFrame.NewWord, onNext: () -> Unit) {
             style = AwnTypography.bodyStrong,
             color = Awn.field.content,
         )
-        frame.ayahs.forEach { AyahCard(it, highlight = occurrenceIn(it, frame)) }
+        frame.ayahs.forEach { AyahCard(it, highlights = frame.occurrences.toSet()) }
     }
 }
-
-// The word to mark in an ayah: the representative where it is the representative's ayah.
-private fun occurrenceIn(ayah: AyahRef, frame: SessionFrame.NewWord) =
-    frame.info.representative.takeIf { it.surah == ayah.surah && it.ayah == ayah.ayah }
 
 @Composable
 private fun ReadingFrame(frame: SessionFrame.Reading, onNext: () -> Unit) {
@@ -195,37 +210,39 @@ private fun QuestionPromptView(prompt: QuestionPrompt) {
 }
 
 @Composable
-private fun AnswerFrame(frame: SessionFrame.Answer, onNext: () -> Unit) {
+private fun AnswerFrame(
+    frame: SessionFrame.Answer,
+    onNext: () -> Unit,
+    onRate: (FsrsRating) -> Unit,
+) {
+    val ratingChoices = frame.ratingChoices
+    if (ratingChoices == null) {
+        BodyWithButton(stringResource(R.string.answer_next), onNext) { AnswerBody(frame) }
+    } else {
+        BodyWithBottom(bottom = { RatingButtons(ratingChoices, onRate) }) { AnswerBody(frame) }
+    }
+}
+
+@Composable
+private fun AnswerBody(frame: SessionFrame.Answer) {
     val question = frame.question
-    BodyWithButton(stringResource(R.string.answer_next), onNext) {
-        question.answerWord?.let { ArabicWord(it, style = AwnTypography.title) }
-        AnswerRow(
-            markup = question.options[question.correctIndex],
-            state = AnswerRowState.Right,
-            onClick = null,
+    question.answerWord?.let { ArabicWord(it, style = AwnTypography.title) }
+    AnswerRow(
+        markup = question.options[question.correctIndex],
+        state = AnswerRowState.Right,
+        onClick = null,
+    )
+    val chosen = frame.chosenIndex
+    if (chosen != null && !frame.isCorrect) {
+        MutedLine(stringResource(R.string.answer_your_choice))
+        AnswerRow(markup = question.options[chosen], state = AnswerRowState.Wrong, onClick = null)
+    }
+    if (question.explanation.isNotEmpty()) LessonBlocks(question.explanation)
+    question.answerWord?.let { word ->
+        AyahCard(
+            AyahRef(word.surah, word.ayah),
+            highlights = question.answerOccurrences.toSet() + word,
         )
-        val chosen = frame.chosenIndex
-        if (chosen != null && !frame.isCorrect) {
-            MutedLine(stringResource(R.string.answer_your_choice))
-            AnswerRow(
-                markup = question.options[chosen],
-                state = AnswerRowState.Wrong,
-                onClick = null,
-            )
-        }
-        if (question.explanation.isNotEmpty()) LessonBlocks(question.explanation)
-        question.answerWord?.let { word ->
-            AyahCard(AyahRef(word.surah, word.ayah), highlight = word)
-        }
-        frame.backInDays?.let {
-            Text(
-                text = pluralStringResource(R.plurals.answer_back_in, it, it),
-                style = AwnTypography.small,
-                color = Awn.field.content,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
     }
 }
 

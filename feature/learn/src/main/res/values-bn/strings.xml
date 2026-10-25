@@ -195,9 +195,21 @@
   <string name="question_dont_know">জানি না</string>
   <string name="question_check">যাচাই</string>
   <string name="answer_next">পরেরটি</string>
-  <plurals name="answer_back_in">
-    <item quantity="one">%d দিন পরে আবার আসবে</item>
-    <item quantity="other">%d দিন পরে আবার আসবে</item>
+  <plurals name="interval_days">
+    <item quantity="one">%d দিন</item>
+    <item quantity="other">%d দিন</item>
+  </plurals>
+  <plurals name="interval_weeks">
+    <item quantity="one">%d সপ্তাহ</item>
+    <item quantity="other">%d সপ্তাহ</item>
+  </plurals>
+  <plurals name="interval_months">
+    <item quantity="one">%d মাস</item>
+    <item quantity="other">%d মাস</item>
+  </plurals>
+  <plurals name="interval_years">
+    <item quantity="one">%d বছর</item>
+    <item quantity="other">%d বছর</item>
   </plurals>
   <string name="answer_right">সঠিক</string>
   <string name="answer_your_choice">আপনার উত্তর</string>

@@ -218,3 +218,5 @@
 2026-10-25 | Back from page words reopens the Quran page; Learn leaves the Quran menu | Back landed on the Learn words list, the user lost the page
 2026-10-25 | Leaving the Quran screen cancels audio that has not started; playing audio continues | audio began seconds after Back, on another screen
 2026-10-25 | Keep screen on while reading is a setting, on by default | the screen dimmed mid-page; the app had no wake option
+2026-10-25 | Words session rates by tap: Forgot/Hard/Good/Easy with intervals, earned one filled | Anki-style; one tap on the filled one is the quick path
+2026-10-25 | Ayah cards in the words session mark every place of the form, stronger fill | new-word ayahs and repeated forms showed no or one mark

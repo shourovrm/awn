@@ -49,6 +49,8 @@ data class Question(
     val correctIndex: Int,
     val answerWord: WordKey?,
     val explanation: List<LessonBlock> = emptyList(),
+    /** Every place of the form inside the ayah of [answerWord], so the answer marks them all. */
+    val answerOccurrences: List<WordKey> = emptyList(),
 ) {
     init {
         require(options.size >= 2) { "A question needs at least two options." }

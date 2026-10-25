@@ -4,6 +4,7 @@ import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.learn.course.CourseContentReader
 import app.awn.quran.feature.learn.course.CourseLesson
+import app.awn.quran.feature.learn.words.WordFrequency
 import kotlin.random.Random
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -33,6 +34,23 @@ class QuestionFactoryTest {
             assertEquals(4, question.options.toSet().size)
             assertNotNull(question.answerWord)
         }
+    }
+
+    @Test
+    fun theAnswerMarksEveryPlaceOfTheFormInTheAskedAyah() = runTest {
+        // The form stands twice in ayah 2:50 (as ثُمَّ does in 2:28) and once in 3:1.
+        val frequency =
+            object : WordFrequency by FakeFrequency() {
+                override fun occurrences(rank: Int) =
+                    listOf(WordKey(2, rank, 1), WordKey(2, rank, 3), WordKey(3, 1, 2))
+            }
+        val question =
+            checkNotNull(
+                QuestionFactory(frequency, FakeInfoSource(), Random(1))
+                    .forWord(50, last = null, isWeak = false),
+            )
+
+        assertEquals(listOf(WordKey(2, 50, 1), WordKey(2, 50, 3)), question.answerOccurrences)
     }
 
     @Test

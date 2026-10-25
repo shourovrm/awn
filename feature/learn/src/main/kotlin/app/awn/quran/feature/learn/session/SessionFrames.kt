@@ -2,6 +2,7 @@ package app.awn.quran.feature.learn.session
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.course.CourseLesson
 import app.awn.quran.feature.learn.course.LessonScreenData
 
@@ -25,6 +26,8 @@ sealed interface SessionFrame {
         val info: WordInfo,
         val ayahs: List<AyahRef>,
         override val label: FrameLabel,
+        /** The places of the word inside [ayahs], marked in the ayah cards. */
+        val occurrences: List<WordKey> = emptyList(),
     ) : SessionFrame
 
     /** One reading screen of a lesson. */
@@ -46,12 +49,13 @@ sealed interface SessionFrame {
 
     /**
      * The screen after an answer. [chosenIndex] is null when the user pressed "I don't know".
-     * [backInDays] is when the item returns, null in a quiz the user started, which moves no date.
+     * [ratingChoices] is what the user may rate the answer, null in a quiz the user started, which
+     * moves no date and has no rating.
      */
     data class Answer(
         val question: Question,
         val chosenIndex: Int?,
-        val backInDays: Int?,
+        val ratingChoices: RatingChoices?,
         override val label: FrameLabel,
     ) : SessionFrame {
         val isCorrect: Boolean
@@ -93,3 +97,9 @@ data class LastAyahWord(val key: WordKey, val text: String, val isKnown: Boolean
 
 /** What the screen draws now. [progress] runs from 0 to 1; [secondsLeft] is an estimate. */
 data class SessionState(val frame: SessionFrame?, val progress: Float, val secondsLeft: Int)
+
+/**
+ * The four ratings of an answer with the days until the item returns after each. [earned] is the
+ * rating the answer itself gives: Good when it was right, Again (shown as Forgot) when it was not.
+ */
+data class RatingChoices(val earned: FsrsRating, val daysByRating: Map<FsrsRating, Int>)

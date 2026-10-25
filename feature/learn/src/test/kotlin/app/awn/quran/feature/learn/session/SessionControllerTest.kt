@@ -8,6 +8,7 @@ import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakePackRepository
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.feature.learn.course.CourseChoices
 import app.awn.quran.feature.learn.course.CoursePlanner
 import app.awn.quran.feature.learn.course.LearningArabic
@@ -91,6 +92,11 @@ class SessionControllerTest {
         answer(ask.question.correctIndex)
     }
 
+    private suspend fun SessionController.tapEarnedRating() {
+        val answer = frame() as SessionFrame.Answer
+        rate(checkNotNull(answer.ratingChoices).earned)
+    }
+
     @Test
     fun newWordsAreMetThenCheckedAndEachCheckGivesTheFirstRating() = runBlocking {
         val session =
@@ -108,9 +114,9 @@ class SessionControllerTest {
         assertEquals(FrameLabel.Check(1, 2), first.label)
         assertTrue(first.confirmWithButton)
         session.answer(first.question.correctIndex)
-        session.next()
+        session.tapEarnedRating()
         session.answer(null)
-        session.next()
+        session.tapEarnedRating()
 
         val snapshot = repository.snapshot()
         assertEquals(2, snapshot.wordsMet)
@@ -121,8 +127,9 @@ class SessionControllerTest {
     }
 
     @Test
-    fun aWrongAnswerRatesAgainAndShowsWhenTheWordReturns() = runBlocking {
+    fun anAnswerOfAPlanOffersFourRatingsAndStoresNothingBeforeATap() = runBlocking {
         repository.meet(5)
+        val before = repository.snapshot().wordCards.getValue(5)
         val session = controller(listOf(PlanStep.Review(ItemRef.Word(5))))
         session.start()
 
@@ -131,14 +138,51 @@ class SessionControllerTest {
         session.answer((ask.question.correctIndex + 1) % ask.question.options.size)
 
         val answer = session.frame() as SessionFrame.Answer
+        val choices = checkNotNull(answer.ratingChoices)
         assertTrue(!answer.isCorrect)
-        assertNotNull(answer.backInDays)
-        assertTrue(answer.backInDays!! >= 1)
-        assertEquals(1, repository.snapshot().wordCards.getValue(5).reps)
+        assertEquals(FsrsRating.Again, choices.earned)
+        assertEquals(FsrsRating.entries.toSet(), choices.daysByRating.keys)
+        assertTrue(choices.daysByRating.values.all { it >= 1 })
+        assertEquals(before, repository.snapshot().wordCards.getValue(5))
+        assertEquals(0, database.wordDao().wordOutcomes().size)
+        session.next()
+        assertTrue(session.frame() is SessionFrame.Answer)
     }
 
     @Test
-    fun aQuizTheUserStartedMovesNoCardAndShowsNoReturnDate() = runBlocking {
+    fun aRightAnswerEarnsGoodAndLongerRatingsReturnLater() = runBlocking {
+        repository.meet(5)
+        val session = controller(listOf(PlanStep.Review(ItemRef.Word(5))))
+        session.start()
+        session.answerRight()
+
+        val choices = checkNotNull((session.frame() as SessionFrame.Answer).ratingChoices)
+        assertEquals(FsrsRating.Good, choices.earned)
+        val days = choices.daysByRating
+        assertTrue(days.getValue(FsrsRating.Again) <= days.getValue(FsrsRating.Hard))
+        assertTrue(days.getValue(FsrsRating.Hard) <= days.getValue(FsrsRating.Good))
+        assertTrue(days.getValue(FsrsRating.Good) <= days.getValue(FsrsRating.Easy))
+    }
+
+    @Test
+    fun tappingARatingStoresThatRatingAndMovesOn() = runBlocking {
+        repository.meet(5)
+        val dueIfEasy = repository.previewWord(5).getValue(FsrsRating.Easy)
+        val session = controller(listOf(PlanStep.Review(ItemRef.Word(5))))
+        session.start()
+        session.answerRight()
+
+        session.rate(FsrsRating.Easy)
+
+        val card = repository.snapshot().wordCards.getValue(5)
+        assertEquals(1, card.reps)
+        assertEquals(dueIfEasy, card.due)
+        assertEquals(1, database.wordDao().wordOutcomes().size)
+        assertTrue(session.frame() is SessionFrame.Finished)
+    }
+
+    @Test
+    fun aQuizTheUserStartedMovesNoCardAndOffersNoRatings() = runBlocking {
         repository.meet(5)
         val before = repository.snapshot().wordCards.getValue(5)
         val session = controller(listOf(PlanStep.Review(ItemRef.Word(5))), isOwnQuiz = true)
@@ -147,8 +191,19 @@ class SessionControllerTest {
         session.answerRight()
 
         assertEquals(before, repository.snapshot().wordCards.getValue(5))
-        assertNull((session.frame() as SessionFrame.Answer).backInDays)
+        assertNull((session.frame() as SessionFrame.Answer).ratingChoices)
         assertEquals(1, database.wordDao().wordOutcomes().size)
+        session.next()
+        assertTrue(session.frame() is SessionFrame.Finished)
+    }
+
+    @Test
+    fun theNewWordScreenMarksEveryPlaceOfTheWordInTheShownAyahs() = runBlocking {
+        val session = controller(listOf(PlanStep.NewWord(3)))
+        session.start()
+
+        val frame = session.frame() as SessionFrame.NewWord
+        assertEquals(listOf(WordKey(2, 3, 1)), frame.occurrences)
     }
 
     @Test
@@ -171,7 +226,7 @@ class SessionControllerTest {
         session.next()
 
         session.answerRight()
-        session.next()
+        session.tapEarnedRating()
 
         val snapshot = repository.snapshot()
         assertTrue("grammar-03" in snapshot.doneLessonIds)
@@ -195,7 +250,7 @@ class SessionControllerTest {
         session.start()
         session.next()
         session.answerRight()
-        session.next()
+        session.tapEarnedRating()
 
         val summary = (session.frame() as SessionFrame.Finished).summary
         assertEquals(1, summary.newWords)
@@ -216,7 +271,7 @@ class SessionControllerTest {
         val atStart = session.state.value.progress
 
         session.answerRight()
-        session.next()
+        session.tapEarnedRating()
 
         assertEquals(0f, atStart, 0f)
         assertEquals(0.5f, session.state.value.progress, 0f)

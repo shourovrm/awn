@@ -1,6 +1,7 @@
 package app.awn.quran.feature.learn.words
 
 import androidx.room.withTransaction
+import app.awn.quran.core.data.fsrs.FsrsCard
 import app.awn.quran.core.data.fsrs.FsrsRating
 import app.awn.quran.core.data.fsrs.FsrsScheduler
 import app.awn.quran.core.data.fsrs.FsrsState
@@ -96,6 +97,26 @@ class WordCourseRepository(
         }
 
     suspend fun snapshot(): CourseSnapshot = observeSnapshot().first()
+
+    /** When word [rank] would be due after each rating, without changing the card. */
+    suspend fun previewWord(rank: Int): Map<FsrsRating, Long> {
+        val card = checkNotNull(dao.findWordCard(rank)) { "Word $rank was never met." }
+        return dueAfterEachRating(card.toFsrsCard())
+    }
+
+    /** When grammar point [lessonId] would be due after each rating, without changing the card. */
+    suspend fun previewGrammar(lessonId: String): Map<FsrsRating, Long> {
+        val existing = dao.findGrammarCard(lessonId)
+        val card = existing?.toFsrsCard() ?: scheduler.newCard(clock.now().toEpochMilli())
+        return dueAfterEachRating(card)
+    }
+
+    private fun dueAfterEachRating(card: FsrsCard): Map<FsrsRating, Long> {
+        val nowMillis = clock.now().toEpochMilli()
+        return FsrsRating.entries.associateWith { rating ->
+            scheduler.reviewCard(card, rating, nowMillis).dueMillis
+        }
+    }
 
     /**
      * Records that [rank] was shown to the user for the first time. The card is due at once, so a
