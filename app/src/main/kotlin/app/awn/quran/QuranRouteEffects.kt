@@ -1,11 +1,10 @@
 package app.awn.quran
 
-import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.awn.quran.core.ui.components.KeepScreenOn
 import app.awn.quran.services.AwnServices
@@ -27,7 +26,7 @@ internal fun QuranRouteEffects(services: AwnServices) {
     val keepScreenOn by keepScreenOnFlow.collectAsStateWithLifecycle(initialValue = true)
     KeepScreenOn(enabled = keepScreenOn)
 
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     DisposableEffect(services) {
         onDispose {
             // Turning the phone rebuilds the screen; the request should survive that.
