@@ -527,6 +527,7 @@ class RecitationSession(
                 handle(source.accept(block))
             }
             handle(source.finish())
+            closePendingWords()
         } catch (problem: SecurityException) {
             failListening(problem)
         } catch (problem: IllegalStateException) {
@@ -548,16 +549,27 @@ class RecitationSession(
 
     private suspend fun handle(phonemes: List<PhonemeEvent>) {
         if (phonemes.isEmpty()) return
+        applyTrackerEvents { it.onPhonemes(phonemes) }
+        extendWhenNearTheEnd()
+    }
+
+    // The run has ended (stop, listen, background): no pause will follow to close a word that
+    // waits for its last sound, and the next run starts with no audio, so it is closed now. No
+    // words are appended: the next run's first phonemes do that.
+    private suspend fun closePendingWords() {
+        applyTrackerEvents { it.closePending() }
+    }
+
+    private suspend fun applyTrackerEvents(report: (Tracker) -> List<TrackerEvent>) {
         val notifications =
             synchronized(lock) {
                 val activeTracker = tracker ?: return
-                val events = withoutListenedWords(activeTracker.onPhonemes(phonemes))
+                val events = withoutListenedWords(report(activeTracker))
                 events.forEach(::apply)
                 publishStates()
                 collectEventNotifications(events)
             }
         notifications.forEach { notification -> notification() }
-        extendWhenNearTheEnd()
     }
 
     // Reading the next ayahs happens off the lock, because it can touch the database.

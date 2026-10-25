@@ -231,3 +231,6 @@
 2026-10-25 | Ayah left out whose opening equals the next ayah's is flagged, turning its opening red | mutashabihat slips (tracker.md)
 2026-10-25 | No automatic page turn while reciting; the recite bar offers Next page | a slip read as a jump turned the page away (recite.md)
 2026-10-25 | Words passed by a jump are Unread; a red word said right is Corrected, listed, not counted | jumps and repeats are no mistakes (recite.md)
+2026-10-25 | Tracker.closePending closes a held word when a run ends | silence sent no token; the word went red after Listen or stayed Tentative
+2026-10-25 | Held word refitted on closing, not stored | the 64-phoneme trim left stored positions past the end (crash)
+2026-10-25 | Last consonant must match itself to end a word | any next sound substituted for it and passed

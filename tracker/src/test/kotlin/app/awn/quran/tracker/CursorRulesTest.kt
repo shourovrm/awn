@@ -174,6 +174,9 @@ class CursorRulesTest {
         tracker.hear(words(0, 1, 2, 3, 4, 5))
         tracker.hear(wordTexts[6].dropLast(1), startSeconds = 10f)
 
+        // A sound that is not the missing consonant, with no gap: the word still waits.
+        tracker.onPhonemes(listOf(PhonemeEvent(UNRELATED, 10.7f, -1f)))
+
         assertEquals(WordState.Tentative, tracker.stateOfWord(6))
 
         // The next token comes after a breath.
@@ -185,12 +188,100 @@ class CursorRulesTest {
     @Test
     fun aWordWithoutItsLastConsonantClosesWhenTheNextWordStarts() {
         val tracker = newTracker()
-        tracker.hear(words(0, 1, 2, 3, 4, 5) + wordTexts[6].dropLast(1))
+        tracker.hear(words(0, 1, 2, 3, 4, 5) + wordTexts[6].dropLast(1) + UNRELATED)
+
+        assertEquals(WordState.Tentative, tracker.stateOfWord(6))
 
         tracker.hear(wordTexts[7])
 
         assertEquals(WordState.Confirmed, tracker.stateOfWord(6))
         assertEquals(WordState.Confirmed, tracker.stateOfWord(7))
+    }
+
+    @Test
+    fun aHeldWordIsSaidWhenTheRunStops() {
+        val tracker = newTracker()
+        tracker.hear(words(0, 1, 2, 3, 4, 5) + wordTexts[6].dropLast(1))
+
+        val events = tracker.closePending()
+
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(6))
+        assertTrue(TrackerEvent.WordChanged(6, WordState.Confirmed) in events)
+        assertEquals(7, tracker.currentIndex())
+    }
+
+    @Test
+    fun aHeldWordStaysGreenWhenTheUserGoesOnAfterListening() {
+        val tracker = newTracker()
+        tracker.hear(words(0, 1, 2, 3, 4, 5) + wordTexts[6].dropLast(1))
+
+        // What the session does on Listen: close the run, then go on from the current word.
+        tracker.closePending()
+        tracker.continueFrom(tracker.currentIndex())
+        tracker.hear(words(7, 8, 9))
+
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(6))
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(8))
+    }
+
+    @Test
+    fun theLastLoadedWordHeldIsSaidWhenTheRunStops() {
+        val tracker = newTracker()
+        val lastWord = wordTexts.lastIndex
+        tracker.hear(
+            words(*(0 until lastWord).toList().toIntArray()) + wordTexts[lastWord].dropLast(1),
+        )
+
+        assertEquals(WordState.Tentative, tracker.stateOfWord(lastWord))
+
+        tracker.closePending()
+
+        assertEquals(WordState.Confirmed, tracker.stateOfWord(lastWord))
+    }
+
+    @Test
+    fun closingWithNothingHeldChangesNothing() {
+        val tracker = newTracker()
+        tracker.hear(words(0, 1, 2))
+
+        assertTrue(tracker.closePending().isEmpty())
+        assertEquals(3, tracker.currentIndex())
+    }
+
+    @Test
+    fun aHeldWordAfterLongUnrelatedSpeechIsJudgedAsWithoutIt() {
+        val withPreamble = newTracker()
+        withPreamble.hear(words(0, 1, 2, 3, 4, 5))
+        // More unrelated speech than the heard audio keeps, so its front is trimmed.
+        withPreamble.hear("?~".repeat(UNRELATED_PHONEMES / 2), startSeconds = 10f)
+        val withPreambleEvents = heldWordWithASwapThenAPause(withPreamble, startSeconds = 20f)
+
+        val without = newTracker()
+        without.hear(words(0, 1, 2, 3, 4, 5))
+        val withoutEvents = heldWordWithASwapThenAPause(without, startSeconds = 20f)
+
+        assertEquals(WordState.Confirmed, without.stateOfWord(6))
+        assertEquals(without.stateOfWord(6), withPreamble.stateOfWord(6))
+        assertEquals(
+            withoutEvents.filterIsInstance<TrackerEvent.Substitution>(),
+            withPreambleEvents.filterIsInstance<TrackerEvent.Substitution>(),
+        )
+    }
+
+    // Word 6 with J heard as X and its last consonant missing, in one update, then a token after a
+    // pause.
+    private fun heldWordWithASwapThenAPause(
+        tracker: AlignmentTracker,
+        startSeconds: Float,
+    ): List<TrackerEvent> {
+        val heldWord =
+            "EFGHIXK"
+                .mapIndexed { position, character ->
+                    PhonemeEvent(character.toString(), startSeconds + position * STEP_SECONDS, -1f)
+                }
+        val reported = tracker.onPhonemes(heldWord).toMutableList()
+        reported += tracker.onPhonemes(listOf(PhonemeEvent(UNRELATED, startSeconds + 3f, -1f)))
+        return reported
     }
 
     @Test
@@ -206,5 +297,11 @@ class CursorRulesTest {
 
     private companion object {
         const val STEP_SECONDS = 0.1f
+
+        // A sound that is in no word of the text.
+        const val UNRELATED = "?"
+
+        // More than the 64 heard phonemes the tracker keeps.
+        const val UNRELATED_PHONEMES = 70
     }
 }

@@ -28,8 +28,10 @@ internal class CursorMachine(private val tables: ReferenceTables) {
     // The first word of this microphone run, which counts as bounded on its left.
     private var runStart = 0
 
-    // The fit of the cursor word while it waits for its last consonant.
-    private var heldFit: CandidateFit? = null
+    // True while the cursor word waits for its last consonant. Its fit is not kept: the heard
+    // audio may be trimmed at the front meanwhile, which would leave stored positions pointing at
+    // other phonemes or past the end.
+    private var isCursorHeld = false
 
     /** Forgets the audio and starts following at [index]. */
     fun restartAt(index: Int) {
@@ -38,15 +40,17 @@ internal class CursorMachine(private val tables: ReferenceTables) {
         heard.clear()
         durations.clear()
         verdicts.clear()
-        heldFit = null
+        isCursorHeld = false
     }
 
-    /** A pause longer than a breath before the token at [nextOnset] closes a held cursor word. */
-    fun closeHeldWordAfterPause(nextOnset: Float, events: MutableList<TrackerEvent>) {
-        val fit = heldFit ?: return
-        val lastOnset = heard.lastOnset() ?: return
-        if (nextOnset - lastOnset > BREATH_SECONDS)
-            say(fit, cursor..cursor, heard.toIntArray(), events)
+    /** Says a held cursor word, as after a pause: the user stopped short of its last consonant. */
+    fun closeHeldWord(events: MutableList<TrackerEvent>) {
+        if (!isCursorHeld) return
+        val heardIds = heard.toIntArray()
+        val fit = candidates.fit(heardIds, cursor, cursor) ?: return
+        if (judge.verdict(fit.outcomeOf(cursor)) != WordVerdict.Fail) {
+            say(fit, cursor..cursor, heardIds, events)
+        }
     }
 
     fun advance(events: MutableList<TrackerEvent>) {
@@ -80,8 +84,8 @@ internal class CursorMachine(private val tables: ReferenceTables) {
             is CursorStep.Say -> say(step.fit, step.words, heardIds, events)
             is CursorStep.Skip -> skip(step, heardIds, events)
             is CursorStep.Repeat -> repeat(step, heardIds, events)
-            is CursorStep.Hold -> heldFit = step.fit
-            CursorStep.Wait -> heldFit = null
+            is CursorStep.Hold -> isCursorHeld = true
+            CursorStep.Wait -> isCursorHeld = false
         }
         return step is CursorStep.Say || step is CursorStep.Skip || step is CursorStep.Repeat
     }
@@ -111,7 +115,7 @@ internal class CursorMachine(private val tables: ReferenceTables) {
         for (word in words) verdicts.confirm(fit.outcomeOf(word), heardIds, events)
         heard.consumeUntil(fit.outcomeOf(words.last).endHeard)
         cursor = words.last + 1
-        heldFit = null
+        isCursorHeld = false
     }
 
     private fun skip(step: CursorStep.Skip, heardIds: IntArray, events: MutableList<TrackerEvent>) {
@@ -129,7 +133,7 @@ internal class CursorMachine(private val tables: ReferenceTables) {
         for (word in step.words) verdicts.confirm(step.fit.outcomeOf(word), heardIds, events)
         heard.consumeUntil(step.fit.outcomeOf(step.words.last).endHeard)
         cursor = step.words.last + 1
-        heldFit = null
+        isCursorHeld = false
     }
 
     private fun repeat(
@@ -142,7 +146,7 @@ internal class CursorMachine(private val tables: ReferenceTables) {
         verdicts.confirm(outcome, heardIds, events)
         heard.consumeUntil(outcome.endHeard)
         cursor = step.word + 1
-        heldFit = null
+        isCursorHeld = false
     }
 
     // A forward jump leaves the words in between Unread; a backward one keeps every mark.
@@ -163,13 +167,12 @@ internal class CursorMachine(private val tables: ReferenceTables) {
         // The match may start inside the word; the audio of the word's start stays with it.
         heard.drop(queryStart + place.heardStart - place.phonemesIntoWord - FRONT_KEEP_PHONEMES)
         cursor = place.word
-        heldFit = null
+        isCursorHeld = false
         return true
     }
 
     private companion object {
         const val NO_SYMBOL = -1
-        const val BREATH_SECONDS = 0.6f
         const val MAXIMUM_STEPS_PER_UPDATE = 64
 
         // Unexplained audio beyond this is too old to belong to any word still to come.

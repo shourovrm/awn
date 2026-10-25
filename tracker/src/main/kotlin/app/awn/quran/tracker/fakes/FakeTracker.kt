@@ -56,6 +56,23 @@ class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
         return batch
     }
 
+    /** What [closePending] reports next; applied like a scripted batch. */
+    val pendingBatch: MutableList<TrackerEvent> = mutableListOf()
+
+    /** How many times [closePending] was called. */
+    var closePendingCount = 0
+        private set
+
+    override fun closePending(): List<TrackerEvent> {
+        closePendingCount++
+        val batch = pendingBatch.toList()
+        pendingBatch.clear()
+        for (event in batch) {
+            if (event is TrackerEvent.WordChanged) states[event.index] = event.state
+        }
+        return batch
+    }
+
     override fun stateOfWord(index: Int): WordState = states[index] ?: WordState.Neutral
 
     /**
@@ -67,9 +84,6 @@ class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
         val repeating = repeatCursor
         return if (repeating != null && repeating < index) repeating else index
     }
-
-    private fun WordState?.isPassed() =
-        this == WordState.Confirmed || this == WordState.Wrong || this == WordState.Unread
 
     override fun setConfig(config: TrackerConfig) {
         this.config = config
@@ -89,6 +103,9 @@ class FakeTracker(initialConfig: TrackerConfig = TrackerConfig()) : Tracker {
         states.keys.removeAll { it >= index }
     }
 }
+
+private fun WordState?.isPassed() =
+    this == WordState.Confirmed || this == WordState.Wrong || this == WordState.Unread
 
 /** Creates [FakeTracker]s and keeps them in [created] so a test can script the one in use. */
 class FakeTrackerFactory : TrackerFactory {

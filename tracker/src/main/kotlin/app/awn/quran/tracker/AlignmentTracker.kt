@@ -68,7 +68,11 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         val reported = mutableListOf<TrackerEvent>()
         val tokens = events.filter { it.symbol != BLANK_SYMBOL }
         if (tables.size == 0 || tokens.isEmpty()) return reported
-        machine.closeHeldWordAfterPause(tokens.first().onsetSeconds, reported)
+        val lastOnset = machine.heard.lastOnset()
+        // A pause longer than a breath closes a word waiting for its last consonant.
+        if (lastOnset != null && tokens.first().onsetSeconds - lastOnset > BREATH_SECONDS) {
+            machine.closeHeldWord(reported)
+        }
         var addedCount = 0
         for (token in tokens) {
             machine.durations.observe(token)
@@ -83,6 +87,12 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         return reported
     }
 
+    override fun closePending(): List<TrackerEvent> {
+        val reported = mutableListOf<TrackerEvent>()
+        machine.closeHeldWord(reported)
+        return reported
+    }
+
     // A few stray phonemes from room sound align to the first words by chance and would colour
     // them. Nothing is judged until the heard sequence matches the start of the text near the
     // cursor well enough to be recitation; until then only the latest phonemes are kept.
@@ -90,7 +100,7 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         val cursor = machine.cursor
         if (cursor >= tables.size) return false
         val heardIds = machine.heard.toIntArray()
-        val expected = tables.idsOfWords(cursor, windowEndWord(cursor) - 1)
+        val expected = tables.idsOfWords(cursor, entryWindowEnd(tables, cursor) - 1)
         val operations = PhonemeAligner.align(heardIds, expected)
         val matches = operations.count { it.step == AlignmentStep.Match }
         // Chance matches need gaps in the expected text to line up; a user who starts at the
@@ -112,16 +122,9 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
         return isRecitation
     }
 
-    // The entry check looks at the ayah of [cursor] and the two after it.
-    private fun windowEndWord(cursor: Int): Int {
-        val lastAyah = tables.ayahSequenceOf(cursor) + AYAHS_AHEAD_IN_ENTRY_WINDOW
-        var end = cursor
-        while (end < tables.size && tables.ayahSequenceOf(end) <= lastAyah) end++
-        return end
-    }
-
     private companion object {
         const val BLANK_SYMBOL = "<blank>"
+        const val BREATH_SECONDS = 0.6f
 
         // Before the first judgement, at least this share of the heard phonemes must match ...
         const val ENTRY_MINIMUM_MATCH_SHARE = 0.7f
@@ -131,7 +134,16 @@ class AlignmentTracker(config: TrackerConfig = TrackerConfig()) : Tracker {
 
         // ... and only this many of the latest heard phonemes are kept while waiting.
         const val ENTRY_BUFFER_PHONEMES = 16
-
-        const val AYAHS_AHEAD_IN_ENTRY_WINDOW = 2
     }
+}
+
+private const val AYAHS_AHEAD_IN_ENTRY_WINDOW = 2
+
+// The entry check looks at the ayah of [cursor] and the two after it; returns one past its last
+// word.
+private fun entryWindowEnd(tables: ReferenceTables, cursor: Int): Int {
+    val lastAyah = tables.ayahSequenceOf(cursor) + AYAHS_AHEAD_IN_ENTRY_WINDOW
+    var end = cursor
+    while (end < tables.size && tables.ayahSequenceOf(end) <= lastAyah) end++
+    return end
 }

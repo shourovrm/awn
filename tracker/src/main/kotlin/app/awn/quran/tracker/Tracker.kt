@@ -147,6 +147,14 @@ interface Tracker {
     /** Feeds newly heard phonemes and returns the changes they caused, empty when none. */
     fun onPhonemes(events: List<PhonemeEvent>): List<TrackerEvent>
 
+    /**
+     * Ends the judging of the audio heard so far, as if the user paused: a word still waiting for
+     * its last sound is closed. Call it when a microphone run ends (stop, listen, background), so a
+     * word the model heard without its last consonant is not left out after a later jump, and the
+     * last loaded word is not left open. Returns the changes it caused, empty when none.
+     */
+    fun closePending(): List<TrackerEvent>
+
     /** Returns the state of the word at [index], [WordState.Neutral] when nothing was heard yet. */
     fun stateOfWord(index: Int): WordState
 

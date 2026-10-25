@@ -71,9 +71,11 @@ internal class WordJudge(private val tables: ReferenceTables) {
             isConsonant(outcome.word, it) && outcome.alignedHeard[it] < 0
         }
 
+    // Only a true match counts: aligned would accept any following sound as the missing consonant,
+    // because a substitution scores better than a deletion.
     private fun lastConsonantMissing(outcome: WordOutcome): Boolean {
         val last = (outcome.length - 1 downTo 0).firstOrNull { isConsonant(outcome.word, it) }
-        return last != null && outcome.alignedHeard[last] < 0
+        return last != null && !outcome.matched[last]
     }
 
     private fun isConsonant(word: Int, position: Int): Boolean {
