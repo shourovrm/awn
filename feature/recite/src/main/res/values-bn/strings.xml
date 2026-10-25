@@ -3,8 +3,6 @@
   <string name="recite_start">শুরু</string>
   <string name="recite_stop">থামান</string>
   <string name="recite_speed">গতি</string>
-  <string name="recite_slower">ধীর</string>
-  <string name="recite_faster">দ্রুত</string>
 
   <string name="recite_status_no_text">এই আয়াতগুলো খোলা যাচ্ছে না</string>
   <string name="recite_status_no_microphone">মাইক্রোফোন ব্যবহার করা যাচ্ছে না। অন্য রেকর্ডিং অ্যাপ বন্ধ করুন।</string>

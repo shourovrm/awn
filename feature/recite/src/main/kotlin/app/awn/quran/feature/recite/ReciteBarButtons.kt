@@ -38,15 +38,14 @@ import kotlin.math.abs
 
 internal const val DISABLED_ALPHA = 0.38f
 
-// The five speeds the popup offers, from slower to faster; the tracker takes 0 to 1.
-private val speedSteps = listOf(0f, 0.25f, 0.5f, 0.75f, 1f)
+// The speeds the popup offers, one for each strictness level of the tracker (Strictness.fromSpeed):
+// Lenient, Normal and Strict.
+private val speedSteps = listOf(0f, 0.5f, 1f)
 
 private val speedLabels =
     listOf(
         R.string.recite_speed_slowest,
-        R.string.recite_slower,
         R.string.recite_speed_normal,
-        R.string.recite_faster,
         R.string.recite_speed_fastest,
     )
 

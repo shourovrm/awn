@@ -3,8 +3,6 @@
   <string name="recite_start">Start</string>
   <string name="recite_stop">Stop</string>
   <string name="recite_speed">Speed</string>
-  <string name="recite_slower">Slower</string>
-  <string name="recite_faster">Faster</string>
 
   <string name="recite_status_no_text">Can\'t load these ayahs</string>
   <string name="recite_status_no_microphone">Can\'t use the microphone. Close other recording apps.</string>

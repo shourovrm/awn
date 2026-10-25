@@ -27,8 +27,9 @@ private val trackShape = RoundedCornerShape(AwnSpacing.switchKnobCorner)
 private val thumbShape = RoundedCornerShape(AwnSpacing.sliderThumbCorner)
 
 /**
- * A continuous slider from [startLabel] (0) to [endLabel] (1): an 8 dp track in the field ink at 30
- * %, a 24 dp thumb in the accent with 7 dp corners, and the two end labels underneath.
+ * A slider from [startLabel] (0) to [endLabel] (1) that stops at 0, 0.5 and 1, the three strictness
+ * levels of the tracker: an 8 dp track in the field ink at 30 %, a 24 dp thumb in the accent with 7
+ * dp corners, and the two end labels underneath.
  */
 @OptIn(ExperimentalMaterial3Api::class) // Custom thumb and track slots are still experimental.
 @Composable
@@ -48,6 +49,7 @@ fun SpeedSlider(
             onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = 0f..1f,
+            steps = 1,
             modifier = Modifier.fillMaxWidth().semantics { contentDescription = description },
             thumb = {
                 Box(
