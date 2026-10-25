@@ -277,6 +277,7 @@ private val APP_SETTINGS =
         onPage(SettingsSection.Backup, SettingRowKeys.BACKUP_RESTORE, R.string.backup_restore),
         onPage(SettingsSection.About, SettingRowKeys.ABOUT_NOTICE, R.string.notice_learn_title),
         onPage(SettingsSection.About, SettingRowKeys.ABOUT_CREDITS, R.string.about_credits),
+        onPage(SettingsSection.About, SettingRowKeys.ABOUT_DEVELOPER, R.string.about_developer),
         onPage(SettingsSection.About, SettingRowKeys.ABOUT_VERSION, R.string.about_version),
     )
 

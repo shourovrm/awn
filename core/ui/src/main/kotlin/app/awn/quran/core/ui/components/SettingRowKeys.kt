@@ -60,5 +60,6 @@ object SettingRowKeys {
 
     const val ABOUT_NOTICE = "about.notice"
     const val ABOUT_CREDITS = "about.credits"
+    const val ABOUT_DEVELOPER = "about.developer"
     const val ABOUT_VERSION = "about.version"
 }

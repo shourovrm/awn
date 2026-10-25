@@ -169,9 +169,20 @@ fun AboutPage(
             rowKey = SettingRowKeys.ABOUT_CREDITS,
         )
         SettingsInfoRow(
+            label = stringResource(R.string.about_developer),
+            value = stringResource(R.string.about_developer_name),
+            rowKey = SettingRowKeys.ABOUT_DEVELOPER,
+        )
+        SettingsInfoRow(
             label = stringResource(R.string.about_version),
             value = versionName,
             rowKey = SettingRowKeys.ABOUT_VERSION,
+        )
+        Text(
+            text = stringResource(R.string.about_free_line),
+            style = AwnTypography.body,
+            color = Awn.field.content,
+            modifier = Modifier.padding(vertical = AwnSpacing.medium),
         )
     }
 }

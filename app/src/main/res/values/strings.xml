@@ -96,7 +96,10 @@
   <string name="backup_failed">Can\'t read that file. Choose an Awn backup.</string>
 
   <string name="about_credits">Credits</string>
+  <string name="about_developer">Developer</string>
+  <string name="about_developer_name" translatable="false">Riad Mashrub Shourov</string>
   <string name="about_version">Version</string>
+  <string name="about_free_line">Awn is free and non-commercial, for everyone\'s use. I ask only for your dua for me and my family, that we may be saved on the Day of Judgement.</string>
 
   <string name="credits_title">Credits</string>
   <string name="credits_data">Text, translations and audio</string>

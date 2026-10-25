@@ -222,3 +222,4 @@
 2026-10-25 | Ayah cards in the words session mark every place of the form, stronger fill | new-word ayahs and repeated forms showed no or one mark
 2026-10-25 | AyahFinder returns the matched word span (firstWord, lastWord) per ayah | Voice search rows highlight the recited words; accuracy and speed unchanged
 2026-10-25 | Search rows drop the space before pause marks; voice rows mark the recited span | no dotted circles; shows what was heard
+2026-10-25 | About shows the developer's name and the README's free, non-commercial and dua line | maintainer's request
