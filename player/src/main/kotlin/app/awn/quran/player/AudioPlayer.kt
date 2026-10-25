@@ -127,6 +127,12 @@ interface AudioPlayer {
     /** Stops playback, and cancels a download that [PlaybackState.Downloading] is showing. */
     fun stop()
 
+    /**
+     * Drops a [play] request that has not started to sound, one still downloading or waiting for
+     * the user's answer. Audio that is playing or paused is left as it is.
+     */
+    fun cancelPending() = Unit
+
     /** Skips to the next ayah of the range; after the last ayah the range ends as usual. */
     fun next()
 

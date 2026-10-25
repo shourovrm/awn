@@ -77,6 +77,16 @@ class DownloadingAudioPlayer(
         player.stop()
     }
 
+    override fun cancelPending() {
+        val pendingJob = requestJob
+        if (pendingJob == null || !pendingJob.isActive) return
+        // The job ends as soon as the wrapped player has the range, so an active job means that
+        // nothing has started to sound for this request yet.
+        pendingJob.cancel()
+        requestJob = null
+        overlay.value = null
+    }
+
     override fun answerDownloadPrompt(download: Boolean) {
         promptAnswer?.complete(download)
     }
