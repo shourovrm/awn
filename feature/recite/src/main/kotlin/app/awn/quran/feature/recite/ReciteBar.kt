@@ -77,13 +77,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val playback by controller.audioPlayer.state.collectAsState(initial = PlaybackState.Idle)
     val isAudioActive = reciteAudioStateOf(playback).isActive()
 
-    // Starting to recite again clears the results, so the card on the old ones goes away.
-    LaunchedEffect(phase == RecitationPhase.Listening) {
-        if (phase == RecitationPhase.Listening) {
-            reviewOpen = false
-            controller.clearFocus()
-        }
-    }
+    CloseReviewWhenListening(phase, controller) { reviewOpen = false }
 
     // The card and the strip sit above the bar in the same column, so the screen measures all of
     // them and keeps the page clear.
@@ -120,6 +114,21 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
             )
         }
         ReciteBarSurface(controller, colors, barMode, permission, canListen, onExit)
+    }
+}
+
+// Starting to recite again clears the results, so the card on the old ones goes away.
+@Composable
+private fun CloseReviewWhenListening(
+    phase: RecitationPhase,
+    controller: ReciteController,
+    onClose: () -> Unit,
+) {
+    LaunchedEffect(phase == RecitationPhase.Listening) {
+        if (phase == RecitationPhase.Listening) {
+            onClose()
+            controller.clearFocus()
+        }
     }
 }
 

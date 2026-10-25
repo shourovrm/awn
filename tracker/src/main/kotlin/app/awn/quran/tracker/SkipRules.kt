@@ -58,8 +58,8 @@ internal class SkipRules(
     // second ayah, and the cursor goes on there. The one rule that turns green words red.
     private fun skipOverAyahWithSharedOpening(context: CursorContext): CursorStep.Skip? {
         val cursor = context.cursor
-        val ayahStart = firstWordOfAyah(cursor)
-        val nextStart = (cursor until tables.size).firstOrNull { !sameAyah(it, cursor) }
+        val ayahStart = tables.firstWordOfAyah(cursor)
+        val nextStart = (cursor until tables.size).firstOrNull { !tables.sameAyah(it, cursor) }
         if (nextStart == null || !opensLikeNextAyah(context, ayahStart, nextStart)) return null
         val target = nextStart + (cursor - ayahStart)
         return listOfNotNull(single(context, target), pair(context, target))
@@ -86,15 +86,6 @@ internal class SkipRules(
                         .idsOfWords(ayahStart + it, ayahStart + it)
                         .contentEquals(tables.idsOfWords(nextStart + it, nextStart + it))
             }
-    }
-
-    private fun sameAyah(word: Int, other: Int) =
-        tables.ayahSequenceOf(word) == tables.ayahSequenceOf(other)
-
-    private fun firstWordOfAyah(word: Int): Int {
-        var first = word
-        while (first > 0 && sameAyah(first - 1, word)) first--
-        return first
     }
 
     // The cursor word may still be what the user is saying: when it is half heard and the target's
@@ -160,4 +151,13 @@ internal class SkipRules(
         // This many of the cursor word's matched sounds inside a target's audio make the skip wait.
         const val SHARED_MATCHES_FOR_DOUBT = 2
     }
+}
+
+private fun ReferenceTables.sameAyah(word: Int, other: Int) =
+    ayahSequenceOf(word) == ayahSequenceOf(other)
+
+private fun ReferenceTables.firstWordOfAyah(word: Int): Int {
+    var first = word
+    while (first > 0 && sameAyah(first - 1, word)) first--
+    return first
 }

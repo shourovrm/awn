@@ -64,26 +64,30 @@ internal object WordFitter {
         for (heardCount in 0..heard.size) {
             for (expectedCount in 1..expected.size) {
                 val cell = table.cell(heardCount, expectedCount)
-                if (heardCount > 0) {
-                    val diagonal = table.cell(heardCount - 1, expectedCount - 1)
-                    val pairScore =
-                        if (heard[heardCount - 1] == expected[expectedCount - 1]) {
-                            AlignmentScoring.MATCH
-                        } else {
-                            AlignmentScoring.SUBSTITUTION
-                        }
-                    table.match[cell] = table.best(diagonal) + pairScore
-                    table.matchOrigin[cell] = table.bestOrigin(diagonal)
-                    fillGap(
-                        table,
-                        cell,
-                        table.cell(heardCount - 1, expectedCount),
-                        isInsertion = true,
-                    )
-                }
+                if (heardCount > 0)
+                    fillHeard(table, cell, heardCount, expectedCount, heard, expected)
                 fillGap(table, cell, table.cell(heardCount, expectedCount - 1), isInsertion = false)
             }
         }
+    }
+
+    // The two ways a heard phoneme enters a cell: paired with the expected one (match or
+    // substitution, from the diagonal) or as an extra sound (insertion, from the cell above).
+    @Suppress("LongParameterList") // The table, the cell and the two sequences are all needed.
+    private fun fillHeard(
+        table: FitTable,
+        cell: Int,
+        heardCount: Int,
+        expectedCount: Int,
+        heard: IntArray,
+        expected: IntArray,
+    ) {
+        val diagonal = table.cell(heardCount - 1, expectedCount - 1)
+        val isSameSound = heard[heardCount - 1] == expected[expectedCount - 1]
+        val pairScore = if (isSameSound) AlignmentScoring.MATCH else AlignmentScoring.SUBSTITUTION
+        table.match[cell] = table.best(diagonal) + pairScore
+        table.matchOrigin[cell] = table.bestOrigin(diagonal)
+        fillGap(table, cell, table.cell(heardCount - 1, expectedCount), isInsertion = true)
     }
 
     // An insertion comes from the cell above (one more heard phoneme), a deletion from the cell to
