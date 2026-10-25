@@ -2,7 +2,7 @@
 <resources>
   <string name="recite_start">Start</string>
   <string name="recite_stop">Stop</string>
-  <string name="recite_speed">Speed</string>
+  <string name="recite_speed">Strictness</string>
 
   <string name="recite_status_no_text">Can\'t load these ayahs</string>
   <string name="recite_status_no_microphone">Can\'t use the microphone. Close other recording apps.</string>
@@ -45,9 +45,9 @@
 
   <string name="recite_close">Close</string>
   <string name="recite_hide_words">Hide words</string>
-  <string name="recite_speed_slowest">Slowest</string>
+  <string name="recite_speed_slowest">Lenient</string>
   <string name="recite_speed_normal">Normal</string>
-  <string name="recite_speed_fastest">Fastest</string>
+  <string name="recite_speed_fastest">Strict</string>
   <string name="recite_status_preparing">Preparing…</string>
   <string name="recite_status_allow_microphone">Allow the microphone to recite</string>
   <string name="recite_status_microphone_off">Microphone is off for Awn</string>
@@ -69,8 +69,8 @@
   <string name="recite_listen_pause">Pause audio</string>
   <string name="recite_listen_resume">Resume audio</string>
   <string name="recite_settings_hide_words_hint">Each word appears once you recite it</string>
-  <string name="recite_follow_pace">Follow pace</string>
-  <string name="recite_follow_pace_hint">How soon Awn moves to the next word</string>
+  <string name="recite_follow_pace">Strictness</string>
+  <string name="recite_follow_pace_hint">How closely each word must match</string>
   <string name="recite_pace_patient">Patient</string>
   <string name="recite_pace_eager">Eager</string>
 </resources>

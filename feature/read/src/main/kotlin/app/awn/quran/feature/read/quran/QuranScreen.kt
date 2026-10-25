@@ -120,7 +120,6 @@ data class QuranScreenSlots(
     val onToggleNight: () -> Unit,
     val onOpenIndex: () -> Unit,
     val onOpenSearch: () -> Unit,
-    val onOpenLearn: () -> Unit,
     val onOpenSettings: () -> Unit,
     /**
      * Optional. Plays the ayahs from the first to the last as one range ("Play from here" after a
@@ -193,7 +192,6 @@ data class QuranScreenSlots(
                 onToggleNight = {},
                 onOpenIndex = {},
                 onOpenSearch = {},
-                onOpenLearn = {},
                 onOpenSettings = {},
             )
     }

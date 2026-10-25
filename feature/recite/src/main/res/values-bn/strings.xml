@@ -2,7 +2,7 @@
 <resources>
   <string name="recite_start">শুরু</string>
   <string name="recite_stop">থামান</string>
-  <string name="recite_speed">গতি</string>
+  <string name="recite_speed">কঠোরতা</string>
 
   <string name="recite_status_no_text">এই আয়াতগুলো খোলা যাচ্ছে না</string>
   <string name="recite_status_no_microphone">মাইক্রোফোন ব্যবহার করা যাচ্ছে না। অন্য রেকর্ডিং অ্যাপ বন্ধ করুন।</string>
@@ -45,9 +45,9 @@
 
   <string name="recite_close">বন্ধ করুন</string>
   <string name="recite_hide_words">শব্দ লুকান</string>
-  <string name="recite_speed_slowest">সবচেয়ে ধীর</string>
+  <string name="recite_speed_slowest">নমনীয়</string>
   <string name="recite_speed_normal">স্বাভাবিক</string>
-  <string name="recite_speed_fastest">সবচেয়ে দ্রুত</string>
+  <string name="recite_speed_fastest">কঠোর</string>
   <string name="recite_status_preparing">প্রস্তুত হচ্ছে…</string>
   <string name="recite_status_allow_microphone">তিলাওয়াতের জন্য মাইক্রোফোনের অনুমতি দিন</string>
   <string name="recite_status_microphone_off">আওনের জন্য মাইক্রোফোন বন্ধ</string>
@@ -69,8 +69,8 @@
   <string name="recite_listen_pause">অডিও বিরতি</string>
   <string name="recite_listen_resume">অডিও চালু করুন</string>
   <string name="recite_settings_hide_words_hint">তিলাওয়াত করলে তবেই শব্দটি দেখা যায়</string>
-  <string name="recite_follow_pace">তিলাওয়াতের সঙ্গে চলা</string>
-  <string name="recite_follow_pace_hint">পরের শব্দে কত তাড়াতাড়ি যাবে</string>
+  <string name="recite_follow_pace">কঠোরতা</string>
+  <string name="recite_follow_pace_hint">প্রতিটি শব্দ কতটা মিলতে হবে</string>
   <string name="recite_pace_patient">ধীরস্থির</string>
   <string name="recite_pace_eager">তৎপর</string>
 </resources>

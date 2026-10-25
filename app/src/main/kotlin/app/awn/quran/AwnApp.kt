@@ -392,7 +392,6 @@ private fun QuranRoute(
             onOpenIndex = { navigation.showTab(AwnTab.Quran) },
             onBackWhenIdle = navigation::returnToTabs,
             onOpenSearch = navigation::openSearch,
-            onOpenLearn = { navigation.showTab(AwnTab.Learn) },
             onOpenPageWords = navigation::showPageWords,
             onOpenSettings = navigation::openSettings,
             onPlayRange = { first, last -> services.audio.controller.playRange(first, last) },
