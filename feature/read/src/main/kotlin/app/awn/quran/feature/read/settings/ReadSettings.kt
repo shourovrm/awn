@@ -67,6 +67,8 @@ data class ReadSettings(
     val showPageInfo: Boolean = true,
     /** Marks on the page the words the user knows and the words they are learning. */
     val showMyWords: Boolean = false,
+    /** The screen stays lit while the Quran screen is open. */
+    val keepScreenOn: Boolean = true,
 ) {
     /** The factor that multiplies the Arabic font size. */
     val arabicScale: Float

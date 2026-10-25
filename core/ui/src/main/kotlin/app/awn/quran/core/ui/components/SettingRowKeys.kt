@@ -18,6 +18,7 @@ object SettingRowKeys {
     const val QURAN_SIZE_WORD_BY_WORD = "quran.size_word_by_word"
     const val QURAN_HIGHLIGHT_BOOKMARKS = "quran.highlight_bookmarks"
     const val QURAN_VOLUME_KEYS = "quran.volume_keys"
+    const val QURAN_KEEP_SCREEN_ON = "quran.keep_screen_on"
     const val QURAN_ROTATION = "quran.rotation"
     const val QURAN_SURAH_MEANING = "quran.surah_meaning"
 

@@ -165,11 +165,23 @@ private fun AwnNavigation(
     var selectedTabName by rememberSaveable { mutableStateOf(AwnTab.Quran.name) }
     // A page whose words the Learn tab should open; cleared once the tab has shown it.
     var learnPageWordsRequest by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Where Back from those page words goes: the Quran page they were opened from.
+    var pageWordsReturnPage by rememberSaveable { mutableStateOf<Int?>(null) }
+    var pageWordsReturnTabName by rememberSaveable { mutableStateOf(AwnTab.Quran.name) }
     val tabNavigation =
         TabNavigation(
             navController = navController,
             selectTab = { selectedTabName = it.name },
             requestPageWords = { page -> learnPageWordsRequest = page },
+            currentTab = AwnTab.valueOf(selectedTabName),
+            pageWordsReturn =
+                pageWordsReturnPage?.let {
+                    PageWordsReturn(it, AwnTab.valueOf(pageWordsReturnTabName))
+                },
+            rememberPageWordsReturn = { destination ->
+                pageWordsReturnPage = destination?.quranPage
+                destination?.let { pageWordsReturnTabName = it.tab.name }
+            },
         )
     NavHost(
         navController = navController,
@@ -252,6 +264,7 @@ private fun TabsRoute(
                     pageLinks = rememberLearnPageLinks(services, navigation),
                     pageWordsRequest = learnPageWordsRequest,
                     onPageWordsRequestHandled = onLearnPageWordsShown,
+                    onPageWordsBack = navigation::leavePageWords,
                     onReviseAt = { ayah ->
                         navigation.openQuran(page = null, ayah = ayah)
                         services.recite.reviseAt(ayah)
@@ -355,6 +368,7 @@ private fun QuranRoute(
     navigation: TabNavigation,
 ) {
     val target = quranTargetOf(entry)
+    QuranRouteEffects(services)
     val nightToggle = rememberNightToggle(services.preferences)
     val isReciting by services.recite.isActive.collectAsStateWithLifecycle()
     val practice by services.hifz.controller.practice.collectAsStateWithLifecycle()

@@ -102,6 +102,11 @@ private val QURAN_PAGE_SETTINGS =
         ),
         onPage(
             SettingsSection.QuranPage,
+            SettingRowKeys.QURAN_KEEP_SCREEN_ON,
+            ReadR.string.setting_keep_screen_on,
+        ),
+        onPage(
+            SettingsSection.QuranPage,
             SettingRowKeys.QURAN_ROTATION,
             ReadR.string.reading_group_rotation,
             listOf(

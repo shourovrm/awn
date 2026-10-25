@@ -61,6 +61,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             preferences.remove(LEGACY_TEXT_SIZE_KEY)
             preferences[SHOW_PAGE_INFO_KEY] = updated.showPageInfo
             preferences[SHOW_MY_WORDS_KEY] = updated.showMyWords
+            preferences[KEEP_SCREEN_ON_KEY] = updated.keepScreenOn
         }
     }
 
@@ -96,6 +97,7 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
             volumeKeysTurnPages = preferences[VOLUME_KEYS_KEY] ?: defaults.volumeKeysTurnPages,
             showPageInfo = preferences[SHOW_PAGE_INFO_KEY] ?: defaults.showPageInfo,
             showMyWords = preferences[SHOW_MY_WORDS_KEY] ?: defaults.showMyWords,
+            keepScreenOn = preferences[KEEP_SCREEN_ON_KEY] ?: defaults.keepScreenOn,
         )
     }
 
@@ -205,5 +207,6 @@ class DataStoreReadSettingsStore(private val dataStore: DataStore<Preferences>) 
         val VOLUME_KEYS_KEY = booleanPreferencesKey("volume_keys_turn_pages")
         val SHOW_PAGE_INFO_KEY = booleanPreferencesKey("show_page_info")
         val SHOW_MY_WORDS_KEY = booleanPreferencesKey("show_my_words")
+        val KEEP_SCREEN_ON_KEY = booleanPreferencesKey("keep_screen_on")
     }
 }

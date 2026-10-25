@@ -10,6 +10,9 @@ internal class TabNavigation(
     private val navController: NavController,
     val selectTab: (AwnTab) -> Unit,
     private val requestPageWords: (Int) -> Unit = {},
+    private val currentTab: AwnTab = AwnTab.Quran,
+    private val pageWordsReturn: PageWordsReturn? = null,
+    private val rememberPageWordsReturn: (PageWordsReturn?) -> Unit = {},
 ) {
     fun openQuran(page: Int?, ayah: AyahRef?) = navController.openQuran(page, ayah)
 
@@ -29,10 +32,24 @@ internal class TabNavigation(
         returnToTabs()
     }
 
-    /** Closes everything above the tabs and shows the Learn tab at the words of [page]. */
+    /**
+     * Closes everything above the tabs and shows the Learn tab at the words of [page], the page of
+     * the Quran screen that asked. [leavePageWords] brings the user back to that page.
+     */
     fun showPageWords(page: Int) {
+        rememberPageWordsReturn(PageWordsReturn(quranPage = page, tab = currentTab))
         requestPageWords(page)
         showTab(AwnTab.Learn)
+    }
+
+    /** Back from the page words: the tab selected before, then the Quran page they came from. */
+    fun leavePageWords() {
+        val destination = pageWordsReturn
+        rememberPageWordsReturn(null)
+        if (destination != null) {
+            selectTab(destination.tab)
+            openQuran(destination.quranPage, null)
+        }
     }
 
     /** Closes everything above the tabs and leaves the selected tab as it is. */
@@ -40,6 +57,9 @@ internal class TabNavigation(
         navController.popBackStack(Routes.TABS, inclusive = false)
     }
 }
+
+/** Where Back from the page words leads: [quranPage] on the Quran screen, over [tab]. */
+internal data class PageWordsReturn(val quranPage: Int, val tab: AwnTab)
 
 /** What the Quran tab's buttons and rows open. */
 internal fun TabNavigation.quranTabActions() =

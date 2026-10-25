@@ -124,6 +124,12 @@ private fun PageRows(
         onCheckedChange = viewModel::setVolumeKeysTurnPages,
         rowKey = SettingRowKeys.QURAN_VOLUME_KEYS,
     )
+    SettingsSwitchRow(
+        label = stringResource(R.string.setting_keep_screen_on),
+        checked = settings.keepScreenOn,
+        onCheckedChange = viewModel::setKeepScreenOn,
+        rowKey = SettingRowKeys.QURAN_KEEP_SCREEN_ON,
+    )
     // One choice for both, so the two stored orientations never disagree; the Quran pages' value
     // stands for the pair when an older install stored two different ones.
     AwnChoiceRow(

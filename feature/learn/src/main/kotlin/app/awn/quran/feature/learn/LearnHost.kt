@@ -81,7 +81,8 @@ private val EMPTY_SNAPSHOT =
  *
  * [pageLinks] ties the tab to the Quran and Hifz tabs. A [pageWordsRequest] (from the Quran page
  * menu or the Hifz bar) opens the words of that page; [onPageWordsRequestHandled] tells :app to
- * forget it, so turning the screen does not open it again.
+ * forget it, so turning the screen does not open it again. Back from those words calls
+ * [onPageWordsBack] instead of showing the words track.
  */
 @Composable
 fun LearnScreen(
@@ -97,6 +98,7 @@ fun LearnScreen(
     pageLinks: LearnPageLinks = LearnPageLinks(),
     pageWordsRequest: Int? = null,
     onPageWordsRequestHandled: () -> Unit = {},
+    onPageWordsBack: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -110,7 +112,18 @@ fun LearnScreen(
     val routeState = rememberStartRoute(services)
     val route = routeState.value
     HideTabBarOnInnerPage(!isLearnTabRoot(route))
-    OpenRequestedPageWords(pageWordsRequest, routeState, onPageWordsRequestHandled)
+    val requestedWordsPage = rememberSaveable { mutableStateOf<Int?>(null) }
+    OpenRequestedPageWords(
+        page = pageWordsRequest,
+        routeState = routeState,
+        requestedPage = requestedWordsPage.takeIf { onPageWordsBack != null },
+        onHandled = onPageWordsRequestHandled,
+    )
+    val leaveRequestedWords = rememberLeaveRequestedWords(requestedWordsPage, onPageWordsBack)
+    // Registered after the route's own handler, so it wins while the requested page is shown.
+    BackHandler(enabled = isRequestedPageWordsOpen(route, requestedWordsPage.value)) {
+        leaveRequestedWords()
+    }
 
     val snapshot by remember {
         services.progress.observeSnapshot()
@@ -144,7 +157,13 @@ fun LearnScreen(
     ) {
         LearnRoutes(
             route = current,
-            onRouteChange = { routeState.value = it },
+            onRouteChange = { next ->
+                if (isLeavingRequestedPageWords(route, next, requestedWordsPage.value)) {
+                    leaveRequestedWords()
+                } else {
+                    routeState.value = next
+                }
+            },
             content =
                 LearnRouteContent(
                     snapshot = snapshot,
@@ -165,10 +184,12 @@ fun LearnScreen(
 private fun OpenRequestedPageWords(
     page: Int?,
     routeState: MutableState<LearnRoute?>,
+    requestedPage: MutableState<Int?>?,
     onHandled: () -> Unit,
 ) {
     LaunchedEffect(page) {
         if (page != null) {
+            requestedPage?.value = page
             routeState.value = LearnRoute.PageWords(page)
             onHandled()
         }

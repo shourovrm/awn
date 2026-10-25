@@ -54,6 +54,8 @@ class ReadSettingsViewModel(private val store: ReadSettingsStore) : ViewModel() 
 
     fun setHighlightBookmarks(enabled: Boolean) = change { it.copy(highlightBookmarks = enabled) }
 
+    fun setKeepScreenOn(enabled: Boolean) = change { it.copy(keepScreenOn = enabled) }
+
     fun setVolumeKeysTurnPages(enabled: Boolean) = change { it.copy(volumeKeysTurnPages = enabled) }
 
     fun setShowTransliteration(show: Boolean) = change { it.copy(showTransliteration = show) }

@@ -215,3 +215,6 @@
 2026-10-25 | Wi-Fi only governs every download and is off by default | the switch only covered audio; user wants both networks allowed unless limited (data.md)
 2026-10-25 | One welcome card (single-select Mushaf plus translation tick) replaces the print and starter cards; notice before first recite | two download cards in a row read as pushy; recite was usable before the notice (read.md)
 2026-10-25 | Settings regrouped by the user's question; Mushaf and Reading merged; Downloads is Storage; print is Mushaf in the UI | first-time user review found jargon and a junk-drawer page (architecture.md, copy.md)
+2026-10-25 | Back from page words reopens the Quran page; Learn leaves the Quran menu | Back landed on the Learn words list, the user lost the page
+2026-10-25 | Leaving the Quran screen cancels audio that has not started; playing audio continues | audio began seconds after Back, on another screen
+2026-10-25 | Keep screen on while reading is a setting, on by default | the screen dimmed mid-page; the app had no wake option
