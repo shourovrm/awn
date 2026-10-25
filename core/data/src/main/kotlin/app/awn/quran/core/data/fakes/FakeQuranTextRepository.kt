@@ -2,6 +2,7 @@ package app.awn.quran.core.data.fakes
 
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.Chapter
+import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.PageLayout
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
@@ -37,6 +38,14 @@ class FakeQuranTextRepository(
 
     override fun pageCount(script: ScriptId): Int = totalPages
 
-    override suspend fun ayahsOnPage(page: Int, script: ScriptId): List<AyahRef> =
-        pageByAyah.filterValues { it == page }.keys.sorted()
+    /** The ayahs [pageByAyah] starts on [page], and any other ayah with a word in its layout. */
+    override suspend fun ayahsOnPage(page: Int, script: ScriptId): List<AyahRef> {
+        val startingHere = pageByAyah.filterValues { it == page }.keys
+        val wordsHere =
+            pages[page]?.lines.orEmpty().flatMap { line ->
+                line.items.filterIsInstance<LineItem.WordItem>().map { it.word.key }
+            }
+        val continuingHere = wordsHere.map { AyahRef(it.surah, it.ayah) }
+        return (startingHere + continuingHere).distinct().sorted()
+    }
 }

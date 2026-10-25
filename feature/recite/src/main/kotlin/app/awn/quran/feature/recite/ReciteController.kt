@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.LineItem
 import app.awn.quran.core.data.MyWords
 import app.awn.quran.core.data.ProgressEvents
 import app.awn.quran.core.data.QuranTextRepository
@@ -106,8 +107,8 @@ class ReciteController(
     private val mutableOpenPage = MutableStateFlow<Int?>(null)
     private val mutableNextPageAyah = MutableStateFlow<AyahRef?>(null)
 
-    // The current word changes many times a minute; its ayah's page is read once.
-    private val pageOfAyah = mutableMapOf<AyahRef, Int>()
+    // The current word changes many times a minute; the pages of its ayah are read once.
+    private val pagesOfAyah = mutableMapOf<AyahRef, AyahPages>()
 
     // The ayahs still to revise in this run, in reading order; only touched on the controller's
     // scope.
@@ -165,7 +166,8 @@ class ReciteController(
     val speechState: StateFlow<SpeechState> = speech.state
 
     /**
-     * The ayah of the word being said when it lies on a page after the open one, null otherwise.
+     * The ayah to open when the word being said lies on a page after the open one, null otherwise:
+     * the first ayah that starts on the word's page, or the word's own ayah when none starts there.
      * The recite bar then offers Next page ([openNextPage]); the page does not turn by itself.
      */
     val nextPageAyah: StateFlow<AyahRef?> = mutableNextPageAyah.asStateFlow()
@@ -235,15 +237,58 @@ class ReciteController(
      */
     fun openNextPage() {
         val ayah = mutableNextPageAyah.value ?: return
+        val word = session.currentWord.value
         onOpenAyah(ayah)
-        scope.launch { mutableOpenPage.value = quranText.pageOf(ayah, pageScript) }
+        scope.launch {
+            mutableOpenPage.value =
+                if (word == null) quranText.pageOf(ayah, pageScript) else pageOfWord(word)
+        }
     }
 
     private suspend fun ayahPastOpenPage(word: WordKey?, openPage: Int?): AyahRef? {
-        val ayah = word?.let { AyahRef(it.surah, it.ayah) }
-        if (ayah == null || openPage == null) return null
-        val page = pageOfAyah.getOrPut(ayah) { quranText.pageOf(ayah, pageScript) }
-        return ayah.takeIf { page > openPage }
+        if (word == null || openPage == null) return null
+        val page = pageOfWord(word)
+        return if (page > openPage) ayahToOpenFor(word, page) else null
+    }
+
+    // Opening an ayah shows the page of its first word, so a word past a page break opens the
+    // ayah that starts on the word's page.
+    private suspend fun ayahToOpenFor(word: WordKey, page: Int): AyahRef {
+        val startingThere =
+            quranText.ayahsOnPage(page, pageScript).firstOrNull {
+                quranText.pageOf(it, pageScript) == page
+            }
+        return startingThere ?: AyahRef(word.surah, word.ayah)
+    }
+
+    // An ayah can run over a page break: its words from the break on are on the next page.
+    private suspend fun pageOfWord(word: WordKey): Int {
+        val ayah = AyahRef(word.surah, word.ayah)
+        val pages = pagesOfAyah.getOrPut(ayah) { readAyahPages(ayah) }
+        val continuesFrom = pages.firstWordOnNextPage
+        return if (continuesFrom != null && word.wordPosition >= continuesFrom) {
+            pages.firstPage + 1
+        } else {
+            pages.firstPage
+        }
+    }
+
+    private suspend fun readAyahPages(ayah: AyahRef): AyahPages {
+        val firstPage = quranText.pageOf(ayah, pageScript)
+        val nextPage = firstPage + 1
+        val runsOver =
+            nextPage <= quranText.pageCount(pageScript) &&
+                ayah in quranText.ayahsOnPage(nextPage, pageScript)
+        if (!runsOver) return AyahPages(firstPage, firstWordOnNextPage = null)
+        val wordsOnNextPage =
+            quranText.pageLayout(nextPage, pageScript).lines.flatMap { line ->
+                line.items.filterIsInstance<LineItem.WordItem>().map { it.word.key }
+            }
+        val firstOnNextPage =
+            wordsOnNextPage
+                .filter { it.surah == ayah.surah && it.ayah == ayah.ayah }
+                .minOfOrNull { it.wordPosition }
+        return AyahPages(firstPage, firstOnNextPage)
     }
 
     /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
@@ -686,3 +731,9 @@ fun rememberReciteHintLetters(controller: ReciteController): Map<WordKey, String
         if (shown == null) emptyMap() else mapOf(shown.key to shown.letter)
     }
 }
+
+/**
+ * Where an ayah lies in the print: [firstPage] holds its first word; when it runs over the page
+ * break, its words from [firstWordOnNextPage] (1-based position) on are on the page after.
+ */
+private data class AyahPages(val firstPage: Int, val firstWordOnNextPage: Int?)

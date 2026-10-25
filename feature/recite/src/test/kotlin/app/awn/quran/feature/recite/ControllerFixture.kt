@@ -113,6 +113,9 @@ class ControllerFixture(
 
     val controller: ReciteController
 
+    /** The text the controller reads; a test may change its pages before loading. */
+    val text: FakeQuranTextRepository
+
     // Everything the fixture started that outlives a test body: a blocked recogniser thread, a load
     // that waits for preparation, and the controller's coroutines.
     private val controllerJob = Job()
@@ -122,7 +125,7 @@ class ControllerFixture(
     init {
         synchronized(created) { created += this }
         val dispatcher = UnconfinedTestDispatcher(TestCoroutineScheduler())
-        val text =
+        text =
             FakeQuranTextRepository(
                 wordsByAyah =
                     mutableMapOf(

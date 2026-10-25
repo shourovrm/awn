@@ -1,10 +1,19 @@
 package app.awn.quran.feature.recite
 
 import app.awn.quran.core.data.AyahRef
+import app.awn.quran.core.data.LineItem
+import app.awn.quran.core.data.PageLayout
+import app.awn.quran.core.data.PageLine
+import app.awn.quran.core.data.ScriptId
+import app.awn.quran.core.data.Word
 import app.awn.quran.tracker.TrackerEvent
 import app.awn.quran.tracker.WordProblem
 import app.awn.quran.tracker.WordState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -123,5 +132,83 @@ class ReciteCursorEventsTest {
 
         assertEquals(listOf(AyahRef(1, 3)), fixture.opened)
         assertNull(fixture.controller.nextPageAyah.value)
+    }
+
+    @Test
+    fun aWordOfTheAyahOnTheNextPageOffersTheNextPage() = runTest {
+        val fixture = ControllerFixture(folder.root, inputBlocks = 1)
+        // Ayah 1:1 runs over the page break: its second word opens page 2, where 1:2 starts.
+        fixture.text.pageByAyah[AyahRef(1, 2)] = 2
+        fixture.text.pages[2] =
+            PageLayout(
+                page = 2,
+                script = ScriptId.V2,
+                lines =
+                    listOf(
+                        PageLine(
+                            line = 1,
+                            items =
+                                listOf(
+                                    LineItem.WordItem(Word(fixture.second, "ٱللَّهِ", null, null)),
+                                    LineItem.WordItem(Word(fixture.third, "ٱلْحَمْدُ", null, null)),
+                                ),
+                        ),
+                    ),
+            )
+        fixture.controller.reciteFrom(AyahRef(1, 1))
+        fixture.controller.joinPendingWork()
+        fixture.script(fixture.confirmed(0))
+
+        fixture.controller.session.start()
+        fixture.controller.joinPendingWork()
+
+        assertEquals(fixture.second, fixture.controller.session.currentWord.value)
+        assertEquals(AyahRef(1, 2), fixture.awaitNextPageAyah { it != null })
+
+        fixture.controller.openNextPage()
+        fixture.controller.joinPendingWork()
+
+        assertNull(fixture.awaitNextPageAyah { it == null })
+    }
+
+    // The page check runs where the settings store resumed the load, possibly another thread.
+    private suspend fun ControllerFixture.awaitNextPageAyah(
+        isReady: (AyahRef?) -> Boolean,
+    ): AyahRef? =
+        withContext(Dispatchers.Default) {
+            withTimeout(WAIT_MILLIS) { controller.nextPageAyah.first(isReady) }
+        }
+
+    @Test
+    fun aWordWaitingForItsLastSoundIsClosedWhenTheRunEnds() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.script(fixture.confirmed(0))
+        fixture.tracker.pendingBatch += fixture.confirmed(1)
+
+        fixture.session.start()
+
+        assertEquals(1, fixture.tracker.closePendingCount)
+        assertEquals(WordState.Confirmed, fixture.session.wordStates.value[fixture.second])
+        assertEquals(fixture.third, fixture.session.currentWord.value)
+    }
+
+    @Test
+    fun aRunPausedForListeningGoesOnAfterTheClosedWord() = runTest {
+        val fixture = SessionFixture()
+        fixture.session.load(fixture.range)
+        fixture.script(fixture.confirmed(0))
+        fixture.tracker.pendingBatch += fixture.confirmed(1)
+        fixture.session.start()
+
+        fixture.session.pauseForListening()
+        fixture.session.start()
+
+        assertEquals(listOf(2), fixture.tracker.continuedFrom)
+        assertEquals(WordState.Confirmed, fixture.session.wordStates.value[fixture.second])
+    }
+
+    private companion object {
+        const val WAIT_MILLIS = 5_000L
     }
 }
