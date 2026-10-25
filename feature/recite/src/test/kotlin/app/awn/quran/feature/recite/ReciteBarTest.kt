@@ -177,7 +177,7 @@ class ReciteBarTest {
     @Test
     fun theSpeedPopupSetsTheSpeed() {
         composeRule.onNodeWithTag(RECITE_BAR_SPEED_TAG).performClick()
-        composeRule.onNodeWithText("Fastest").performClick()
+        composeRule.onNodeWithText("Strict").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
             fixture.controller.session.speed.value == 1f
