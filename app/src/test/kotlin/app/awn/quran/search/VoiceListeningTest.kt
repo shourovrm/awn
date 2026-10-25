@@ -10,8 +10,9 @@ import org.junit.Test
 
 class VoiceListeningTest {
 
-    private val firstAyah = AyahMatch(surah = 1, ayah = 1, score = 40)
-    private val secondAyah = AyahMatch(surah = 2, ayah = 255, score = 40)
+    private val firstAyah = AyahMatch(surah = 1, ayah = 1, score = 40, firstWord = 0, lastWord = 0)
+    private val secondAyah =
+        AyahMatch(surah = 2, ayah = 255, score = 40, firstWord = 0, lastWord = 0)
 
     @Test
     fun searchesOnceASecondWhileListening() {

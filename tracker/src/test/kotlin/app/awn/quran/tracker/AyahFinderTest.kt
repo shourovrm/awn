@@ -44,6 +44,33 @@ class AyahFinderTest {
     }
 
     @Test
+    fun aWholeAyahCoversAllItsWords() {
+        val match = finder.find(heard("mnopqrstuvwx")).first()
+
+        assertEquals(0, match.firstWord)
+        assertEquals(1, match.lastWord)
+    }
+
+    @Test
+    fun aRecitationFromTheMiddleOfAnAyahCoversOnlyThoseWords() {
+        val reference =
+            FakeReference(mapOf((1 to 1) to listOf("abcdef", "ghijkl", "mnopqr", "stuvwx")))
+
+        val match = AyahFinder.from(reference, surahCount = 1).find(heard("ghijklmnopqr")).first()
+
+        assertEquals(1, match.firstWord)
+        assertEquals(2, match.lastWord)
+    }
+
+    @Test
+    fun aRecitationThatRunsOnIntoTheNextAyahEndsAtTheLastWordOfTheFirst() {
+        val match = finder.find(heard("ghijklmnop")).first { it.surah == 1 && it.ayah == 1 }
+
+        assertEquals(1, match.firstWord)
+        assertEquals(1, match.lastWord)
+    }
+
+    @Test
     fun aRepeatedPhonemeCountsOnce() {
         // The model reports a held sound as the same symbol several times in a row.
         val matches = finder.find(heard("mmnnooppqqrrsstt"))
