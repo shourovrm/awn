@@ -37,9 +37,30 @@ fun isCombiningMark(char: Char): Boolean =
  * the start of 199 words is a symbol, not a mark, and stays: the Hafs font has a glyph for it.
  * Marks the font codes differently are swapped through [HAFS_FONT_CODES].
  */
-fun normalizeFallbackText(text: String): String {
+fun normalizeFallbackText(text: String): String = normalizeFallbackTextWithMap(text).text
+
+/**
+ * [text] after [normalizeFallbackText]; [newIndexOf] has one entry per character of the original
+ * text plus one for its end, and says where that character (or, for a removed one, the next kept
+ * character) sits in [text]. A range of the original maps to the range between the entries of its
+ * two ends.
+ */
+class FallbackTextMap(val text: String, private val newIndexOf: IntArray) {
+
+    /** The range of [text] that holds the original characters of [original] (end inclusive). */
+    fun mapRange(original: IntRange): IntRange {
+        val start = newIndexOf[original.first].coerceAtMost(text.length)
+        val endExclusive = newIndexOf[original.last + 1].coerceAtMost(text.length)
+        return start until endExclusive
+    }
+}
+
+/** [normalizeFallbackText] that also tells where each original character went. */
+fun normalizeFallbackTextWithMap(text: String): FallbackTextMap {
     val builder = StringBuilder()
-    for (char in text) {
+    val newIndexOf = IntArray(text.length + 1)
+    for ((index, char) in text.withIndex()) {
+        newIndexOf[index] = builder.length
         when {
             char.code == RIGHT_TO_LEFT_MARK || char.code == LEFT_TO_RIGHT_MARK -> Unit
             isCombiningMark(char) -> {
@@ -51,7 +72,10 @@ fun normalizeFallbackText(text: String): String {
             else -> builder.append(char)
         }
     }
-    return builder.toString().trim()
+    newIndexOf[text.length] = builder.length
+    val leadingSpaces = builder.indexOfFirst { !it.isWhitespace() }.let { if (it < 0) 0 else it }
+    val shifted = IntArray(newIndexOf.size) { index -> maxOf(0, newIndexOf[index] - leadingSpaces) }
+    return FallbackTextMap(builder.toString().trim(), shifted)
 }
 
 /** True when the text would start with a combining mark and so draw it on a dotted circle. */

@@ -221,3 +221,4 @@
 2026-10-25 | Words session rates by tap: Forgot/Hard/Good/Easy with intervals, earned one filled | Anki-style; one tap on the filled one is the quick path
 2026-10-25 | Ayah cards in the words session mark every place of the form, stronger fill | new-word ayahs and repeated forms showed no or one mark
 2026-10-25 | AyahFinder returns the matched word span (firstWord, lastWord) per ayah | Voice search rows highlight the recited words; accuracy and speed unchanged
+2026-10-25 | Search rows drop the space before pause marks (per word / mapped ranges); voice rows mark the recited span | dotted circles; show what was heard

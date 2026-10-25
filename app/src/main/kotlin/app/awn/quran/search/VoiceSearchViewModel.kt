@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.ScriptId
-import app.awn.quran.core.data.search.SearchHit
-import app.awn.quran.core.data.search.SearchSource
 import app.awn.quran.feature.recite.SpeechPreparation
 import app.awn.quran.tracker.AyahFinder
 import app.awn.quran.tracker.AyahMatch
@@ -148,9 +146,9 @@ class VoiceSearchViewModel(
         val names = quranText.chapters().associate { it.number to it.nameSimple }
         return found.map { match ->
             val ayah = AyahRef(match.surah, match.ayah)
-            val text = quranText.wordsOfAyah(ayah).joinToString(" ") { it.textUthmani }
+            val wordTexts = quranText.wordsOfAyah(ayah).map { it.textUthmani }
             SearchRow(
-                hit = SearchHit(ayah, SearchSource.Arabic, text, matches = emptyList()),
+                hit = recitedHit(ayah, wordTexts, match.firstWord, match.lastWord),
                 surahName = names[match.surah].orEmpty(),
                 page = quranText.pageOf(ayah, script),
             )

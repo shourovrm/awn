@@ -7,6 +7,7 @@ import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.data.fakes.FakeQuranTextRepository
+import app.awn.quran.core.ui.text.normalizeFallbackText
 import app.awn.quran.feature.recite.DelayedRunner
 import app.awn.quran.feature.recite.PreparedSpeech
 import app.awn.quran.feature.recite.SpeechPreparation
@@ -118,7 +119,9 @@ class VoiceSearchViewModelTest {
             assertEquals(VoicePhase.Finished, state.phase)
             val row = state.rows.single()
             assertEquals(AyahRef(1, 1), row.hit.ayah)
-            assertEquals("بِسْمِ ٱللَّهِ", row.hit.text)
+            assertEquals(normalizeFallbackText("بِسْمِ ٱللَّهِ"), row.hit.text)
+            // The reference of this test has one word, so only the first word was recited.
+            assertEquals(listOf(0 until normalizeFallbackText("بِسْمِ").length), row.hit.matches)
             assertEquals("Al-Fatihah", row.surahName)
             assertEquals(1, row.page)
             collector.cancel()

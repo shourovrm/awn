@@ -79,7 +79,7 @@ class SearchViewModel(
         val names = quranText.chapters().associate { it.number to it.nameSimple }
         return results.hits.map { hit ->
             SearchRow(
-                hit = hit,
+                hit = hit.withFallbackText(),
                 surahName = names[hit.ayah.surah].orEmpty(),
                 page = pageOf(hit.ayah),
             )
