@@ -229,3 +229,5 @@
 2026-10-25 | Repeats and corrections are tracker events with every mark kept | repeating an ayah turned words red (tracker.md)
 2026-10-25 | Strictness levels Lenient, Normal, Strict replace the tracker speed; the stored speed maps to them | maintainer approved named levels (tracker.md)
 2026-10-25 | Ayah left out whose opening equals the next ayah's is flagged, turning its opening red | mutashabihat slips (tracker.md)
+2026-10-25 | No automatic page turn while reciting; the recite bar offers Next page | a slip read as a jump turned the page away (recite.md)
+2026-10-25 | Words passed by a jump are Unread; a red word said right is Corrected, listed, not counted | jumps and repeats are no mistakes (recite.md)

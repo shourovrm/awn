@@ -119,8 +119,9 @@ internal fun rememberReciteStripMessage(
 }
 
 /**
- * The strip above the bar: a message, and after a run the way to review the words that went wrong.
- * Draws nothing when there is neither.
+ * The strip above the bar: a message, Next page when the recitation went on past the page shown
+ * ([onNextPage] not null), and after a run the way to review the words that went wrong. Draws
+ * nothing when there is none of them.
  */
 @Composable
 internal fun ReciteStrip(
@@ -128,8 +129,9 @@ internal fun ReciteStrip(
     canReview: Boolean,
     onReview: () -> Unit,
     colors: ReciteBarColors,
+    onNextPage: (() -> Unit)? = null,
 ) {
-    if (message == null && !canReview) return
+    if (message == null && !canReview && onNextPage == null) return
     Row(
         Modifier.fillMaxWidth()
             .clip(AwnShapes.control)
@@ -148,20 +150,38 @@ internal fun ReciteStrip(
                 modifier = Modifier.weight(1f).testTag(RECITE_BAR_STATUS_TAG),
             )
         }
+        if (onNextPage != null) {
+            StripAction(
+                text = stringResource(R.string.recite_next_page),
+                onClick = onNextPage,
+                tag = RECITE_BAR_NEXT_PAGE_TAG,
+                colors = colors,
+            )
+        }
         if (canReview) {
-            Text(
+            StripAction(
                 text = stringResource(R.string.recite_review),
-                style = AwnTypography.bodyStrong,
-                color = colors.content,
-                modifier =
-                    Modifier.defaultMinSize(minHeight = AwnSpacing.compactButton)
-                        .clickable(role = Role.Button, onClick = onReview)
-                        .wrapContentHeight(Alignment.CenterVertically)
-                        .padding(horizontal = AwnSpacing.small)
-                        .testTag(RECITE_BAR_REVIEW_TAG),
+                onClick = onReview,
+                tag = RECITE_BAR_REVIEW_TAG,
+                colors = colors,
             )
         }
     }
+}
+
+@Composable
+private fun StripAction(text: String, onClick: () -> Unit, tag: String, colors: ReciteBarColors) {
+    Text(
+        text = text,
+        style = AwnTypography.bodyStrong,
+        color = colors.content,
+        modifier =
+            Modifier.defaultMinSize(minHeight = AwnSpacing.compactButton)
+                .clickable(role = Role.Button, onClick = onClick)
+                .wrapContentHeight(Alignment.CenterVertically)
+                .padding(horizontal = AwnSpacing.small)
+                .testTag(tag),
+    )
 }
 
 @Composable

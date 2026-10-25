@@ -294,6 +294,15 @@ internal fun DrawScope.drawFills(
             cornerRadius = corner,
         )
     }
+    for (rect in correctedWordRects(geometry, decorations)) {
+        drawRoundRect(
+            field.content,
+            Offset(rect.left, rect.top + inset),
+            Size(rect.width, rect.height - inset * 2f),
+            corner,
+            style = Stroke(width = 1.dp.toPx()),
+        )
+    }
     focusedWordRect(geometry, decorations)?.let { rect ->
         val ringTopLeft = Offset(rect.left, rect.top + inset)
         val ringSize = Size(rect.width, rect.height - inset * 2f)

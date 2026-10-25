@@ -14,6 +14,7 @@
 
 
   <string name="recite_review">পর্যালোচনা</string>
+  <string name="recite_next_page">পরের পৃষ্ঠা</string>
   <string name="recite_verdict_skipped">বাদ</string>
   <string name="recite_word_play">এই শব্দটি শুনুন</string>
   <string name="recite_word_stop">শব্দটি থামান</string>
@@ -25,6 +26,7 @@
   <string name="recite_next">পরের</string>
   <string name="recite_finding_madd">মাদ্দ</string>
   <string name="recite_finding_wrong_word">অন্য শব্দ</string>
+  <string name="recite_finding_corrected">সংশোধিত</string>
   <string name="recite_duration">%2$.2f সেকেন্ডের মধ্যে %1$.2f সেকেন্ড</string>
   <string name="recite_hint_say_again">শব্দটি আবার বলুন</string>
   <string name="recite_hint_hold_longer">আরেকটু টানুন</string>

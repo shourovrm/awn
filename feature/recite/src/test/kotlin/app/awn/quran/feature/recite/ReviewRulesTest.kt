@@ -26,6 +26,35 @@ class ReviewRulesTest {
     }
 
     @Test
+    fun aCorrectedWordIsListedAsCorrectedAndUnreadWordsAreNot() {
+        val states = listOf(WordState.Confirmed, WordState.Unread, WordState.Unread)
+
+        val reviews =
+            ReviewRules.reviewsByAyah(
+                keys,
+                states,
+                emptySet(),
+                emptyMap(),
+                correctedIndexes = setOf(0),
+            )
+        val problems =
+            ReviewRules.problemsByWord(
+                keys,
+                states,
+                emptySet(),
+                emptyMap(),
+                emptyMap(),
+                correctedIndexes = setOf(0),
+            )
+
+        assertEquals(
+            mapOf(AyahRef(1, 1) to listOf(WordReview(keys[0], listOf(ReviewFinding.Corrected)))),
+            reviews,
+        )
+        assertEquals(mapOf(keys[0] to WordProblem.Corrected), problems)
+    }
+
+    @Test
     fun skippedAndWrongWordsAreGroupedByAyahInOrder() {
         val states = listOf(WordState.Wrong, WordState.Wrong, WordState.Wrong)
 

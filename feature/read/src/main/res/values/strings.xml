@@ -50,6 +50,7 @@
   <string name="word_problem_skipped">Missed</string>
   <string name="word_problem_mispronounced">Mispronounced</string>
   <string name="word_problem_different">Another word</string>
+  <string name="word_problem_corrected">Corrected</string>
   <string name="word_save">Save word</string>
   <string name="word_saved">Saved</string>
   <string name="word_play">Play</string>

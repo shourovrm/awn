@@ -126,7 +126,11 @@ class RecitationSession(
     /** How each word is drawn; in hifz mode unconfirmed words are [WordState.Hidden]. */
     val wordStates: StateFlow<Map<WordKey, WordState>> = mutableWordStates.asStateFlow()
 
-    /** The first word not yet confirmed or red (wrong or skipped), null when the range is done. */
+    /**
+     * The word the user is saying now: the first word not yet confirmed, red or passed over, or,
+     * while the user goes back over words already said, the word they are on. Null when the range
+     * is done.
+     */
     val currentWord: StateFlow<WordKey?> = mutableCurrentWord.asStateFlow()
     val status: StateFlow<ReciteStatus?> = mutableStatus.asStateFlow()
     val hint: StateFlow<ReciteHint?> = mutableHint.asStateFlow()
@@ -153,6 +157,13 @@ class RecitationSession(
     private var durationFindings: Map<WordKey, List<DurationCheck>> = emptyMap()
     private var substitutionFindings: Map<WordKey, List<TrackerEvent.Substitution>> = emptyMap()
     private var skippedIndexes: MutableSet<Int> = mutableSetOf()
+
+    // Words that were red and then said right: listed for review, not counted as mistakes.
+    private var correctedIndexes: MutableSet<Int> = mutableSetOf()
+
+    // True while the user goes back over words already said (a repeat or a jump back): the current
+    // word is then the tracker's, behind the first word not yet said.
+    private var followsTrackerCursor = false
     private var greenAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var hifzAyahsReported: MutableSet<AyahRef> = mutableSetOf()
     private var nothingToAppend = false
@@ -221,6 +232,8 @@ class RecitationSession(
             wordTextByKey = displayWords.associate { it.key to it.textUthmani }
             trackerStates = Array(wordKeys.size) { WordState.Neutral }
             skippedIndexes = mutableSetOf()
+            correctedIndexes = mutableSetOf()
+            followsTrackerCursor = false
             greenAyahsReported = mutableSetOf()
             hifzAyahsReported = mutableSetOf()
             nothingToAppend = false
@@ -367,6 +380,8 @@ class RecitationSession(
         tracker?.reset()
         trackerStates.fill(WordState.Neutral)
         skippedIndexes.clear()
+        correctedIndexes.clear()
+        followsTrackerCursor = false
         revealedIndexes.clear()
         listenedIndexes.clear()
         continuationIndex = null
@@ -653,8 +668,10 @@ class RecitationSession(
             }
             is TrackerEvent.Inserted ->
                 mutableStatus.value = statusFor(event.afterIndex, ReciteStatus::Inserted)
-            is TrackerEvent.Anchored ->
+            is TrackerEvent.Anchored -> {
                 mutableStatus.value = statusFor(event.index, ReciteStatus::Anchored)
+                followsTrackerCursor = true
+            }
             is TrackerEvent.Duration -> {
                 val key = wordKeys[event.check.wordIndex]
                 durationFindings =
@@ -665,10 +682,20 @@ class RecitationSession(
                 substitutionFindings =
                     substitutionFindings + (key to substitutionFindings[key].orEmpty() + event)
             }
-            is TrackerEvent.Repeated,
-            is TrackerEvent.Corrected,
+            is TrackerEvent.Repeated -> followsTrackerCursor = true
+            is TrackerEvent.Corrected -> applyCorrection(event.index)
             is TrackerEvent.JumpedAhead -> Unit
         }
+    }
+
+    // What was found about the wrong attempt no longer applies to a word said right since; the
+    // tracker reports the sounds of the new attempt after this event.
+    private fun applyCorrection(index: Int) {
+        val key = wordKeys[index]
+        correctedIndexes += index
+        skippedIndexes -= index
+        substitutionFindings = substitutionFindings - key
+        durationFindings = durationFindings - key
     }
 
     private fun statusFor(index: Int, create: (Int, Int) -> ReciteStatus): ReciteStatus {
@@ -686,6 +713,7 @@ class RecitationSession(
                 skippedIndexes,
                 substitutionFindings,
                 durationFindings,
+                correctedIndexes,
             )
         val states = LinkedHashMap<WordKey, WordState>()
         wordKeys.forEachIndexed { index, key ->
@@ -699,7 +727,7 @@ class RecitationSession(
             states[key] = HifzRules.displayState(drawnState, hifz, isShown)
         }
         mutableWordStates.value = states
-        val current = firstOpenIndex()?.let { wordKeys[it] }
+        val current = currentIndex()?.let { wordKeys[it] }
         mutableCurrentWord.value = current
         val hintedKey = mutableHint.value?.key
         if (hintedKey != null && hintedKey != current) mutableHint.value = null
@@ -712,7 +740,19 @@ class RecitationSession(
                 skippedIndexes,
                 durationFindings,
                 substitutionFindings,
+                correctedIndexes,
             )
+    }
+
+    // The word being said now: the first word not yet said, or while the user goes back over
+    // words already said, the tracker's word, so the marker moves back with them. Must be called
+    // with [lock] held.
+    private fun currentIndex(): Int? {
+        val firstOpen = firstOpenIndex()
+        val trackerCursor = tracker?.currentIndex()
+        val isBehind = trackerCursor != null && trackerCursor < (firstOpen ?: wordKeys.size)
+        if (!isBehind) followsTrackerCursor = false
+        return if (followsTrackerCursor && isBehind) trackerCursor else firstOpen
     }
 
     // The tracker counts a red word as passed (`Tracker.currentIndex`), so the screen moves on
@@ -720,6 +760,7 @@ class RecitationSession(
     private fun isResolved(index: Int): Boolean =
         trackerStates[index] == WordState.Confirmed ||
             trackerStates[index] == WordState.Wrong ||
+            trackerStates[index] == WordState.Unread ||
             index in skippedIndexes ||
             index in revealedIndexes ||
             index in listenedIndexes
@@ -741,8 +782,10 @@ class RecitationSession(
             if (allConfirmed && greenAyahsReported.add(ayah)) {
                 notifications += { progressEvents.ayahTrackedGreen(ayah) }
             }
-            val allResolved = indexes.all(::isResolved)
-            if (mutableHifz.value && allResolved && hifzAyahsReported.add(ayah)) {
+            // An ayah the user jumped over in part was not recited, so it gets no grade.
+            val allRecited =
+                indexes.all(::isResolved) && indexes.none { trackerStates[it] == WordState.Unread }
+            if (mutableHifz.value && allRecited && hifzAyahsReported.add(ayah)) {
                 notifications += finishHifzAyah(ayah, indexes)
             }
         }

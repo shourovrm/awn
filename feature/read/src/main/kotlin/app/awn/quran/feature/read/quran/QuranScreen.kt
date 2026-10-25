@@ -890,6 +890,10 @@ private fun QuranPager(
                                     wordStates = reciteMarks.states,
                                     myWordMarks = myWordMarks,
                                     hintLetters = reciteMarks.hintLetters,
+                                    correctedWords =
+                                        reciteMarks.problems
+                                            .filterValues { it == WordProblem.Corrected }
+                                            .keys,
                                     focusedWord = focusedWord,
                                     onWordTap = onProblemWordTap,
                                     showPageInfo = state.settings.showPageInfo,

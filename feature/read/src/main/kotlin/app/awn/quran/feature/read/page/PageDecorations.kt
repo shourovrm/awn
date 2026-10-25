@@ -20,6 +20,8 @@ import app.awn.quran.tracker.WordState
  * @property myWordMarks words of forms the user knows or is learning, filled behind the text; empty
  *   when "Show my words" is off.
  * @property hintLetter the first letter shown inside the block of a Hidden word, or null.
+ * @property correctedWords words said wrong while reciting and then said right: green, with an
+ *   outline so the user can find them again.
  */
 @Immutable
 data class PageDecorations(
@@ -31,7 +33,12 @@ data class PageDecorations(
     val wordStates: (WordKey) -> WordState = { WordState.Neutral },
     val myWordMarks: Map<WordKey, MyWordMark> = emptyMap(),
     val hintLetter: (WordKey) -> String? = { null },
+    val correctedWords: Set<WordKey> = emptySet(),
 )
+
+/** Where the outlines of the corrected words on this page go. */
+internal fun correctedWordRects(geometry: PageGeometry, decorations: PageDecorations): List<Rect> =
+    decorations.correctedWords.mapNotNull(geometry::wordRect)
 
 /** Where the ring of the word being reviewed goes, or null when it is not on this page. */
 internal fun focusedWordRect(geometry: PageGeometry, decorations: PageDecorations): Rect? =

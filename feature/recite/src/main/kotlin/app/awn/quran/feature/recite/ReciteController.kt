@@ -27,6 +27,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -99,6 +100,15 @@ class ReciteController(
     private val mutableFocusedWord = MutableStateFlow<WordKey?>(null)
     private val mutableListeningOnward = MutableStateFlow(false)
 
+    // The page (in [pageScript]) the Quran screen was opened at for this run. The screen never
+    // turns
+    // away from it by itself while reciting; [openNextPage] moves it. Null for a bounded run.
+    private val mutableOpenPage = MutableStateFlow<Int?>(null)
+    private val mutableNextPageAyah = MutableStateFlow<AyahRef?>(null)
+
+    // The current word changes many times a minute; its ayah's page is read once.
+    private val pageOfAyah = mutableMapOf<AyahRef, Int>()
+
     // The ayahs still to revise in this run, in reading order; only touched on the controller's
     // scope.
     private var revisionQueueLeft: List<AyahRef> = emptyList()
@@ -154,10 +164,21 @@ class ReciteController(
     /** Whether the speech files are ready; the bar waits on this. */
     val speechState: StateFlow<SpeechState> = speech.state
 
+    /**
+     * The ayah of the word being said when it lies on a page after the open one, null otherwise.
+     * The recite bar then offers Next page ([openNextPage]); the page does not turn by itself.
+     */
+    val nextPageAyah: StateFlow<AyahRef?> = mutableNextPageAyah.asStateFlow()
+
     init {
         // The settings page and the bar both write the speed; the session follows it.
         scope.launch { settings.speed.distinctUntilChanged().collect { session.setSpeed(it) } }
         scope.launch { audioPlayer.state.collect(::followAudioWhileListeningOnward) }
+        scope.launch {
+            combine(session.currentWord, mutableOpenPage, ::Pair).collectLatest { (word, page) ->
+                mutableNextPageAyah.value = ayahPastOpenPage(word, page)
+            }
+        }
         scope.launch {
             combine(session.reviews, session.wordProblems, ::flaggedReviews).collect { flagged ->
                 val focused = mutableFocusedWord.value
@@ -208,6 +229,23 @@ class ReciteController(
         load(ayahs.first(), boundedAyahs = ayahs) { session.setHifzEnabled(hideWords) }
     }
 
+    /**
+     * Opens the page the recitation went on to. With a swipe, the only way the page turns while
+     * reciting: a slip the tracker takes for a jump must not carry the user away.
+     */
+    fun openNextPage() {
+        val ayah = mutableNextPageAyah.value ?: return
+        onOpenAyah(ayah)
+        scope.launch { mutableOpenPage.value = quranText.pageOf(ayah, pageScript) }
+    }
+
+    private suspend fun ayahPastOpenPage(word: WordKey?, openPage: Int?): AyahRef? {
+        val ayah = word?.let { AyahRef(it.surah, it.ayah) }
+        if (ayah == null || openPage == null) return null
+        val page = pageOfAyah.getOrPut(ayah) { quranText.pageOf(ayah, pageScript) }
+        return ayah.takeIf { page > openPage }
+    }
+
     /** Points the review at [key], a flagged word: the screen shows it and Listen plays it. */
     fun focusWord(key: WordKey) {
         mutableFocusedWord.value = key
@@ -237,6 +275,8 @@ class ReciteController(
             speech.prepare()
             beforeLoad()
             session.load(boundedAyahs ?: ayahsFrom(ayah))
+            mutableOpenPage.value =
+                if (boundedAyahs == null) quranText.pageOf(ayah, pageScript) else null
         }
     }
 
@@ -415,6 +455,8 @@ class ReciteController(
             session.continueAt(ayah)
         } else {
             session.load(ayahsFrom(ayah))
+            // The audio turned the page to this ayah.
+            mutableOpenPage.value = quranText.pageOf(ayah, pageScript)
         }
     }
 
@@ -546,6 +588,7 @@ class ReciteController(
         clearFocus()
         mutableActive.value = false
         mutableRevising.value = false
+        mutableOpenPage.value = null
         lastAyahOfBoundedRun = null
         val endedRun = runActive
         runActive = false
@@ -596,8 +639,9 @@ class ReciteController(
 }
 
 /**
- * The ayah of the word the user is on while reciting, null when not reciting. The Quran screen
- * turns to the page of this ayah, so a recitation that goes past the end of the page is followed.
+ * The ayah of the word the user is on while reciting, null when not reciting. The lists of the
+ * Quran screen scroll to it within the page; the page itself does not turn (see
+ * [ReciteController.nextPageAyah]).
  */
 @Composable
 fun rememberReciteCurrentAyah(controller: ReciteController): AyahRef? {

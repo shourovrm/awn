@@ -49,6 +49,7 @@
   <string name="word_problem_skipped">বাদ পড়েছে</string>
   <string name="word_problem_mispronounced">ভুল উচ্চারণ</string>
   <string name="word_problem_different">অন্য শব্দ</string>
+  <string name="word_problem_corrected">সংশোধিত</string>
   <string name="word_save">শব্দ সংরক্ষণ</string>
   <string name="word_saved">সংরক্ষিত</string>
   <string name="word_play">শুনুন</string>

@@ -222,6 +222,7 @@ private fun WordProblem.messageRes(): Int =
         WordProblem.Skipped -> R.string.word_problem_skipped
         WordProblem.Mispronounced -> R.string.word_problem_mispronounced
         WordProblem.DifferentWord -> R.string.word_problem_different
+        WordProblem.Corrected -> R.string.word_problem_corrected
     }
 
 /**

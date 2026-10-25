@@ -9,6 +9,7 @@ import app.awn.quran.core.ui.theme.awnFieldColors
 import app.awn.quran.feature.read.page.LineToken
 import app.awn.quran.feature.read.page.PageDecorations
 import app.awn.quran.feature.read.page.PageRow
+import app.awn.quran.feature.read.page.correctedWordRects
 import app.awn.quran.feature.read.page.focusedWordRect
 import app.awn.quran.feature.read.page.layoutPage
 import app.awn.quran.feature.read.page.reciteFillColor
@@ -107,5 +108,17 @@ class WordStateFillTest {
         assertEquals(geometry.wordRect(WordKey(2, 1, 3)), focusedWordRect(geometry, decorations))
         assertNull(focusedWordRect(geometry, PageDecorations(focusedWord = WordKey(2, 9, 1))))
         assertNull(focusedWordRect(geometry, PageDecorations()))
+    }
+
+    @Test
+    fun aCorrectedWordGetsAnOutlineAndAPassedOverWordNoFill() {
+        val decorations =
+            PageDecorations(correctedWords = setOf(WordKey(2, 1, 3), WordKey(2, 9, 1)))
+
+        assertEquals(
+            listOf(geometry.wordRect(WordKey(2, 1, 3))),
+            correctedWordRects(geometry, decorations),
+        )
+        assertNull(reciteFillColor(WordState.Unread, awnField))
     }
 }

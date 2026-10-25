@@ -34,4 +34,7 @@ enum class WordProblem {
 
     /** Something other than this word was heard in its place. */
     DifferentWord,
+
+    /** The word was wrong or left out, and then said right. Listed for review, not a mistake. */
+    Corrected,
 }

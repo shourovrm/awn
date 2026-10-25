@@ -78,10 +78,15 @@ object EndPartSuggestions {
         }
     }
 
-    /** The ayahs with at least one word the tracker heard, right or wrong. */
+    /**
+     * The ayahs with at least one word the tracker heard, right or wrong; a passed-over word is
+     * not.
+     */
     private fun recitedAyahs(wordStates: Map<WordKey, WordState>): Set<AyahRef> =
         wordStates
-            .filterValues { it != WordState.Neutral && it != WordState.Hidden }
+            .filterValues {
+                it != WordState.Neutral && it != WordState.Hidden && it != WordState.Unread
+            }
             .keys
             .map { AyahRef(it.surah, it.ayah) }
             .toSet()

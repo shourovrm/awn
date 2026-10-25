@@ -14,6 +14,7 @@
 
 
   <string name="recite_review">Review</string>
+  <string name="recite_next_page">Next page</string>
   <string name="recite_verdict_skipped">Missed</string>
   <string name="recite_word_play">Play this word</string>
   <string name="recite_word_stop">Stop this word</string>
@@ -25,6 +26,7 @@
   <string name="recite_next">Next</string>
   <string name="recite_finding_madd">Madd</string>
   <string name="recite_finding_wrong_word">Another word</string>
+  <string name="recite_finding_corrected">Corrected</string>
   <string name="recite_duration">%1$.2f s of %2$.2f s</string>
   <string name="recite_hint_say_again">Say the word again</string>
   <string name="recite_hint_hold_longer">Hold it a little longer</string>

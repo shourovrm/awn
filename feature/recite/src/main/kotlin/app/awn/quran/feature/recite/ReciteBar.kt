@@ -36,6 +36,7 @@ const val RECITE_BAR_CLOSE_TAG = "recite-bar-close"
 const val RECITE_BAR_STATUS_TAG = "recite-bar-status"
 const val RECITE_BAR_PROGRESS_TAG = "recite-bar-progress"
 const val RECITE_BAR_REVIEW_TAG = "recite-bar-review"
+const val RECITE_BAR_NEXT_PAGE_TAG = "recite-bar-next-page"
 const val RECITE_BAR_SPEED_TAG = "recite-bar-speed"
 const val RECITE_BAR_HIDE_TAG = "recite-bar-hide-words"
 const val RECITE_BAR_REVEAL_WORD_TAG = "recite-bar-reveal-word"
@@ -60,6 +61,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
     val reviews by session.reviews.collectAsState()
     val problems by session.wordProblems.collectAsState()
     val focusedWord by controller.focusedWord.collectAsState()
+    val nextPageAyah by controller.nextPageAyah.collectAsState()
     val flaggedWords = remember(reviews, problems) { flaggedReviews(reviews, problems) }
     val colors = ReciteBarColors.reciting()
     val speechState by controller.speechState.collectAsState()
@@ -114,6 +116,7 @@ fun ReciteBar(controller: ReciteController, onExit: () -> Unit, modifier: Modifi
                     flaggedWords.firstOrNull()?.let { controller.focusWord(it.key) }
                 },
                 colors = colors,
+                onNextPage = if (nextPageAyah != null) controller::openNextPage else null,
             )
         }
         ReciteBarSurface(controller, colors, barMode, permission, canListen, onExit)
