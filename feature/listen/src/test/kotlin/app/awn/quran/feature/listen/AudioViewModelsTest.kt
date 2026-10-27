@@ -41,7 +41,10 @@ class AudioViewModelsTest {
 
     private val alafasy = Reciter("alafasy", "Alafasy", "s{SSS}", "a{SSS}{AAA}", true, "alafasy")
     private val husary = Reciter("husary", "Husary", "s{SSS}", "a{SSS}{AAA}", true, "husary")
-    private val reciters = FakeReciterRepository(reciterList = mutableListOf(alafasy, husary))
+    private val minshawi =
+        Reciter("minshawi", "Minshawi", "s{SSS}", "a{SSS}{AAA}", true, "minshawi")
+    private val reciters =
+        FakeReciterRepository(reciterList = mutableListOf(alafasy, husary, minshawi))
 
     /** Page 1 holds 1:6 and 1:7 and the start of surah 2, page 5 holds only surah 2. */
     private val quranText =
@@ -89,7 +92,7 @@ class AudioViewModelsTest {
     fun barIsIdleWithReciterNameThenActiveThenShowsOnlyNonDefaultValues() = runTest {
         val viewModel = barViewModel()
         settle()
-        assertEquals(AudioBarState.Idle("Alafasy", hasError = false), viewModel.state.value)
+        assertEquals(AudioBarState.Idle("Minshawi", hasError = false), viewModel.state.value)
 
         player.play("alafasy", AyahRef(2, 10), null)
         assertEquals(AudioBarState.Active(true, null, null), viewModel.state.value)
@@ -196,7 +199,7 @@ class AudioViewModelsTest {
         viewModel.play()
         settle()
 
-        assertEquals(listOf(Triple("alafasy", AyahRef(2, 10), null)), player.playCalls)
+        assertEquals(listOf(Triple("minshawi", AyahRef(2, 10), null)), player.playCalls)
     }
 
     @Test
@@ -290,7 +293,7 @@ class AudioViewModelsTest {
 
         viewModel.play()
         settle()
-        assertEquals(Triple("alafasy", AyahRef(2, 10), AyahRef(2, 11)), player.playCalls.last())
+        assertEquals(Triple("minshawi", AyahRef(2, 10), AyahRef(2, 11)), player.playCalls.last())
 
         viewModel.setOnlyRange(false)
         viewModel.play()
@@ -357,7 +360,7 @@ class AudioViewModelsTest {
         viewModel.load(page = 5)
         settle()
         assertEquals(listOf(husary), viewModel.state.value.groups.downloadedForPage)
-        assertEquals(listOf(alafasy), viewModel.state.value.groups.all)
+        assertEquals(listOf(alafasy, minshawi), viewModel.state.value.groups.all)
 
         viewModel.select("husary")
         settle()
@@ -377,7 +380,7 @@ class AudioViewModelsTest {
 
         assertEquals(30L, viewModel.state.value.usedBytes)
         assertEquals(2, viewModel.state.value.downloadedReciterCount)
-        assertEquals("Alafasy", viewModel.state.value.reciterName)
+        assertEquals("Minshawi", viewModel.state.value.reciterName)
 
         viewModel.setDownloadAmount(app.awn.quran.player.DownloadAmount.Juz)
         settle()

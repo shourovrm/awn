@@ -31,6 +31,7 @@ import app.awn.quran.feature.learn.learnWordMarks
 import app.awn.quran.feature.listen.AudioFeature
 import app.awn.quran.feature.listen.ListenSettings
 import app.awn.quran.feature.listen.ReciterSheet
+import app.awn.quran.feature.listen.replaceUnknownReciter
 import app.awn.quran.feature.read.ReadDependencies
 import app.awn.quran.feature.read.quran.PrintOfferStore
 import app.awn.quran.feature.read.quran.wordReciterFor
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 
 /**
@@ -92,6 +94,12 @@ class AwnServices(private val application: Application) {
         }
 
     val coreData = CoreData(application, downloadNetworkRule)
+
+    init {
+        // The catalogue no longer lists every reciter an earlier version offered.
+        applicationScope.launch { listenSettings.replaceUnknownReciter(coreData.reciters) }
+    }
+
     val reciteSettings = ReciteSettings(application)
     val learn: LearnServices = LearnServices.get(application)
     val progressEvents: ProgressEvents = learnProgressEvents(application)

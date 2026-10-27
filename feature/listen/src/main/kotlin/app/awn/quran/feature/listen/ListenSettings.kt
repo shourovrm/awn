@@ -85,7 +85,11 @@ class ListenSettings(private val dataStore: DataStore<Preferences>) {
     }
 
     companion object {
-        const val DEFAULT_RECITER_ID = "alafasy"
+        /**
+         * Mohamed Siddiq al-Minshawi (Murattal): the reciter used after install and until the user
+         * picks one.
+         */
+        const val DEFAULT_RECITER_ID = "minshawi"
 
         private val WIFI_ONLY_KEY = booleanPreferencesKey("wifi_only")
         private val SELECTED_RECITER_KEY = stringPreferencesKey("selected_reciter_id")
