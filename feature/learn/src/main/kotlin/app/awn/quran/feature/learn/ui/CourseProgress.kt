@@ -1,15 +1,19 @@
 package app.awn.quran.feature.learn.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +57,8 @@ private const val PERCENT_DECIMALS_FACTOR = 1_000
 private const val TENTHS_PER_PERCENT = 10.0
 private val CHART_HEIGHT = AwnSpacing.coverageChartHeight
 private val BAR_CORNER = 4.dp
+// Keeps a short-number column (100) wide enough that its bar does not look like a sliver.
+private val BAR_MINIMUM_WIDTH = 28.dp
 
 internal fun buildCourseProgress(
     wordsMet: Int,
@@ -112,7 +118,11 @@ internal fun CourseProgressScreen(
     }
 }
 
-/** One column per word count, then the user's own column in ochre, all on one scale. */
+/**
+ * One column per word count, then the user's own column in ochre, all on one scale. Each column is
+ * as wide as its widest text, and the row scrolls sideways when large text needs more room than the
+ * screen, so a label such as 5,000 is never clipped or drawn over its neighbour.
+ */
 @Composable
 private fun CoverageBarChart(progress: CourseProgress) {
     val bars =
@@ -125,54 +135,53 @@ private fun CoverageBarChart(progress: CourseProgress) {
                 AwnColors.ochre,
             )
     Row(
-        modifier = Modifier.fillMaxWidth().height(CHART_HEIGHT),
+        modifier =
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(CHART_HEIGHT),
         horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small),
-        verticalAlignment = Alignment.Bottom,
     ) {
-        bars.forEach { bar -> BarColumn(bar, Modifier.weight(1f)) }
-    }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-        bars.forEach { bar ->
-            Text(
-                text = bar.label,
-                style = AwnTypography.small,
-                color = Awn.field.mutedContent,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        bars.forEach { bar -> BarColumn(bar) }
     }
 }
 
 private class ChartBar(val label: String, val share: Double, val colour: Color)
 
 @Composable
-private fun BarColumn(bar: ChartBar, modifier: Modifier) {
+private fun BarColumn(bar: ChartBar) {
     val percentText = stringResource(R.string.progress_chart_percent, bar.percentOneDecimal())
     Column(
-        modifier = modifier.fillMaxHeight(),
+        modifier =
+            Modifier.width(IntrinsicSize.Max).widthIn(min = BAR_MINIMUM_WIDTH).fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom,
     ) {
         Text(
             text = percentText,
             style = AwnTypography.small,
             color = Awn.field.content,
             maxLines = 1,
+            softWrap = false,
         )
         Box(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .fillMaxHeight(bar.share.toFloat().coerceIn(0f, 1f) * BAR_AREA_SHARE)
-                    .clip(RoundedCornerShape(topStart = BAR_CORNER, topEnd = BAR_CORNER))
-                    .background(bar.colour),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Box(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .fillMaxHeight(bar.share.toFloat().coerceIn(0f, 1f))
+                        .clip(RoundedCornerShape(topStart = BAR_CORNER, topEnd = BAR_CORNER))
+                        .background(bar.colour),
+            )
+        }
+        Text(
+            text = bar.label,
+            style = AwnTypography.small,
+            color = Awn.field.mutedContent,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }
-
-// The percent text above a bar takes the top of the column, so the tallest bar stops below it.
-private const val BAR_AREA_SHARE = 0.85f
 
 private fun ChartBar.percentOneDecimal(): Double =
     (share * PERCENT_DECIMALS_FACTOR).roundToInt() / TENTHS_PER_PERCENT

@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -35,10 +36,16 @@ import java.text.NumberFormat
 // Three 64 dp steps keep a tile roughly square at 360 dp and let it grow with large text.
 private const val TILE_MINIMUM_HEIGHT_STEPS = 3
 
-/** Formats a count with the digits of the user's language. */
+/**
+ * Formats a count with the digits of the app language, which can differ from the device language.
+ */
 @Composable
-internal fun formatCount(count: Int): String =
-    remember(count) { NumberFormat.getIntegerInstance().format(count) }
+internal fun formatCount(count: Int): String {
+    // The JVM default locale is the device's; the app language reaches us only through the
+    // configuration.
+    val appLocale = LocalConfiguration.current.locales[0]
+    return remember(count, appLocale) { NumberFormat.getIntegerInstance(appLocale).format(count) }
+}
 
 /** A bar with the screen name or a back link on the left and an optional link on the right. */
 @Composable
