@@ -94,7 +94,8 @@ class VoiceSearchViewModelTest {
             }
         }
 
-    private val microphone = RecordedMicrophone(blockCount = 10)
+    // Ten loud blocks of recitation, a pause that searches, then the silence that ends listening.
+    private val microphone = RecordedMicrophone(pattern = "qqq" + "s".repeat(10) + "q".repeat(29))
 
     private fun viewModel(isReciteActive: Boolean = false) =
         VoiceSearchViewModel(
@@ -175,15 +176,18 @@ class VoiceSearchViewModelTest {
             collector.cancel()
         }
 
-    private class RecordedMicrophone(private val blockCount: Int) : StoppableInput {
+    // 's' is a loud block of recitation and 'q' a silent one, read in order.
+    private class RecordedMicrophone(private val pattern: String) : StoppableInput {
         private var given = 0
         var stopped = false
             private set
 
         override fun nextBlock(): FloatArray? {
-            if (stopped || given == blockCount) return null
+            if (stopped || given == pattern.length) return null
+            val isSpeech = pattern[given] == 's'
             given++
-            return FloatArray(TrackerInput.SAMPLE_RATE_HZ / 10)
+            val sampleCount = TrackerInput.SAMPLE_RATE_HZ / 10
+            return FloatArray(sampleCount) { if (isSpeech) LOUD_SAMPLE else 0f }
         }
 
         override fun stop() {
@@ -204,5 +208,9 @@ class VoiceSearchViewModelTest {
         override fun finish(): List<PhonemeEvent> = emptyList()
 
         override fun close() = Unit
+    }
+
+    private companion object {
+        const val LOUD_SAMPLE = 0.5f
     }
 }

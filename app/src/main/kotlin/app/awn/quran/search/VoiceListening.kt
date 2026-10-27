@@ -4,14 +4,15 @@ import app.awn.quran.tracker.AyahMatch
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.TrackerInput
 
+/** The ayahs for all audio heard so far. [heardTooLittle] means too little audio to search. */
+data class VoiceSearchResult(val matches: List<AyahMatch>, val heardTooLittle: Boolean)
+
 /**
- * Listens to one voice search: feeds the microphone to the speech model and searches the Quran with
- * everything heard so far once a second, so the matches can be shown while the user recites.
+ * Listens to one voice search. The user recites in parts, so the audio is searched at each pause in
+ * the speech, with all the audio heard so far, and the microphone stays open for the next part.
  *
- * Listening ends when the microphone stops (the user tapped stop), after [MAXIMUM_BLOCKS], or once
- * the same ayah led three searches in a row and at least five seconds were heard. Five seconds
- * found the right ayah among the first three for 98% of 102 test recordings
- * (AyahFinderAccuracyTest); three seconds found it for 71 to 90%.
+ * Listening ends when the microphone stops (the user tapped stop), after [SILENCE_END_BLOCKS] quiet
+ * blocks that follow a search, or at [MAXIMUM_BLOCKS].
  */
 class VoiceListening(
     private val input: TrackerInput,
@@ -20,54 +21,90 @@ class VoiceListening(
 ) {
 
     /**
-     * Blocks until listening ends, calling [onMatches] after every search, and returns the matches
-     * of the last search, which includes what the model decodes after the last block.
+     * Blocks until listening ends, calling [onResult] after every search. When the audio ends with
+     * speech that no pause has searched yet, the last search covers it; so does a stop before any
+     * search, which then reports too little heard.
      */
-    fun run(onMatches: (List<AyahMatch>) -> Unit): List<AyahMatch> {
-        val heard = mutableListOf<String>()
-        val leaders = mutableListOf<AyahMatch?>()
-        var blockCount = 0
-        while (blockCount < MAXIMUM_BLOCKS && !isSettled(leaders, blockCount)) {
-            val block = input.nextBlock() ?: break
-            blockCount++
-            heard += source.accept(block).map { it.symbol }
-            if (blockCount % BLOCKS_PER_SEARCH == 0) {
-                val matches = findAyahs(heard)
-                leaders += matches.firstOrNull()
-                onMatches(matches)
+    fun run(onResult: (VoiceSearchResult) -> Unit) {
+        val state = ListeningState()
+        while (state.isListening && state.blockCount < MAXIMUM_BLOCKS) {
+            val block = input.nextBlock()
+            if (block == null) state.isListening = false else listenToBlock(state, block, onResult)
+        }
+        if (state.speechSinceSearch || !state.hasSearched) {
+            state.heard += trailingSilenceSymbols()
+            state.heard += source.finish().map { it.symbol }
+            onResult(resultFor(state.heard))
+        }
+    }
+
+    private fun listenToBlock(
+        state: ListeningState,
+        block: FloatArray,
+        onResult: (VoiceSearchResult) -> Unit,
+    ) {
+        state.blockCount++
+        state.heard += source.accept(block).map { it.symbol }
+        when (state.pauseDetector.accept(block)) {
+            BlockReading.Speech -> {
+                state.speechSinceSearch = true
+                state.quietBlocksSinceSearch = 0
+            }
+            BlockReading.Quiet -> if (state.hasSearched) state.quietBlocksSinceSearch++
+            BlockReading.Pause -> {
+                state.heard += trailingSilenceSymbols()
+                onResult(resultFor(state.heard))
+                state.hasSearched = true
+                state.speechSinceSearch = false
+                state.quietBlocksSinceSearch = 0
             }
         }
-        heard += decodeRemainingAudio()
-        val finalMatches = findAyahs(heard)
-        onMatches(finalMatches)
-        return finalMatches
+        state.isListening =
+            !(state.hasSearched && state.quietBlocksSinceSearch >= SILENCE_END_BLOCKS)
     }
 
-    private fun isSettled(leaders: List<AyahMatch?>, blockCount: Int): Boolean {
-        if (blockCount < MINIMUM_BLOCKS || leaders.size < SETTLED_SEARCHES) return false
-        val lastLeaders = leaders.takeLast(SETTLED_SEARCHES).map { it?.surah to it?.ayah }
-        return lastLeaders.first().first != null && lastLeaders.distinct().size == 1
+    // Everything one listening run remembers between blocks.
+    private class ListeningState {
+        val heard = mutableListOf<String>()
+        val pauseDetector = SpeechPauseDetector()
+        var blockCount = 0
+        var speechSinceSearch = false
+        var hasSearched = false
+        var quietBlocksSinceSearch = 0
+        var isListening = true
     }
 
-    // The streaming model decodes in 0.48 s chunks, so the end of the recitation only comes out
-    // after some silence; a live microphone would give it, a stopped one does not.
-    private fun decodeRemainingAudio(): List<String> {
+    private fun resultFor(heardSymbols: List<String>): VoiceSearchResult {
+        val matches = findAyahs(heardSymbols)
+        val heardPhonemeCount = heardSymbols.count { it != BLANK_SYMBOL }
+        val heardTooLittle = matches.isEmpty() && heardPhonemeCount < MINIMUM_HEARD_PHONEMES
+        return VoiceSearchResult(matches, heardTooLittle)
+    }
+
+    // The streaming model emits the last word only after some silence. The silence goes to the
+    // model alone; the microphone's audio is not changed.
+    private fun trailingSilenceSymbols(): List<String> {
         val symbols = mutableListOf<String>()
-        repeat(SILENCE_BLOCKS) {
+        repeat(TRAILING_SILENCE_BLOCKS) {
             val silence = FloatArray(TrackerInput.SAMPLE_RATE_HZ / BLOCKS_PER_SECOND)
             symbols += source.accept(silence).map { it.symbol }
         }
-        symbols += source.finish().map { it.symbol }
         return symbols
     }
 
     companion object {
         /** The microphone gives 100 ms blocks. */
         private const val BLOCKS_PER_SECOND = 10
-        private const val BLOCKS_PER_SEARCH = BLOCKS_PER_SECOND
-        private const val MINIMUM_BLOCKS = 5 * BLOCKS_PER_SECOND
-        private const val SETTLED_SEARCHES = 3
-        private const val SILENCE_BLOCKS = BLOCKS_PER_SECOND
+        private const val TRAILING_SILENCE_BLOCKS = BLOCKS_PER_SECOND
+
+        /** Two and a half seconds of quiet after a search: long enough to be done reciting. */
+        private const val SILENCE_END_BLOCKS = 25
+
+        /** Mirrors the minimum in AyahFinder: with fewer phonemes it always finds nothing. */
+        private const val MINIMUM_HEARD_PHONEMES = 8
+
+        /** The model's blank token, which is not a sound. */
+        private const val BLANK_SYMBOL = "<blank>"
 
         /** Fifteen seconds; longer adds little, because the first seconds decide the match. */
         const val MAXIMUM_BLOCKS = 15 * BLOCKS_PER_SECOND

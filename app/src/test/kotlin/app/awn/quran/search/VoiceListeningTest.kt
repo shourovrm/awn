@@ -1,6 +1,5 @@
 package app.awn.quran.search
 
-import app.awn.quran.tracker.AyahMatch
 import app.awn.quran.tracker.PhonemeEvent
 import app.awn.quran.tracker.PhonemeSource
 import app.awn.quran.tracker.TrackerInput
@@ -10,101 +9,117 @@ import org.junit.Test
 
 class VoiceListeningTest {
 
-    private val firstAyah = AyahMatch(surah = 1, ayah = 1, score = 40, firstWord = 0, lastWord = 0)
-    private val secondAyah =
-        AyahMatch(surah = 2, ayah = 255, score = 40, firstWord = 0, lastWord = 0)
+    // Quiet blocks first, so the detector learns the noise floor before any speech.
+    private val lead = "qqq"
 
     @Test
-    fun searchesOnceASecondWhileListening() {
-        val searches = mutableListOf<Int>()
-        val listening =
-            VoiceListening(BlockInput(blockCount = 35), OneSymbolPerBlock()) { heard ->
-                searches += heard.size
-                emptyList()
-            }
-
-        listening.run {}
-
-        // After 1, 2 and 3 s of audio, then once more with everything heard.
-        assertEquals(listOf(10, 20, 30), searches.dropLast(1))
-        assertTrue(searches.last() > 35)
-    }
-
-    @Test
-    fun theFinalSearchIncludesWhatTheModelDecodesAfterTheLastBlock() {
-        val source = OneSymbolPerBlock(symbolsOnFinish = listOf("x", "y"))
-        var lastHeard = emptyList<String>()
-        VoiceListening(BlockInput(blockCount = 5), source) { heard ->
-                lastHeard = heard
+    fun aPauseSearchesAllAudioHeardSoFarOnce() {
+        val pattern = lead + speech(10) + quiet(4) + speech(10) + quiet(4) + quiet(25)
+        val searchedSizes = mutableListOf<Int>()
+        VoiceListening(ScriptedMicrophone(pattern), SpeechSource()) { heard ->
+                searchedSizes += heard.size
                 emptyList()
             }
             .run {}
 
-        assertEquals(listOf("x", "y"), lastHeard.takeLast(2))
+        // Each search sees the speech of every earlier part, not only the newest part.
+        assertEquals(listOf(10, 20), searchedSizes)
     }
 
     @Test
-    fun stopsOnceTheSameAyahLedThreeSearchesInARowAndFiveSecondsWereHeard() {
-        val input = BlockInput(blockCount = 1_000)
-        val listening = VoiceListening(input, OneSymbolPerBlock()) { listOf(firstAyah) }
-
-        val matches = listening.run {}
-
-        assertEquals(listOf(firstAyah), matches)
-        // The searches at 3, 4 and 5 s lead with the same ayah, and 5 s is the shortest listen.
-        assertEquals(50, input.blocksGiven)
-    }
-
-    @Test
-    fun keepsListeningWhileTheLeadingAyahChanges() {
-        val input = BlockInput(blockCount = 1_000)
-        var searchCount = 0
-        val listening =
-            VoiceListening(input, OneSymbolPerBlock()) {
-                searchCount++
-                if (searchCount % 2 == 0) listOf(firstAyah) else listOf(secondAyah)
+    fun speechWithoutAPauseIsSearchedOnlyWhenListeningEnds() {
+        val microphone = ScriptedMicrophone(lead + speech(30))
+        val blocksGivenAtSearch = mutableListOf<Int>()
+        VoiceListening(microphone, SpeechSource()) {
+                blocksGivenAtSearch += microphone.blocksGiven
+                emptyList()
             }
+            .run {}
 
-        listening.run {}
-
-        assertEquals(VoiceListening.MAXIMUM_BLOCKS, input.blocksGiven)
+        // The one search happens after the microphone stopped, at the end of all 33 blocks.
+        assertEquals(listOf(lead.length + 30), blocksGivenAtSearch)
     }
 
     @Test
-    fun reportsEachSearchAsItHappens() {
-        val reported = mutableListOf<List<AyahMatch>>()
-        VoiceListening(BlockInput(blockCount = 20), OneSymbolPerBlock()) { listOf(firstAyah) }
-            .run { matches -> reported += matches }
+    fun quietAfterASearchEndsListeningAfterTwoAndAHalfSeconds() {
+        val microphone = ScriptedMicrophone(lead + speech(10) + quiet(4) + quiet(100))
+        VoiceListening(microphone, SpeechSource()) { emptyList() }.run {}
 
-        assertEquals(3, reported.size)
+        // The pause at block 17 is the search; 25 quiet blocks after it end listening.
+        assertEquals(17 + 25, microphone.blocksGiven)
     }
 
     @Test
-    fun endsWhenTheMicrophoneStops() {
-        val input = BlockInput(blockCount = 12)
-        VoiceListening(input, OneSymbolPerBlock()) { emptyList() }.run {}
+    fun listeningEndsAtTheMaximumBlocks() {
+        val microphone = ScriptedMicrophone(lead + speech(VoiceListening.MAXIMUM_BLOCKS))
+        VoiceListening(microphone, SpeechSource()) { emptyList() }.run {}
 
-        assertEquals(12, input.blocksGiven)
+        assertEquals(VoiceListening.MAXIMUM_BLOCKS, microphone.blocksGiven)
     }
 
-    private class BlockInput(private val blockCount: Int) : TrackerInput {
+    @Test
+    fun theFinalSearchIncludesWhatTheModelDecodesAfterTheLastBlock() {
+        val source = SpeechSource(finishSymbols = listOf("x", "y"))
+        val searchedSymbols = mutableListOf<List<String>>()
+        VoiceListening(ScriptedMicrophone(lead + speech(5)), source) { heard ->
+                searchedSymbols += heard
+                emptyList()
+            }
+            .run {}
+
+        assertEquals(listOf("x", "y"), searchedSymbols.last().takeLast(2))
+    }
+
+    @Test
+    fun aRecitationTooShortForTheFinderPublishesTooLittleHeard() {
+        val results = mutableListOf<VoiceSearchResult>()
+        val microphone = ScriptedMicrophone(lead + speech(3) + quiet(4) + quiet(25))
+        VoiceListening(microphone, SpeechSource()) { emptyList() }
+            .run { result -> results += result }
+
+        assertTrue(results.single().heardTooLittle)
+        assertTrue(results.single().matches.isEmpty())
+    }
+
+    @Test
+    fun stoppingBeforeAnySpeechPublishesTooLittleHeard() {
+        val results = mutableListOf<VoiceSearchResult>()
+        VoiceListening(ScriptedMicrophone(lead), SpeechSource()) { emptyList() }
+            .run { result -> results += result }
+
+        assertTrue(results.single().heardTooLittle)
+    }
+
+    private fun speech(blockCount: Int): String = "s".repeat(blockCount)
+
+    private fun quiet(blockCount: Int): String = "q".repeat(blockCount)
+
+    // Reads one block per letter of [pattern]: 's' is loud, 'q' silent. Then it stops.
+    private class ScriptedMicrophone(private val pattern: String) : TrackerInput {
         var blocksGiven = 0
             private set
 
         override fun nextBlock(): FloatArray? {
-            if (blocksGiven == blockCount) return null
+            if (blocksGiven == pattern.length) return null
+            val isSpeech = pattern[blocksGiven] == 's'
             blocksGiven++
-            return FloatArray(TrackerInput.SAMPLE_RATE_HZ / BLOCKS_PER_SECOND)
+            return FloatArray(TrackerInput.SAMPLE_RATE_HZ / BLOCKS_PER_SECOND) {
+                if (isSpeech) LOUD else SILENT
+            }
         }
     }
 
-    // Reports one symbol for every block it is given, including the silence after the recording.
-    private class OneSymbolPerBlock(private val symbolsOnFinish: List<String> = emptyList()) :
+    // Hears one phoneme per loud block; a silent block gives the model nothing.
+    private class SpeechSource(private val finishSymbols: List<String> = emptyList()) :
         PhonemeSource {
         override fun accept(block: FloatArray): List<PhonemeEvent> =
-            listOf(PhonemeEvent("a", onsetSeconds = 0f, probability = 1f))
+            if (block.any { it != SILENT }) {
+                listOf(PhonemeEvent("a", onsetSeconds = 0f, probability = 1f))
+            } else {
+                emptyList()
+            }
 
-        override fun finish(): List<PhonemeEvent> = symbolsOnFinish.map {
+        override fun finish(): List<PhonemeEvent> = finishSymbols.map {
             PhonemeEvent(it, onsetSeconds = 0f, probability = 1f)
         }
 
@@ -113,5 +128,7 @@ class VoiceListeningTest {
 
     private companion object {
         const val BLOCKS_PER_SECOND = 10
+        const val LOUD = 0.5f
+        const val SILENT = 0f
     }
 }

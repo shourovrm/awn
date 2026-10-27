@@ -42,10 +42,14 @@ enum class VoicePhase {
     Failed,
 }
 
-/** [rows] are the ayahs the recitation may come from, best first. */
+/**
+ * [rows] are the ayahs the recitation may come from, best first. [heardTooLittle] is set when the
+ * last search had too little audio to run, so the panel asks the user to say a little more.
+ */
 data class VoiceSearchUiState(
     val phase: VoicePhase = VoicePhase.Off,
     val rows: List<SearchRow> = emptyList(),
+    val heardTooLittle: Boolean = false,
 )
 
 /**
@@ -66,6 +70,7 @@ class VoiceSearchViewModel(
 
     private val phase = MutableStateFlow(VoicePhase.Off)
     private val matches = MutableStateFlow<List<AyahMatch>>(emptyList())
+    private val tooLittleHeard = MutableStateFlow(false)
     private var listeningJob: Job? = null
     @Volatile private var microphone: StoppableInput? = null
 
@@ -73,10 +78,15 @@ class VoiceSearchViewModel(
     @Volatile private var finder: AyahFinder? = null
 
     val state: StateFlow<VoiceSearchUiState> =
-        combine(phase, matches.mapLatest(::rowsFor)) { currentPhase, rows ->
+        combine(phase, matches.mapLatest(::rowsFor), tooLittleHeard) {
+                currentPhase,
+                rows,
+                isTooLittle ->
+                val isOff = currentPhase == VoicePhase.Off
                 VoiceSearchUiState(
-                    currentPhase,
-                    if (currentPhase == VoicePhase.Off) emptyList() else rows,
+                    phase = currentPhase,
+                    rows = if (isOff) emptyList() else rows,
+                    heardTooLittle = !isOff && isTooLittle,
                 )
             }
             .stateIn(
@@ -93,6 +103,7 @@ class VoiceSearchViewModel(
     fun startListening() {
         if (listeningJob?.isActive == true) return
         matches.value = emptyList()
+        tooLittleHeard.value = false
         phase.value = VoicePhase.GettingReady
         listeningJob = viewModelScope.launch(listeningDispatcher) { listen() }
     }
@@ -107,6 +118,7 @@ class VoiceSearchViewModel(
         listeningJob?.cancel()
         phase.value = VoicePhase.Off
         matches.value = emptyList()
+        tooLittleHeard.value = false
     }
 
     override fun onCleared() {
@@ -124,8 +136,9 @@ class VoiceSearchViewModel(
             microphone = input
             if (!phase.compareAndSet(VoicePhase.GettingReady, VoicePhase.Listening)) return
             prepared.newPhonemeSource().use { source ->
-                VoiceListening(input, source, ayahFinder::find).run { found ->
-                    matches.value = found
+                VoiceListening(input, source, ayahFinder::findAll).run { result ->
+                    matches.value = result.matches
+                    tooLittleHeard.value = result.heardTooLittle
                 }
             }
             phase.compareAndSet(VoicePhase.Listening, VoicePhase.Finished)

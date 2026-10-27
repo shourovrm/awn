@@ -63,6 +63,8 @@
   <string name="search_voice_stop">থামুন</string>
   <string name="search_voice_no_match">কোনো আয়াত পাওয়া যায়নি</string>
   <string name="search_voice_again">আবার তিলাওয়াত করুন</string>
+  <string name="voice_search_too_short">আরও একটু পড়ুন।</string>
+  <string name="voice_search_many_matches">অনেক আয়াত মিলেছে। আরও একটু পড়ুন।</string>
 
   <string name="settings_title">সেটিংস</string>
   <string name="settings_audio">অডিও</string>

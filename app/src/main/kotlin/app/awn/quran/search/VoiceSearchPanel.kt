@@ -1,13 +1,17 @@
 package app.awn.quran.search
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -51,9 +55,38 @@ fun VoiceSearchPanel(
         VoiceSearchSetup(speechModel, actions)
         return
     }
-    Column(Modifier.fillMaxWidth()) {
-        VoiceStatusRow(state, actions)
-        state.rows.forEach { row -> ResultRow(row) { onOpen(row.page, row.hit.ayah) } }
+    VoiceResultList(state, actions, onOpen)
+}
+
+/**
+ * The status row, then the matching ayahs one page at a time. A new result list starts again at the
+ * first page and at the top, so a stale scroll position never hides the new best matches.
+ */
+@Composable
+private fun VoiceResultList(
+    state: VoiceSearchUiState,
+    actions: VoiceSearchActions,
+    onOpen: (page: Int, ayah: AyahRef?) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    val pageCount = remember(state.rows) { mutableIntStateOf(1) }
+    LaunchedEffect(state.rows) { listState.scrollToItem(0) }
+    val visibleRows = visibleVoiceRows(state.rows, pageCount.intValue)
+    LazyColumn(Modifier.fillMaxSize(), state = listState) {
+        item { VoiceStatusRow(state, actions) }
+        if (state.rows.size > VOICE_RESULT_PAGE_SIZE) {
+            item { VoiceMessage(text = stringResource(R.string.voice_search_many_matches)) }
+        }
+        items(visibleRows.size) { index ->
+            val row = visibleRows[index]
+            ResultRow(row) { onOpen(row.page, row.hit.ayah) }
+        }
+        if (visibleRows.size < state.rows.size) {
+            // A new key per shown count gives each page a fresh sentinel that loads the next page.
+            item(key = "more-${visibleRows.size}") {
+                LaunchedEffect(Unit) { pageCount.intValue++ }
+            }
+        }
     }
 }
 
@@ -97,15 +130,13 @@ private fun VoiceStatusRow(state: VoiceSearchUiState, actions: VoiceSearchAction
             VoiceMessage(text = stringResource(R.string.search_voice_getting_ready))
         VoicePhase.Listening ->
             VoiceMessage(
-                text = stringResource(R.string.search_voice_listening),
+                text = listeningText(state),
                 buttonLabel = stringResource(R.string.search_voice_stop),
                 onButton = actions.onStop,
             )
         VoicePhase.Finished ->
             VoiceMessage(
-                text =
-                    if (state.rows.isEmpty()) stringResource(R.string.search_voice_no_match)
-                    else null,
+                text = finishedText(state),
                 buttonLabel = stringResource(R.string.search_voice_again),
                 onButton = actions.onStart,
             )
@@ -119,6 +150,22 @@ private fun VoiceStatusRow(state: VoiceSearchUiState, actions: VoiceSearchAction
         VoicePhase.Asking -> Unit
     }
 }
+
+@Composable
+private fun listeningText(state: VoiceSearchUiState): String =
+    if (state.heardTooLittle) {
+        stringResource(R.string.voice_search_too_short)
+    } else {
+        stringResource(R.string.search_voice_listening)
+    }
+
+@Composable
+private fun finishedText(state: VoiceSearchUiState): String? =
+    when {
+        state.heardTooLittle -> stringResource(R.string.voice_search_too_short)
+        state.rows.isEmpty() -> stringResource(R.string.search_voice_no_match)
+        else -> null
+    }
 
 @Composable
 private fun VoiceMessage(
