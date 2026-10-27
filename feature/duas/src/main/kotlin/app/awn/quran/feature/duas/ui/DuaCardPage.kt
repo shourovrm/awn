@@ -100,7 +100,8 @@ internal fun DuaCardPage(
                 )
             }
             if (state.layers.showTranslation) {
-                CardTranslation(card.translation, state.isTranslationHidden)
+                val translationShown = translationShownOf(card, wordTiles, state.showDuaOnly)
+                CardTranslation(translationShown, state.isTranslationHidden)
             }
             CardFooter(card, state, actions)
         }
