@@ -161,7 +161,8 @@
   <string name="settings_quran_page">Quran page</string>
   <string name="settings_learn">Learn</string>
   <string name="settings_colours">Colours</string>
-  <string name="settings_storage">Storage</string>
+  <string name="settings_storage">Downloads</string>
+  <string name="settings_storage_search_keyword">Storage</string>
   <string name="settings_language">Language</string>
   <string name="settings_group_quran">Quran</string>
   <string name="settings_group_practice">Practice</string>

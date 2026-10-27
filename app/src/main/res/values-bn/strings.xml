@@ -140,7 +140,8 @@
   <string name="settings_quran_page">কুরআনের পৃষ্ঠা</string>
   <string name="settings_learn">শিখুন</string>
   <string name="settings_colours">রং</string>
-  <string name="settings_storage">স্টোরেজ</string>
+  <string name="settings_storage">ডাউনলোড</string>
+  <string name="settings_storage_search_keyword">স্টোরেজ</string>
   <string name="settings_language">ভাষা</string>
   <string name="settings_group_quran">কুরআন</string>
   <string name="settings_group_practice">অনুশীলন</string>

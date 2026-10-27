@@ -281,13 +281,21 @@ private val APP_SETTINGS =
         onPage(SettingsSection.About, SettingRowKeys.ABOUT_VERSION, R.string.about_version),
     )
 
+/**
+ * Extra words that find a page by its old or alternative name. Storage's title is now Downloads,
+ * and people still type "storage", so that word is kept as a keyword.
+ */
+private fun pageKeywords(section: SettingsSection): List<Int> =
+    if (section == SettingsSection.Storage) {
+        listOf(R.string.settings_storage_search_keyword)
+    } else {
+        emptyList()
+    }
+
 private val SETTINGS: List<RegisteredSetting> =
-    SettingsSection.entries.map { RegisteredSetting(it.route, it.label, null, it.label) } +
-        QURAN_PAGE_SETTINGS +
-        AUDIO_SETTINGS +
-        PRACTICE_SETTINGS +
-        STORAGE_SETTINGS +
-        APP_SETTINGS
+    SettingsSection.entries.map { section ->
+        RegisteredSetting(section.route, section.label, null, section.label, pageKeywords(section))
+    } + QURAN_PAGE_SETTINGS + AUDIO_SETTINGS + PRACTICE_SETTINGS + STORAGE_SETTINGS + APP_SETTINGS
 
 /**
  * Builds the searchable entries in the app's current language. Each entry also carries its label
