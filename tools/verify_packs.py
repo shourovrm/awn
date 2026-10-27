@@ -396,9 +396,6 @@ def verify_manifests():
             flags = {e["id"]: e["word_by_word"] for e in entries}
             expected_flags = {r["id"]: r["quran_com_recitation_id"] is not None for r in reciter_catalogue.RECITERS}
             check(flags == expected_flags, "reciters.json word_by_word flags follow the catalogue")
-            raad = next(e for e in entries if e["id"] == "raad_al_kurdi")
-            check(raad["timing_pack"] is None and raad["quranicaudio_path"] == "raad_mohammad_al_kurdi/mp3/",
-                  "Raad al-Kurdi has surah files only")
             check(all(e["quranicaudio_path"] and e["surah_url_pattern"] for e in entries),
                   "every reciter has a QuranicAudio path and surah url pattern")
             check(all(e["timing_pack"] == (e["id"] if e["file"] else None) for e in entries),

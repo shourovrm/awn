@@ -36,7 +36,7 @@ AYAH_COUNTS = {1: 7, 108: 3, 112: 4}
 # id, display name, style, QuranicAudio id and path, EveryAyah folder, Quran.com recitation id (word segments) or None.
 # "complete" paths of QuranicAudio are the full-Quran sets; partial sets (hidayah) are not listed.
 RECITERS = [
-    # The six of the first release keep their entries in build_manifests.py; they are repeated here
+    # The five of the first release keep their entries in build_manifests.py; they are repeated here
     # so the probe covers the whole catalogue.
     dict(id="alafasy", name="Mishari Rashid al-Afasy", style="murattal", quranicaudio_id=5,
          quranicaudio_path="mishaari_raashid_al_3afaasee/", everyayah_folder="Alafasy_128kbps", quran_com_recitation_id=7),
@@ -49,8 +49,7 @@ RECITERS = [
     dict(id="basfar", name="Abdullah Basfar", style="murattal", quranicaudio_id=2,
          quranicaudio_path="abdullaah_basfar/", everyayah_folder="Abdullah_Basfar_192kbps", quran_com_recitation_id=None,
          alternative_everyayah_folders=[{"folder": "Abdullah_Basfar_64kbps", "base_url": "https://everyayah.com/data"}]),
-    dict(id="raad_al_kurdi", name="Raad Mohammad al-Kurdi", style="murattal", quranicaudio_id=168,
-         quranicaudio_path="raad_mohammad_al_kurdi/mp3/", everyayah_folder=None, quran_com_recitation_id=None),
+    # Raad Mohammad al-Kurdi (quranicaudio_id 168) was removed: whole-surah audio only, so an ayah would play from the surah start; re-add when ayah start times exist.
     # New in the second catalogue.
     dict(id="sudais", name="Abdur-Rahman as-Sudais", style="murattal", quranicaudio_id=7,
          quranicaudio_path="abdurrahmaan_as-sudays/", everyayah_folder="Abdurrahmaan_As-Sudais_192kbps", quran_com_recitation_id=3),

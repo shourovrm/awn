@@ -87,7 +87,7 @@ fun interface AudioResolver {
 /**
  * Chooses the file for an ayah. The URL in the timing pack comes first because the word timings
  * were made against that exact file. Without it, the reciter's own ayah pattern is used, and for a
- * reciter with no ayah files (Raad al-Kurdi) the surah file.
+ * reciter with no ayah files the surah file.
  */
 class ReciterAudioResolver(
     private val reciters: ReciterRepository,

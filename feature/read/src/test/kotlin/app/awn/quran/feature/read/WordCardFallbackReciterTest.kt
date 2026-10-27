@@ -18,9 +18,9 @@ import org.junit.Test
 
 /**
  * Root cause of the missing play button (2026-10-22): a listening reciter whose timings mark ayahs
- * only (Basfar) or that has none (Raad al-Kurdi) made WordAudio.stateOf answer Unavailable, so the
- * card showed neither the play button nor a download. The card now plays the word with the word
- * reciter: the one chosen in Settings > Audio, else the first reciter with word timings.
+ * only (Basfar) or that has none made WordAudio.stateOf answer Unavailable, so the card showed
+ * neither the play button nor a download. The card now plays the word with the word reciter: the
+ * one chosen in Settings > Audio, else the first reciter with word timings.
  */
 class WordCardFallbackReciterTest {
     @get:Rule val mainDispatcher = MainDispatcherRule()

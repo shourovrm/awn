@@ -48,7 +48,7 @@ data class ReadDependencies(
     val myWords: MyWords? = null,
 ) {
     companion object {
-        /** The reciter :feature:listen starts with. */
+        /** The reciter tests and previews start with; the app passes the listen settings choice. */
         const val DEFAULT_RECITER_ID = "alafasy"
     }
 }

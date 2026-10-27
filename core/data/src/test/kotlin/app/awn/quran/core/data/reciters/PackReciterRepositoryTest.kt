@@ -32,16 +32,14 @@ class PackReciterRepositoryTest {
     }
 
     @Test
-    fun listsAllSixReciters() = runBlocking {
+    fun listsAllFiveReciters() = runBlocking {
         val reciters = repository().first.reciters()
 
         assertEquals(
-            listOf("alafasy", "husary", "husary_muallim", "minshawi", "basfar", "raad_al_kurdi"),
+            listOf("alafasy", "husary", "husary_muallim", "minshawi", "basfar"),
             reciters.map { it.id },
         )
         assertEquals("alafasy", reciters.first().timingPack)
-        assertNull(reciters.last().ayahUrlPattern)
-        assertNull(reciters.last().timingPack)
     }
 
     @Test
@@ -54,7 +52,6 @@ class PackReciterRepositoryTest {
         // Basfar has a timing pack that marks ayahs only; it cannot play a single word.
         assertEquals(false, reciters.getValue("basfar").wordByWord)
         assertEquals("basfar", reciters.getValue("basfar").timingPack)
-        assertEquals(false, reciters.getValue("raad_al_kurdi").wordByWord)
     }
 
     @Test
@@ -111,10 +108,9 @@ class PackReciterRepositoryTest {
     }
 
     @Test
-    fun unknownReciterAndReciterWithoutAyahFilesGiveNull() = runBlocking {
+    fun unknownReciterGivesNull() = runBlocking {
         val repository = repository().first
 
         assertNull(repository.ayahAudio("nobody", AyahRef(1, 1)))
-        assertNull(repository.ayahAudio("raad_al_kurdi", AyahRef(1, 1)))
     }
 }
