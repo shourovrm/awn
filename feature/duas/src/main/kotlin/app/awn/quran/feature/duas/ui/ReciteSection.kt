@@ -45,6 +45,7 @@ internal fun ReciteSection(
     dependencies: DuasDependencies,
     cleanCount: Int,
     isHidingWords: Boolean,
+    showDuaOnly: Boolean,
     reviewedWord: WordKey?,
     actions: ReciteSectionActions,
     modifier: Modifier = Modifier,
@@ -56,6 +57,7 @@ internal fun ReciteSection(
             dependencies = dependencies,
             cleanCount = cleanCount,
             isHidingWords = isHidingWords,
+            showDuaOnly = showDuaOnly,
             reviewedWord = reviewedWord,
             actions = actions,
             modifier = modifier,
@@ -70,6 +72,7 @@ private fun ReciteControls(
     dependencies: DuasDependencies,
     cleanCount: Int,
     isHidingWords: Boolean,
+    showDuaOnly: Boolean,
     reviewedWord: WordKey?,
     actions: ReciteSectionActions,
     modifier: Modifier,
@@ -119,11 +122,14 @@ private fun ReciteControls(
         }
         DuaRecitePanel(
             recitation = recitation,
+            dua = dua,
+            cardWordCount = card?.words.orEmpty().size,
             speechState = speechState,
             phase = phase,
             isClean = isClean,
             cleanCount = cleanCount,
             isHidingWords = isHidingWords,
+            showDuaOnly = showDuaOnly,
             onToggleHideWords = actions.onToggleHideWords,
         )
     }
@@ -133,11 +139,14 @@ private fun ReciteControls(
 @Composable
 private fun DuaRecitePanel(
     recitation: DuaRecitation,
+    dua: Dua,
+    cardWordCount: Int,
     speechState: SpeechState,
     phase: RecitationPhase,
     isClean: Boolean,
     cleanCount: Int,
     isHidingWords: Boolean,
+    showDuaOnly: Boolean,
     onToggleHideWords: () -> Unit,
 ) {
     val reveal = rememberDuaRevealState(recitation)
@@ -148,7 +157,12 @@ private fun DuaRecitePanel(
                 onToggleHideWords = onToggleHideWords,
                 onStartMicrophone = recitation::startMicrophone,
                 onStopMicrophone = recitation::stopMicrophone,
-                onRevealNextWord = { recitation.revealNextWord(reveal.showsFirstLetterFirst) },
+                onRevealNextWord = {
+                    // With "show dua only" the words before the dua are not drawn, so the tap
+                    // first reveals them silently; otherwise the tap would show nothing visible.
+                    if (showDuaOnly) revealWordsBeforeDua(recitation, dua, cardWordCount)
+                    recitation.revealNextWord(reveal.showsFirstLetterFirst)
+                },
                 onRevealAyah = recitation::revealAyah,
             ),
     )

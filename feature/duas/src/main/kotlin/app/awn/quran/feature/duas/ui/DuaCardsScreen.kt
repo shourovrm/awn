@@ -221,6 +221,7 @@ private fun ModePanel(
                 dependencies = dependencies,
                 cleanCount = state.progress.cleanCount(dua.id),
                 isHidingWords = screenState.isHidingWords,
+                showDuaOnly = screenState.showDuaOnly,
                 reviewedWord = screenState.reviewedWord,
                 actions =
                     ReciteSectionActions(

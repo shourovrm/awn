@@ -9,6 +9,7 @@ import androidx.compose.ui.res.stringResource
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.Awn
+import app.awn.quran.feature.duas.content.Dua
 import app.awn.quran.feature.duas.recite.DuaRecitation
 import app.awn.quran.feature.recite.R as ReciteR
 import app.awn.quran.feature.recite.ReciteHint
@@ -41,6 +42,26 @@ internal fun duaRevealStateOf(
         showsFirstLetterFirst = showsFirstLetterFirst,
         nextTapShowsLetter = showsFirstLetterFirst && !letterIsShown,
     )
+}
+
+/**
+ * Whether [currentWord] lies before the first word of [dua]. "Show dua only" does not draw such a
+ * word, so a reveal tap on it would show nothing the user can see.
+ */
+internal fun isBeforeDua(currentWord: WordKey?, dua: Dua): Boolean =
+    currentWord != null && currentWord < dua.start
+
+/**
+ * Silently reveals the hidden words that lie before [dua], so the next reveal tap shows a word the
+ * user can see. [cardWordCount] bounds the loop, since the hidden words before the dua are never
+ * more than the card's words; each step checks [isBeforeDua], so extra steps do nothing.
+ */
+internal fun revealWordsBeforeDua(recitation: DuaRecitation, dua: Dua, cardWordCount: Int) {
+    repeat(cardWordCount) {
+        if (isBeforeDua(recitation.currentWord.value, dua)) {
+            recitation.revealNextWord(showsFirstLetterFirst = false)
+        }
+    }
 }
 
 /** The letter drawn on a hidden word: the page draws it inside that word's box. */

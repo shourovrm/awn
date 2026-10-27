@@ -252,6 +252,15 @@ class FakeDuaRecitation : DuaRecitation {
     var stopCount = 0
     var endCount = 0
 
+    private val hiddenWordsInOrder = mutableListOf<WordKey>()
+
+    /** Sets the hidden words in reading order and makes the first of them the current word. */
+    fun setHiddenWordsInOrder(words: List<WordKey>) {
+        hiddenWordsInOrder.clear()
+        hiddenWordsInOrder += words
+        currentWord.value = hiddenWordsInOrder.firstOrNull()
+    }
+
     override fun begin(ayahs: List<AyahRef>, hideWords: Boolean) {
         begun += ayahs to hideWords
     }
@@ -270,8 +279,13 @@ class FakeDuaRecitation : DuaRecitation {
         hideCalls += hide
     }
 
+    /** A whole-word reveal moves [currentWord] on to the next hidden word, as the session does. */
     override fun revealNextWord(showsFirstLetterFirst: Boolean) {
         revealWordCalls += showsFirstLetterFirst
+        if (!showsFirstLetterFirst && hiddenWordsInOrder.isNotEmpty()) {
+            hiddenWordsInOrder.removeAt(0)
+            currentWord.value = hiddenWordsInOrder.firstOrNull()
+        }
     }
 
     override fun revealAyah() {
