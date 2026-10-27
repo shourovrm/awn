@@ -27,7 +27,7 @@ internal fun NavGraphBuilder.collectionDestinations(
         DuasScreen(
             dependencies = services.duasDependencies,
             onBack = { navController.popBackStack() },
-            onOpenQuran = { page, ayah -> navController.openQuran(page, ayah) },
+            onOpenQuran = { page, ayah -> navController.openQuranOverDuas(page, ayah) },
             initialGroupKey = entry.arguments?.getString(Routes.DUAS_GROUP_ARGUMENT),
         )
     }

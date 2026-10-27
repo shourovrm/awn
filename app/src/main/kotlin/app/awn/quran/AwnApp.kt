@@ -193,7 +193,7 @@ private fun AwnNavigation(
                     optionalIntArgument(Routes.AYAH_ARGUMENT),
                 ),
         ) { entry ->
-            QuranRoute(services, entry, tabNavigation)
+            QuranRoute(services, entry, tabNavigation, navController)
         }
         indexDestinations(navController, viewModelFactory, services)
         settingsDestinations(services, navController, viewModelFactory, colourSettings)
@@ -359,6 +359,7 @@ private fun QuranRoute(
     services: AwnServices,
     entry: NavBackStackEntry,
     navigation: TabNavigation,
+    navController: NavController,
 ) {
     val target = quranTargetOf(entry)
     QuranRouteEffects(services)
@@ -390,7 +391,7 @@ private fun QuranRoute(
             isNight = nightToggle.isNight,
             onToggleNight = nightToggle.toggle,
             onOpenIndex = { navigation.showTab(AwnTab.Quran) },
-            onBackWhenIdle = navigation::returnToTabs,
+            onBackWhenIdle = { navController.leaveQuran() },
             onOpenSearch = navigation::openSearch,
             onOpenPageWords = navigation::showPageWords,
             onOpenSettings = navigation::openSettings,
