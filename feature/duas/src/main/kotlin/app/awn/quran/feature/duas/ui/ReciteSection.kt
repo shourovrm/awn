@@ -19,7 +19,9 @@ import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.feature.duas.DuasDependencies
 import app.awn.quran.feature.duas.card.DuaCardData
 import app.awn.quran.feature.duas.content.Dua
+import app.awn.quran.feature.duas.recite.DuaRecitation
 import app.awn.quran.feature.recite.RecitationPhase
+import app.awn.quran.feature.recite.SpeechState
 import kotlinx.coroutines.launch
 
 /** What the Recite section reports back to the screen. */
@@ -115,14 +117,39 @@ private fun ReciteControls(
                 onClose = { actions.onReviewedWordChange(null) },
             )
         }
-        RecitePanel(
-            state = RecitePanelState(speechState, phase, isClean, cleanCount, isHidingWords),
-            actions =
-                RecitePanelActions(
-                    onToggleHideWords = actions.onToggleHideWords,
-                    onStartMicrophone = recitation::startMicrophone,
-                    onStopMicrophone = recitation::stopMicrophone,
-                ),
+        DuaRecitePanel(
+            recitation = recitation,
+            speechState = speechState,
+            phase = phase,
+            isClean = isClean,
+            cleanCount = cleanCount,
+            isHidingWords = isHidingWords,
+            onToggleHideWords = actions.onToggleHideWords,
         )
     }
+}
+
+/** The Recite panel wired to [recitation]: the buttons act on the recitation directly. */
+@Composable
+private fun DuaRecitePanel(
+    recitation: DuaRecitation,
+    speechState: SpeechState,
+    phase: RecitationPhase,
+    isClean: Boolean,
+    cleanCount: Int,
+    isHidingWords: Boolean,
+    onToggleHideWords: () -> Unit,
+) {
+    val reveal = rememberDuaRevealState(recitation)
+    RecitePanel(
+        state = RecitePanelState(speechState, phase, isClean, cleanCount, isHidingWords, reveal),
+        actions =
+            RecitePanelActions(
+                onToggleHideWords = onToggleHideWords,
+                onStartMicrophone = recitation::startMicrophone,
+                onStopMicrophone = recitation::stopMicrophone,
+                onRevealNextWord = { recitation.revealNextWord(reveal.showsFirstLetterFirst) },
+                onRevealAyah = recitation::revealAyah,
+            ),
+    )
 }

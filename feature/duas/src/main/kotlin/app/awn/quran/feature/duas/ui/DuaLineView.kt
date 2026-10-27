@@ -53,12 +53,16 @@ internal class LineViewResources(
     val fontCache: PageFontCache,
     val arabicFamily: FontFamily?,
     val quranText: QuranTextRepository,
+    /** The first letter the user asked to see of a hidden word; drawn inside its box. */
+    val hintLetters: Map<WordKey, String> = emptyMap(),
 )
 
 /** The resources of the line view, or null until the settings and the Arabic font are read. */
 @Composable
 internal fun rememberLineViewResources(dependencies: DuasDependencies): LineViewResources? {
     val settings by dependencies.readSettings.collectAsState(initial = null)
+    val hint by dependencies.recitation.hint.collectAsState()
+    val hintLetters = remember(hint) { hintLettersOf(hint) }
     // A new cache for each pack change, as the Quran screen does, so a font installed later shows.
     val packRevision by
         remember(dependencies.packs) {
@@ -74,7 +78,7 @@ internal fun rememberLineViewResources(dependencies: DuasDependencies): LineView
     val arabicLookup =
         rememberFontLookup(fontCache, arabicScript, ARABIC_FONT_PAGE, isNight = false)
     val loadedSettings = settings
-    return remember(loadedSettings, fontCache, arabicLookup, dependencies.quranText) {
+    return remember(loadedSettings, fontCache, arabicLookup, dependencies.quranText, hintLetters) {
         if (loadedSettings == null || arabicLookup == null) {
             null
         } else {
@@ -83,6 +87,7 @@ internal fun rememberLineViewResources(dependencies: DuasDependencies): LineView
                 fontCache = fontCache,
                 arabicFamily = arabicLookup.family,
                 quranText = dependencies.quranText,
+                hintLetters = hintLetters,
             )
         }
     }
@@ -118,6 +123,7 @@ internal fun DuaLineView(
             settings = settings,
             fontCache = resources.fontCache,
             wordStates = highlights.wordStates,
+            hintLetters = resources.hintLetters,
             focusedWord = highlights.focusedWord,
             dimmedWords = if (showDuaOnly) emptySet() else dimmedWordsOf(card),
             tappableWords = tappableWordsOf(blocks, highlights),

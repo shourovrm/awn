@@ -29,6 +29,7 @@ import app.awn.quran.feature.duas.data.DuaProgress
 import app.awn.quran.feature.duas.data.DuaProgressStore
 import app.awn.quran.feature.duas.recite.DuaRecitation
 import app.awn.quran.feature.recite.RecitationPhase
+import app.awn.quran.feature.recite.ReciteHint
 import app.awn.quran.feature.recite.SpeechState
 import app.awn.quran.player.fakes.FakeAudioPlayer
 import app.awn.quran.tracker.WordProblem
@@ -239,9 +240,14 @@ class FakeDuaRecitation : DuaRecitation {
     override val wordProblems = MutableStateFlow<Map<WordKey, WordProblem>>(emptyMap())
     override val phase = MutableStateFlow(RecitationPhase.Idle)
     override val speechState: MutableStateFlow<SpeechState> = MutableStateFlow(SpeechState.Ready)
+    override val hint = MutableStateFlow<ReciteHint?>(null)
+    override val currentWord = MutableStateFlow<WordKey?>(null)
+    override val hintEnabled: Flow<Boolean> = MutableStateFlow(true)
 
     val begun = mutableListOf<Pair<List<AyahRef>, Boolean>>()
     val hideCalls = mutableListOf<Boolean>()
+    val revealWordCalls = mutableListOf<Boolean>()
+    var revealAyahCount = 0
     var startCount = 0
     var stopCount = 0
     var endCount = 0
@@ -262,6 +268,14 @@ class FakeDuaRecitation : DuaRecitation {
 
     override fun setHideWords(hide: Boolean) {
         hideCalls += hide
+    }
+
+    override fun revealNextWord(showsFirstLetterFirst: Boolean) {
+        revealWordCalls += showsFirstLetterFirst
+    }
+
+    override fun revealAyah() {
+        revealAyahCount++
     }
 
     override fun end() {

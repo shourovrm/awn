@@ -50,6 +50,7 @@ internal class RecitePanelState(
     /** Clean recitations so far, as stored. */
     val cleanCount: Int,
     val isHidingWords: Boolean,
+    val reveal: DuaRevealState,
 )
 
 /** What the buttons of the Recite panel do. */
@@ -57,6 +58,8 @@ internal class RecitePanelActions(
     val onToggleHideWords: () -> Unit,
     val onStartMicrophone: () -> Unit,
     val onStopMicrophone: () -> Unit,
+    val onRevealNextWord: () -> Unit,
+    val onRevealAyah: () -> Unit,
 )
 
 /** The Recite controls: the eye button, the state of the recitation and the microphone button. */
@@ -87,6 +90,13 @@ internal fun RecitePanel(
             tint = field.content,
             modifier = Modifier.testTag(RECITE_HIDE_TAG),
         )
+        if (state.isHidingWords) {
+            DuaRevealButtons(
+                state = state.reveal,
+                onRevealNextWord = actions.onRevealNextWord,
+                onRevealAyah = actions.onRevealAyah,
+            )
+        }
         Column(Modifier.weight(1f).padding(horizontal = AwnSpacing.small)) {
             ReciteStatusLines(state)
         }
