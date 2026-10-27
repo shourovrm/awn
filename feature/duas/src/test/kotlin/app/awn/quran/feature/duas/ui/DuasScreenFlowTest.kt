@@ -63,7 +63,7 @@ class DuasScreenFlowTest {
         show()
 
         composeRule.onNodeWithText("Good in this world and the next").performClick()
-        waitForText("1 of 2")
+        waitForText("1/2")
         composeRule.onNodeWithText("Al-Baqarah 2:201").assertIsDisplayed()
 
         pressBack()
@@ -78,7 +78,7 @@ class DuasScreenFlowTest {
 
         composeRule.onNodeWithText("Ten short duas to start").performClick()
 
-        waitForText("1 of 1")
+        waitForText("1/1")
     }
 
     @Test
@@ -106,7 +106,7 @@ class DuasScreenFlowTest {
     fun savingADuaChangesTheButtonAndTheSavedFilterFindsIt() {
         show()
         composeRule.onNodeWithText("Good in this world and the next").performClick()
-        waitForText("1 of 2")
+        waitForText("1/2")
 
         composeRule.onNodeWithContentDescription("Save dua").performClick()
         composeRule.waitUntil(WAIT_MILLIS) {

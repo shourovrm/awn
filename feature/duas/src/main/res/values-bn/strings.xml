@@ -28,7 +28,7 @@
     <item quantity="other">%1$s · %2$dটি শেখা</item>
   </plurals>
 
-  <string name="duas_position">%2$dটির মধ্যে %1$d</string>
+  <string name="duas_position">%1$d/%2$d</string>
   <string name="duas_save">দুআ সংরক্ষণ করুন</string>
   <string name="duas_unsave">সংরক্ষিত থেকে সরান</string>
   <string name="duas_search_button">দুআ খুঁজুন</string>

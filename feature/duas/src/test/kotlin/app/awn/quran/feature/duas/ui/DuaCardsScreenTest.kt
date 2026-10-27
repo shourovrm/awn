@@ -128,7 +128,7 @@ class DuaCardsScreenTest {
         show()
 
         composeRule.onNodeWithText("Good in this world and the next").assertIsDisplayed()
-        composeRule.onNodeWithText("1 of 2").assertIsDisplayed()
+        composeRule.onNodeWithText("1/2").assertIsDisplayed()
     }
 
     @Test
@@ -180,7 +180,7 @@ class DuaCardsScreenTest {
     fun aDuaThatFillsItsAyahsHasNoShowDuaOnlyLink() {
         show(startIndex = 1)
 
-        composeRule.onNodeWithText("2 of 2").assertIsDisplayed()
+        composeRule.onNodeWithText("2/2").assertIsDisplayed()
         composeRule.onNodeWithText("Show dua only").assertDoesNotExist()
         composeRule.onNodeWithText("Open in the Mushaf").assertIsDisplayed()
     }
@@ -297,7 +297,7 @@ class DuaCardsScreenTest {
         composeRule.onRoot().performTouchInput { swipeLeft() }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("2 of 2").assertIsDisplayed()
+        composeRule.onNodeWithText("2/2").assertIsDisplayed()
         assertTrue(environment.audioPlayer.stopCalls >= 1)
     }
 

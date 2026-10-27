@@ -60,7 +60,7 @@ class TopicsScreenTest {
         composeRule.onNodeWithText("Go through all 2 ayahs").assertIsDisplayed()
         composeRule.onNodeWithText("Be good to your parents").performClick()
 
-        waitForText("1 of 1")
+        waitForText("1/1")
         composeRule.onNodeWithText("Parents · Be good to your parents").assertIsDisplayed()
     }
 
@@ -71,7 +71,7 @@ class TopicsScreenTest {
         composeRule.onNodeWithText("Parents").performClick()
         composeRule.onNodeWithTag(TOPIC_ALL_TAG).performClick()
 
-        waitForText("1 of 2")
+        waitForText("1/2")
     }
 
     @Test
