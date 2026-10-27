@@ -235,3 +235,4 @@
 2026-10-25 | Held word refitted on closing, not stored | the 64-phoneme trim left stored positions past the end (crash)
 2026-10-25 | Last consonant must match itself to end a word | any next sound substituted for it and passed
 2026-10-25 | Next page follows the current word's page | an ayah over a page break showed no Next page on its second page
+2026-10-27 | Voice search lists every ayah within 85% of the best, up to 100 | a fragment ties many ayahs; a fixed 3 hid them (tracker.md)

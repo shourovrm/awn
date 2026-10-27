@@ -69,6 +69,100 @@ class AyahFinderAccuracyTest {
         return topThreeShares
     }
 
+    /**
+     * Measures [AyahFinder.findAll] on every clip at 5 s, at 3 s and as a fragment that starts
+     * mid-ayah, then prints one summary. It asserts only that clips were measured, so accuracy
+     * never fails the build; the printed numbers are the measurement.
+     */
+    @Test
+    fun findAllListsAreMeasuredOnClipsAndFragments() {
+        assumeTrue(TestPaths.fixturesAvailable())
+        val recordings = fixtureRecordings()
+        val measurements = FIND_ALL_VARIANTS.flatMap { variant ->
+            recordings.map { (file, recording) -> measureClip(file, variant, recording) }
+        }
+        printFindAllSummary(recordings.size, measurements)
+        assertTrue("no clips were measured", measurements.isNotEmpty())
+    }
+
+    private fun fixtureRecordings(): List<Pair<File, PhonemeRecording>> =
+        FIXTURE_DIRECTORIES.flatMap { directoryName ->
+                val directory = File(TestPaths.fixturesDirectory, directoryName)
+                directory.listFiles { file -> file.extension == "wav" }.orEmpty().sorted()
+            }
+            .map { file -> file to RecordingDecoder.decode(file) }
+
+    private fun measureClip(
+        file: File,
+        variant: ClipVariant,
+        recording: PhonemeRecording,
+    ): FindAllMeasurement {
+        val expected = expectedAyahOf(file)
+        val heard =
+            recording.allEvents
+                .filter { event -> isInsideVariant(event.onsetSeconds, variant) }
+                .map { event -> event.symbol }
+        val matches = finder.findAll(heard)
+        val rankIndex = matches.indexOfFirst { match -> (match.surah to match.ayah) == expected }
+        return FindAllMeasurement(
+            clip = "${file.parentFile.name}/${file.name}",
+            variant = variant.name,
+            rank = if (rankIndex < 0) -1 else rankIndex + 1,
+            bestScore = matches.firstOrNull()?.score ?: 0,
+            rightScore = matches.getOrNull(rankIndex)?.score ?: -1,
+            heardPhonemes = heard.size,
+            listLength = matches.size,
+        )
+    }
+
+    private fun isInsideVariant(onsetSeconds: Float, variant: ClipVariant): Boolean =
+        onsetSeconds >= variant.startSeconds && onsetSeconds < variant.endSeconds
+
+    private fun printFindAllSummary(clipCount: Int, measurements: List<FindAllMeasurement>) {
+        println("findAll summary: $clipCount clips, ${measurements.size} measurements")
+        for (variant in FIND_ALL_VARIANTS) {
+            val rows = measurements.filter { it.variant == variant.name }
+            val hitCount = rows.count { it.rank > 0 }
+            val listLengths = rows.map { it.listLength }
+            println(
+                "  %s: hit rate %.2f (%d of %d), mean list %.1f, max list %d"
+                    .format(
+                        variant.name,
+                        hitCount.toDouble() / rows.size,
+                        hitCount,
+                        rows.size,
+                        listLengths.average(),
+                        listLengths.maxOrNull() ?: 0,
+                    ),
+            )
+        }
+        println(
+            "clip,variant,rank_of_right_ayah_or_-1,best_score,right_score," +
+                "heard_phonemes,list_length",
+        )
+        for (row in measurements) {
+            println(
+                "${row.clip},${row.variant},${row.rank},${row.bestScore}," +
+                    "${row.rightScore},${row.heardPhonemes},${row.listLength}",
+            )
+        }
+    }
+
+    // A heard phoneme counts when its onset falls in [startSeconds, endSeconds).
+    private data class ClipVariant(val name: String, val startSeconds: Float, val endSeconds: Float)
+
+    // rank is 1-based within the findAll list, -1 when the right ayah is not listed. rightScore is
+    // -1 in the same case, because findAll does not return scores of dropped ayahs.
+    private data class FindAllMeasurement(
+        val clip: String,
+        val variant: String,
+        val rank: Int,
+        val bestScore: Int,
+        val rightScore: Int,
+        val heardPhonemes: Int,
+        val listLength: Int,
+    )
+
     private fun expectedAyahOf(file: File): Pair<Int, Int> {
         val name = file.nameWithoutExtension
         return name.take(SURAH_DIGITS).toInt() to name.drop(SURAH_DIGITS).take(SURAH_DIGITS).toInt()
@@ -79,5 +173,12 @@ class AyahFinderAccuracyTest {
         const val SURAH_DIGITS = 3
         const val MISSES_SHOWN = 10
         const val NANOS_PER_MILLI = 1_000_000L
+        val FIXTURE_DIRECTORIES = listOf("ayah", "search")
+        val FIND_ALL_VARIANTS =
+            listOf(
+                ClipVariant("5s", 0f, 5f),
+                ClipVariant("3s", 0f, 3f),
+                ClipVariant("fragment", 1.5f, 4.5f),
+            )
     }
 }

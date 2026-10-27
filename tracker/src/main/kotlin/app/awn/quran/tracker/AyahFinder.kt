@@ -39,7 +39,23 @@ private constructor(
      * The [limit] best ayahs for [heardSymbols] (model token symbols, in order), best first. Empty
      * when too little was heard or nothing matches closely enough to be worth showing.
      */
-    fun find(heardSymbols: List<String>, limit: Int = DEFAULT_LIMIT): List<AyahMatch> {
+    fun find(heardSymbols: List<String>, limit: Int = DEFAULT_LIMIT): List<AyahMatch> =
+        rankedAboveMinimum(heardSymbols).take(limit)
+
+    /**
+     * Every ayah close enough to the best match for [heardSymbols] to be a candidate: each ayah
+     * scoring at least [RELATIVE_CUTOFF_SHARE] of the best, equal scores in Quran order, at most
+     * [MAXIMUM_RESULTS]. Empty when [find] would be empty.
+     */
+    fun findAll(heardSymbols: List<String>): List<AyahMatch> {
+        val ranked = rankedAboveMinimum(heardSymbols)
+        val bestScore = ranked.firstOrNull()?.score ?: return emptyList()
+        val cutoffScore = bestScore * RELATIVE_CUTOFF_SHARE
+        return ranked.filter { match -> match.score >= cutoffScore }.take(MAXIMUM_RESULTS)
+    }
+
+    // Every ayah that clears the minimum score, best first; equal scores keep Quran order.
+    private fun rankedAboveMinimum(heardSymbols: List<String>): List<AyahMatch> {
         val heard = heardIdsOf(heardSymbols)
         if (heard.size < MINIMUM_HEARD_PHONEMES) return emptyList()
         val bestByAyah = bestAlignmentByAyah(heard)
@@ -48,7 +64,6 @@ private constructor(
         return bestScoreByAyah.indices
             .filter { ayahIndex -> bestScoreByAyah[ayahIndex] >= minimumScore }
             .sortedByDescending { ayahIndex -> bestScoreByAyah[ayahIndex] }
-            .take(limit)
             .map { ayahIndex ->
                 val (surah, ayah) = ayahKeys[ayahIndex]
                 matchOf(surah, ayah, ayahIndex, bestByAyah)
@@ -148,6 +163,14 @@ private constructor(
 
         // A match must be worth at least this share of a perfect match of everything heard.
         private const val MINIMUM_SCORE_SHARE = 0.4
+
+        // A fragment ties with every ayah that shares its phonemes, so ayahs close to the best are
+        // kept; a lower share lists ayahs that only share a phrase. To be tuned on
+        // AyahFinderAccuracyTest.
+        private const val RELATIVE_CUTOFF_SHARE = 0.85
+
+        // A fragment can tie with hundreds of ayahs; the cap keeps the list and the screen bounded.
+        const val MAXIMUM_RESULTS = 100
 
         // Worth about two matched phonemes: enough to break a tie, too little to beat a better
         // match.

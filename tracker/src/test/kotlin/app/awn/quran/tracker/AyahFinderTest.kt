@@ -122,6 +122,67 @@ class AyahFinderTest {
         assertEquals(1 to 2, matches.first().surah to matches.first().ayah)
     }
 
+    @Test
+    fun findAllReturnsOneMatchForAClearRecitation() {
+        val matches = finder.findAll(heard("mnopqrstuvwx"))
+
+        assertEquals(listOf(1 to 2), matches.map { it.surah to it.ayah })
+    }
+
+    @Test
+    fun findAllKeepsEveryAyahThatTiesForTheBestInQuranOrder() {
+        // Three ayahs open with the same phrase, so a recitation of only that phrase ties them.
+        val reference =
+            FakeReference(
+                mapOf(
+                    (1 to 1) to listOf("abcdef", "ghijkl"),
+                    (1 to 2) to listOf("abcdef", "ghijkl"),
+                    (1 to 3) to listOf("abcdef", "ghijkl"),
+                    (1 to 4) to listOf("mnopqr", "stuvwx"),
+                ),
+            )
+
+        val matches = AyahFinder.from(reference, surahCount = 1).findAll(heard("abcdefghijkl"))
+
+        assertEquals(listOf(1 to 1, 1 to 2, 1 to 3), matches.map { it.surah to it.ayah })
+    }
+
+    @Test
+    fun findAllLeavesOutAnAyahBelowTheCutoffShareOfTheBest() {
+        // 1:2 shares only its first word with the recitation, so it scores well under 85% of 1:1.
+        val reference =
+            FakeReference(
+                mapOf(
+                    (1 to 1) to listOf("abcdef", "ghijkl"),
+                    (1 to 2) to listOf("abcdef", "xyzxyz"),
+                ),
+            )
+
+        val matches = AyahFinder.from(reference, surahCount = 1).findAll(heard("abcdefghijkl"))
+
+        assertEquals(listOf(1 to 1), matches.map { it.surah to it.ayah })
+    }
+
+    @Test
+    fun findAllNeverReturnsMoreThanTheMaximum() {
+        // One more identical ayah than the cap, so every ayah ties for the best.
+        val identicalAyahs =
+            (1..AyahFinder.MAXIMUM_RESULTS + 1).associate { ayah ->
+                (1 to ayah) to listOf("abcdef", "ghijkl")
+            }
+
+        val matches =
+            AyahFinder.from(FakeReference(identicalAyahs), surahCount = 1)
+                .findAll(heard("abcdefghijkl"))
+
+        assertEquals(AyahFinder.MAXIMUM_RESULTS, matches.size)
+    }
+
+    @Test
+    fun findAllFindsNothingWhenTooFewPhonemesWereHeard() {
+        assertTrue(finder.findAll(heard("abc")).isEmpty())
+    }
+
     private class FakeReference(private val words: Map<Pair<Int, Int>, List<String>>) :
         ReferencePhonemes {
         override fun forAyah(surah: Int, ayah: Int): List<ReferenceWord> =
