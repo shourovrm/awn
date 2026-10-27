@@ -11,6 +11,7 @@ import app.awn.quran.feature.learn.course.LessonCourse
 import app.awn.quran.feature.learn.course.LessonText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +22,25 @@ import org.robolectric.RobolectricTestRunner
 class LessonContentTest {
 
     private val assets = ApplicationProvider.getApplicationContext<Context>().assets
+
+    /**
+     * A lesson without Bangla text falls back to its English text, which then shows inside the
+     * Bangla app, such as a Grammar track row reading "Reading direction".
+     */
+    @Test
+    fun everyLessonHasBanglaText() {
+        val content = CourseContentReader.read(assets)
+
+        LessonCourse.entries.forEach { course ->
+            content.inCourse(course).forEach { unit ->
+                assertNotSame(
+                    "${unit.id} has no Bangla text",
+                    unit.text("en"),
+                    unit.text("bn"),
+                )
+            }
+        }
+    }
 
     /**
      * The live feedback judges skipped words, substituted letters and madd length only, so no
