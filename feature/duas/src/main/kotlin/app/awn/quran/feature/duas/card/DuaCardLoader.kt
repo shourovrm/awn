@@ -10,7 +10,7 @@ import app.awn.quran.feature.duas.ui.cardWords
 
 /** What the cards are read for: which translation to show and in which language. */
 data class CardRequest(
-    /** The first translation ticked in the Quran screen's settings, or null when none is ticked. */
+    /** The ticked translation chosen by `chooseCardTranslation`, or null when none is ticked. */
     val translationId: TranslationId?,
     /** The app language, "en" or "bn". */
     val language: String,

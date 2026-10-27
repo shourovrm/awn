@@ -80,16 +80,29 @@ class DuasViewModelTest {
     }
 
     @Test
-    fun theFirstTickedTranslationIsTheOneShown() {
+    fun theTickedTranslationInTheAppLanguageIsShownBeforeAnEarlierOne() {
         val environment =
             DuasTestEnvironment(
                 translationsTicked =
                     listOf(TranslationId("bn_missing"), DuasFixtures.englishTranslation),
             )
 
-        // The first ticked pack has no text for the ayah, so nothing is shown rather than a
-        // second translation the user did not put first.
-        assertNull(viewModel(environment).state.value.cards.getValue("d1").translation)
+        // The app language is English by default, so the ticked English pack is shown even
+        // though a Bangla pack is ticked first.
+        val card = viewModel(environment).state.value.cards.getValue("d1")
+        assertEquals("Our Lord, give us good in this world.", card.translation)
+    }
+
+    @Test
+    fun withNoTickedTranslationInTheAppLanguageTheFirstTickedOneIsShown() {
+        val environment =
+            DuasTestEnvironment(translationsTicked = listOf(DuasFixtures.englishTranslation))
+        val model = viewModel(environment)
+
+        model.onLanguageChanged("bn")
+
+        val card = model.state.value.cards.getValue("d1")
+        assertEquals("Our Lord, give us good in this world.", card.translation)
     }
 
     @Test

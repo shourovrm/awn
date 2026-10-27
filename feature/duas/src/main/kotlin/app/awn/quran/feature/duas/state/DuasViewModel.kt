@@ -7,6 +7,7 @@ import app.awn.quran.feature.duas.DuasDependencies
 import app.awn.quran.feature.duas.PronunciationState
 import app.awn.quran.feature.duas.card.CardRequest
 import app.awn.quran.feature.duas.card.DuaCardLoader
+import app.awn.quran.feature.duas.card.chooseCardTranslation
 import app.awn.quran.feature.duas.content.Dua
 import app.awn.quran.feature.duas.content.DuaCatalogue
 import app.awn.quran.feature.duas.content.DuaSearch
@@ -82,9 +83,12 @@ class DuasViewModel(
     // when either changes.
     private suspend fun keepCardsCurrent() {
         val catalogues = mutableState.map { it.catalogue }.filterNotNull().distinctUntilChanged()
-        val firstTranslation =
-            dependencies.enabledTranslations.map { it.firstOrNull() }.distinctUntilChanged()
-        combine(catalogues, firstTranslation, language) { catalogue, translationId, appLanguage ->
+        val cardTranslation =
+            combine(dependencies.enabledTranslations, language) { translationIds, appLanguage ->
+                    chooseCardTranslation(translationIds, appLanguage)
+                }
+                .distinctUntilChanged()
+        combine(catalogues, cardTranslation, language) { catalogue, translationId, appLanguage ->
                 catalogue to CardRequest(translationId, appLanguage)
             }
             .collectLatest { (catalogue, request) ->
