@@ -83,3 +83,4 @@ captures/
 
 # Browser automation scratch
 .playwright-mcp/
+.impeccable/
