@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
@@ -199,8 +198,9 @@ private fun WordCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier =
             taggedModifier
-                .clip(AwnShapes.wordBlock)
-                .background(fill)
+                // Not clip(): tall page-font marks (the dhamma over an Alif) rise above the line
+                // box.
+                .background(fill, AwnShapes.wordBlock)
                 .then(focusModifier)
                 .onGloballyPositioned { coordinatesHolder.coordinates = it },
     ) {
