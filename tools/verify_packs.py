@@ -40,6 +40,9 @@ WORD_FILES = [pack["id"] for pack in pack_catalogue.WORD_PACKS]
 WORD_TRANSLITERATION_FILES = ["en_transliteration_words"]
 TIMING_FILES = {reciter["id"]: "word" for reciter in reciter_catalogue.RECITERS if reciter["quran_com_recitation_id"]}
 TIMING_FILES["basfar"] = "ayah"
+# Whole-surah packs carry ayah timings and byte ranges only; their segment table is empty.
+TIMING_FILES.update({reciter["id"]: "ayah" for reciter in reciter_catalogue.RECITERS if reciter_catalogue.is_gapless(reciter)})
+GAPLESS_FILES = {reciter["id"] for reciter in reciter_catalogue.RECITERS if reciter_catalogue.is_gapless(reciter)}
 FONT_SCRIPTS = ["qpc-hafs", "indopak", "v1", "v2", "v4-tajweed"]
 SINGLE_FILE_FONTS = ("qpc-hafs", "indopak")
 INDOPAK_LAYOUTS = {"15": (610, 15), "16": (548, 16)}  # suffix -> (pages, lines per page)
@@ -294,6 +297,46 @@ def verify_tajweed(word_counts):
     connection.close()
 
 
+def verify_whole_surah_audio(connection, stem):
+    """A gapless pack: each ayah row names its surah file and offset_ms is the ayah's start in that file."""
+    check(scalar(connection, "SELECT COUNT(*) FROM ayah_audio WHERE url NOT LIKE '%/' || printf('%03d', surah) || '.mp3'") == 0,
+          f"{stem} urls end in SSS.mp3 for their surah")
+    check(scalar(connection, "SELECT COUNT(*) FROM (SELECT surah FROM ayah_audio GROUP BY surah HAVING COUNT(DISTINCT url) <> 1)") == 0,
+          f"{stem} has one url per surah")
+    check(scalar(connection, """
+        SELECT COUNT(*) FROM ayah_audio a JOIN ayah_audio b
+        ON a.surah = b.surah AND b.ayah = a.ayah + 1 WHERE b.offset_ms <= a.offset_ms""") == 0,
+          f"{stem} offset_ms strictly increases within a surah")
+    check(scalar(connection, """
+        SELECT COUNT(*) FROM ayah_audio a
+        WHERE (a.duration_ms IS NULL) <> NOT EXISTS (SELECT 1 FROM ayah_audio b WHERE b.surah = a.surah AND b.ayah = a.ayah + 1)""") == 0,
+          f"{stem} duration_ms is NULL only for the last ayah of each surah")
+    verify_ayah_bytes(connection, stem)
+
+
+def verify_ayah_bytes(connection, stem):
+    """The frame positions of each ayah, measured by walking the surah files (tools/walk_mp3_frames.py)."""
+    tables = {name for (name,) in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    if "ayah_bytes" not in tables:
+        check(False, f"{stem} has an ayah_bytes table")
+        return
+    check(scalar(connection, "SELECT COUNT(*) FROM ayah_bytes") == AYAHS, f"{stem} has 6236 ayah_bytes rows")
+    check(scalar(connection, """
+        SELECT COUNT(*) FROM ayah_bytes a JOIN ayah_bytes b
+        ON a.surah = b.surah AND b.ayah = a.ayah + 1 WHERE b.start_byte <= a.start_byte""") == 0,
+          f"{stem} start_byte strictly increases within a surah")
+    check(scalar(connection, """
+        SELECT COUNT(*) FROM ayah_bytes JOIN ayah_audio USING (surah, ayah)
+        WHERE ayah_bytes.start_byte_ms > ayah_audio.offset_ms""") == 0,
+          f"{stem} start_byte_ms is at most offset_ms")
+    check(scalar(connection, "SELECT COUNT(*) FROM ayah_bytes WHERE end_byte IS NOT NULL AND end_byte <= start_byte") == 0,
+          f"{stem} end_byte lies after start_byte")
+    check(scalar(connection, """
+        SELECT COUNT(*) FROM ayah_bytes a
+        WHERE (a.end_byte IS NULL) <> NOT EXISTS (SELECT 1 FROM ayah_bytes b WHERE b.surah = a.surah AND b.ayah = a.ayah + 1)""") == 0,
+          f"{stem} end_byte is NULL only for the last ayah of each surah")
+
+
 def verify_timings(word_counts):
     for stem, granularity in TIMING_FILES.items():
         connection = open_pack("timings", stem + ".sqlite")
@@ -302,8 +345,11 @@ def verify_timings(word_counts):
         check(scalar(connection, "SELECT COUNT(*) FROM ayah_audio") == AYAHS, f"{stem} has 6236 ayah_audio rows")
         check(scalar(connection, "SELECT COUNT(*) FROM ayah_audio WHERE url NOT LIKE 'https://%' OR duration_ms <= 0") == 0,
               f"{stem} ayah_audio has https urls and no non-positive duration")
-        expected_name = "SELECT COUNT(*) FROM ayah_audio WHERE url NOT LIKE '%/' || printf('%03d%03d', surah, ayah) || '.mp3'"
-        check(scalar(connection, expected_name) == 0, f"{stem} urls end in SSSAAA.mp3 for their ayah")
+        if stem in GAPLESS_FILES:
+            verify_whole_surah_audio(connection, stem)
+        else:
+            expected_name = "SELECT COUNT(*) FROM ayah_audio WHERE url NOT LIKE '%/' || printf('%03d%03d', surah, ayah) || '.mp3'"
+            check(scalar(connection, expected_name) == 0, f"{stem} urls end in SSSAAA.mp3 for their ayah")
         info = dict(connection.execute("SELECT key, value FROM pack_info"))
         check(info.get("granularity") == granularity, f"{stem} granularity is {granularity}-level")
         segments = scalar(connection, "SELECT COUNT(*) FROM segment")
@@ -396,6 +442,9 @@ def verify_manifests():
             flags = {e["id"]: e["word_by_word"] for e in entries}
             expected_flags = {r["id"]: r["quran_com_recitation_id"] is not None for r in reciter_catalogue.RECITERS}
             check(flags == expected_flags, "reciters.json word_by_word flags follow the catalogue")
+            gapless = [e for e in entries if e["id"] in GAPLESS_FILES]
+            check(all(not e["word_by_word"] and e["ayah_url_pattern"] is None and e["timing_pack"] for e in gapless),
+                  "gapless reciters have ayah timings, not word_by_word, surah files only and a timing pack")
             check(all(e["quranicaudio_path"] and e["surah_url_pattern"] for e in entries),
                   "every reciter has a QuranicAudio path and surah url pattern")
             check(all(e["timing_pack"] == (e["id"] if e["file"] else None) for e in entries),

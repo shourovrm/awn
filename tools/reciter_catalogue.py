@@ -49,7 +49,13 @@ RECITERS = [
     dict(id="basfar", name="Abdullah Basfar", style="murattal", quranicaudio_id=2,
          quranicaudio_path="abdullaah_basfar/", everyayah_folder="Abdullah_Basfar_192kbps", quran_com_recitation_id=None,
          alternative_everyayah_folders=[{"folder": "Abdullah_Basfar_64kbps", "base_url": "https://everyayah.com/data"}]),
-    # Raad Mohammad al-Kurdi (quranicaudio_id 168) was removed: whole-surah audio only, so an ayah would play from the surah start; re-add when ayah start times exist.
+    # Whole-surah files only. Ayah start times come from Quran for Android's published timing database
+    # (gapless_timing_db, zip at gapless_timing_url); the database states no licence, and the user accepted
+    # its use on 2026-10-27.
+    dict(id="raad_al_kurdi", name="Raad Mohammad al-Kurdi", style="murattal", quranicaudio_id=168,
+         quranicaudio_path="raad_mohammad_al_kurdi/mp3/", everyayah_folder=None, quran_com_recitation_id=None,
+         gapless_timing_db="raad_al_kurdi",
+         gapless_timing_url="https://files.quran.app/hafs/databases/audio/raad_al_kurdi.zip"),
     # New in the second catalogue.
     dict(id="sudais", name="Abdur-Rahman as-Sudais", style="murattal", quranicaudio_id=7,
          quranicaudio_path="abdurrahmaan_as-sudays/", everyayah_folder="Abdurrahmaan_As-Sudais_192kbps", quran_com_recitation_id=3),
@@ -110,6 +116,11 @@ RECITERS = [
 ]
 
 PROBE_FILE = os.path.join(quran_com.DATA_ROOT, "reciter_probe.json")
+
+
+def is_gapless(reciter):
+    """True for a reciter whose audio is one file per surah and whose timing pack holds ayah start offsets into it."""
+    return reciter.get("gapless_timing_db") is not None
 
 
 def head_length(url):
