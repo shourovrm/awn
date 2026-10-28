@@ -24,7 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -61,10 +62,10 @@ private const val TENTHS_PER_PERCENT = 10.0
 private val CHART_MAXIMUM_HEIGHT = AwnSpacing.coverageChartHeight
 // A landscape phone is about 360 dp high; this share of the screen keeps bars above the fold.
 private const val CHART_SCREEN_HEIGHT_SHARE = 0.4f
-private val CHART_MINIMUM_HEIGHT = 120.dp
+private val CHART_MINIMUM_HEIGHT = AwnSpacing.huge * 2.5f
 private val BAR_CORNER = 4.dp
 // Keeps a short-number column (100) wide enough that its bar does not look like a sliver.
-private val BAR_MINIMUM_WIDTH = 28.dp
+private val BAR_MINIMUM_WIDTH = AwnSpacing.large + AwnSpacing.small / 2
 
 internal fun buildCourseProgress(
     wordsMet: Int,
@@ -160,7 +161,8 @@ private fun CoverageBarChart(progress: CourseProgress) {
  */
 @Composable
 private fun responsiveChartHeight(): Dp {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val windowHeightPixels = LocalWindowInfo.current.containerSize.height
+    val screenHeight = with(LocalDensity.current) { windowHeightPixels.toDp() }
     return (screenHeight * CHART_SCREEN_HEIGHT_SHARE).coerceIn(
         CHART_MINIMUM_HEIGHT,
         CHART_MAXIMUM_HEIGHT,
