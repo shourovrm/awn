@@ -37,13 +37,13 @@ internal class ApkDownloader(
         onPercent: (Int) -> Unit,
     ): File {
         val target = File(directory, "awn-$versionName.apk")
-        val expectedHash = expectedHashOf(release, apk)
         var isComplete = false
         try {
             withContext(Dispatchers.IO) {
+                val expectedHash = expectedHashOf(release, apk)
                 directory.mkdirs()
                 copyToFile(apk, target, onPercent)
-                if (expectedHash != null && sha256Hex(target) != expectedHash) {
+                if (sha256Hex(target) != expectedHash) {
                     throw ChecksumMismatchException(apk.name)
                 }
             }
@@ -55,11 +55,10 @@ internal class ApkDownloader(
         return target
     }
 
-    private suspend fun expectedHashOf(release: AppRelease, apk: ReleaseAsset): String? {
-        val checksums =
-            release.assets.firstOrNull { it.name == CHECKSUMS_ASSET_NAME } ?: return null
-        return expectedChecksum(releaseClient.fetchText(checksums.downloadUrl), apk.name)
-            ?: throw IOException("${apk.name} is not listed in $CHECKSUMS_ASSET_NAME")
+    private suspend fun expectedHashOf(release: AppRelease, apk: ReleaseAsset): String {
+        val checksums = release.assets.firstOrNull { it.name == CHECKSUMS_ASSET_NAME }
+        val checksumText = checksums?.let { releaseClient.fetchText(it.downloadUrl) }
+        return requiredChecksum(checksumText, apk.name)
     }
 
     private suspend fun copyToFile(apk: ReleaseAsset, target: File, onPercent: (Int) -> Unit) {

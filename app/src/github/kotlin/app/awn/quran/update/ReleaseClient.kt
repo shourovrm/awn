@@ -10,7 +10,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-private const val RELEASES_URL = "https://api.github.com/repos/shourovrm/awn/releases?per_page=10"
+private const val RELEASES_URL = "https://api.github.com/repos/shourovrm/awn/releases?per_page=30"
+
+/** GitHub answered with an error status, such as 403 when the hourly request limit is used up. */
+internal class HttpStatusException(url: String, val statusCode: Int) :
+    IOException("$url answered $statusCode")
 
 /** Reads the release list and small text files from GitHub. */
 internal class ReleaseClient(private val httpClient: OkHttpClient) {
@@ -30,7 +34,7 @@ internal class ReleaseClient(private val httpClient: OkHttpClient) {
     private suspend fun fetchText(request: Request): String =
         httpClient.newCall(request).await().use { response ->
             if (!response.isSuccessful)
-                throw IOException("${request.url} answered ${response.code}")
+                throw HttpStatusException(request.url.toString(), response.code)
             response.body.string()
         }
 }
@@ -45,7 +49,7 @@ internal suspend fun Call.await(): Response = suspendCancellableCoroutine { cont
             }
 
             override fun onResponse(call: Call, response: Response) {
-                continuation.resume(response)
+                continuation.resume(response) { _, value, _ -> value.close() }
             }
         },
     )

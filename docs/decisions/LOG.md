@@ -237,4 +237,4 @@
 2026-10-25 | Next page follows the current word's page | an ayah over a page break showed no Next page on its second page
 2026-10-27 | Voice search lists every ayah within 85% of the best, up to 100 | a fragment ties many ayahs; a fixed 3 hid them (tracker.md)
 2026-10-27 | Raad al-Kurdi removed from the reciter list; Minshawi is the default | user: surah-only audio with no ayah times (re-add when they exist)
-2026-10-28 | In-app update check lives in the github flavor only (app/src/github, About row) | Play must not hold REQUEST_INSTALL_PACKAGES; Wi-Fi only gates the APK, not the check
+2026-10-28 | In-app update check lives in the github flavor only (app/src/github, About row) | Play must not hold REQUEST_INSTALL_PACKAGES; Wi-Fi only gates the APK; SHA256SUMS.txt is required, else no install

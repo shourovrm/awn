@@ -1,5 +1,6 @@
 package app.awn.quran.update
 
+import java.io.IOException
 import org.json.JSONArray
 
 /** A file attached to a GitHub release. */
@@ -40,6 +41,16 @@ internal fun expectedChecksum(checksumText: String, fileName: String): String? =
         val name = line.substringAfter(' ').trim().removePrefix("*").removePrefix("./")
         if (name == fileName && hash.isNotEmpty()) hash.lowercase() else null
     }
+
+/**
+ * The checksum of [fileName] that the release promises. A release without a checksum file, or
+ * without a line for the file, is refused: an APK that cannot be checked is not installed.
+ */
+internal fun requiredChecksum(checksumText: String?, fileName: String): String {
+    if (checksumText == null) throw IOException("The release has no $CHECKSUMS_ASSET_NAME")
+    return expectedChecksum(checksumText, fileName)
+        ?: throw IOException("$fileName is not listed in $CHECKSUMS_ASSET_NAME")
+}
 
 /** Reads the body of the GitHub releases list. */
 internal fun parseReleases(json: String): List<AppRelease> {
