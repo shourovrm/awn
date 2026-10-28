@@ -46,7 +46,10 @@ interface AudioDownloads {
         onProgress: (DownloadProgress) -> Unit = {},
     )
 
-    /** True when [reciterId] has one file per ayah; false when it has only whole-surah files. */
+    /**
+     * True when [reciterId] has one file per ayah, or has surah files that are downloaded one ayah
+     * at a time as clips; false when it has only whole-surah files.
+     */
     suspend fun hasAyahFiles(reciterId: String): Boolean = true
 
     /** Returns the bytes of downloaded audio held for [reciterId]. */
