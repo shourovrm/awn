@@ -135,6 +135,11 @@ data class QuranUiState(
      * taps the back-to-playing control, or starts a new playback.
      */
     val isFollowing: Boolean = true,
+    /**
+     * True when [isFollowing] is off only because the reader scrolled a list. The next ayah that
+     * starts turns following back on; a pager drag or another page clears this, so those stay off.
+     */
+    val isFollowPausedByListScroll: Boolean = false,
     /** No audio is playing, paused or downloading; only then do the volume keys turn pages. */
     val isAudioIdle: Boolean = true,
     /** Install state and progress of each printed page type, for the print offer card. */
@@ -472,7 +477,18 @@ class QuranViewModel(
     /** The reader dragged the pager: stop turning pages for the audio until they come back. */
     fun onPagerDragged() {
         pauseReciteFollow()
-        mutableState.update { it.copy(isFollowing = false) }
+        mutableState.update { it.copy(isFollowing = false, isFollowPausedByListScroll = false) }
+    }
+
+    /**
+     * The reader scrolled a list: the list stays where it is during this ayah, and following
+     * resumes when the next ayah starts. A reader who had already stopped following stays stopped.
+     */
+    fun onListScrolled() {
+        pauseReciteFollow()
+        mutableState.update {
+            it.copy(isFollowing = false, isFollowPausedByListScroll = it.isFollowing)
+        }
     }
 
     /**
@@ -486,7 +502,7 @@ class QuranViewModel(
     fun backToPlaying() {
         val state = mutableState.value
         val page = state.playingPage ?: return
-        mutableState.update { it.copy(isFollowing = true) }
+        mutableState.update { it.copy(isFollowing = true, isFollowPausedByListScroll = false) }
         if (page != state.currentPage) {
             showPage(page, barsVisible = state.areBarsVisible)
         } else {
@@ -844,6 +860,7 @@ class QuranViewModel(
                 wordPopup = null,
                 isPageBookmarked = validPage in bookmarkedPages,
                 isFollowing = isFollowingOn(it.isFollowing, it.playingPage, validPage),
+                isFollowPausedByListScroll = false,
                 layouts = keepPagesNear(it.layouts, validPage),
                 contents = keepPagesNear(it.contents, validPage),
             )
@@ -1233,7 +1250,9 @@ class QuranViewModel(
             val playingPage = ayah?.let { pageOfAyah(it) }
             mutablePlayingWord.value = wordPosition
             val hasStarted = previousAyah == null && ayah != null
+            val isNextAyah = ayah != null && ayah != previousAyah
             mutableState.update {
+                val resumesAfterListScroll = isNextAyah && it.isFollowPausedByListScroll
                 it.copy(
                     playingAyah = ayah,
                     isPlaybackPaused = playback is PlaybackState.Paused,
@@ -1245,7 +1264,9 @@ class QuranViewModel(
                             playback !is PlaybackState.Idle &&
                             playback !is PlaybackState.Error,
                     // A new playback is followed from its first ayah, wherever the reader is.
-                    isFollowing = if (hasStarted) true else it.isFollowing,
+                    isFollowing =
+                        if (hasStarted || resumesAfterListScroll) true else it.isFollowing,
+                    isFollowPausedByListScroll = it.isFollowPausedByListScroll && !isNextAyah,
                 )
             }
             if (ayah != null && ayah != previousAyah) followPlayingAyah(playingPage)

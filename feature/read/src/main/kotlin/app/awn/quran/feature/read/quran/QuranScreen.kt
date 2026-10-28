@@ -960,7 +960,7 @@ private fun QuranPager(
                         },
                         onWordTap =
                             listWordTap(viewModel, reciteMarks.problems, onFocusWord, onWordAnchor),
-                        onUserScrolled = viewModel::onPagerDragged,
+                        onUserScrolled = viewModel::onListScrolled,
                     ),
             )
         }

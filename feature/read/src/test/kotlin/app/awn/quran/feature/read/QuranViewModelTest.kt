@@ -273,6 +273,58 @@ class QuranViewModelTest {
     }
 
     @Test
+    fun aListScrollPausesFollowingOnlyUntilTheNextAyah() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        play(AyahRef(1, 5))
+
+        viewModel.onListScrolled()
+        assertFalse(viewModel.state.value.isFollowing)
+        play(AyahRef(1, 5))
+        assertFalse(viewModel.state.value.isFollowing)
+
+        play(AyahRef(1, 6))
+
+        assertTrue(viewModel.state.value.isFollowing)
+        assertFalse(viewModel.state.value.showBackToPlaying)
+    }
+
+    @Test
+    fun aListScrollThenTheNextPageTurnsThePagerToIt() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        play(AyahRef(1, 7))
+        viewModel.onListScrolled()
+
+        play(AyahRef(2, 1))
+
+        assertEquals(2, viewModel.state.value.currentPage)
+        assertTrue(viewModel.state.value.isFollowing)
+    }
+
+    @Test
+    fun aPagerDragAfterAListScrollStaysPausedAcrossAyahs() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        play(AyahRef(1, 5))
+        viewModel.onListScrolled()
+        viewModel.onPagerDragged()
+
+        play(AyahRef(1, 6))
+
+        assertFalse(viewModel.state.value.isFollowing)
+    }
+
+    @Test
+    fun aListScrollWhileNotFollowingDoesNotResumeOnTheNextAyah() = runTest {
+        viewModel.open(QuranTarget.Page(1))
+        play(AyahRef(1, 5))
+        viewModel.onPagerDragged()
+        viewModel.onListScrolled()
+
+        play(AyahRef(1, 6))
+
+        assertFalse(viewModel.state.value.isFollowing)
+    }
+
+    @Test
     fun backToPlayingJumpsToTheAyahAndFollowsAgain() = runTest {
         viewModel.open(QuranTarget.Page(1))
         play(AyahRef(1, 7))
