@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,8 +20,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.GlyphRun
+import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.LocalScatteredFontCache
 import app.awn.quran.core.quranfont.QuranAyahText
 import app.awn.quran.core.quranfont.QuranWordText
+import app.awn.quran.core.quranfont.glyphRunsOfKeys
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnField
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -52,9 +57,22 @@ internal fun RichText(
     val environment = LocalLearnEnvironment.current
     val keys = remember(text, highlight) { LessonMarkup.wordKeys(text) }
     val texts = rememberWordTexts(keys)
+    val print = LocalQuranPrint.current
+    val fontCache = LocalScatteredFontCache.current
+    val isNight = !Awn.field.isLight
+    // Lesson words are drawn in the user's glyph print once their page fonts are loaded.
+    val glyphRuns by
+        produceState(emptyMap<WordKey, GlyphRun>(), keys, print, fontCache, isNight) {
+            value =
+                if (fontCache == null || keys.isEmpty()) {
+                    emptyMap()
+                } else {
+                    glyphRunsOfKeys(keys, print, fontCache, isNight)
+                }
+        }
     val fill = Awn.field.selectedAyahFill
     val annotated =
-        remember(text, texts, highlight, environment, fill, arabicSize) {
+        remember(text, texts, highlight, environment, fill, arabicSize, glyphRuns) {
             LessonMarkup.build(
                 text = text,
                 wordTexts = texts,
@@ -62,6 +80,7 @@ internal fun RichText(
                 arabicSize = arabicSize,
                 highlight = highlight,
                 highlightStyle = SpanStyle(background = fill),
+                glyphRuns = glyphRuns,
             )
         }
     Text(

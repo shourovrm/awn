@@ -7,8 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.awn.quran.core.data.ScriptId
 import app.awn.quran.core.quranfont.LocalQuranPrint
+import app.awn.quran.core.quranfont.LocalScatteredFontCache
 import app.awn.quran.core.quranfont.QuranPrint
 import app.awn.quran.core.quranfont.SharedPageFontCache
+import app.awn.quran.core.quranfont.SharedScatteredFontCache
 import app.awn.quran.feature.read.ReadDependencies
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -40,5 +42,15 @@ internal fun ProvideQuranPrint(dependencies: ReadDependencies, content: @Composa
                 quranText = dependencies.quranText,
             )
         }
-    CompositionLocalProvider(LocalQuranPrint provides print, content = content)
+    // Rows that scatter across many pages (Dua search, lesson words) use this small bounded cache
+    // instead of the reader's cache, so they cannot grow memory like the reader did.
+    val scatteredFontCache =
+        remember(packRevision, dependencies) {
+            SharedScatteredFontCache.obtain(dependencies.packs, packRevision)
+        }
+    CompositionLocalProvider(
+        LocalQuranPrint provides print,
+        LocalScatteredFontCache provides scatteredFontCache,
+        content = content,
+    )
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -15,8 +16,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import app.awn.quran.core.quranfont.ScatteredWordsText
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -38,6 +39,8 @@ internal fun DuaSearchResultRow(
     val field = Awn.field
     val openingLabel = openingLabelResource(card.dua.opening)?.let { stringResource(it) }
     val reference = listOfNotNull(card.reference, openingLabel).joinToString(separator = " · ")
+    // Remembered so the glyph words load once per card, not on every recomposition.
+    val duaWords = remember(card) { card.duaWords }
     Column(
         modifier
             .fillMaxWidth()
@@ -46,12 +49,11 @@ internal fun DuaSearchResultRow(
             .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.small),
     ) {
         Text(text = reference, style = AwnTypography.searchResultReference, color = field.content)
-        Text(
-            text = card.duaArabic,
+        ScatteredWordsText(
+            words = duaWords,
             style = AwnTypography.searchResultArabic.copy(textDirection = TextDirection.Rtl),
             color = field.content,
             maxLines = ARABIC_LINES_SHOWN,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.fillMaxWidth(),
         )
         card.translation?.let { translation ->

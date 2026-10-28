@@ -7,6 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import app.awn.quran.core.data.WordKey
+import app.awn.quran.core.quranfont.GlyphRun
 
 /**
  * Lesson text with its Quran words by key: `{{2:3:7}}` stands for a word, `[[هُمْ]]` for a typed
@@ -31,6 +32,7 @@ object LessonMarkup {
         arabicSize: TextUnit,
         highlight: WordKey? = null,
         highlightStyle: SpanStyle = SpanStyle(),
+        glyphRuns: Map<WordKey, GlyphRun> = emptyMap(),
     ): AnnotatedString {
         val arabicStyle = SpanStyle(fontFamily = arabicFont, fontSize = arabicSize)
         return buildAnnotatedString {
@@ -40,8 +42,16 @@ object LessonMarkup {
                 appendStyledRuns(plain.substring(cursor, match.range.first), arabicStyle)
                 val key = WordKey.parse(match.groupValues[1])
                 val word = wordTexts[key].orEmpty()
-                val style = if (key == highlight) arabicStyle.merge(highlightStyle) else arabicStyle
-                withStyle(style) { append(word) }
+                val glyphRun = glyphRuns[key]
+                // A word with a glyph run uses its page font; the others keep the learning font.
+                val wordStyle =
+                    if (glyphRun == null) {
+                        arabicStyle
+                    } else {
+                        arabicStyle.copy(fontFamily = glyphRun.family)
+                    }
+                val style = if (key == highlight) wordStyle.merge(highlightStyle) else wordStyle
+                withStyle(style) { append(glyphRun?.text ?: word) }
                 cursor = match.range.last + 1
             }
             appendStyledRuns(plain.substring(cursor), arabicStyle)

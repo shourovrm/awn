@@ -1,5 +1,6 @@
 package app.awn.quran.feature.duas.card
 
+import app.awn.quran.core.data.Word
 import app.awn.quran.core.data.WordKey
 import app.awn.quran.feature.duas.content.Dua
 import app.awn.quran.feature.duas.ui.CardWord
@@ -28,7 +29,11 @@ data class DuaCardData(
     val hasWordsOutsideDua: Boolean
         get() = words.any { !it.isDuaWord }
 
+    /** The dua's own words in order; a search row draws them in the user's glyph print. */
+    val duaWords: List<Word>
+        get() = words.filter { it.isDuaWord }.map { it.word }
+
     /** The dua's own words as one Arabic text, for search. */
     val duaArabic: String
-        get() = words.filter { it.isDuaWord }.joinToString(separator = " ") { it.word.textUthmani }
+        get() = duaWords.joinToString(separator = " ") { it.textUthmani }
 }
