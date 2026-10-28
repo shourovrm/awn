@@ -311,8 +311,7 @@ class PlaybackController(
         audio: ResolvedAudio,
         timeline: WordTimeline,
     ): PlayWindow? {
-        val wordPosition =
-            active.singleWordPosition ?: return PlayWindow(audio.windowStartMs, audio.windowEndMs)
+        val wordPosition = active.singleWordPosition ?: return PlayWindow(0L, null)
         return timeline.timingOf(wordPosition)?.let { wordWindow(it, audio.durationMs) }
     }
 
@@ -384,8 +383,8 @@ class PlaybackController(
         if (factor == 0.0 || finished.kind != TurnKind.Ayah) return 0L
         if (active.singleWordPosition != null || wholeSurah()) return 0L
         val file = currentFile ?: return 0L
-        val measuredFileMs = engine.durationMs() ?: engine.positionMs()
-        val playedMs = file.audio.playedLengthMs(measuredFileMs) / mutableOptions.value.speed
+        val fileMs = file.audio.durationMs ?: engine.durationMs() ?: engine.positionMs()
+        val playedMs = fileMs / mutableOptions.value.speed
         return (playedMs * factor).toLong()
     }
 
@@ -454,10 +453,8 @@ class PlaybackController(
         if (sleepTimerEndsAfter(file.turn, active, following)) return null
         val followingTurn = active.schedule.turnAt(following)
         val sameFile = followingTurn.kind == file.turn.kind && followingTurn.ayah == file.turn.ayah
-        // The engine can only carry on into a file that plays whole; a clip or a window in a surah
-        // file starts at an offset, which needs a seek, so that file is loaded when its turn comes.
-        if (sameFile) return file.audio.source.takeIf { file.audio.playsWholeFile }
-        return resolveTurn(active, followingTurn)?.takeIf { it.playsWholeFile }?.source
+        if (sameFile) return file.audio.source
+        return resolveTurn(active, followingTurn)?.source
     }
 
     private fun publishPlaying() {

@@ -318,16 +318,6 @@ def timing_audio_folder(path):
     return url.rsplit("/", 1)[0]
 
 
-def timing_credit(reciter, info):
-    if reciter_catalogue.is_gapless(reciter):
-        return ("Ayah start times from Quran for Android's published timing database (files.quran.app), "
-                "which states no licence and was accepted by the maintainer on 2026-10-27; "
-                "whole-surah audio from QuranicAudio (quranicaudio.com)")
-    if info["granularity"] == "word":
-        return f"Segment timings from {QURAN_COM_ATTRIBUTION}, recitation {info['quran_com_recitation_id']}"
-    return "Ayah file list; audio from EveryAyah (everyayah.com)"
-
-
 def reciter_entry(reciter, probes):
     probe = probes.get(reciter["id"], {})
     ayah_base = probe.get("ayah_base", reciter_catalogue.AYAH_BASES[0])
@@ -341,8 +331,7 @@ def reciter_entry(reciter, probes):
                              if reciter["everyayah_folder"] else None),
         "fallback_domain_suffix": {"from": ".quranicaudio.com", "to": ".quranicaudio.org"},
         "word_by_word": reciter["quran_com_recitation_id"] is not None,
-        "timing_pack": reciter["id"] if reciter["quran_com_recitation_id"] is not None or reciter["id"] == "basfar"
-                       or reciter_catalogue.is_gapless(reciter) else None,
+        "timing_pack": reciter["id"] if reciter["quran_com_recitation_id"] is not None or reciter["id"] == "basfar" else None,
         "style": reciter["style"], "riwaya": "hafs",
     }
     if "alternative_everyayah_folders" in reciter:
@@ -362,8 +351,9 @@ def reciter_entry(reciter, probes):
                                            else int(info["quran_com_recitation_id"])),
             timing_granularity=info["granularity"],
             timing_audio_folder=timing_audio_folder(path),
-            credit=timing_credit(reciter, info),
-            source_url=reciter.get("gapless_timing_url", QURAN_COM_URL)))
+            credit=(f"Segment timings from {QURAN_COM_ATTRIBUTION}, recitation {info['quran_com_recitation_id']}"
+                    if info["granularity"] == "word" else "Ayah file list; audio from EveryAyah (everyayah.com)"),
+            source_url=QURAN_COM_URL))
     else:
         credit = ("Audio from QuranicAudio (quranicaudio.com) and EveryAyah (everyayah.com); "
                   "no word timings, surah and ayah playback only" if reciter["everyayah_folder"]

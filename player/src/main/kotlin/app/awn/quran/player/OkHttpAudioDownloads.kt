@@ -58,8 +58,7 @@ class OkHttpAudioDownloads(
 
     private data class SurahKey(val reciterId: String, val surah: Int)
 
-    /** [byteRange] is set when only that part of the file at [url] is stored, as [file]. */
-    private class Target(val url: String, val file: File, val byteRange: ByteRange? = null)
+    private class Target(val url: String, val file: File)
 
     /** What is on disk for one surah of one reciter, plus bytes written during this run. */
     private class Progress(val totalFiles: Int, var filesPresent: Int, var bytes: Long) {
@@ -227,10 +226,10 @@ class OkHttpAudioDownloads(
             val distinctAyahs = ayahs.distinct()
             if (distinctAyahs.isEmpty()) return@withContext 0L
             try {
-                when {
-                    usesClips(reciterId) -> estimateClips(reciterId, distinctAyahs)
-                    usesAyahFiles(reciterId) -> estimateAyahFiles(reciterId, distinctAyahs)
-                    else -> estimateSurahFiles(reciterId, distinctAyahs)
+                if (usesAyahFiles(reciterId)) {
+                    estimateAyahFiles(reciterId, distinctAyahs)
+                } else {
+                    estimateSurahFiles(reciterId, distinctAyahs)
                 }
             } catch (@Suppress("SwallowedException") offline: IOException) {
                 null
@@ -267,10 +266,6 @@ class OkHttpAudioDownloads(
     private suspend fun targetsFor(reciterId: String, ayahs: List<AyahRef>): List<Target> =
         ayahs
             .map { ayah ->
-                val timed = reciters.ayahAudio(reciterId, ayah)
-                if (timed != null && timed.canBeFetchedAsClip) {
-                    return@map clipTarget(reciterId, ayah, timed)
-                }
                 val audio =
                     resolver.resolve(reciterId, ayah)
                         ?: throw FileNotFoundException("No audio for $ayah from $reciterId")
@@ -281,13 +276,6 @@ class OkHttpAudioDownloads(
                 Target(audio.source.url, file)
             }
             .distinctBy { it.file.path }
-
-    /** The ayah's own bytes of its surah file, stored under the name a per-ayah file has. */
-    private fun clipTarget(reciterId: String, ayah: AyahRef, timed: AyahAudio): Target {
-        val key = store.ayahKey(reciterId, ayah)
-        val file = checkNotNull(store.fileForKey(key)) { "Bad file key $key" }
-        return Target(timed.url, file, timed.clipByteRange())
-    }
 
     private suspend fun download(
         reciterId: String,
@@ -404,11 +392,11 @@ class OkHttpAudioDownloads(
 
     private suspend fun fetchWithFallback(target: Target, fileProgress: FileProgress) {
         try {
-            fetch(target.url, target.file, fileProgress, target.byteRange)
+            fetch(target.url, target.file, fileProgress)
         } catch (primaryFailure: IOException) {
             val fallbackUrl = AudioUrls.fallbackUrl(target.url) ?: throw primaryFailure
             try {
-                fetch(fallbackUrl, target.file, fileProgress, target.byteRange)
+                fetch(fallbackUrl, target.file, fileProgress)
             } catch (fallbackFailure: IOException) {
                 fallbackFailure.addSuppressed(primaryFailure)
                 throw fallbackFailure
@@ -428,34 +416,25 @@ class OkHttpAudioDownloads(
     }
 
     /**
-     * Downloads [url] into [target], or only [byteRange] of it when that is set. A matching `.part`
-     * file is continued; a server that ignores the range request, or answers for a different start,
-     * makes it start over once.
+     * Downloads [url] into [target]. A matching `.part` file is continued; a server that ignores
+     * the range request, or answers for a different start, makes it start over once.
      */
     private suspend fun fetch(
         url: String,
         target: File,
         fileProgress: FileProgress,
-        byteRange: ByteRange? = null,
         mayRestart: Boolean = true,
     ) {
         target.parentFile?.mkdirs()
         val partFile = File(target.path + ".part")
         val resumeFrom = if (partFile.isFile) partFile.length() else 0L
-        if (byteRange?.length == resumeFrom) {
-            // An earlier try stored the whole clip and stopped before the rename; asking for the
-            // rest would be a range that starts after its end.
-            fileProgress.started(resumeFrom, resumeFrom)
-            promote(partFile, target)
-            return
-        }
 
         val request = Request.Builder().url(url).header("Accept-Encoding", "identity")
-        rangeHeaderFor(byteRange, resumeFrom)?.let { request.header("Range", it) }
+        if (resumeFrom > 0L) request.header("Range", "bytes=$resumeFrom-")
 
         val restartReason =
             client.newCall(request.build()).execute().use { response ->
-                when (val plan = planFor(response, url, resumeFrom, byteRange)) {
+                when (val plan = planFor(response, url, resumeFrom)) {
                     Plan.AlreadyComplete -> {
                         fileProgress.started(resumeFrom, resumeFrom)
                         promote(partFile, target)
@@ -475,40 +454,22 @@ class OkHttpAudioDownloads(
         if (restartReason == null) return
         partFile.delete()
         if (!mayRestart) throw IOException("Cannot resume $url: $restartReason")
-        fetch(url, target, fileProgress, byteRange, mayRestart = false)
+        fetch(url, target, fileProgress, mayRestart = false)
     }
 
     @Suppress("ReturnCount") // One early answer per kind of response.
-    private fun planFor(
-        response: Response,
-        url: String,
-        resumeFrom: Long,
-        byteRange: ByteRange?,
-    ): Plan {
+    private fun planFor(response: Response, url: String, resumeFrom: Long): Plan {
         val range = parseContentRange(response.header("Content-Range"))
-        // Where in the whole file the bytes we hold end, which is where the response must begin.
-        val responseStart = byteRange?.responseStart(resumeFrom) ?: resumeFrom
         if (response.code == HTTP_RANGE_NOT_SATISFIABLE) {
-            val partIsWhole = resumeFrom > 0L && range.total == responseStart
+            val partIsWhole = resumeFrom > 0L && range.total == resumeFrom
             return if (partIsWhole) Plan.AlreadyComplete else Plan.Restart("range rejected")
         }
         if (!response.isSuccessful) throw IOException("HTTP ${response.code} for $url")
-        if (byteRange != null && response.code != HTTP_PARTIAL_CONTENT) {
-            // A 200 would send the whole surah file into a file that must hold one ayah.
-            throw IOException(
-                "Expected 206 Partial Content for ${byteRange.requestHeader(resumeFrom)} of " +
-                    "$url but got HTTP ${response.code}",
-            )
-        }
 
         val contentLength = response.body.contentLength().takeIf { it >= 0L }
         if (response.code != HTTP_PARTIAL_CONTENT) return Plan.Copy(false, contentLength)
-        if (range.start != responseStart) return Plan.Restart("range starts at ${range.start}")
-        // The total in Content-Range is the whole surah file's, not the clip's.
-        val expectedTotal =
-            if (byteRange != null) contentLength?.plus(resumeFrom)
-            else range.total ?: contentLength?.plus(resumeFrom)
-        return Plan.Copy(true, expectedTotal)
+        if (range.start != resumeFrom) return Plan.Restart("range starts at ${range.start}")
+        return Plan.Copy(true, range.total ?: contentLength?.plus(resumeFrom))
     }
 
     private suspend fun copyBody(
@@ -563,26 +524,12 @@ class OkHttpAudioDownloads(
 
     // region Names and sizes
 
-    /**
-     * True when [reciterId] has one file per ayah, or has surah files from which each ayah is
-     * fetched as a clip; false when it has only surah files.
-     */
+    /** True when [reciterId] has one file per ayah, false when it has one file per surah. */
     override suspend fun hasAyahFiles(reciterId: String): Boolean = usesAyahFiles(reciterId)
 
     private suspend fun usesAyahFiles(reciterId: String): Boolean {
         val reciter = reciters.reciters().firstOrNull { it.id == reciterId } ?: return true
-        return reciter.ayahUrlPattern != null || usesClips(reciterId)
-    }
-
-    /**
-     * True when [reciterId] has only surah files but its timing pack says which bytes of them hold
-     * each ayah. Ayah 1:1 stands for the reciter: a pack either measures its bytes or does not.
-     */
-    private suspend fun usesClips(reciterId: String): Boolean {
-        val reciter = reciters.reciters().firstOrNull { it.id == reciterId } ?: return false
-        val hasOnlySurahFiles = reciter.ayahUrlPattern == null
-        return hasOnlySurahFiles &&
-            reciters.ayahAudio(reciterId, AyahRef(1, 1))?.canBeFetchedAsClip == true
+        return reciter.ayahUrlPattern != null
     }
 
     private fun fileNameFor(ayahFiles: Boolean, ayah: AyahRef): String =
@@ -622,32 +569,6 @@ class OkHttpAudioDownloads(
             resolver.resolve(reciterId, ayah)?.source?.url?.let { headLength(it) }
         }
         return if (lengths.isEmpty()) null else (lengths.average() * count).toLong()
-    }
-
-    /**
-     * The size of the clips of [ayahs]: the bytes between the first and last byte of each, and for
-     * the last ayah of a surah (which has no last byte) the mean of a few surah files' sizes less
-     * where the ayah starts. Ayahs with no byte data are left out.
-     */
-    private suspend fun estimateClips(reciterId: String, ayahs: List<AyahRef>): Long? {
-        val clips =
-            ayahs
-                .mapNotNull { reciters.ayahAudio(reciterId, it) }
-                .filter {
-                    it.canBeFetchedAsClip
-                }
-        if (clips.isEmpty()) return null
-        val (closed, openEnded) = clips.partition { it.endByte != null }
-        val closedBytes = closed.sumOf { checkNotNull(it.endByte) - checkNotNull(it.startByte) }
-        return closedBytes + estimateOpenEndedClips(openEnded)
-    }
-
-    /** Measures a few surah files and scales their mean clip size to all of [openEnded]. */
-    private fun estimateOpenEndedClips(openEnded: List<AyahAudio>): Long {
-        val sample = spread(openEnded, ESTIMATE_SURAH_SAMPLE)
-        if (sample.isEmpty()) return 0L
-        val clipSizes = sample.map { headLength(it.url) - checkNotNull(it.startByte) }
-        return (clipSizes.average() * openEnded.size).toLong()
     }
 
     private suspend fun estimateSurahFiles(reciterId: String, ayahs: List<AyahRef>): Long? {

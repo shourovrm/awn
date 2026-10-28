@@ -1,14 +1,10 @@
 package app.awn.quran.player
 
-import app.awn.quran.core.data.AyahAudio
 import app.awn.quran.core.data.AyahRef
 import app.awn.quran.core.data.QuranTextRepository
 import app.awn.quran.core.data.Reciter
 import app.awn.quran.core.data.ReciterRepository
 import app.awn.quran.core.data.WordTiming
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * One audio file to play. [localKey] names the downloaded copy (see [LocalAudioStore]); when that
@@ -67,22 +63,13 @@ interface PlaybackEngine {
     }
 }
 
-/**
- * An ayah's file, its length if known and its word timings (empty if none). All times are in
- * milliseconds from the start of the file the engine plays, which for a downloaded clip of a surah
- * file is the start of the clip.
- */
+/** An ayah's file, its length if known and its word timings (empty if none). */
 data class ResolvedAudio(
     val source: AudioSource,
-    /** The file's length, or where the ayah ends in it when the file holds more than the ayah. */
     val durationMs: Long?,
     val words: List<WordTiming>,
     /** True when [source] is the file of the whole surah, not of one ayah. */
     val coversWholeSurah: Boolean,
-    /** Where the ayah begins in the file; 0 for a file that holds just the ayah. */
-    val windowStartMs: Long = 0L,
-    /** Where the ayah ends in the file; null when it plays to the end of the file. */
-    val windowEndMs: Long? = null,
 )
 
 fun interface AudioResolver {
@@ -106,8 +93,6 @@ class ReciterAudioResolver(
     private val reciters: ReciterRepository,
     private val store: LocalAudioStore,
     private val quranText: QuranTextRepository? = null,
-    /** Runs the disk check for a downloaded clip; tests pass their own scheduler's dispatcher. */
-    private val diskDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AudioResolver {
 
     private var chapterNames: Map<Int, String>? = null
@@ -119,8 +104,6 @@ class ReciterAudioResolver(
         val ayahKey = store.ayahKey(reciterId, ayah)
         val title = titleOf(ayah)
         return when {
-            timedAudio != null && timedAudio.isInWholeSurahFile ->
-                resolveInSurahFile(reciter, timedAudio, ayah, title)
             timedAudio != null ->
                 ResolvedAudio(
                     source = source(reciter, timedAudio.url, ayahKey, title),
@@ -159,27 +142,6 @@ class ReciterAudioResolver(
         if (opening.coversWholeSurah) return null
         // Same audio as ayah 1:1, but titled with the ayah it introduces.
         return opening.copy(source = opening.source.copy(title = titleOf(before)))
-    }
-
-    /**
-     * An ayah that lies inside a surah file plays from its clip when that is on disk, else from the
-     * surah file at the ayah's own position.
-     */
-    private suspend fun resolveInSurahFile(
-        reciter: Reciter,
-        timedAudio: AyahAudio,
-        ayah: AyahRef,
-        title: String,
-    ): ResolvedAudio {
-        val clipKey = store.ayahKey(reciter.id, ayah)
-        val clipOnDisk = withContext(diskDispatcher) { store.fileForKey(clipKey)?.isFile == true }
-        return windowedResolvedAudio(
-            timed = timedAudio,
-            clipSource = source(reciter, timedAudio.url, clipKey, title),
-            surahSource =
-                source(reciter, timedAudio.url, store.surahKey(reciter.id, ayah.surah), title),
-            clipOnDisk = clipOnDisk,
-        )
     }
 
     private fun source(reciter: Reciter, url: String, key: String, title: String) =

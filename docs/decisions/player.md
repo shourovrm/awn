@@ -35,6 +35,6 @@
 - A percentile-based silence threshold for the timing check: recitations with no silence made every word fail.
 - Rounding the position down to 50 ms for the word lookup: it delayed the highlight and missed 44 short Alafasy words; the 50 ms publish tick is the only step now.
 - Listing a reciter in all three sheet groups: the same name twice; groups are exclusive.
-- Whole-surah reciters without ayah times: rejected until 2026-10-27 (no ayah start existed; a surah file played from its start). Since 2026-10-27 a whole-surah reciter plays each ayah from its timing offset (`ayah_audio.offset_ms` into the surah file, Raad al-Kurdi); ayah-file reciters are unchanged.
+- Surah files plus a timing table for gapless: no surah level timing exists for the ayah-file reciters, whole surahs are far larger than a page download, and word highlight is already per ayah file. A preloaded playlist keeps per-ayah files and downloads.
 - Checking free space inside `OkHttpAudioDownloads.download`: it would add size requests to every download; the runners do it.
 - `ListenSettings.wordReciterId` (null until chosen, `setWordReciter`): the reciter for single words on the word card, set in Settings > Audio > Word audio (`AUDIO_WORD_RECITER`, lists only reciters with word timings). Listening reciter is unchanged. With no choice the word reciter is `DEFAULT_WORD_RECITER_ID` (`husary_muallim`) when it has timings (`wordReciterIdFor`, core:data), else the listening reciter, else the first with timings; nothing is bundled, the timing pack comes through the existing offer.
