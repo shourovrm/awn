@@ -18,6 +18,6 @@ complexity:
 style:
   MagicNumber:
     # Design tokens and test fixtures are number tables by nature.
-    excludes: ['**/theme/**', '**/test/**', '**/androidTest/**', '**/buildSrc/**']
+    excludes: ['**/theme/**', '**/test/**', '**/testGithub/**', '**/androidTest/**', '**/buildSrc/**']
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true

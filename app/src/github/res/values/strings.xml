@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="update_check">Check for update</string>
+  <string name="update_up_to_date">Up to date</string>
+  <string name="update_download">Download</string>
+  <string name="update_cancel">Cancel</string>
+  <string name="update_install">Install</string>
+  <string name="update_install_hint">The first time, Android asks to allow installs from Awn.</string>
+  <string name="update_retry">Try again</string>
+  <string name="update_no_connection">No connection</string>
+  <string name="update_wifi_required">Connect to Wi-Fi</string>
+  <string name="update_not_found">Not found</string>
+  <string name="update_download_failed">Download failed</string>
+</resources>

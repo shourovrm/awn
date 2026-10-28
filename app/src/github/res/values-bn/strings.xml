@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="update_check">আপডেট দেখুন</string>
+  <string name="update_up_to_date">সর্বশেষ সংস্করণ</string>
+  <string name="update_download">ডাউনলোড</string>
+  <string name="update_cancel">বাতিল</string>
+  <string name="update_install">ইনস্টল</string>
+  <string name="update_install_hint">প্রথমবার অ্যান্ড্রয়েড আওন থেকে ইনস্টলের অনুমতি চাইবে।</string>
+  <string name="update_retry">আবার চেষ্টা</string>
+  <string name="update_no_connection">সংযোগ নেই</string>
+  <string name="update_wifi_required">ওয়াই-ফাই সংযোগ দিন</string>
+  <string name="update_not_found">পাওয়া যায়নি</string>
+  <string name="update_download_failed">ডাউনলোড হয়নি</string>
+</resources>

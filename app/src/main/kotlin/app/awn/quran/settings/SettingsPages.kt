@@ -27,6 +27,7 @@ import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.DayColours
 import app.awn.quran.core.ui.theme.NightColours
 import app.awn.quran.core.ui.theme.mutedContent
+import app.awn.quran.update.UpdateRow
 import kotlinx.coroutines.launch
 
 private const val BACKUP_FILE_NAME = "awn-bookmarks.json"
@@ -178,6 +179,7 @@ fun AboutPage(
             value = versionName,
             rowKey = SettingRowKeys.ABOUT_VERSION,
         )
+        UpdateRow()
         Text(
             text = stringResource(R.string.about_free_line),
             style = AwnTypography.body,
