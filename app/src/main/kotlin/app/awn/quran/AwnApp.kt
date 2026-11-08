@@ -269,6 +269,11 @@ private fun TabsRoute(
                             contentDescription = stringResource(R.string.index_settings),
                             onClick = navigation::openSettings,
                         )
+                        AwnIconButton(
+                            icon = R.drawable.ic_app_school,
+                            contentDescription = stringResource(R.string.notice_learn_title),
+                            onClick = navigation::openTeacherPage,
+                        )
                     },
                 )
             }

@@ -18,6 +18,8 @@ internal class TabNavigation(
 
     fun openSettings() = navController.navigate(Routes.SETTINGS)
 
+    fun openTeacherPage() = navController.navigate(Routes.NOTICE)
+
     fun openSearch() = navController.navigate(Routes.SEARCH)
 
     fun openBookmarks() = navController.navigate(Routes.BOOKMARKS)

@@ -105,6 +105,8 @@
   <string name="notice_learn_practice">আওন পাঠের ফাঁকে অনুশীলনে সাহায্য করে। এটি আপনার শিক্ষকের বিকল্প নয়।</string>
   <string name="notice_learn_listening">আওন যখন আপনার তিলাওয়াত শোনে, তখন একটি কম্পিউটার মডেল শোনে, আর তা ভুল করতে পারে। সন্দেহ হলে শিক্ষককে জিজ্ঞেস করুন।</string>
   <string name="notice_accept">আমি বুঝেছি</string>
+  <string name="notice_heading">বিজ্ঞপ্তি</string>
+  <string name="notice_full">এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।</string>
   <string name="settings_group_app">অ্যাপ</string>
   <string name="settings_search_placeholder">সেটিংস খুঁজুন</string>
   <string name="settings_search_clear">খোঁজা মুছুন</string>
@@ -131,6 +133,8 @@
   <string name="credit_tajweed_book_detail">তাজবিদ পাঠগুলোর ক্রম ও তথ্য।</string>
   <string name="credit_mouth_drawing_name">রিচার্ড রাইট ও ড্যান ম্যাকক্লয়, Neutral Sagittal Section</string>
   <string name="credit_mouth_drawing_detail">“অক্ষরের উচ্চারণস্থান” পাঠের মাথার ছবিটি এই ছবি থেকে আঁকা। পাবলিক ডোমেইন (CC0)।</string>
+  <string name="credit_font_name">Scheherazade New, SIL International</string>
+  <string name="credit_font_detail">পাঠের আরবি লেখা। SIL Open Font License 1.1।</string>
   <string name="credit_surah_names_name">বাংলা উইকিপিডিয়া</string>
   <string name="credit_surah_names_detail">সূরার বাংলা নাম। CC BY-SA 4.0।</string>
   <string name="browse_duas">দুআ</string>

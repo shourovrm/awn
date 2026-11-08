@@ -122,10 +122,8 @@
   <string name="notice_learn_practice">Awn helps you practise between lessons. It does not replace your teacher.</string>
   <string name="notice_learn_listening">When Awn listens to you, a computer model does the listening, and it can be wrong. If something seems off, ask your teacher.</string>
   <string name="notice_accept">I understand</string>
-  <!-- The three texts below are shown together in About, so they are not per-language resources. -->
-  <string name="notice_english" translatable="false">This app is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</string>
-  <string name="notice_bangla" translatable="false">এই অ্যাপ একটি কৃত্রিম বুদ্ধিমত্তা (এআই) মডেল, যা ভুল করতে পারে। এটি কেবল সহায়তার জন্য; এর ওপর নির্ভর করা উচিত নয়। এটি একজন দক্ষ ও অনুমোদিত শিক্ষকের বিকল্প নয়, কারণ কুরআন কেবল মৌখিক ধারায় (মুশাফাহা) গ্রহণ করা হয়।</string>
-  <string name="notice_arabic" translatable="false">هذا المعلّم القرآني نموذج ذكاء اصطناعي قد يخطئ؛ فهو للإعانة فقط ولا يُعتمد عليه، وليس بديلاً عن معلّمٍ مُتقِنٍ مُجاز؛ لأنّ القرآن لا يُؤخذ إلا بالمشافهة.</string>
+  <string name="notice_heading">Notice</string>
+  <string name="notice_full">This app is an artificial-intelligence model that may make mistakes. It is intended for assistance only and must not be relied upon. It is not a replacement for a proficient, authorized teacher, because the Quran is only received through oral transmission (mushafahah).</string>
   <string name="settings_group_app">App</string>
   <string name="settings_search_placeholder">Search settings</string>
   <string name="settings_search_clear">Clear search</string>
@@ -152,6 +150,8 @@
   <string name="credit_tajweed_book_detail">Order and facts of the Tajweed units.</string>
   <string name="credit_mouth_drawing_name">Richard Wright and Dan McCloy, Neutral Sagittal Section</string>
   <string name="credit_mouth_drawing_detail">The head in the lesson Where letters are made is traced from this drawing. Public domain (CC0).</string>
+  <string name="credit_font_name">Scheherazade New, SIL International</string>
+  <string name="credit_font_detail">Arabic text in the lessons. SIL Open Font License 1.1.</string>
   <string name="credit_surah_names_name">Bangla Wikipedia</string>
   <string name="credit_surah_names_detail">Bangla surah names. CC BY-SA 4.0.</string>
   <string name="browse_duas">Duas</string>

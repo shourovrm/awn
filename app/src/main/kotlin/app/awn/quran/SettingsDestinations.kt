@@ -125,7 +125,12 @@ internal fun NavGraphBuilder.settingsDestinations(
             targetRow = entry.targetRow(),
         )
     }
-    composable(Routes.NOTICE) { NoticeAgainScreen(onBack = goBack) }
+    composable(Routes.NOTICE) {
+        NoticeAgainScreen(
+            onOpenCredits = { navController.navigate(Routes.CREDITS) },
+            onBack = goBack,
+        )
+    }
     composable(Routes.CREDITS) {
         val credits by
             produceState(emptyList(), services) { value = loadCredits(services.coreData.packs) }

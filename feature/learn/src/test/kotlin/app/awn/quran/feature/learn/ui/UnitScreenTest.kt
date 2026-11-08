@@ -1,5 +1,6 @@
 package app.awn.quran.feature.learn.ui
 
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -76,5 +77,49 @@ class UnitScreenTest {
 
         assertEquals(listOf(1), finished)
         assertEquals(listOf(next), opened)
+    }
+
+    private val lessonWithPractice: CourseLesson =
+        CourseContentReader.parse(
+                """{"formatVersion":1,"references":[],"lessons":[{"id":"letters-01",
+            "course":"letters","order":1,"introducedBy":[],"licence":"x","reviewed":false,
+            "languages":{"en":{"title":"All 29 letters","screens":[
+            {"kind":"screen","title":"The Arabic letters","blocks":[
+              {"type":"paragraph","text":"Arabic has 29 letters."}]},
+            {"kind":"practice","title":"P1","check":{"question":"Which one did you hear?",
+              "options":["[[سَ]]","[[صَ]]"],"answer":1,"clip":"qaida-01/014","explain":"The heavy s."}}
+            ]}}}]}""",
+            )
+            .lessons
+            .single()
+
+    private fun showDonePageOf(unit: CourseLesson) {
+        composeRule.setContent {
+            AwnTheme(field = LearnField) {
+                UnitScreen(
+                    lesson = unit,
+                    languageCode = "en",
+                    place = null,
+                    actions = UnitActions(onBack = {}, onFinished = {}, onNextUnit = {}),
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Page 3").performClick()
+    }
+
+    @Test
+    fun practiceAgainOnTheDonePageReturnsToThePracticePage() {
+        showDonePageOf(lessonWithPractice)
+
+        composeRule.onNodeWithTag(UNIT_PRACTICE_AGAIN_TAG).performClick()
+
+        composeRule.onNodeWithText("Which one did you hear?").assertIsDisplayed()
+    }
+
+    @Test
+    fun aUnitWithoutPracticeHasNoPracticeAgain() {
+        showDonePageOf(lesson)
+
+        composeRule.onNodeWithTag(UNIT_PRACTICE_AGAIN_TAG).assertDoesNotExist()
     }
 }

@@ -61,6 +61,12 @@ fun CreditsScreen(credits: List<CreditLine>, onBack: () -> Unit) {
             linkLabel = CreditText.linkLabel(MOUTH_DRAWING_URL),
             onLinkClick = { openLink(context, MOUTH_DRAWING_URL) },
         )
+        DetailedCreditRow(
+            name = stringResource(R.string.credit_font_name),
+            detail = stringResource(R.string.credit_font_detail),
+            linkLabel = CreditText.linkLabel(FONT_LICENSE_URL),
+            onLinkClick = { openLink(context, FONT_LICENSE_URL) },
+        )
         GroupTitle(stringResource(R.string.credits_recogniser))
         PlainLine(stringResource(R.string.credit_recogniser_entry))
         GroupTitle(stringResource(R.string.credits_libraries))
@@ -132,6 +138,7 @@ private const val MOUTH_DRAWING_URL =
     "https://commons.wikimedia.org/wiki/File:Neutral_Sagittal_Section.svg"
 private const val SURAH_NAMES_URL = "https://bn.wikipedia.org/wiki/কুরআনের_সূরার_তালিকা"
 private const val ACADEMY_URL = "https://www.youtube.com/channel/UCX766Oi2anGGIkIgMJXu9ng"
+private const val FONT_LICENSE_URL = "https://openfontlicense.org"
 
 private fun openLink(context: Context, url: String) {
     try {

@@ -44,6 +44,7 @@ import app.awn.quran.feature.learn.course.UnitPage
 import app.awn.quran.feature.learn.course.unitPages
 import app.awn.quran.feature.learn.progress.resumePage
 import kotlin.random.Random
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /** Where a unit sits in its track, for the bar and the closing page. */
@@ -89,14 +90,15 @@ internal fun UnitScreen(
     val scope = rememberCoroutineScope()
     var answers by remember(lesson.id) { mutableStateOf(UnitAnswers()) }
     // The seed is saved so that a turned screen keeps the same ten items.
-    val practiceSeed = rememberSaveable(lesson.id) { Random.nextLong() }
+    var practiceSeed by rememberSaveable(lesson.id) { mutableStateOf(Random.nextLong()) }
     var practiceRun by rememberPracticeRun(lesson.id, text, practiceSeed)
-    val checks = text.checks
     val startAgain: () -> Unit = {
         scope.launch { pagerState.scrollToPage(0) }
         actions.onStartAgain()
     }
-    ReportPage(pagerState, pages, lesson.id, answers, checks, actions)
+    val practiceAgain =
+        practiceAgainAction(pages, pagerState, scope) { practiceSeed = Random.nextLong() }
+    ReportPage(pagerState, pages, lesson.id, answers, text.checks, actions)
     Column(modifier = modifier.fillMaxSize()) {
         PagerBar(
             title = text.title,
@@ -117,14 +119,30 @@ internal fun UnitScreen(
                 page = pages[index],
                 answers = answers,
                 onAnswersChange = { answers = it },
-                checks = checks,
+                checks = text.checks,
                 practice = PracticeState(practiceRun) { practiceRun = it },
                 offer = soundsOffer.takeIf { index == 0 && text.hasClips } ?: SoundsOfferState.None,
                 place = place,
                 actions = actions,
+                onPracticeAgain = practiceAgain,
                 onContinue = { scope.launch { pagerState.animateScrollToPage(index + 1) } },
             )
         }
+    }
+}
+
+/** Draws a fresh practice run and shows its page; null when the unit has no practice page. */
+private fun practiceAgainAction(
+    pages: List<UnitPage>,
+    pagerState: PagerState,
+    scope: CoroutineScope,
+    drawNewRun: () -> Unit,
+): (() -> Unit)? {
+    val practicePage = pages.indexOf(UnitPage.Practice)
+    if (practicePage < 0) return null
+    return {
+        drawNewRun()
+        scope.launch { pagerState.animateScrollToPage(practicePage) }
     }
 }
 
@@ -165,6 +183,7 @@ private fun UnitPageContent(
     offer: SoundsOfferState,
     place: UnitPlace?,
     actions: UnitActions,
+    onPracticeAgain: (() -> Unit)?,
     onContinue: () -> Unit,
 ) {
     val pageModifier =
@@ -188,6 +207,7 @@ private fun UnitPageContent(
                 checkCount = checks.size,
                 place = place,
                 actions = actions,
+                onPracticeAgain = onPracticeAgain,
                 modifier = pageModifier,
             )
     }
@@ -254,6 +274,7 @@ private fun DonePage(
     checkCount: Int,
     place: UnitPlace?,
     actions: UnitActions,
+    onPracticeAgain: (() -> Unit)?,
     modifier: Modifier,
 ) {
     Column(
@@ -293,6 +314,13 @@ private fun DonePage(
                 modifier = Modifier.fillMaxWidth().testTag(UNIT_NEXT_TAG),
             )
         }
+        if (onPracticeAgain != null) {
+            QuietButton(
+                label = stringResource(R.string.unit_practice_again),
+                onClick = onPracticeAgain,
+                modifier = Modifier.testTag(UNIT_PRACTICE_AGAIN_TAG),
+            )
+        }
         QuietButton(
             label =
                 if (place != null)
@@ -315,5 +343,6 @@ internal fun trackName(track: LearnTrack): String =
         },
     )
 
+internal const val UNIT_PRACTICE_AGAIN_TAG = "unit-practice-again"
 internal const val UNIT_PAGER_TAG = "unit-pager"
 internal const val UNIT_NEXT_TAG = "unit-next"
