@@ -239,3 +239,4 @@
 2026-10-27 | Raad al-Kurdi removed from the reciter list; Minshawi is the default | user: surah-only audio with no ayah times (re-add when they exist)
 2026-10-28 | In-app update check lives in the github flavor only (app/src/github, About row) | Play must not hold REQUEST_INSTALL_PACKAGES; Wi-Fi only gates the APK; SHA256SUMS.txt is required, else no install
 2026-10-28 | A list scroll pauses following only until the next ayah; a pager drag still stops it (read.md) | scroll to read must not end page turns
+2026-11-08 | About shows the full notice in the interface language only; LICENSE condition 4 changed | NPL-1.2 has no notice clause; QML (Muaalem, not shipped) asks an Arabic notice before first use
