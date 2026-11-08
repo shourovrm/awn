@@ -25,24 +25,11 @@ internal fun isLeavingRequestedPageWords(
 ): Boolean =
     isRequestedPageWordsOpen(route, requestedPage) && next == LearnRoute.Track(LearnTrack.Words)
 
-/** Forgets the request, then tells :app to show the screen the user came from. */
-@Composable
-private fun rememberLeaveRequestedWords(
-    requestedPage: MutableState<Int?>,
-    onPageWordsBack: (() -> Unit)?,
-): () -> Unit =
-    remember(requestedPage, onPageWordsBack) {
-        {
-            requestedPage.value = null
-            onPageWordsBack?.invoke()
-        }
-    }
-
 /** The page words that :app asked the tab to open, and the Back that returns to the Quran page. */
 internal class RequestedPageWords(
     private val routeState: MutableState<LearnRoute?>,
     private val requestedPage: MutableState<Int?>,
-    private val leave: () -> Unit,
+    private val onLeave: () -> Unit,
 ) {
     /**
      * Changes the route, except that Back from the requested page words returns to the Quran page.
@@ -53,6 +40,16 @@ internal class RequestedPageWords(
         } else {
             routeState.value = next
         }
+    }
+
+    /**
+     * Resets Learn to its home, so the next visit to Learn does not reopen these page words, then
+     * tells :app to show the Quran page again.
+     */
+    fun leave() {
+        routeState.value = LearnRoute.Hub
+        requestedPage.value = null
+        onLeave()
     }
 }
 
@@ -75,12 +72,13 @@ internal fun rememberRequestedPageWords(
             onHandled()
         }
     }
-    val leave = rememberLeaveRequestedWords(requestedPage, onPageWordsBack)
+    val words =
+        remember(routeState, requestedPage, onPageWordsBack) {
+            RequestedPageWords(routeState, requestedPage) { onPageWordsBack?.invoke() }
+        }
     // Registered after the route's own handler, so it wins while the requested page is shown.
     BackHandler(enabled = isRequestedPageWordsOpen(routeState.value, requestedPage.value)) {
-        leave()
+        words.leave()
     }
-    return remember(routeState, requestedPage, leave) {
-        RequestedPageWords(routeState, requestedPage, leave)
-    }
+    return words
 }
