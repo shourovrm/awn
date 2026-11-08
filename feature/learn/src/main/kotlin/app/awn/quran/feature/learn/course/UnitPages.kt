@@ -41,7 +41,8 @@ private fun teachingAndQuizPages(text: LessonText): List<UnitPage> {
                 pages += UnitPage.Quiz(screen)
                 run = mutableListOf()
             }
-            ScreenKind.Reading, ScreenKind.Grid -> run += screen
+            ScreenKind.Reading,
+            ScreenKind.Grid -> run += screen
             else -> Unit
         }
     }

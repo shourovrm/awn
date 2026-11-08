@@ -14,11 +14,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -69,7 +69,10 @@ internal fun OrderQuestion(
                     QuizTile(
                         state = slotState,
                         onClick = null,
-                        modifier = Modifier.weight(1f).height(SLOT_HEIGHT).dashedBorder(Awn.field.mutedContent),
+                        modifier =
+                            Modifier.weight(1f)
+                                .height(SLOT_HEIGHT)
+                                .dashedBorder(Awn.field.mutedContent),
                     ) { color ->
                         shown.getOrNull(index)?.let { TileLabel(it, color, LETTER_ARABIC_SIZE) }
                     }
@@ -161,7 +164,8 @@ private fun SortGroupBox(
         QuizTile(
             state = state,
             onClick = onTap,
-            modifier = Modifier.fillMaxWidth().height(SLOT_HEIGHT).dashedBorder(Awn.field.mutedContent),
+            modifier =
+                Modifier.fillMaxWidth().height(SLOT_HEIGHT).dashedBorder(Awn.field.mutedContent),
         ) { color ->
             Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
                 letters.forEach { TileLabel(it, color, LETTER_ARABIC_SIZE) }
@@ -193,16 +197,16 @@ internal fun LetterPool(
 }
 
 /** A dashed outline drawn over the box, for a place that takes a letter. */
-private fun Modifier.dashedBorder(color: Color): Modifier =
-    drawWithContent {
-        drawContent()
-        drawRoundRect(
-            color = color,
-            cornerRadius = CornerRadius(AwnSpacing.small.toPx()),
-            style =
-                Stroke(
-                    width = DASH_WIDTH.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_LENGTH.toPx(), DASH_GAP.toPx())),
-                ),
-        )
-    }
+private fun Modifier.dashedBorder(color: Color): Modifier = drawWithContent {
+    drawContent()
+    drawRoundRect(
+        color = color,
+        cornerRadius = CornerRadius(AwnSpacing.small.toPx()),
+        style =
+            Stroke(
+                width = DASH_WIDTH.toPx(),
+                pathEffect =
+                    PathEffect.dashPathEffect(floatArrayOf(DASH_LENGTH.toPx(), DASH_GAP.toPx())),
+            ),
+    )
+}

@@ -118,7 +118,10 @@ private fun PlayButton(clipIds: List<String>) {
             Modifier.size(PLAY_BUTTON_SIZE)
                 .clip(CircleShape)
                 .background(Awn.field.buttonFill)
-                .clickable(role = Role.Button, onClick = { scope.launch { sounds.playClips(clipIds) } }),
+                .clickable(
+                    role = Role.Button,
+                    onClick = { scope.launch { sounds.playClips(clipIds) } },
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

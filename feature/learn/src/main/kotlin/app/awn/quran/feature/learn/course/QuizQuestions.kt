@@ -44,14 +44,20 @@ sealed interface QuizQuestion {
     }
 
     /** Tap the [items] in the order they are listed. */
-    data class Order(val question: String, val items: List<String>, override val explanation: String) :
-        QuizQuestion {
+    data class Order(
+        val question: String,
+        val items: List<String>,
+        override val explanation: String,
+    ) : QuizQuestion {
         fun isRight(tapped: List<String>): Boolean = tapped == items
     }
 
     /** Put each item in the group it belongs to. */
-    data class Sort(val question: String, val groups: List<QuizGroup>, override val explanation: String) :
-        QuizQuestion {
+    data class Sort(
+        val question: String,
+        val groups: List<QuizGroup>,
+        override val explanation: String,
+    ) : QuizQuestion {
         val allItems: List<String>
             get() = groups.flatMap { it.items }
 
@@ -59,10 +65,14 @@ sealed interface QuizQuestion {
     }
 
     /** Join each left item to the right item it goes with. */
-    data class Match(val question: String, val pairs: List<QuizPair>, override val explanation: String) :
-        QuizQuestion {
-        fun isPair(left: String, right: String): Boolean =
-            pairs.any { it.left == left && it.right == right }
+    data class Match(
+        val question: String,
+        val pairs: List<QuizPair>,
+        override val explanation: String,
+    ) : QuizQuestion {
+        fun isPair(left: String, right: String): Boolean = pairs.any {
+            it.left == left && it.right == right
+        }
     }
 
     /** Tap every item that fits; [answers] are the items that fit. */

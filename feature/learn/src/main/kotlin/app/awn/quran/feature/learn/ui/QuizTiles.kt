@@ -52,8 +52,8 @@ internal const val FLASH_MILLIS = 600L
 private val TILE_BORDER: Dp = 2.dp
 
 /**
- * A quiz tile. A right tile takes the button colours and a tick; a wrong or taken-up tile gets a
- * 2 dp border. [onClick] is null when the tile cannot be tapped. [content] gets the text colour.
+ * A quiz tile. A right tile takes the button colours and a tick; a wrong or taken-up tile gets a 2
+ * dp border. [onClick] is null when the tile cannot be tapped. [content] gets the text colour.
  */
 @Composable
 internal fun QuizTile(
@@ -68,7 +68,8 @@ internal fun QuizTile(
         when (state) {
             TileState.Wrong -> BorderStroke(TILE_BORDER, field.wrongWord)
             TileState.Picked -> BorderStroke(TILE_BORDER, field.buttonFill)
-            TileState.Open, TileState.Right -> null
+            TileState.Open,
+            TileState.Right -> null
         }
     Column(
         modifier =
@@ -78,7 +79,7 @@ internal fun QuizTile(
                 .then(if (border != null) Modifier.border(border, AwnShapes.control) else Modifier)
                 .then(
                     if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick)
-                    else Modifier
+                    else Modifier,
                 )
                 .padding(AwnSpacing.small),
         horizontalAlignment = Alignment.CenterHorizontally,

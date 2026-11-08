@@ -102,18 +102,25 @@ class QuizContentTest {
     fun `each quiz is its own page right after the teaching page before it`() {
         val pages = unitPages(text)
 
-        val shape =
-            pages.map { page ->
-                when (page) {
-                    is UnitPage.Teaching -> "teach:" + page.screens.joinToString("+") { it.title }
-                    is UnitPage.Quiz -> "quiz:" + page.screen.title
-                    is UnitPage.Check -> "check"
-                    UnitPage.Practice -> "practice"
-                    UnitPage.Done -> "done"
-                }
+        val shape = pages.map { page ->
+            when (page) {
+                is UnitPage.Teaching -> "teach:" + page.screens.joinToString("+") { it.title }
+                is UnitPage.Quiz -> "quiz:" + page.screen.title
+                is UnitPage.Check -> "check"
+                UnitPage.Practice -> "practice"
+                UnitPage.Done -> "done"
             }
+        }
         assertEquals(
-            listOf("teach:Letters", "quiz:Q1", "teach:Shapes+G", "quiz:Q2", "quiz:Q3", "check", "done"),
+            listOf(
+                "teach:Letters",
+                "quiz:Q1",
+                "teach:Shapes+G",
+                "quiz:Q2",
+                "quiz:Q3",
+                "check",
+                "done",
+            ),
             shape,
         )
     }
@@ -121,7 +128,11 @@ class QuizContentTest {
     @Test
     fun `listen questions and pairs count as sounds of the unit`() {
         assertTrue(text.hasClips)
-        val silent = text.copy(screens = text.screens.filter { it.kind == ScreenKind.Reading && it.title == "Shapes" })
+        val silent =
+            text.copy(
+                screens =
+                    text.screens.filter { it.kind == ScreenKind.Reading && it.title == "Shapes" },
+            )
         assertFalse(silent.hasClips)
     }
 }

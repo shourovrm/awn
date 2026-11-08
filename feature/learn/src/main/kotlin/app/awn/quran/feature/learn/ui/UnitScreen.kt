@@ -147,8 +147,8 @@ private fun practiceAgainAction(
 }
 
 /**
- * Tells the caller which page is on screen. The closing page is reported on every visit, so a
- * unit started again ends finished too; the finished step is recorded once.
+ * Tells the caller which page is on screen. The closing page is reported on every visit, so a unit
+ * started again ends finished too; the finished step is recorded once.
  */
 @Composable
 private fun ReportPage(

@@ -49,10 +49,7 @@ internal fun ThinProgressBar(fraction: Float) {
     val field = Awn.field
     Box(
         modifier =
-            Modifier.fillMaxWidth()
-                .height(BAR_HEIGHT)
-                .clip(CircleShape)
-                .background(field.softFill),
+            Modifier.fillMaxWidth().height(BAR_HEIGHT).clip(CircleShape).background(field.softFill),
     ) {
         Box(
             modifier =

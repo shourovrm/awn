@@ -96,7 +96,8 @@ private fun QuestionBody(
     onAnswer: (Boolean) -> Unit,
 ) {
     when (question) {
-        is QuizQuestion.Pick -> ChoiceQuestion(question.options, question.correctIndex, result, onAnswer)
+        is QuizQuestion.Pick ->
+            ChoiceQuestion(question.options, question.correctIndex, result, onAnswer)
         is QuizQuestion.Listen -> ListenQuestion(question, result, onAnswer)
         is QuizQuestion.Name -> NameQuestion(question, result, onAnswer)
         is QuizQuestion.Order -> OrderQuestion(question, result, onAnswer)
@@ -139,7 +140,9 @@ private fun QuizStepBar(current: Int, total: Int) {
                     Modifier.weight(1f)
                         .height(AwnSpacing.tabIndicatorHeight)
                         .clip(RoundedCornerShape(AwnSpacing.tabIndicatorHeight))
-                        .background(if (index <= current) Awn.field.buttonFill else Awn.field.softFill),
+                        .background(
+                            if (index <= current) Awn.field.buttonFill else Awn.field.softFill,
+                        ),
             )
         }
     }

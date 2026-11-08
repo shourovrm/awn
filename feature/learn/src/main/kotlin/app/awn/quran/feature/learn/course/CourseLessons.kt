@@ -191,7 +191,9 @@ data class LessonScreenData(
     val hasOwnSound: Boolean
         get() =
             questions.any { it is QuizQuestion.Listen } ||
-                blocks.any { block -> block is LessonBlock.Pairs && block.items.any { it.clip != null } }
+                blocks.any { block ->
+                    block is LessonBlock.Pairs && block.items.any { it.clip != null }
+                }
 }
 
 /** One language of a lesson. */
@@ -400,7 +402,10 @@ object CourseContentReader {
     private fun parseGroups(block: JSONObject) =
         LessonBlock.Groups(
             block.getJSONArray("items").objects().map {
-                LessonBlock.LetterGroup(it.getJSONArray("letters").strings(), it.getString("caption"))
+                LessonBlock.LetterGroup(
+                    it.getJSONArray("letters").strings(),
+                    it.getString("caption"),
+                )
             },
         )
 
@@ -410,7 +415,8 @@ object CourseContentReader {
                 LessonBlock.LetterPair(
                     letters = it.getJSONArray("letters").strings(),
                     caption = it.getString("caption"),
-                    // optString would turn a JSON null into "null", so the absent clip is checked first.
+                    // optString would turn a JSON null into "null", so the absent clip is checked
+                    // first.
                     clip = if (it.isNull("clip")) null else it.getString("clip"),
                 )
             },

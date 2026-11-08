@@ -50,11 +50,10 @@ internal fun continueUnitCard(
     val saved = continueUnit(progress) ?: return null
     val text = lookups.content.lesson(saved.lessonId)?.text(lookups.languageCode)
     val track = LearnTracks.trackOf(saved.lessonId, lookups.content)
-    val number =
-        track?.let {
-            val input = trackInput(lookups, snapshot, choices)
-            LearnTracks.units(it, input).firstOrNull { unit -> unit.id == saved.lessonId }?.number
-        }
+    val number = track?.let {
+        val input = trackInput(lookups, snapshot, choices)
+        LearnTracks.units(it, input).firstOrNull { unit -> unit.id == saved.lessonId }?.number
+    }
     return if (text == null || track == null || number == null) {
         null
     } else {

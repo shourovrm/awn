@@ -21,7 +21,10 @@ class QuizGradingTest {
         val sort =
             QuizQuestion.Sort(
                 "Sort",
-                listOf(QuizGroup("Like [[ب]]", listOf("[[ب]]", "[[ت]]")), QuizGroup("Like [[ح]]", listOf("[[ح]]"))),
+                listOf(
+                    QuizGroup("Like [[ب]]", listOf("[[ب]]", "[[ت]]")),
+                    QuizGroup("Like [[ح]]", listOf("[[ح]]")),
+                ),
                 "e",
             )
 
@@ -32,7 +35,12 @@ class QuizGradingTest {
 
     @Test
     fun `a match pairs a left item with its own right item only`() {
-        val match = QuizQuestion.Match("Match", listOf(QuizPair("[[ب]]", "One below"), QuizPair("[[ت]]", "Two above")), "e")
+        val match =
+            QuizQuestion.Match(
+                "Match",
+                listOf(QuizPair("[[ب]]", "One below"), QuizPair("[[ت]]", "Two above")),
+                "e",
+            )
 
         assertTrue(match.isPair("[[ب]]", "One below"))
         assertFalse(match.isPair("[[ب]]", "Two above"))
@@ -40,7 +48,13 @@ class QuizGradingTest {
 
     @Test
     fun `a find is done once every answer is found, and a wrong tap is not an answer`() {
-        val find = QuizQuestion.Find("Find", listOf("[[ت]]", "[[ط]]", "[[ص]]"), listOf("[[ط]]", "[[ص]]"), "e")
+        val find =
+            QuizQuestion.Find(
+                "Find",
+                listOf("[[ت]]", "[[ط]]", "[[ص]]"),
+                listOf("[[ط]]", "[[ص]]"),
+                "e",
+            )
 
         assertFalse(find.isAnswer("[[ت]]"))
         assertFalse(find.isComplete(setOf("[[ط]]")))
@@ -49,7 +63,13 @@ class QuizGradingTest {
 
     @Test
     fun `pick, listen and name are right on the right option only`() {
-        val pick = QuizQuestion.Pick("Which?", listOf("[[ت]]", "[[ب]]"), correctIndex = 1, explanation = "e")
+        val pick =
+            QuizQuestion.Pick(
+                "Which?",
+                listOf("[[ت]]", "[[ب]]"),
+                correctIndex = 1,
+                explanation = "e",
+            )
 
         assertTrue(pick.isRight(1))
         assertFalse(pick.isRight(0))

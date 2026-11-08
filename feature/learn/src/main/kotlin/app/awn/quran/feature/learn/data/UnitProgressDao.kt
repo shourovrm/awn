@@ -11,8 +11,7 @@ interface UnitProgressDao {
     @Query("SELECT * FROM unit_progress WHERE lesson_id = :lessonId")
     suspend fun find(lessonId: String): UnitProgressEntity?
 
-    @Query("SELECT * FROM unit_progress")
-    fun observeAll(): Flow<List<UnitProgressEntity>>
+    @Query("SELECT * FROM unit_progress") fun observeAll(): Flow<List<UnitProgressEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(progress: UnitProgressEntity)

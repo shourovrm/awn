@@ -54,17 +54,26 @@ class UnitProgressStoreTest {
 
             assertEquals(3, store.pageOf("letters-01-all-letters"))
             val saved = store.all().first().single()
-            assertEquals(UnitProgress("letters-01-all-letters", page = 3, furthestPage = 5, updatedAt = 2_000L), saved)
+            assertEquals(
+                UnitProgress(
+                    "letters-01-all-letters",
+                    page = 3,
+                    furthestPage = 5,
+                    updatedAt = 2_000L,
+                ),
+                saved,
+            )
         }
 
     @Test
-    fun `finishing a unit opens it on the first page next time and keeps how far it went`() = runBlocking {
-        store.save("letters-01-all-letters", 12)
-        store.finish("letters-01-all-letters")
+    fun `finishing a unit opens it on the first page next time and keeps how far it went`() =
+        runBlocking {
+            store.save("letters-01-all-letters", 12)
+            store.finish("letters-01-all-letters")
 
-        assertEquals(0, store.pageOf("letters-01-all-letters"))
-        assertEquals(12, store.all().first().single().furthestPage)
-    }
+            assertEquals(0, store.pageOf("letters-01-all-letters"))
+            assertEquals(12, store.all().first().single().furthestPage)
+        }
 
     @Test
     fun `starting again clears the page and the furthest page of that unit only`() = runBlocking {

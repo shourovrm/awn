@@ -74,29 +74,38 @@ internal fun MatchQuestion(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
+            ) {
                 lefts.forEach { left ->
                     val pair = shownMatches.firstOrNull { it.left == left }
                     MatchTile(
                         text = left,
                         state = matchState(pair != null, flashed?.left == left, pickedLeft == left),
-                        onTap = tapIfOpen(!solved && pair == null) {
-                            pickedLeft = left
-                            checkPair()
-                        },
+                        onTap =
+                            tapIfOpen(!solved && pair == null) {
+                                pickedLeft = left
+                                checkPair()
+                            },
                     )
                 }
             }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
+            ) {
                 rights.forEach { right ->
                     val pair = shownMatches.firstOrNull { it.right == right }
                     MatchTile(
                         text = right,
-                        state = matchState(pair != null, flashed?.right == right, pickedRight == right),
-                        onTap = tapIfOpen(!solved && pair == null) {
-                            pickedRight = right
-                            checkPair()
-                        },
+                        state =
+                            matchState(pair != null, flashed?.right == right, pickedRight == right),
+                        onTap =
+                            tapIfOpen(!solved && pair == null) {
+                                pickedRight = right
+                                checkPair()
+                            },
                     )
                 }
             }
@@ -150,7 +159,10 @@ internal fun FindQuestion(
     }
 }
 
-/** Once answered, every answer shows as right; before that, found letters are right and wrong taps outlined. */
+/**
+ * Once answered, every answer shows as right; before that, found letters are right and wrong taps
+ * outlined.
+ */
 private fun findState(
     item: String,
     question: QuizQuestion.Find,
@@ -171,7 +183,11 @@ private fun MatchTile(
     state: TileState,
     onTap: (() -> Unit)?,
 ) {
-    QuizTile(state = state, onClick = onTap, modifier = Modifier.fillMaxWidth().height(MATCH_TILE_HEIGHT)) { color ->
+    QuizTile(
+        state = state,
+        onClick = onTap,
+        modifier = Modifier.fillMaxWidth().height(MATCH_TILE_HEIGHT),
+    ) { color ->
         TileLabel(text, color, LETTER_ARABIC_SIZE)
     }
 }

@@ -30,8 +30,8 @@ import app.awn.quran.feature.learn.R
 import kotlinx.coroutines.launch
 
 /**
- * The title with the back link, and which page of how many is on screen. [menu] adds buttons
- * after the page count.
+ * The title with the back link, and which page of how many is on screen. [menu] adds buttons after
+ * the page count.
  */
 @Composable
 internal fun PagerBar(

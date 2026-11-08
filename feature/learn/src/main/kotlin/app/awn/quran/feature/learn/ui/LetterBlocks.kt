@@ -39,7 +39,9 @@ private val CARD_LETTER_SIZE: TextUnit = 48.sp
 private const val NO_BREAK_SPACE = " "
 private const val DOT = "·"
 
-/** Groups: a grid of cards, each with the letters drawn with one stroke and a caption under them. */
+/**
+ * Groups: a grid of cards, each with the letters drawn with one stroke and a caption under them.
+ */
 @Composable
 internal fun LetterGroups(block: LessonBlock.Groups) {
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
@@ -114,7 +116,8 @@ private fun LetterPairCard(pair: LessonBlock.LetterPair, modifier: Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 pair.letters.forEachIndexed { index, letter ->
-                    if (index > 0) Text(text = DOT, style = AwnTypography.lead, color = Awn.field.content)
+                    if (index > 0)
+                        Text(text = DOT, style = AwnTypography.lead, color = Awn.field.content)
                     ArabicText(letter, CARD_LETTER_SIZE, Awn.field.content)
                 }
             }
@@ -123,7 +126,9 @@ private fun LetterPairCard(pair: LessonBlock.LetterPair, modifier: Modifier) {
     }
 }
 
-/** Reveal: the letters in rows of five from the right, each name shown once its letter is tapped. */
+/**
+ * Reveal: the letters in rows of five from the right, each name shown once its letter is tapped.
+ */
 @Composable
 internal fun RevealGrid(block: LessonBlock.Reveal) {
     var revealed by remember(block) { mutableStateOf(emptySet<String>()) }
