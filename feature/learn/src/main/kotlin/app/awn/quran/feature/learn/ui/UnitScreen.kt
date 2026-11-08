@@ -123,6 +123,7 @@ internal fun UnitScreen(
                 place = place,
                 actions = actions,
                 startAgain = startAgain,
+                onContinue = { scope.launch { pagerState.animateScrollToPage(index + 1) } },
             )
         }
     }
@@ -166,6 +167,7 @@ private fun UnitPageContent(
     place: UnitPlace?,
     actions: UnitActions,
     startAgain: () -> Unit,
+    onContinue: () -> Unit,
 ) {
     val pageModifier =
         Modifier.fillMaxSize()
@@ -173,6 +175,7 @@ private fun UnitPageContent(
             .padding(horizontal = AwnSpacing.screenMargin, vertical = AwnSpacing.medium)
     when (page) {
         is UnitPage.Teaching -> TeachingPage(page, offer, pageModifier)
+        is UnitPage.Quiz -> QuizPage(page.screen.questions, onContinue, pageModifier)
         UnitPage.Practice -> PracticePage(practice.run, practice.onChange, pageModifier)
         is UnitPage.Check ->
             CheckPage(

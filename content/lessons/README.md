@@ -40,8 +40,24 @@ The body is a list of screens. Each screen starts with a heading and holds parag
 - `## Check: Title` is a question after the reading screens, and `## Answer: Title` is the explanation shown once the user has answered. A lesson may end with several Check and Answer pairs; nothing else may follow them. A check has `question:`, an optional `ayah:` (shown with the words around it), an optional `highlight:` (a word key marked in the ayah), a bullet list of options and `answer:` (the option number, from 1). Options appear in the order written.
 - `## Grid: Title` is a teaching grid, read right to left, five cells to a row. Each line is one cell: `- Arabic | transliteration | clip id`. The Arabic is written as it is drawn (no `[[ ]]`), the transliteration is in the file's language and has no Arabic, and the clip id looks like `qaida-04/012`. A tap on a cell plays its sound; Play all plays the cells in order.
 - `## Practice: Title` is one item of the unit's practice set; the app draws 10 at random from all the Practice items of the unit on each visit. It has the lines of a Check (`question:`, optional `ayah:` and `highlight:`, options, `answer:`) and a required `explain:` line, shown after the answer, and an optional `clip:` that plays after the answer. An option written as `[[بَ]]` alone shows as a large tile.
-- Grid and Practice screens may come anywhere after the first reading screen, between the Check and Answer pairs; a Check is still followed at once by its Answer. Translations keep the same clip ids as English.
+- `## Quiz: Title` is a card of one to three questions, asked one at a time after the teaching page before it. Each question starts with a `### Kind` line and ends with an `explain:` line, shown after the answer. The kinds:
+
+| Kind | Lines |
+|---|---|
+| `### Pick` | `question:`, option bullets, `answer:` (the option number, from 1) |
+| `### Listen` | `clip:` (played by a round button), option bullets, `answer:` |
+| `### Name` | `show: [[ع]]` (the letter, large), option bullets (the names), `answer:` |
+| `### Order` | `question:`, `items:` in the right order (the app shuffles them) |
+| `### Sort` | `question:`, two or more `group: Label \| [[ا]] [[م]]` lines |
+| `### Match` | `question:`, two or more `pair: [[ب]] \| text` lines |
+| `### Find` | `question:`, `items:`, `answer:` (the items that fit, at least one) |
+
+- Grid, Practice and Quiz screens may come anywhere after the first reading screen, between the Check and Answer pairs; a Check is still followed at once by its Answer. Translations keep the same clip ids and question kinds as English.
 - `letters: [[ا]] alif; [[ب]] bā` is a grid of letters, five to a row from the right, each with its name under it. It is silent, so it looks like a Grid but plays nothing; where the sounds exist, use a `## Grid` screen instead.
+- `reveal: [[ث]] thā; [[و]] wāw` is the same grid as `letters:`, but each name shows only when its letter is tapped.
+- `groups:` then lines `- [[ا]] [[م]] | caption` is a set of cards, each with the letters drawn with the same stroke and a caption.
+- `pairs:` then lines `- [[ت]] [[ط]] | caption | clip id` shows two letters to compare, with a caption. The clip id is optional; a tap plays it.
+- Captions hold no Arabic; letters in these blocks are written as `[[ ]]` fragments.
 - `words: ghunnah` followed by lines `- {{2:6:1}} | inna | 2` (or two neighbouring words, `- {{2:8:3}} {{2:8:4}} | may-yaqūlu | 3-4`, for a rule that joins them; letters are then counted across both) is a set of word tiles, two to a row. Each line is a Quran word key, a caption in the file's language (a transliteration or a meaning, no Arabic) and, optionally, the letters to colour, counted from the right from 1 (`2`, `2-3` or `1, 4`); vowel marks belong to their letter. The word after `words:` names the colour: a tajweed rule (`ghunnah`, `qalqalah`, `madd`, `ikhfa`, `idgham`, `iqlab`, `heavy`, `silent`) or `ending` for grammar; without it the letters take the accent colour. A tap plays the word with the user's reciter; the surah name under it opens the ayah in the Quran. A translation colours the same letters.
 - `mouth: throat` is the side view of the head with the named areas filled in: any of `throat`, `tongue`, `lips`, `nose`, `open_mouth` separated by spaces, or `none` for the labels only. The labels come from the app's strings, so a translation repeats the same line. The drawing is traced from Neutral Sagittal Section.svg (Richard Wright and Dan McCloy, CC0).
 - `tip: text` is a short aside drawn on a soft fill, for something the reader can try.

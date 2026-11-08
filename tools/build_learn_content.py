@@ -30,14 +30,17 @@ KEY_PATTERN = re.compile(r"^\d{1,3}:\d{1,3}(:\d{1,3})?$")
 TOKEN_PATTERN = re.compile(r"\{\{([^}]*)\}\}")
 FRAGMENT_PATTERN = re.compile(r"\[\[([^\]]*)\]\]")
 ARABIC_PATTERN = re.compile("[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
-HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer|Grid|Practice): (.+)$")
+HEADING_PATTERN = re.compile(r"^## (Screen \d+|Check|Answer|Grid|Practice|Quiz): (.+)$")
 CLIP_PATTERN = re.compile(r"^[a-z0-9-]+/[a-z0-9-]+$")
 GRID_LINE_PREFIX = "- "
-# Grid and Practice screens sit outside the Check and Answer pairing.
-FREE_KINDS = ("grid", "practice")
+# Grid, Practice and Quiz screens sit outside the Check and Answer pairing.
+FREE_KINDS = ("grid", "practice", "quiz")
 URL_PATTERN = re.compile(r"https?://\S+")
 TERM_PATTERN = re.compile(r"^(.+?) \((.+)\)$")
 LETTERS_PREFIX = "letters:"
+REVEAL_PREFIX = "reveal:"
+GROUPS_PREFIX = "groups:"
+PAIRS_PREFIX = "pairs:"
 LETTER_ENTRY_PATTERN = re.compile(r"^\[\[([^\]]+)\]\]\s+(.+)$")
 WORDS_PREFIX = "words:"
 TIP_PREFIX = "tip:"
@@ -45,6 +48,20 @@ MOUTH_PREFIX = "mouth:"
 # The areas a mouth block can fill in; `none` fills nothing and shows the labels only.
 MOUTH_AREAS = ("throat", "tongue", "lips", "nose", "open_mouth")
 WORD_LINE_PATTERN = re.compile(r"^- \{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\}(?:\s+\{\{(\d{1,3}:\d{1,3}:\d{1,3})\}\})?\s*\|\s*([^|]+?)\s*(?:\|\s*([\d,\s-]+))?$")
+# The kinds of quiz question, and the lines each kind has; every line is required. Options, groups
+# and pairs may repeat.
+QUIZ_FIELDS = {
+    "pick": ("question", "options", "answer", "explain"),
+    "listen": ("clip", "options", "answer", "explain"),
+    "name": ("show", "options", "answer", "explain"),
+    "order": ("question", "items", "explain"),
+    "sort": ("question", "group", "explain"),
+    "match": ("question", "pair", "explain"),
+    "find": ("question", "items", "answer", "explain"),
+}
+REPEATED_QUIZ_FIELDS = ("options", "group", "pair")
+QUESTION_HEADING_PREFIX = "### "
+MAX_QUIZ_QUESTIONS = 3
 # The colour a words block gives its marked letters: a tajweed rule, or a grammar ending.
 WORD_MARKS = ("ghunnah", "qalqalah", "madd", "ikhfa", "idgham", "iqlab", "heavy", "silent", "ending")
 # Code points that start a letter; every other Arabic mark belongs to the letter before it.
@@ -147,10 +164,10 @@ def parse_table(lines, where, used_keys):
     return {"type": "table", "header": header, "rows": rows}
 
 
-def parse_letters(text, where, used_keys):
-    """Reads `letters: [[ا]] alif; [[ب]] baa; ...` as a grid of letters with their names."""
+def parse_letter_names(text, prefix, where, used_keys):
+    """Reads `letters: [[ا]] alif; [[ب]] baa; ...` (or `reveal:`) as letters with their names."""
     items = []
-    for entry in text[len(LETTERS_PREFIX) :].split(";"):
+    for entry in text[len(prefix) :].split(";"):
         entry = entry.strip()
         match = LETTER_ENTRY_PATTERN.match(entry)
         if not match:
@@ -158,8 +175,8 @@ def parse_letters(text, where, used_keys):
         scan_text(entry, where, used_keys)
         items.append({"letter": match.group(1), "name": match.group(2).strip()})
     if not items:
-        raise LessonError(f"{where}: a letters block needs at least one letter.")
-    return {"type": "letters", "items": items}
+        raise LessonError(f"{where}: a {prefix[:-1]} block needs at least one letter.")
+    return items
 
 
 def letter_count(text):
@@ -218,6 +235,75 @@ def parse_mouth(text, where):
     return {"type": "mouth", "areas": names}
 
 
+def parse_fragments(value, where, used_keys):
+    """Reads `[[ا]] [[م]]` as its fragments, brackets kept; any other text in the value is refused."""
+    scan_text(value, where, used_keys)
+    if FRAGMENT_PATTERN.sub("", value).strip():
+        raise LessonError(f"{where}: {value!r} holds text beside the [[fragments]].")
+    fragments = [match.group(0) for match in FRAGMENT_PATTERN.finditer(value)]
+    if not fragments:
+        raise LessonError(f"{where}: {value!r} holds no [[fragment]].")
+    return fragments
+
+
+def parse_single_fragment(value, where, used_keys):
+    fragments = parse_fragments(value, where, used_keys)
+    if len(fragments) != 1:
+        raise LessonError(f"{where}: {value!r} must be one [[fragment]].")
+    return fragments[0]
+
+
+def split_bar_line(line, where):
+    """Splits a `- first | second | third` line into its stripped parts."""
+    if not line.startswith("- "):
+        raise LessonError(f"{where}: a line of this block starts with '- ', not {line!r}.")
+    return [part.strip() for part in line[2:].split("|")]
+
+
+def check_caption(caption, where):
+    """A caption is written in the file's language, so it holds no Arabic."""
+    if ARABIC_PATTERN.search(caption):
+        raise LessonError(f"{where}: the caption {caption!r} holds Arabic; write it in the file's language.")
+    return caption
+
+
+def parse_group_line(line, where, used_keys):
+    """Reads `- [[ا]] [[م]] | caption`: letters drawn with the same stroke, and their caption."""
+    parts = split_bar_line(line, where)
+    if len(parts) != 2:
+        raise LessonError(f"{where}: a groups line looks like '- [[ا]] [[م]] | caption', not {line!r}.")
+    fragments = parse_fragments(parts[0], where, used_keys)
+    if len(fragments) < 2:
+        raise LessonError(f"{where}: a group needs at least two letters, not {line!r}.")
+    return {"letters": [fragment.strip("[]") for fragment in fragments], "caption": check_caption(parts[1], where)}
+
+
+def parse_pair_line(line, where, used_keys):
+    """Reads `- [[ت]] [[ط]] | caption | clip id`: two letters to compare, a caption and an optional sound."""
+    parts = split_bar_line(line, where)
+    if not 2 <= len(parts) <= 3:
+        raise LessonError(f"{where}: a pairs line looks like '- [[ت]] [[ط]] | caption | clip id', not {line!r}.")
+    fragments = parse_fragments(parts[0], where, used_keys)
+    if len(fragments) != 2:
+        raise LessonError(f"{where}: a pair holds two letters, not {line!r}.")
+    clip = parse_clip(parts[2], where) if len(parts) == 3 else None
+    return {"letters": [fragment.strip("[]") for fragment in fragments], "caption": check_caption(parts[1], where), "clip": clip}
+
+
+def parse_groups(paragraph, where, used_keys):
+    items = [parse_group_line(line, where, used_keys) for line in paragraph[1:]]
+    if not items:
+        raise LessonError(f"{where}: a groups block needs at least one group line.")
+    return {"type": "groups", "items": items}
+
+
+def parse_pairs(paragraph, where, used_keys):
+    items = [parse_pair_line(line, where, used_keys) for line in paragraph[1:]]
+    if not items:
+        raise LessonError(f"{where}: a pairs block needs at least one pair line.")
+    return {"type": "pairs", "items": items}
+
+
 def parse_blocks(lines, where, used_keys):
     """Turns the lines of a screen into blocks: paragraph, bullets, table, ayah, letters, words, tip or mouth."""
     blocks = []
@@ -231,7 +317,13 @@ def parse_blocks(lines, where, used_keys):
         elif first.startswith(TIP_PREFIX):
             blocks.append({"type": "tip", "text": scan_text(text[len(TIP_PREFIX) :].strip(), where, used_keys)})
         elif first.startswith(LETTERS_PREFIX):
-            blocks.append(parse_letters(text, where, used_keys))
+            blocks.append({"type": "letters", "items": parse_letter_names(text, LETTERS_PREFIX, where, used_keys)})
+        elif first.startswith(REVEAL_PREFIX):
+            blocks.append({"type": "reveal", "items": parse_letter_names(text, REVEAL_PREFIX, where, used_keys)})
+        elif first.startswith(GROUPS_PREFIX):
+            blocks.append(parse_groups(paragraph, where, used_keys))
+        elif first.startswith(PAIRS_PREFIX):
+            blocks.append(parse_pairs(paragraph, where, used_keys))
         elif first.startswith("|"):
             blocks.append(parse_table(paragraph, where, used_keys))
         elif first.startswith("- "):
@@ -357,6 +449,130 @@ def parse_check(lines, where, used_keys, is_practice=False):
     return check
 
 
+def split_questions(lines, where):
+    """Splits the lines of a Quiz screen at its `### Kind` headings into (kind, lines) pairs."""
+    chunks = []
+    for line in lines:
+        if line.startswith(QUESTION_HEADING_PREFIX):
+            name = line[len(QUESTION_HEADING_PREFIX) :].strip()
+            if name.lower() not in QUIZ_FIELDS:
+                raise LessonError(f"{where}: a question heading is one of {', '.join(QUIZ_FIELDS)}, not ### {name}.")
+            chunks.append((name.lower(), []))
+        elif chunks:
+            chunks[-1][1].append(line)
+        elif line.strip():
+            raise LessonError(f"{where}: text before the first question heading.")
+    return chunks
+
+
+def read_question_fields(kind, lines, where):
+    """Reads the `name: value` and `- option` lines of one question, and checks every line it needs."""
+    allowed = QUIZ_FIELDS[kind]
+    fields = {}
+    for line in lines:
+        if not line.strip():
+            continue
+        if line.startswith("- "):
+            name, value = "options", line[2:].strip()
+        else:
+            name, separator, value = line.partition(":")
+            if not separator:
+                raise LessonError(f"{where}: expected 'name: value', got {line!r}.")
+            name, value = name.strip(), value.strip()
+        if name not in allowed:
+            raise LessonError(f"{where}: a {kind} question has no {name} line.")
+        if name in REPEATED_QUIZ_FIELDS:
+            fields.setdefault(name, []).append(value)
+        elif name in fields:
+            raise LessonError(f"{where}: {name} appears twice in a {kind} question.")
+        else:
+            fields[name] = value
+    missing = [name for name in allowed if name not in fields]
+    if missing:
+        raise LessonError(f"{where}: a {kind} question needs {', '.join(missing)}.")
+    return fields
+
+
+def parse_options(fields, where, used_keys):
+    """Reads the bullets and the `answer` of a Pick, Listen or Name question; the answer counts from 0."""
+    options = [scan_text(option, where, used_keys) for option in fields["options"]]
+    if len(options) < 2:
+        raise LessonError(f"{where}: a question needs at least two options.")
+    answer = fields["answer"]
+    if not answer.isdigit() or not 1 <= int(answer) <= len(options):
+        raise LessonError(f"{where}: answer must be an option number from 1 to {len(options)}, not {answer!r}.")
+    return options, int(answer) - 1
+
+
+def parse_sort_group(value, where, used_keys):
+    """Reads `group: Like [[ب]] | [[ب]] [[ت]]`: a label and the letters that belong to it."""
+    parts = [part.strip() for part in value.split("|")]
+    if len(parts) != 2:
+        raise LessonError(f"{where}: a group line looks like 'group: Label | [[ب]] [[ت]]', not {value!r}.")
+    return {"label": scan_text(parts[0], where, used_keys), "items": parse_fragments(parts[1], where, used_keys)}
+
+
+def parse_match_pair(value, where, used_keys):
+    """Reads `pair: [[ب]] | One below`: a letter and the text it goes with."""
+    parts = [part.strip() for part in value.split("|")]
+    if len(parts) != 2:
+        raise LessonError(f"{where}: a pair line looks like 'pair: [[ب]] | One below', not {value!r}.")
+    return {"left": parse_single_fragment(parts[0], where, used_keys), "right": scan_text(parts[1], where, used_keys)}
+
+
+def parse_question(kind, lines, where, used_keys):
+    """Turns the lines of one quiz question into its data, with the same names as the JSON."""
+    fields = read_question_fields(kind, lines, where)
+    explanation = scan_text(fields["explain"], where, used_keys)
+    if kind == "pick":
+        options, answer = parse_options(fields, where, used_keys)
+        question = scan_text(fields["question"], where, used_keys)
+        return {"type": kind, "question": question, "options": options, "answer": answer, "explain": explanation}
+    if kind == "listen":
+        options, answer = parse_options(fields, where, used_keys)
+        return {"type": kind, "clip": parse_clip(fields["clip"], where), "options": options, "answer": answer, "explain": explanation}
+    if kind == "name":
+        options, answer = parse_options(fields, where, used_keys)
+        shown = parse_single_fragment(fields["show"], where, used_keys)
+        return {"type": kind, "show": shown, "options": options, "answer": answer, "explain": explanation}
+    if kind == "order":
+        items = parse_fragments(fields["items"], where, used_keys)
+        if len(items) < 2:
+            raise LessonError(f"{where}: an order question needs two or more items.")
+        question = scan_text(fields["question"], where, used_keys)
+        return {"type": kind, "question": question, "items": items, "explain": explanation}
+    if kind == "sort":
+        groups = [parse_sort_group(value, where, used_keys) for value in fields["group"]]
+        if len(groups) < 2:
+            raise LessonError(f"{where}: a sort question needs two or more group lines.")
+        question = scan_text(fields["question"], where, used_keys)
+        return {"type": kind, "question": question, "groups": groups, "explain": explanation}
+    if kind == "match":
+        pairs = [parse_match_pair(value, where, used_keys) for value in fields["pair"]]
+        if len(pairs) < 2:
+            raise LessonError(f"{where}: a match question needs two or more pair lines.")
+        question = scan_text(fields["question"], where, used_keys)
+        return {"type": kind, "question": question, "pairs": pairs, "explain": explanation}
+    items = parse_fragments(fields["items"], where, used_keys)
+    answers = parse_fragments(fields["answer"], where, used_keys)
+    stray = [answer for answer in answers if answer not in items]
+    if stray:
+        raise LessonError(f"{where}: each answer must be one of the items; {stray} is not.")
+    question = scan_text(fields["question"], where, used_keys)
+    return {"type": kind, "question": question, "items": items, "answers": answers, "explain": explanation}
+
+
+def parse_quiz(lines, where, used_keys):
+    """Reads the one to three questions of a Quiz screen."""
+    questions = [
+        parse_question(kind, question_lines, where, used_keys)
+        for kind, question_lines in split_questions(lines, where)
+    ]
+    if not 1 <= len(questions) <= MAX_QUIZ_QUESTIONS:
+        raise LessonError(f"{where}: a quiz holds one to three questions, not {len(questions)}.")
+    return questions
+
+
 def parse_grid(lines, where):
     """Reads the lines of a Grid screen: `- Arabic | transliteration | clip id` per cell."""
     cells = []
@@ -419,6 +635,8 @@ def parse_body(body, name, first_line, used_keys):
             )
         elif screen["kind"] == "grid":
             entry["cells"] = parse_grid(screen["lines"], screen["where"])
+        elif screen["kind"] == "quiz":
+            entry["questions"] = parse_quiz(screen["lines"], screen["where"], used_keys)
         else:
             entry["blocks"] = parse_blocks(screen["lines"], screen["where"], used_keys)
         result.append(entry)
@@ -532,7 +750,14 @@ def check_clips_exist(lesson_file, clips_folder):
 def shape_of(screens):
     """What a translation must share with the English file: screen kinds and keys per screen."""
     return [
-        (screen["kind"], keys_of_screen(screen), clips_of_screen(screen), marks_of_screen(screen), mouths_of_screen(screen))
+        (
+            screen["kind"],
+            keys_of_screen(screen),
+            clips_of_screen(screen),
+            marks_of_screen(screen),
+            mouths_of_screen(screen),
+            question_kinds_of_screen(screen),
+        )
         for screen in screens
     ]
 
@@ -551,9 +776,22 @@ def mouths_of_screen(screen):
     return [block["areas"] for block in screen.get("blocks", []) if block["type"] == "mouth"]
 
 
+def question_kinds_of_screen(screen):
+    """The kinds of a quiz screen's questions in order; a translation asks the same kinds."""
+    return [question["type"] for question in screen.get("questions", [])]
+
+
 def clips_of_screen(screen):
     """The sound ids a screen plays; they are not translated, so both languages must agree."""
     clips = [cell["clip"] for cell in screen.get("cells", [])]
+    clips += [
+        item["clip"]
+        for block in screen.get("blocks", [])
+        if block["type"] == "pairs"
+        for item in block["items"]
+        if item["clip"]
+    ]
+    clips += [question["clip"] for question in screen.get("questions", []) if question["type"] == "listen"]
     clip = screen.get("check", {}).get("clip") or screen.get("read_aloud", {}).get("clip")
     return clips + ([clip] if clip else [])
 

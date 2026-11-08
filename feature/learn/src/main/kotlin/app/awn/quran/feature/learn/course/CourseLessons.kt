@@ -39,6 +39,23 @@ sealed interface LessonBlock {
 
     data class LetterName(val letter: String, val name: String)
 
+    /** Letters drawn with the same stroke, each group a card with its caption. */
+    data class Groups(val items: List<LetterGroup>) : LessonBlock
+
+    data class LetterGroup(val letters: List<String>, val caption: String)
+
+    /** Two letters to compare with a caption; a tap plays [LetterPair.clip] when it is set. */
+    data class Pairs(val items: List<LetterPair>) : LessonBlock
+
+    data class LetterPair(val letters: List<String>, val caption: String, val clip: String?) {
+        /** The sounds of the pair, in playing order; empty when it has none. */
+        val clipIds: List<String>
+            get() = clip?.split(CLIP_SEPARATOR).orEmpty()
+    }
+
+    /** A grid of letters whose names show when the letter is tapped. */
+    data class Reveal(val items: List<LetterName>) : LessonBlock
+
     /** Quran words as tiles that play when tapped; [mark] colours the letters each tile names. */
     data class Words(val mark: WordMark?, val items: List<WordTile>) : LessonBlock
 
@@ -121,7 +138,7 @@ data class GridCell(val arabic: String, val transliteration: String, val clip: S
         get() = clip.split(CLIP_SEPARATOR)
 }
 
-private const val CLIP_SEPARATOR = "+"
+internal const val CLIP_SEPARATOR = "+"
 
 /** One item of a unit's practice pool: a question to answer, or a row to read aloud. */
 sealed interface PracticeItem {
@@ -158,6 +175,7 @@ enum class ScreenKind {
     Answer,
     Grid,
     Practice,
+    Quiz,
 }
 
 data class LessonScreenData(
@@ -167,7 +185,14 @@ data class LessonScreenData(
     val check: LessonCheck?,
     val cells: List<GridCell> = emptyList(),
     val readAloud: PracticeItem.ReadAloud? = null,
-)
+    val questions: List<QuizQuestion> = emptyList(),
+) {
+    /** True when a listen question or a pair of this screen names a sound of its own. */
+    val hasOwnSound: Boolean
+        get() =
+            questions.any { it is QuizQuestion.Listen } ||
+                blocks.any { block -> block is LessonBlock.Pairs && block.items.any { it.clip != null } }
+}
 
 /** One language of a lesson. */
 data class LessonText(val title: String, val screens: List<LessonScreenData>) {
@@ -179,10 +204,6 @@ data class LessonText(val title: String, val screens: List<LessonScreenData>) {
 
     val readingScreens: List<LessonScreenData>
         get() = screens.filter { it.kind == ScreenKind.Reading }
-
-    /** The pages that teach, reading screens and grids, in the order of the file. */
-    val teachingScreens: List<LessonScreenData>
-        get() = screens.filter { it.kind == ScreenKind.Reading || it.kind == ScreenKind.Grid }
 
     /** The unit's practice pool; each practice screen is one item. */
     val practiceItems: List<PracticeItem>
@@ -196,7 +217,7 @@ data class LessonText(val title: String, val screens: List<LessonScreenData>) {
     /** True when any grid cell or practice item has a sound, so the unit offers the download. */
     val hasClips: Boolean
         get() =
-            screens.any { screen -> screen.cells.isNotEmpty() } ||
+            screens.any { screen -> screen.cells.isNotEmpty() || screen.hasOwnSound } ||
                 practiceItems.any { it.clipIds.isNotEmpty() }
 
     /** Every check of the lesson with the explanation shown after it, in order. */
@@ -306,6 +327,7 @@ object CourseContentReader {
                 "answer" -> ScreenKind.Answer
                 "grid" -> ScreenKind.Grid
                 "practice" -> ScreenKind.Practice
+                "quiz" -> ScreenKind.Quiz
                 else -> error("Unknown lesson screen kind $stored.")
             }
         return LessonScreenData(
@@ -318,6 +340,7 @@ object CourseContentReader {
                 screen.optJSONObject("read_aloud")?.let {
                     PracticeItem.ReadAloud(it.getString("read"), it.getString("clip"))
                 },
+            questions = screen.optJSONArray("questions")?.let(::parseQuizQuestions).orEmpty(),
         )
     }
 
@@ -343,6 +366,14 @@ object CourseContentReader {
                     },
                 )
             "words" -> parseWords(block)
+            "groups" -> parseGroups(block)
+            "pairs" -> parsePairs(block)
+            "reveal" ->
+                LessonBlock.Reveal(
+                    block.getJSONArray("items").objects().map {
+                        LessonBlock.LetterName(it.getString("letter"), it.getString("name"))
+                    },
+                )
             "tip" -> LessonBlock.Tip(block.getString("text"))
             "mouth" ->
                 LessonBlock.Mouth(
@@ -365,6 +396,25 @@ object CourseContentReader {
             }
         return LessonBlock.Words(mark, items)
     }
+
+    private fun parseGroups(block: JSONObject) =
+        LessonBlock.Groups(
+            block.getJSONArray("items").objects().map {
+                LessonBlock.LetterGroup(it.getJSONArray("letters").strings(), it.getString("caption"))
+            },
+        )
+
+    private fun parsePairs(block: JSONObject) =
+        LessonBlock.Pairs(
+            block.getJSONArray("items").objects().map {
+                LessonBlock.LetterPair(
+                    letters = it.getJSONArray("letters").strings(),
+                    caption = it.getString("caption"),
+                    // optString would turn a JSON null into "null", so the absent clip is checked first.
+                    clip = if (it.isNull("clip")) null else it.getString("clip"),
+                )
+            },
+        )
 
     private fun parseCell(cell: JSONObject) =
         GridCell(
@@ -394,9 +444,9 @@ object CourseContentReader {
         return AyahRef(parts[0].toInt(), parts[1].toInt())
     }
 
-    private fun JSONArray.objects(): List<JSONObject> = (0 until length()).map { getJSONObject(it) }
-
     private fun JSONArray.arrays(): List<JSONArray> = (0 until length()).map { getJSONArray(it) }
-
-    private fun JSONArray.strings(): List<String> = (0 until length()).map { getString(it) }
 }
+
+internal fun JSONArray.objects(): List<JSONObject> = (0 until length()).map { getJSONObject(it) }
+
+internal fun JSONArray.strings(): List<String> = (0 until length()).map { getString(it) }

@@ -105,9 +105,12 @@ class LessonContentTest {
             is LessonBlock.Equation -> block.parts.joinToString(" ") { it.text + it.gloss }
             is LessonBlock.Words -> block.items.joinToString(" ") { it.caption }
             is LessonBlock.Tip -> block.text
+            is LessonBlock.Groups -> block.items.joinToString(" ") { it.caption }
+            is LessonBlock.Pairs -> block.items.joinToString(" ") { it.caption }
             is LessonBlock.Ayah,
             is LessonBlock.Mouth,
-            is LessonBlock.Letters -> ""
+            is LessonBlock.Letters,
+            is LessonBlock.Reveal -> ""
         }
 
     @Test

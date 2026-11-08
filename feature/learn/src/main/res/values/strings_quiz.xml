@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="quiz_dont_know">I don\'t know</string>
+  <string name="quiz_next_question">Next question · %1$d of %2$d</string>
+  <string name="quiz_continue">Continue</string>
+  <string name="quiz_right">Right</string>
+  <string name="quiz_tap_group">Tap a letter, then its group.</string>
+  <string name="quiz_tap_answer">Tap a letter, then its answer.</string>
+  <string name="quiz_play_sound">Play sound</string>
+  <string name="quiz_listen_title">Which letter did you hear?</string>
+  <string name="quiz_name_title">Which name is this letter?</string>
+</resources>

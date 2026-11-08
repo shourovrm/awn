@@ -41,6 +41,9 @@ internal fun LessonBlocks(blocks: List<LessonBlock>, modifier: Modifier = Modifi
                 is LessonBlock.Words -> WordTiles(block)
                 is LessonBlock.Tip -> TipView(block)
                 is LessonBlock.Mouth -> MouthDiagram(block.areas)
+                is LessonBlock.Groups -> LetterGroups(block)
+                is LessonBlock.Pairs -> LetterPairs(block)
+                is LessonBlock.Reveal -> RevealGrid(block)
             }
         }
     }

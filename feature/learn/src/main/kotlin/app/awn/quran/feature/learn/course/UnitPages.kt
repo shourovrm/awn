@@ -8,6 +8,9 @@ sealed interface UnitPage {
      */
     data class Teaching(val screens: List<LessonScreenData>) : UnitPage
 
+    /** One quiz screen: its questions are asked one at a time on this page. */
+    data class Quiz(val screen: LessonScreenData) : UnitPage
+
     /** [index] counts the checks of the unit from 0. */
     data class Check(val index: Int, val check: CheckWithAnswer) : UnitPage
 
@@ -18,18 +21,37 @@ sealed interface UnitPage {
 }
 
 /**
- * The pages of a unit in swipe order: the teaching pages, every check, the practice when the unit
- * has any practice item, then the closing page.
+ * The pages of a unit in swipe order: the teaching pages and quizzes in the order of the file,
+ * every check, the practice when the unit has any practice item, then the closing page.
  */
 fun unitPages(text: LessonText): List<UnitPage> =
-    teachingPages(text) +
+    teachingAndQuizPages(text) +
         text.checks.mapIndexed { index, check -> UnitPage.Check(index, check) } +
         listOfNotNull(UnitPage.Practice.takeIf { text.practiceItems.isNotEmpty() }) +
         UnitPage.Done
 
-private fun teachingPages(text: LessonText): List<UnitPage.Teaching> {
+/** Each quiz is its own page, right after the teaching pages written before it. */
+private fun teachingAndQuizPages(text: LessonText): List<UnitPage> {
+    val pages = mutableListOf<UnitPage>()
+    var run = mutableListOf<LessonScreenData>()
+    for (screen in text.screens) {
+        when (screen.kind) {
+            ScreenKind.Quiz -> {
+                pages += teachingPages(run)
+                pages += UnitPage.Quiz(screen)
+                run = mutableListOf()
+            }
+            ScreenKind.Reading, ScreenKind.Grid -> run += screen
+            else -> Unit
+        }
+    }
+    pages += teachingPages(run)
+    return pages
+}
+
+private fun teachingPages(screens: List<LessonScreenData>): List<UnitPage.Teaching> {
     val pages = mutableListOf<MutableList<LessonScreenData>>()
-    for (screen in text.teachingScreens) {
+    for (screen in screens) {
         if (screen.kind == ScreenKind.Grid && pages.isNotEmpty()) {
             pages.last().add(screen)
         } else {
