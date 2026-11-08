@@ -1,20 +1,20 @@
 ---
 id: letters-01-all-letters
-title: All 29 letters
+title: The Arabic letters
 order: 1
-appears_after: "Start of the Reading track; Noorani Qaida lesson 1"
+appears_after: "Start of the Reading track; Averroes Qaida lesson 1 and the Noorani Qaida lesson 1"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
 examples: [2:10:1, 1:1:1]
 reviewed_by: ""
-version: 2026-10-23
+version: 2026-11-08
 ---
 
-## Screen 1: The Arabic letters
+## Screen 1: The 29 letters
 
-Arabic has 29 letters, counting hamza. Arabic is read from right to left, so a line of the Quran starts at the right edge of the page.
+Arabic has 29 letters, counting hamza. Arabic is read from right to left, so the alphabet starts at the top right with alif, and a line of the Quran starts at the right edge of the page.
 
-Tap a letter to hear it. The letters follow the order of a Qaida, the first reading book for the Quran. Most names begin with the sound of their letter: bā starts with b, mīm with m.
+Tap a letter to hear its name. Most names begin with the sound of their letter: bā starts with b, mīm with m. {{1:1:1}}, the first word of the Quran, starts on the right with [[ب]].
 
 ## Grid: The letters
 - ا | alif | qaida-01/001
@@ -47,36 +47,92 @@ Tap a letter to hear it. The letters follow the order of a Qaida, the first read
 - ء | hamzah | qaida-01/028
 - ي | yā | qaida-01/029
 
-## Screen 2: Letters told apart by dots
+## Quiz: The 29 letters
 
-Many letters share one body and differ only in their dots. [[ب]] has one dot below, [[ت]] has two dots above and [[ث]] has three dots above.
+### Pick
+question: Which letter is bā?
+- [[ت]]
+- [[ب]]
+- [[ث]]
+- [[ن]]
+answer: 2
+explain: bā has one dot under it.
 
-- [[ب]] [[ت]] [[ث]]: one dot below, two above, three above
-- [[ج]] [[ح]] [[خ]]: a dot inside, no dot, a dot above
-- [[د]] [[ذ]]: no dot, a dot above
-- [[ر]] [[ز]]: no dot, a dot above
-- [[س]] [[ش]]: no dots, three dots above
+### Listen
+clip: qaida-01/005
+- [[ج]]
+- [[ح]]
+- [[خ]]
+- [[ع]]
+answer: 1
+explain: That was jīm, the letter with a dot inside its curve.
 
-## Screen 3: More letters told apart by dots
+### Order
+question: Tap these letters in alphabet order
+items: [[ا]] [[ب]] [[ج]] [[د]]
+explain: The alphabet runs alif, bā, then on to jīm and dāl.
 
-The same pattern runs through the rest of the alphabet. In each pair the second letter has the dot.
+## Screen 2: Letters that share a shape
 
-- [[ص]] [[ض]]: no dot, a dot above
-- [[ط]] [[ظ]]: no dot, a dot above
-- [[ع]] [[غ]]: no dot, a dot above
-- [[ف]] [[ق]]: one dot above, two dots above
+[[ب]], [[ت]] and [[ث]] are one stroke with different dots: one dot below, two above, three above. Letters written with the same stroke form a group, and the 29 letters fall into 8 groups.
 
-[[ف]] and [[ق]] also differ in their tail: the tail of [[ق]] dips below the line.
+groups:
+- [[ا]] [[م]] [[ط]] [[ظ]] | Group 1
+- [[ب]] [[ت]] [[ث]] [[ف]] [[ك]] | Group 2
+- [[ح]] [[ج]] [[خ]] | Group 3
+- [[د]] [[ذ]] [[ر]] [[ز]] [[و]] | Group 4
+- [[س]] [[ش]] [[ص]] [[ض]] | Group 5
+- [[ن]] [[ق]] [[ل]] | Group 6
+- [[ء]] [[ع]] [[غ]] | Group 7
+- [[ه]] [[ى]] [[ي]] | Group 8
 
-## Screen 4: Letters with their own shape
+## Quiz: Letters that share a shape
 
-Nine letters, written alone, look like no other letter: [[ا]], [[ك]], [[ل]], [[م]], [[ن]], [[ه]], [[و]], [[ي]] and [[ء]].
+### Sort
+question: Sort the letters by shape
+group: Like [[ب]] | [[ب]] [[ت]] [[ث]]
+group: Like [[ح]] | [[ح]] [[ج]] [[خ]]
+explain: [[ب]] [[ت]] [[ث]] share one stroke; [[ح]] [[ج]] [[خ]] share another.
 
-[[ا]] alif is a single upright stroke. [[ل]] lām is also upright but curves to the left at the bottom. [[ن]] nūn is a deep bowl with one dot above.
+### Pick
+question: Which letter is not written like the others?
+- [[ب]]
+- [[ت]]
+- [[ج]]
+- [[ث]]
+answer: 3
+explain: [[ج]] belongs with [[ح]] and [[خ]].
 
-Yā has two dots below. At the end of a word the Quran's script leaves them out: {{2:10:1}}, fī, in, ends in a yā with no dots.
+## Screen 3: Heavy letters, and pairs that sound close
 
-## Screen 5: Sounds English does not have
+These seven letters are always said with a full, heavy sound, with the back of the tongue raised. Every other letter is light.
+
+letters: [[خ]] khā; [[ص]] ṣād; [[ض]] ḍād; [[غ]] ghayn; [[ط]] ṭā; [[ق]] qāf; [[ظ]] ẓā
+
+Some letters sound close to another letter. Tap a pair to hear both.
+
+pairs:
+- [[ت]] [[ط]] | tā · ṭā | qaida-01/003+qaida-01/016
+- [[ه]] [[ح]] | hā · ḥā | qaida-01/027+qaida-01/006
+- [[ك]] [[ق]] | kāf · qāf | qaida-01/022+qaida-01/021
+- [[س]] [[ش]] | sīn · shīn | qaida-01/012+qaida-01/013
+
+## Quiz: Heavy letters
+
+### Find
+question: Tap the three heavy letters
+items: [[ت]] [[ط]] [[د]] [[ص]] [[س]] [[ق]] [[ك]] [[ه]] [[ح]] [[ب]]
+answer: [[ط]] [[ص]] [[ق]]
+explain: [[ط]] [[ص]] [[ق]] are heavy; [[ت]] [[س]] [[ك]] are their light partners.
+
+### Listen
+clip: qaida-01/016
+- [[ت]]
+- [[ط]]
+answer: 2
+explain: That was ṭā, the heavy one.
+
+## Screen 4: Sounds English does not have
 
 Nine letters have no English sound. A beginner learns them by ear from a teacher or a recording.
 
@@ -87,9 +143,72 @@ Nine letters have no English sound. A beginner learns them by ear from a teacher
 - [[ق]] qāf: a k said further back in the mouth
 - [[ص]] [[ض]] [[ط]] [[ظ]]: heavy forms of s, d, t and dh, said with the back of the tongue raised
 
-## Screen 6: The first letter of the Quran
+## Screen 5: Dots on letters
 
-{{1:1:1}} is the first word of the Quran. It starts on the right with [[ب]], the letter with one dot below.
+[[ح]] has no dot, [[ج]] has one dot below and [[خ]] has one dot above. The dots tell you which letter you are reading.
+
+No dots, 14 letters:
+
+letters: [[ا]] alif; [[ح]] ḥā; [[د]] dāl; [[ر]] rā; [[س]] sīn; [[ص]] ṣād; [[ط]] ṭā; [[ع]] ʿayn; [[ك]] kāf; [[ل]] lām; [[م]] mīm; [[و]] wāw; [[ه]] hā; [[ء]] hamzah
+
+One dot, 10 letters:
+
+letters: [[ب]] bā; [[ج]] jīm; [[خ]] khā; [[ذ]] dhāl; [[ز]] zāy; [[ض]] ḍād; [[ظ]] ẓā; [[غ]] ghayn; [[ف]] fā; [[ن]] nūn
+
+Two dots, 3 letters:
+
+letters: [[ت]] tā; [[ق]] qāf; [[يـ]] yā
+
+Three dots, 2 letters:
+
+letters: [[ث]] thā; [[ش]] shīn
+
+Yā has two dots below. At the end of a word the Quran's script leaves them out: {{2:10:1}}, fī, in, ends in a yā with no dots.
+
+## Quiz: Dots on letters
+
+### Pick
+question: Add one dot above [[ح]]. Which letter is it?
+- [[ج]]
+- [[خ]]
+- [[غ]]
+- [[ح]]
+answer: 2
+explain: One dot above [[ح]] makes [[خ]]; one dot below makes [[ج]].
+
+### Match
+question: Match each letter to its dots
+pair: [[ب]] | One below
+pair: [[ت]] | Two above
+pair: [[ث]] | Three above
+pair: [[ح]] | None
+explain: [[ب]] has one dot below, [[ت]] two above, [[ث]] three above, [[ح]] none.
+
+## Screen 6: Letters out of order
+
+The letters are mixed up. Say each one aloud, then tap it to see its name.
+
+reveal: [[ث]] thā; [[و]] wāw; [[ب]] bā; [[ج]] jīm; [[ط]] ṭā; [[ل]] lām; [[ء]] hamzah; [[ا]] alif; [[م]] mīm; [[ز]] zāy; [[ظ]] ẓā; [[خ]] khā; [[ت]] tā; [[ر]] rā; [[ح]] ḥā; [[ي]] yā; [[ص]] ṣād; [[ذ]] dhāl; [[ه]] hā; [[ض]] ḍād; [[ف]] fā; [[ش]] shīn; [[غ]] ghayn; [[ن]] nūn; [[ك]] kāf; [[س]] sīn; [[د]] dāl; [[ق]] qāf; [[ع]] ʿayn
+
+## Quiz: Letters out of order
+
+### Name
+show: [[ع]]
+- ʿayn
+- ghayn
+- hamzah
+- ḥā
+answer: 1
+explain: ʿayn has no dot; ghayn, [[غ]], has one dot above.
+
+### Listen
+clip: qaida-01/011
+- [[ذ]]
+- [[ز]]
+- [[ظ]]
+- [[د]]
+answer: 2
+explain: That was zāy.
 
 ## Check: Two dots above
 
