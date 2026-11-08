@@ -41,8 +41,8 @@ private fun unitProgressLine(
     content: CourseContent,
     languageCode: String,
 ): UnitProgressLine? {
-    if (saved.page == 0) return null
-    val lesson = content.lesson(saved.lessonId) ?: return null
+    val lesson = content.lesson(saved.lessonId)
+    if (saved.page == 0 || lesson == null) return null
     val pageCount = unitPages(lesson.text(languageCode)).size
     return UnitProgressLine(
         pageNumber = resumePage(saved.page, pageCount) + 1,

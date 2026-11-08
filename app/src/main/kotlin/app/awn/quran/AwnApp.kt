@@ -15,7 +15,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,7 +27,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import app.awn.quran.core.data.AyahRef
-import app.awn.quran.core.ui.components.AwnIconButton
 import app.awn.quran.core.ui.theme.AwnTheme
 import app.awn.quran.core.ui.theme.ColourSettings
 import app.awn.quran.core.ui.theme.LocalColourMode
@@ -268,20 +266,6 @@ private fun TabsRoute(
             }
         },
         hifzTab = { tabSlots.hifzTab(tabActions) },
-    )
-}
-
-@Composable
-private fun LearnBarActions(navigation: TabNavigation) {
-    AwnIconButton(
-        icon = R.drawable.ic_app_settings,
-        contentDescription = stringResource(R.string.index_settings),
-        onClick = navigation::openSettings,
-    )
-    AwnIconButton(
-        icon = R.drawable.ic_app_school,
-        contentDescription = stringResource(R.string.notice_learn_title),
-        onClick = navigation.openTeacherPage,
     )
 }
 

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,8 +13,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
+import app.awn.quran.core.ui.theme.mutedContent
+import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.QuizPair
 import app.awn.quran.feature.learn.course.QuizQuestion
 import kotlinx.coroutines.delay
@@ -175,4 +180,14 @@ private fun MatchTile(
     ) { color ->
         TileLabel(text, color, AwnTypography.quizLetterSize)
     }
+}
+
+/** The line under the match columns until every pair is found. */
+@Composable
+private fun MatchHint() {
+    Text(
+        text = stringResource(R.string.quiz_tap_answer),
+        style = AwnTypography.small,
+        color = Awn.field.mutedContent,
+    )
 }
