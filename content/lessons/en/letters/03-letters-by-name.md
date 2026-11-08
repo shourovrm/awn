@@ -1,7 +1,7 @@
 ---
 id: letters-03-letters-by-name
 title: Letters read by name
-order: 3
+order: 13
 appears_after: "Reading unit 2, joined letters; Noorani Qaida lesson 3"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

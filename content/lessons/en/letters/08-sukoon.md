@@ -1,7 +1,7 @@
 ---
 id: letters-08-sukoon
 title: Sukoon
-order: 8
+order: 18
 appears_after: "Reading unit 7, long vowels and soft letters; Noorani Qaida lessons 10 and 11"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

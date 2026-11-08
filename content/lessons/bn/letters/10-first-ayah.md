@@ -1,7 +1,7 @@
 ---
 id: letters-10-first-ayah
 title: পুরো একটি আয়াত পড়া
-order: 10
+order: 20
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

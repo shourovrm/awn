@@ -1,7 +1,7 @@
 ---
 id: letters-04-short-vowels
 title: হ্রস্ব স্বর
-order: 4
+order: 14
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

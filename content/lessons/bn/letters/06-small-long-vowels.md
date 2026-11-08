@@ -1,7 +1,7 @@
 ---
 id: letters-06-small-long-vowels
 title: ছোট আলিফ, ইয়া ও ওয়াও
-order: 6
+order: 16
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

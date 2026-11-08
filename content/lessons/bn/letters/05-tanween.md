@@ -1,7 +1,7 @@
 ---
 id: letters-05-tanween
 title: তানউইন
-order: 5
+order: 15
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

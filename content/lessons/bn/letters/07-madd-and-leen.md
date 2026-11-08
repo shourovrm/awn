@@ -1,7 +1,7 @@
 ---
 id: letters-07-madd-and-leen
 title: দীর্ঘ স্বর ও নরম অক্ষর
-order: 7
+order: 17
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

@@ -1,7 +1,7 @@
 ---
 id: letters-09-shaddah
 title: তাশদীদ
-order: 9
+order: 19
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

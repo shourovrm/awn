@@ -1,7 +1,7 @@
 ---
 id: letters-06-small-long-vowels
 title: Small alif, yaa and waaw
-order: 6
+order: 16
 appears_after: "Reading unit 5, tanween; Noorani Qaida lesson 7"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

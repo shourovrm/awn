@@ -1,7 +1,7 @@
 ---
 id: letters-02-ba-ta-tha
 title: Joined letters
-order: 2
+order: 12
 appears_after: "Reading unit 1, the letters; Noorani Qaida lesson 2"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

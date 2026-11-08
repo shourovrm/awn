@@ -1,7 +1,7 @@
 ---
 id: letters-10-first-ayah
 title: Reading a whole ayah
-order: 10
+order: 20
 appears_after: "Reading unit 9, shaddah; Noorani Qaida lesson 17"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

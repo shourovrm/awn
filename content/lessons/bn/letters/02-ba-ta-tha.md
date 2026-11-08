@@ -1,7 +1,7 @@
 ---
 id: letters-02-ba-ta-tha
 title: জোড়া অক্ষর
-order: 2
+order: 12
 translated_from: en
 source_version: 2026-10-23
 translation_reviewed_by: ""

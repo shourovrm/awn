@@ -1,7 +1,7 @@
 ---
 id: letters-05-tanween
 title: Tanween
-order: 5
+order: 15
 appears_after: "Reading unit 4, short vowels; Noorani Qaida lessons 5 and 6"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.

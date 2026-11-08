@@ -1,7 +1,7 @@
 ---
 id: letters-04-short-vowels
 title: Short vowels
-order: 4
+order: 14
 appears_after: "Reading unit 3, letters read by name; Noorani Qaida lessons 4 and 6"
 reference: "Follows Wikibooks, Arabic/The Alphabet, https://en.wikibooks.org/wiki/Arabic/The_Alphabet"
 licence: CC BY-SA 4.0 (source). Lesson text is project text.
