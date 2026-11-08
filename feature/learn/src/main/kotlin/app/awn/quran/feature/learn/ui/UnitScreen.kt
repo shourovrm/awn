@@ -122,7 +122,6 @@ internal fun UnitScreen(
                 offer = soundsOffer.takeIf { index == 0 && text.hasClips } ?: SoundsOfferState.None,
                 place = place,
                 actions = actions,
-                startAgain = startAgain,
                 onContinue = { scope.launch { pagerState.animateScrollToPage(index + 1) } },
             )
         }
@@ -166,7 +165,6 @@ private fun UnitPageContent(
     offer: SoundsOfferState,
     place: UnitPlace?,
     actions: UnitActions,
-    startAgain: () -> Unit,
     onContinue: () -> Unit,
 ) {
     val pageModifier =
@@ -190,7 +188,6 @@ private fun UnitPageContent(
                 checkCount = checks.size,
                 place = place,
                 actions = actions,
-                startAgain = startAgain,
                 modifier = pageModifier,
             )
     }
@@ -257,7 +254,6 @@ private fun DonePage(
     checkCount: Int,
     place: UnitPlace?,
     actions: UnitActions,
-    startAgain: () -> Unit,
     modifier: Modifier,
 ) {
     Column(
@@ -297,7 +293,6 @@ private fun DonePage(
                 modifier = Modifier.fillMaxWidth().testTag(UNIT_NEXT_TAG),
             )
         }
-        QuietButton(label = stringResource(R.string.unit_start_again), onClick = startAgain)
         QuietButton(
             label =
                 if (place != null)
