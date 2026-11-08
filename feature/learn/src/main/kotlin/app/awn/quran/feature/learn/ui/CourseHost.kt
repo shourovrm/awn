@@ -273,6 +273,9 @@ private fun hubActions(context: CourseScreenContext): HubActions =
             context.onRouteChange(LearnRoute.CourseUnit(it, track, isOpenedFromWords = true))
         },
         onChangeChoices = { context.onRouteChange(LearnRoute.CourseChoices) },
+        onContinueUnit = { unit ->
+            context.onRouteChange(LearnRoute.CourseUnit(unit.lessonId, unit.track))
+        },
     )
 
 @Composable
@@ -388,19 +391,31 @@ internal fun HubRoute(
     val snapshot = context.snapshot
     val choices = context.choices
     val lookups = context.runtime.lookups
+    val unitProgress by context.services.unitProgress.all().collectAsState(emptyList())
     val state by
-        produceState<HubState?>(null, snapshot, choices, meanings, dueAyahs, lookups) {
+        produceState<HubState?>(
+            null,
+            snapshot,
+            choices,
+            meanings,
+            dueAyahs,
+            lookups,
+            unitProgress,
+        ) {
             value =
                 withContext(Dispatchers.Default) {
                     val plan = context.services.planToday(snapshot, choices)
-                    buildHubState(
-                        lookups,
-                        snapshot,
-                        plan,
-                        choices,
-                        dueAyahs.size,
-                        meanings,
-                    )
+                    val hub =
+                        buildHubState(
+                            lookups,
+                            snapshot,
+                            plan,
+                            choices,
+                            dueAyahs.size,
+                            meanings,
+                        )
+                    val card = continueUnitCard(unitProgress, lookups, snapshot, choices)
+                    hub.copy(continueUnit = card)
                 }
         }
     val sayingLoad =

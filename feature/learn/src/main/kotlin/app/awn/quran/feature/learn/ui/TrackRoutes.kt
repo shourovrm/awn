@@ -1,7 +1,10 @@
 package app.awn.quran.feature.learn.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import app.awn.quran.core.data.AyahRef
@@ -43,12 +46,19 @@ internal fun TrackRoutes(
 @Composable
 private fun TrackRoute(track: LearnTrack, context: CourseScreenContext, modifier: Modifier) {
     val input = trackInput(context.runtime.lookups, context.snapshot, context.choices)
+    val progress by context.services.unitProgress.all().collectAsState(emptyList())
     TrackScreen(
         summary = LearnTracks.summary(track, input),
         units = LearnTracks.units(track, input),
         onOpen = { unit -> context.onRouteChange(LearnRoute.CourseUnit(unit.id, track)) },
         onBack = context::goHub,
         modifier = modifier,
+        progressLines =
+            unitProgressLines(
+                progress,
+                context.runtime.assets.content,
+                context.dependencies.languageCode,
+            ),
     )
 }
 
@@ -59,6 +69,11 @@ private fun CourseUnitRoute(
     modifier: Modifier,
 ) {
     val lesson = context.runtime.assets.content.lesson(route.id) ?: return
+    val savedPageState by
+        produceState<Int?>(null, lesson.id) {
+            value = context.services.unitProgress.pageOf(lesson.id)
+        }
+    val savedPage = savedPageState ?: return
     val track = route.track
     val input = trackInput(context.runtime.lookups, context.snapshot, context.choices)
     val place = track?.let {
@@ -67,35 +82,47 @@ private fun CourseUnitRoute(
     }
     val openedAtMillis = remember(lesson.id) { Instant.now().toEpochMilli() }
     val soundsOffer = rememberSoundsOffer(context.dependencies)
-    val backRoute = learnBackFrom(route) ?: LearnRoute.Hub
     // The unit is drawn again for the next one, so its pages and answers start fresh.
     key(lesson.id) {
         UnitScreen(
             lesson = lesson,
             languageCode = context.dependencies.languageCode,
             place = place,
-            actions =
-                UnitActions(
-                    onBack = { context.onRouteChange(backRoute) },
-                    onFinished = { rightCount ->
-                        context.scope.launch {
-                            finishUnit(context, lesson, rightCount, openedAtMillis)
-                        }
-                    },
-                    onNextUnit = { next ->
-                        context.onRouteChange(
-                            LearnRoute.CourseUnit(
-                                next.id,
-                                track ?: LearnTrack.Reading,
-                                route.isOpenedFromWords,
-                            ),
-                        )
-                    },
-                ),
+            actions = unitActions(context, lesson, route, openedAtMillis),
             modifier = modifier,
             soundsOffer = soundsOffer,
+            savedPage = savedPage,
         )
     }
+}
+
+/** What the unit screen does: navigate, record the page on screen, and record a finished unit. */
+private fun unitActions(
+    context: CourseScreenContext,
+    lesson: CourseLesson,
+    route: LearnRoute.CourseUnit,
+    openedAtMillis: Long,
+): UnitActions {
+    val progress = context.services.unitProgress
+    val backRoute = learnBackFrom(route) ?: LearnRoute.Hub
+    return UnitActions(
+        onBack = { context.onRouteChange(backRoute) },
+        onFinished = { rightCount ->
+            context.scope.launch { finishUnit(context, lesson, rightCount, openedAtMillis) }
+        },
+        onNextUnit = { next ->
+            context.onRouteChange(
+                LearnRoute.CourseUnit(
+                    next.id,
+                    route.track ?: LearnTrack.Reading,
+                    route.isOpenedFromWords,
+                ),
+            )
+        },
+        onPageChange = { page -> context.scope.launch { progress.save(lesson.id, page) } },
+        onDonePageShown = { context.scope.launch { progress.finish(lesson.id) } },
+        onStartAgain = { context.scope.launch { progress.restart(lesson.id) } },
+    )
 }
 
 /** Records the unit as done, with whether every check was answered right the first time. */

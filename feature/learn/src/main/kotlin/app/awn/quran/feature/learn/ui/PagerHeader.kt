@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,9 +29,18 @@ import app.awn.quran.feature.learn.LearnBar
 import app.awn.quran.feature.learn.R
 import kotlinx.coroutines.launch
 
-/** The title with the back link, and which page of how many is on screen. */
+/**
+ * The title with the back link, and which page of how many is on screen. [menu] adds buttons
+ * after the page count.
+ */
 @Composable
-internal fun PagerBar(title: String, currentPage: Int, pageCount: Int, onBack: () -> Unit) {
+internal fun PagerBar(
+    title: String,
+    currentPage: Int,
+    pageCount: Int,
+    onBack: () -> Unit,
+    menu: @Composable RowScope.() -> Unit = {},
+) {
     LearnBar(
         title = title,
         startLinkLabel = stringResource(R.string.back),
@@ -41,6 +51,7 @@ internal fun PagerBar(title: String, currentPage: Int, pageCount: Int, onBack: (
                 style = AwnTypography.small,
                 color = Awn.field.mutedContent,
             )
+            menu()
         },
     )
 }

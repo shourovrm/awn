@@ -19,6 +19,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             LearnSetEntity::class,
             LearnStepEntity::class,
             SessionLogEntity::class,
+            UnitProgressEntity::class,
         ],
     version = LearnDatabase.CURRENT_VERSION,
     exportSchema = true,
@@ -29,8 +30,10 @@ abstract class LearnDatabase : RoomDatabase() {
 
     abstract fun wordDao(): WordDao
 
+    abstract fun unitProgressDao(): UnitProgressDao
+
     companion object {
-        const val CURRENT_VERSION = 2
+        const val CURRENT_VERSION = 3
         const val FILE_NAME = "learn.db"
 
         /** Version 2 adds the tables of the word course; the ayah tables are untouched. */
@@ -41,11 +44,19 @@ abstract class LearnDatabase : RoomDatabase() {
                 }
             }
 
+        /** Version 3 adds the page each unit was left on; no other table changes. */
+        val MIGRATION_2_3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(UNIT_PROGRESS_TABLE)
+                }
+            }
+
         /**
          * Every schema change, oldest first. A migration moves forward by exactly one version and
          * only adds to the schema, so a database written by an older app opens in a newer one.
          */
-        val migrations: List<Migration> = listOf(MIGRATION_1_2)
+        val migrations: List<Migration> = listOf(MIGRATION_1_2, MIGRATION_2_3)
 
         /**
          * Opens the learning database. There is deliberately no destructive-migration fallback:
@@ -57,6 +68,13 @@ abstract class LearnDatabase : RoomDatabase() {
             Room.databaseBuilder(context, LearnDatabase::class.java, FILE_NAME)
                 .addMigrations(*migrations.toTypedArray())
                 .build()
+
+        // The statement equals the createSql of schemas/.../3.json; the migration test runs it
+        // and lets Room compare the result with that schema.
+        private const val UNIT_PROGRESS_TABLE =
+            "CREATE TABLE IF NOT EXISTS `unit_progress` (`lesson_id` TEXT NOT NULL, " +
+                "`page` INTEGER NOT NULL, `furthest_page` INTEGER NOT NULL, " +
+                "`updated_at` INTEGER NOT NULL, PRIMARY KEY(`lesson_id`))"
 
         // The statements below equal the createSql of schemas/.../2.json; the migration test opens
         // a version 1 file, runs them and lets Room compare the result with that schema.

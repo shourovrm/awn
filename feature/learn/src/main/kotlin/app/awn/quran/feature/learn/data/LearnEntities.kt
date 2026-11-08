@@ -44,3 +44,13 @@ data class CardEntity(
     val state: Int,
     @ColumnInfo(defaultValue = "0") val step: Int = 0,
 )
+
+/** The page a user is on in one unit, and the furthest page reached. Pages count from 0. */
+@Entity(tableName = "unit_progress")
+data class UnitProgressEntity(
+    @PrimaryKey @ColumnInfo(name = "lesson_id") val lessonId: String,
+    val page: Int,
+    @ColumnInfo(name = "furthest_page") val furthestPage: Int,
+    /** Epoch milliseconds of the last change. */
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)

@@ -12,6 +12,7 @@ import app.awn.quran.feature.learn.course.CoursePlanner
 import app.awn.quran.feature.learn.data.LearnDatabase
 import app.awn.quran.feature.learn.progress.LearnProgress
 import app.awn.quran.feature.learn.progress.LearnSettings
+import app.awn.quran.feature.learn.progress.UnitProgressStore
 import app.awn.quran.feature.learn.session.TodayPlan
 import app.awn.quran.feature.learn.words.CourseSnapshot
 import app.awn.quran.feature.learn.words.WordCourseRepository
@@ -41,6 +42,7 @@ class LearnServices private constructor(context: Context) {
     val progress = LearnProgress(database, settings)
     val snippets = SnippetRepository(context.assets)
     val courseRepository = WordCourseRepository(database)
+    val unitProgress = UnitProgressStore(database.unitProgressDao()) { System.currentTimeMillis() }
 
     // Reading the lesson file and the word ranking takes tens of milliseconds, so it happens once,
     // off the main thread, when a screen first asks for it.

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,17 +42,25 @@ import app.awn.quran.feature.learn.course.TrackUnit
 import app.awn.quran.feature.learn.course.UnitAnswers
 import app.awn.quran.feature.learn.course.UnitPage
 import app.awn.quran.feature.learn.course.unitPages
+import app.awn.quran.feature.learn.progress.resumePage
 import kotlin.random.Random
+import kotlinx.coroutines.launch
 
 /** Where a unit sits in its track, for the bar and the closing page. */
 internal class UnitPlace(val track: LearnTrack, val number: Int, val next: TrackUnit?)
 
-/** What the unit screen does when the user leaves it or finishes it. */
+/** What the unit screen does when the user leaves it, finishes it or moves between its pages. */
 internal class UnitActions(
     val onBack: () -> Unit,
     /** Called once, when the closing page first shows; [rightCount] counts right first answers. */
     val onFinished: (rightCount: Int) -> Unit,
     val onNextUnit: (TrackUnit) -> Unit,
+    /** Called with the page index each time a reading or check page is shown. */
+    val onPageChange: (page: Int) -> Unit = {},
+    /** Called each time the closing page is shown, so a finished unit opens on its first page. */
+    val onDonePageShown: () -> Unit = {},
+    /** Called when the user starts the unit again; the screen itself scrolls back to page one. */
+    val onStartAgain: () -> Unit = {},
 )
 
 /**
@@ -66,24 +76,35 @@ internal fun UnitScreen(
     actions: UnitActions,
     modifier: Modifier = Modifier,
     soundsOffer: SoundsOfferState = SoundsOfferState.None,
+    /** The page the user left this unit on; the unit opens there. */
+    savedPage: Int = 0,
 ) {
     val text = lesson.text(languageCode)
     val pages = remember(text) { unitPages(text) }
-    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val pagerState =
+        rememberPagerState(
+            initialPage = resumePage(savedPage, pages.size),
+            pageCount = { pages.size },
+        )
+    val scope = rememberCoroutineScope()
     var answers by remember(lesson.id) { mutableStateOf(UnitAnswers()) }
     // The seed is saved so that a turned screen keeps the same ten items.
     val practiceSeed = rememberSaveable(lesson.id) { Random.nextLong() }
     var practiceRun by rememberPracticeRun(lesson.id, text, practiceSeed)
-    var finishReported by rememberSaveable(lesson.id) { mutableStateOf(false) }
     val checks = text.checks
-    LaunchedEffect(pagerState.currentPage) {
-        if (pages[pagerState.currentPage] == UnitPage.Done && !finishReported) {
-            finishReported = true
-            actions.onFinished(answers.rightCount(checks))
-        }
+    val startAgain: () -> Unit = {
+        scope.launch { pagerState.scrollToPage(0) }
+        actions.onStartAgain()
     }
+    ReportPage(pagerState, pages, lesson.id, answers, checks, actions)
     Column(modifier = modifier.fillMaxSize()) {
-        PagerBar(text.title, pagerState.currentPage, pages.size, actions.onBack)
+        PagerBar(
+            title = text.title,
+            currentPage = pagerState.currentPage,
+            pageCount = pages.size,
+            onBack = actions.onBack,
+            menu = { UnitOverflowMenu(onStartAgain = startAgain) },
+        )
         PageDots(pages.size, pagerState) { index ->
             val page = pages[index]
             page is UnitPage.Check || page == UnitPage.Practice
@@ -101,7 +122,35 @@ internal fun UnitScreen(
                 offer = soundsOffer.takeIf { index == 0 && text.hasClips } ?: SoundsOfferState.None,
                 place = place,
                 actions = actions,
+                startAgain = startAgain,
             )
+        }
+    }
+}
+
+/**
+ * Tells the caller which page is on screen. The closing page is reported on every visit, so a
+ * unit started again ends finished too; the finished step is recorded once.
+ */
+@Composable
+private fun ReportPage(
+    pagerState: PagerState,
+    pages: List<UnitPage>,
+    lessonId: String,
+    answers: UnitAnswers,
+    checks: List<CheckWithAnswer>,
+    actions: UnitActions,
+) {
+    var finishReported by rememberSaveable(lessonId) { mutableStateOf(false) }
+    LaunchedEffect(pagerState.currentPage) {
+        if (pages[pagerState.currentPage] != UnitPage.Done) {
+            actions.onPageChange(pagerState.currentPage)
+            return@LaunchedEffect
+        }
+        actions.onDonePageShown()
+        if (!finishReported) {
+            finishReported = true
+            actions.onFinished(answers.rightCount(checks))
         }
     }
 }
@@ -116,6 +165,7 @@ private fun UnitPageContent(
     offer: SoundsOfferState,
     place: UnitPlace?,
     actions: UnitActions,
+    startAgain: () -> Unit,
 ) {
     val pageModifier =
         Modifier.fillMaxSize()
@@ -137,6 +187,7 @@ private fun UnitPageContent(
                 checkCount = checks.size,
                 place = place,
                 actions = actions,
+                startAgain = startAgain,
                 modifier = pageModifier,
             )
     }
@@ -203,6 +254,7 @@ private fun DonePage(
     checkCount: Int,
     place: UnitPlace?,
     actions: UnitActions,
+    startAgain: () -> Unit,
     modifier: Modifier,
 ) {
     Column(
@@ -242,6 +294,7 @@ private fun DonePage(
                 modifier = Modifier.fillMaxWidth().testTag(UNIT_NEXT_TAG),
             )
         }
+        QuietButton(label = stringResource(R.string.unit_start_again), onClick = startAgain)
         QuietButton(
             label =
                 if (place != null)

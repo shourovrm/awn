@@ -27,6 +27,8 @@ internal fun TrackScreen(
     onOpen: (TrackUnit) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The saved place of each unit the user left in the middle, by lesson id. */
+    progressLines: Map<String, UnitProgressLine> = emptyMap(),
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         LearnBar(
@@ -42,12 +44,17 @@ internal fun TrackScreen(
         ) {
             MutedLine(trackDetail(summary))
             units.forEach { unit ->
+                val line = progressLines[unit.id]
                 StepRow(
                     state = unit.state,
                     title = stringResource(R.string.unit_numbered_title, unit.number, unit.title),
-                    detail = null,
+                    detail =
+                        line?.let {
+                            stringResource(R.string.unit_saved_page, it.pageNumber, it.pageCount)
+                        },
                     isToday = false,
                     onClick = { onOpen(unit) },
+                    progress = line?.reachedFraction,
                 )
             }
         }

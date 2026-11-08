@@ -68,6 +68,8 @@ internal data class HubState(
     val tracks: List<TrackSummary>,
     /** The sayings for the card, starting on today's; null when there are no snippets. */
     val sayings: SayingDeck? = null,
+    /** The unit the user left in the middle most recently; null when there is none. */
+    val continueUnit: ContinueUnit? = null,
 )
 
 /** Whether the word meanings the course needs are on the phone. */
@@ -92,6 +94,7 @@ internal class HubActions(
     val onDownloadMeanings: () -> Unit,
     val onLesson: (String) -> Unit,
     val onChangeChoices: () -> Unit,
+    val onContinueUnit: (ContinueUnit) -> Unit = {},
 )
 
 private val SESSION_MINUTES = listOf(5, 10, 15)
@@ -118,6 +121,9 @@ internal fun CourseHub(
                     .padding(horizontal = AwnSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AwnSpacing.small),
         ) {
+            state.continueUnit?.let { card ->
+                ContinueCard(card, onOpen = { actions.onContinueUnit(card) })
+            }
             state.sayings?.let { deck ->
                 DailySayingCard(
                     deck = deck,
@@ -280,7 +286,8 @@ internal fun planSummary(plan: TodayPlan): String {
 }
 
 /**
- * One step of the path: a marker, the title with a detail, and "Today" when it is in today's plan.
+ * One step of the path: a marker, the title with a detail and an optional thin bar under it, and
+ * "Today" when it is in today's plan.
  */
 @Composable
 internal fun StepRow(
@@ -289,6 +296,8 @@ internal fun StepRow(
     detail: String?,
     isToday: Boolean,
     onClick: (() -> Unit)?,
+    /** How far the user has reached, from 0 to 1; no bar when null. */
+    progress: Float? = null,
 ) {
     val field = Awn.field
     Row(
@@ -311,6 +320,7 @@ internal fun StepRow(
         Column(modifier = Modifier.weight(1f)) {
             RichText(title, style = AwnTypography.bodyStrong)
             detail?.let { RichText(it, style = AwnTypography.small, color = field.mutedContent) }
+            progress?.let { ThinProgressBar(it) }
         }
         if (isToday) {
             Text(
