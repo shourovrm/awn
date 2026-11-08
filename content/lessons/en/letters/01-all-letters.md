@@ -109,6 +109,8 @@ These seven letters are always said with a full, heavy sound, with the back of t
 
 letters: [[خ]] khā; [[ص]] ṣād; [[ض]] ḍād; [[غ]] ghayn; [[ط]] ṭā; [[ق]] qāf; [[ظ]] ẓā
 
+tip: Teachers join the seven into one phrase to remember them: [[خُصَّ ضَغْطٍ قِظْ]], khuṣṣa ḍaghṭin qiẓ.
+
 Some letters sound close to another letter. Tap a pair to hear both.
 
 pairs:
