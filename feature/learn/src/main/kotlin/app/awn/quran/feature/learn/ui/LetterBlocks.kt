@@ -23,8 +23,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.sp
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -33,7 +31,6 @@ import app.awn.quran.feature.learn.course.LessonBlock
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import kotlinx.coroutines.launch
 
-private val CARD_LETTER_SIZE: TextUnit = 48.sp
 
 // A name is blank until its letter is tapped; a blank line keeps the tile's height.
 private const val NO_BREAK_SPACE = " "
@@ -68,7 +65,9 @@ private fun LetterCard(letters: List<String>, caption: String, modifier: Modifie
     ) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Row(horizontalArrangement = Arrangement.Center) {
-                letters.forEach { ArabicText(it, CARD_LETTER_SIZE, Awn.field.content) }
+                letters.forEach {
+                    ArabicText(it, AwnTypography.lessonLetterSize, Awn.field.content)
+                }
             }
         }
         CaptionText(caption)
@@ -118,7 +117,7 @@ private fun LetterPairCard(pair: LessonBlock.LetterPair, modifier: Modifier) {
                 pair.letters.forEachIndexed { index, letter ->
                     if (index > 0)
                         Text(text = DOT, style = AwnTypography.lead, color = Awn.field.content)
-                    ArabicText(letter, CARD_LETTER_SIZE, Awn.field.content)
+                    ArabicText(letter, AwnTypography.lessonLetterSize, Awn.field.content)
                 }
             }
         }
@@ -162,7 +161,7 @@ private fun RevealTile(letter: String, name: String, onTap: () -> Unit, modifier
                 .padding(AwnSpacing.small),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ArabicText(letter, LETTER_ARABIC_SIZE, Awn.field.content)
+        ArabicText(letter, AwnTypography.quizLetterSize, Awn.field.content)
         // The name is Latin text; it keeps left-to-right order inside the right-to-left grid.
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Text(

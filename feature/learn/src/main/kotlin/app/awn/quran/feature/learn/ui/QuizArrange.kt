@@ -33,10 +33,7 @@ import app.awn.quran.feature.learn.course.QuizGroup
 import app.awn.quran.feature.learn.course.QuizQuestion
 import kotlinx.coroutines.delay
 
-private val SLOT_HEIGHT: Dp = 72.dp
 private val DASH_WIDTH: Dp = 2.dp
-private val DASH_LENGTH: Dp = 8.dp
-private val DASH_GAP: Dp = 6.dp
 
 /**
  * Order: the slots of a right-to-left row fill as the letters are tapped, in the order the answer
@@ -71,10 +68,12 @@ internal fun OrderQuestion(
                         onClick = null,
                         modifier =
                             Modifier.weight(1f)
-                                .height(SLOT_HEIGHT)
+                                .height(AwnSpacing.quizTileHeight)
                                 .dashedBorder(Awn.field.mutedContent),
                     ) { color ->
-                        shown.getOrNull(index)?.let { TileLabel(it, color, LETTER_ARABIC_SIZE) }
+                        shown.getOrNull(index)?.let {
+                            TileLabel(it, color, AwnTypography.quizLetterSize)
+                        }
                     }
                 }
             }
@@ -165,10 +164,12 @@ private fun SortGroupBox(
             state = state,
             onClick = onTap,
             modifier =
-                Modifier.fillMaxWidth().height(SLOT_HEIGHT).dashedBorder(Awn.field.mutedContent),
+                Modifier.fillMaxWidth()
+                    .height(AwnSpacing.quizTileHeight)
+                    .dashedBorder(Awn.field.mutedContent),
         ) { color ->
             Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.small)) {
-                letters.forEach { TileLabel(it, color, LETTER_ARABIC_SIZE) }
+                letters.forEach { TileLabel(it, color, AwnTypography.quizLetterSize) }
             }
         }
     }
@@ -187,9 +188,9 @@ internal fun LetterPool(
                 QuizTile(
                     state = if (letter == picked) TileState.Picked else TileState.Open,
                     onClick = onPick?.let { pick -> { pick(letter) } },
-                    modifier = Modifier.weight(1f).height(LETTER_TILE_HEIGHT),
+                    modifier = Modifier.weight(1f).height(AwnSpacing.quizLetterTileHeight),
                 ) { color ->
-                    TileLabel(letter, color, LETTER_ARABIC_SIZE)
+                    TileLabel(letter, color, AwnTypography.quizLetterSize)
                 }
             }
         }
@@ -206,7 +207,9 @@ private fun Modifier.dashedBorder(color: Color): Modifier = drawWithContent {
             Stroke(
                 width = DASH_WIDTH.toPx(),
                 pathEffect =
-                    PathEffect.dashPathEffect(floatArrayOf(DASH_LENGTH.toPx(), DASH_GAP.toPx())),
+                    PathEffect.dashPathEffect(
+                        floatArrayOf(AwnSpacing.small.toPx(), AwnSpacing.quizDashGap.toPx())
+                    ),
             ),
     )
 }

@@ -263,22 +263,25 @@ private fun TabsRoute(
                         services.recite.reviseAt(ayah)
                     },
                     onOpenAyah = { ayah -> navigation.openQuran(page = null, ayah = ayah) },
-                    barActions = {
-                        AwnIconButton(
-                            icon = R.drawable.ic_app_settings,
-                            contentDescription = stringResource(R.string.index_settings),
-                            onClick = navigation::openSettings,
-                        )
-                        AwnIconButton(
-                            icon = R.drawable.ic_app_school,
-                            contentDescription = stringResource(R.string.notice_learn_title),
-                            onClick = navigation::openTeacherPage,
-                        )
-                    },
+                    barActions = { LearnBarActions(navigation) },
                 )
             }
         },
         hifzTab = { tabSlots.hifzTab(tabActions) },
+    )
+}
+
+@Composable
+private fun LearnBarActions(navigation: TabNavigation) {
+    AwnIconButton(
+        icon = R.drawable.ic_app_settings,
+        contentDescription = stringResource(R.string.index_settings),
+        onClick = navigation::openSettings,
+    )
+    AwnIconButton(
+        icon = R.drawable.ic_app_school,
+        contentDescription = stringResource(R.string.notice_learn_title),
+        onClick = navigation.openTeacherPage,
     )
 }
 

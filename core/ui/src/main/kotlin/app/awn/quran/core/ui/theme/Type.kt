@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
@@ -125,6 +126,13 @@ object AwnTypography {
             fontSize = 15.sp,
             lineHeight = 1.5.em,
         )
+
+    // Large Arabic in the Learn lessons and quizzes: a letter card, a letter tile, a choice tile and
+    // the letter shown for a listen question.
+    val lessonLetterSize: TextUnit = 48.sp
+    val quizLetterSize: TextUnit = 40.sp
+    val quizChoiceSize: TextUnit = 60.sp
+    val quizShownLetterSize: TextUnit = 96.sp
 
     fun toMaterialTypography(): Typography =
         Typography(

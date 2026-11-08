@@ -23,18 +23,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
+import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.QuizQuestion
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import kotlinx.coroutines.launch
 
-private val PLAY_BUTTON_SIZE: Dp = 72.dp
-private val SHOWN_LETTER_SIZE = 96.sp
 
 /** Pick and Name: a grid of large tiles, one of them right. */
 @Composable
@@ -56,9 +52,9 @@ internal fun ChoiceQuestion(
                     QuizTile(
                         state = choiceState(index, correctIndex, chosen, result),
                         onClick = tapIfOpen(result == null) { choose(index) },
-                        modifier = Modifier.weight(1f).height(CHOICE_TILE_HEIGHT),
+                        modifier = Modifier.weight(1f).height(AwnSpacing.quizChoiceTileHeight),
                     ) { color ->
-                        TileLabel(options[index], color, CHOICE_ARABIC_SIZE)
+                        TileLabel(options[index], color, AwnTypography.quizChoiceSize)
                     }
                 }
             }
@@ -101,7 +97,7 @@ internal fun NameQuestion(
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
         ArabicText(
             text = fragmentLetters(question.shown),
-            size = SHOWN_LETTER_SIZE,
+            size = AwnTypography.quizShownLetterSize,
             color = Awn.field.content,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -115,7 +111,7 @@ private fun PlayButton(clipIds: List<String>) {
     val scope = rememberCoroutineScope()
     Box(
         modifier =
-            Modifier.size(PLAY_BUTTON_SIZE)
+            Modifier.size(AwnSpacing.quizPlayButtonSize)
                 .clip(CircleShape)
                 .background(Awn.field.buttonFill)
                 .clickable(

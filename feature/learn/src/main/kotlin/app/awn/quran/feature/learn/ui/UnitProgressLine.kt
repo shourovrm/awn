@@ -30,17 +30,25 @@ internal fun unitProgressLines(
 ): Map<String, UnitProgressLine> {
     val lines = mutableMapOf<String, UnitProgressLine>()
     for (saved in progress) {
-        if (saved.page == 0) continue
-        val lesson = content.lesson(saved.lessonId) ?: continue
-        val pageCount = unitPages(lesson.text(languageCode)).size
-        lines[saved.lessonId] =
-            UnitProgressLine(
-                pageNumber = resumePage(saved.page, pageCount) + 1,
-                pageCount = pageCount,
-                reachedFraction = (saved.furthestPage + 1).toFloat() / pageCount,
-            )
+        val line = unitProgressLine(saved, content, languageCode) ?: continue
+        lines[saved.lessonId] = line
     }
     return lines
+}
+
+private fun unitProgressLine(
+    saved: UnitProgress,
+    content: CourseContent,
+    languageCode: String,
+): UnitProgressLine? {
+    if (saved.page == 0) return null
+    val lesson = content.lesson(saved.lessonId) ?: return null
+    val pageCount = unitPages(lesson.text(languageCode)).size
+    return UnitProgressLine(
+        pageNumber = resumePage(saved.page, pageCount) + 1,
+        pageCount = pageCount,
+        reachedFraction = (saved.furthestPage + 1).toFloat() / pageCount,
+    )
 }
 
 /** A thin bar that fills from the left; [fraction] is between 0 and 1. */

@@ -14,8 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
@@ -25,7 +23,6 @@ import app.awn.quran.feature.learn.course.QuizPair
 import app.awn.quran.feature.learn.course.QuizQuestion
 import kotlinx.coroutines.delay
 
-private val MATCH_TILE_HEIGHT: Dp = 72.dp
 
 /**
  * Match: two columns, a letter on the left and its text on the right. Tap one on each side; a right
@@ -66,13 +63,7 @@ internal fun MatchQuestion(
     val solved = result != null
     val shownMatches = if (solved) question.pairs else matched
     Column(verticalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
-        if (!solved) {
-            Text(
-                text = stringResource(R.string.quiz_tap_answer),
-                style = AwnTypography.small,
-                color = Awn.field.mutedContent,
-            )
-        }
+        if (!solved) MatchHint()
         Row(horizontalArrangement = Arrangement.spacedBy(AwnSpacing.medium)) {
             Column(
                 modifier = Modifier.weight(1f),
@@ -149,9 +140,9 @@ internal fun FindQuestion(
                     QuizTile(
                         state = findState(item, question, found, wrongTaps, solved),
                         onClick = tapIfOpen(!solved && item !in found) { tap(item) },
-                        modifier = Modifier.weight(1f).height(LETTER_TILE_HEIGHT),
+                        modifier = Modifier.weight(1f).height(AwnSpacing.quizLetterTileHeight),
                     ) { color ->
-                        TileLabel(item, color, LETTER_ARABIC_SIZE)
+                        TileLabel(item, color, AwnTypography.quizLetterSize)
                     }
                 }
             }
@@ -186,8 +177,8 @@ private fun MatchTile(
     QuizTile(
         state = state,
         onClick = onTap,
-        modifier = Modifier.fillMaxWidth().height(MATCH_TILE_HEIGHT),
+        modifier = Modifier.fillMaxWidth().height(AwnSpacing.quizTileHeight),
     ) { color ->
-        TileLabel(text, color, LETTER_ARABIC_SIZE)
+        TileLabel(text, color, AwnTypography.quizLetterSize)
     }
 }

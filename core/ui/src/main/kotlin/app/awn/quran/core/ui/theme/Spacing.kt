@@ -105,4 +105,11 @@ object AwnShapes {
     val menu = RoundedCornerShape(AwnSpacing.menuCorner)
     val searchField = RoundedCornerShape(AwnSpacing.searchFieldCorner)
     val tickBox = RoundedCornerShape(AwnSpacing.tickBoxCorner)
+
+    // Learn quiz: slot and match rows, the play button, and the choice and letter tiles.
+    val quizTileHeight: Dp = 72.dp
+    val quizPlayButtonSize: Dp = 72.dp
+    val quizChoiceTileHeight: Dp = 140.dp
+    val quizLetterTileHeight: Dp = 96.dp
+    val quizDashGap: Dp = 6.dp
 }

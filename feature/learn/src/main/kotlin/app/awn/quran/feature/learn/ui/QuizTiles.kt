@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import app.awn.quran.core.ui.R as UiR
 import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnShapes
@@ -30,22 +29,9 @@ import app.awn.quran.core.ui.theme.AwnTypography
 import app.awn.quran.core.ui.theme.softFill
 import app.awn.quran.feature.learn.R
 
-/** How a quiz tile looks: open, taken up, right or wrong. */
-internal enum class TileState {
-    Open,
-    Picked,
-    Right,
-    Wrong,
-}
-
 /** Tiles for answers hold a word or a letter; [LETTER_COLUMNS] letter tiles fit a row. */
 internal const val CHOICE_COLUMNS = 2
 internal const val LETTER_COLUMNS = 4
-
-internal val CHOICE_TILE_HEIGHT: Dp = 140.dp
-internal val LETTER_TILE_HEIGHT: Dp = 96.dp
-internal val CHOICE_ARABIC_SIZE: TextUnit = 60.sp
-internal val LETTER_ARABIC_SIZE: TextUnit = 40.sp
 
 /** How long a wrong placement or pair stays in the error colour. */
 internal const val FLASH_MILLIS = 600L
