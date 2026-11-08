@@ -31,7 +31,6 @@ import app.awn.quran.feature.learn.course.LessonBlock
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import kotlinx.coroutines.launch
 
-
 // A name is blank until its letter is tapped; a blank line keeps the tile's height.
 private const val NO_BREAK_SPACE = " "
 private const val DOT = "·"

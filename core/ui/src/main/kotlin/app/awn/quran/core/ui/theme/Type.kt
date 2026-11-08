@@ -127,7 +127,8 @@ object AwnTypography {
             lineHeight = 1.5.em,
         )
 
-    // Large Arabic in the Learn lessons and quizzes: a letter card, a letter tile, a choice tile and
+    // Large Arabic in the Learn lessons and quizzes: a letter card, a letter tile, a choice tile
+    // and
     // the letter shown for a listen question.
     val lessonLetterSize: TextUnit = 48.sp
     val quizLetterSize: TextUnit = 40.sp

@@ -208,7 +208,7 @@ private fun Modifier.dashedBorder(color: Color): Modifier = drawWithContent {
                 width = DASH_WIDTH.toPx(),
                 pathEffect =
                     PathEffect.dashPathEffect(
-                        floatArrayOf(AwnSpacing.small.toPx(), AwnSpacing.quizDashGap.toPx())
+                        floatArrayOf(AwnSpacing.small.toPx(), AwnSpacing.quizDashGap.toPx()),
                     ),
             ),
     )

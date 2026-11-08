@@ -31,7 +31,6 @@ import app.awn.quran.feature.learn.course.QuizQuestion
 import app.awn.quran.feature.learn.sound.LocalUnitSounds
 import kotlinx.coroutines.launch
 
-
 /** Pick and Name: a grid of large tiles, one of them right. */
 @Composable
 internal fun ChoiceQuestion(

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,16 +12,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import app.awn.quran.core.ui.theme.Awn
 import app.awn.quran.core.ui.theme.AwnSpacing
 import app.awn.quran.core.ui.theme.AwnTypography
-import app.awn.quran.core.ui.theme.mutedContent
-import app.awn.quran.feature.learn.R
 import app.awn.quran.feature.learn.course.QuizPair
 import app.awn.quran.feature.learn.course.QuizQuestion
 import kotlinx.coroutines.delay
-
 
 /**
  * Match: two columns, a letter on the left and its text on the right. Tap one on each side; a right
