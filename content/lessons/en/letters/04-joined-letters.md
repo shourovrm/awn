@@ -15,7 +15,7 @@ version: 2026-11-08
 
 A letter joined to the next one keeps only its head: [[ب]] and [[ا]] written together make [[با]]. The head tells you which letter it is.
 
-letters: [[بـ]] one tooth; [[حـ]] head of ḥā; [[سـ]] three teeth; [[صـ]] head of ṣād; [[طـ]] ṭā; [[عـ]] head of ʿayn; [[فـ]] round head; [[كـ]] head of kāf; [[لـ]] head of lām; [[مـ]] head of mīm; [[هـ]] round hā
+reveal: [[بـ]] one tooth; [[حـ]] head of ḥā; [[سـ]] three teeth; [[صـ]] head of ṣād; [[طـ]] ṭā; [[عـ]] head of ʿayn; [[فـ]] round head; [[كـ]] head of kāf; [[لـ]] head of lām; [[مـ]] head of mīm; [[هـ]] round hā
 
 22 letters join with alif. Seven letters never join the next letter, so the next letter stands apart from them: [[ا]] [[د]] [[ذ]] [[ر]] [[ز]] [[و]] [[ء]]. An alif followed by an alif is written [[اا]].
 
@@ -169,7 +169,7 @@ groups:
 
 In the second, 9 letters have heads of their own: ḥā, ʿayn, lām, kāf, round hā and mīm. Heads of both families join into one word.
 
-letters: [[حـ]] ḥā; [[خـ]] khā; [[جـ]] jīm; [[عـ]] ʿayn; [[غـ]] ghayn; [[لـ]] lām; [[كـ]] kāf; [[هـ]] hā; [[مـ]] mīm
+reveal: [[حـ]] ḥā; [[خـ]] khā; [[جـ]] jīm; [[عـ]] ʿayn; [[غـ]] ghayn; [[لـ]] lām; [[كـ]] kāf; [[هـ]] hā; [[مـ]] mīm
 
 All 22 heads written one after another: [[بنيتثفقسشصضطظحخجعغلكهم]]
 
@@ -194,7 +194,7 @@ explain: [[سـ]] is three teeth; [[صـ]] is the head of ṣād.
 
 Read each group of letters from the right, letter by letter. When one letter sits on another, as [[ء]] on [[و]] in [[ؤ]], read the upper letter.
 
-letters: [[تج]] tā, jīm; [[تح]] tā, ḥā; [[نخ]] nūn, khā; [[يح]] yā, ḥā; [[بج]] bā, jīm; [[حث]] ḥā, thā; [[خب]] khā, bā; [[يه]] yā, hā; [[حج]] ḥā, jīm; [[جد]] jīm, dāl; [[مع]] mīm, ʿayn; [[عص]] ʿayn, ṣād; [[ظل]] ẓā, lām; [[لك]] lām, kāf; [[هو]] hā, wāw; [[له]] lām, hā; [[حم]] ḥā, mīm; [[من]] mīm, nūn; [[لا]] lām, alif; [[لؤ]] lām, hamzah on wāw; [[جئ]] jīm, hamzah on yā; [[يس]] yā, sīn; [[كب]] kāf, bā; [[فج]] fā, jīm; [[صلح]] ṣād, lām, ḥā; [[بصل]] bā, ṣād, lām; [[خلص]] khā, lām, ṣād; [[عنك]] ʿayn, nūn, kāf; [[لعن]] lām, ʿayn, nūn; [[شفع]] shīn, fā, ʿayn; [[تجد]] tā, jīm, dāl; [[نعت]] nūn, ʿayn, tā; [[كسب]] kāf, sīn, bā; [[حبط]] ḥā, bā, ṭā; [[قلم]] qāf, lām, mīm; [[نجث]] nūn, jīm, thā; [[يجب]] yā, jīm, bā; [[يهب]] yā, hā, bā; [[نفس]] nūn, fā, sīn; [[طلب]] ṭā, lām, bā; [[غيت]] ghayn, yā, tā; [[سهم]] sīn, hā, mīm; [[ضحك]] ḍād, ḥā, kāf
+reveal: [[تج]] tā, jīm; [[تح]] tā, ḥā; [[نخ]] nūn, khā; [[يح]] yā, ḥā; [[بج]] bā, jīm; [[حث]] ḥā, thā; [[خب]] khā, bā; [[يه]] yā, hā; [[حج]] ḥā, jīm; [[جد]] jīm, dāl; [[مع]] mīm, ʿayn; [[عص]] ʿayn, ṣād; [[ظل]] ẓā, lām; [[لك]] lām, kāf; [[هو]] hā, wāw; [[له]] lām, hā; [[حم]] ḥā, mīm; [[من]] mīm, nūn; [[لا]] lām, alif; [[لؤ]] lām, hamzah on wāw; [[جئ]] jīm, hamzah on yā; [[يس]] yā, sīn; [[كب]] kāf, bā; [[فج]] fā, jīm; [[صلح]] ṣād, lām, ḥā; [[بصل]] bā, ṣād, lām; [[خلص]] khā, lām, ṣād; [[عنك]] ʿayn, nūn, kāf; [[لعن]] lām, ʿayn, nūn; [[شفع]] shīn, fā, ʿayn; [[تجد]] tā, jīm, dāl; [[نعت]] nūn, ʿayn, tā; [[كسب]] kāf, sīn, bā; [[حبط]] ḥā, bā, ṭā; [[قلم]] qāf, lām, mīm; [[نجث]] nūn, jīm, thā; [[يجب]] yā, jīm, bā; [[يهب]] yā, hā, bā; [[نفس]] nūn, fā, sīn; [[طلب]] ṭā, lām, bā; [[غيت]] ghayn, yā, tā; [[سهم]] sīn, hā, mīm; [[ضحك]] ḍād, ḥā, kāf
 
 ## Quiz: Reading joined shapes
 
@@ -220,7 +220,7 @@ explain: The upper letter is read: hamzah sits on wāw.
 
 These words have no vowel marks yet. Name each letter from the right; the next units add the marks.
 
-letters: [[لعلك]] lām, ʿayn, lām, kāf; [[جعلن]] jīm, ʿayn, lām, nūn; [[نعمت]] nūn, ʿayn, mīm, tā; [[لطيف]] lām, ṭā, yā, fā; [[فقير]] fā, qāf, yā, rā; [[تحمل]] tā, ḥā, mīm, lām; [[عميق]] ʿayn, mīm, yā, qāf; [[مبين]] mīm, bā, yā, nūn; [[ممتحن]] mīm, mīm, tā, ḥā, nūn; [[يتكلم]] yā, tā, kāf, lām, mīm; [[ينقلب]] yā, nūn, qāf, lām, bā; [[مصطفى]] mīm, ṣād, ṭā, fā, yā, no dots; [[تمليك]] tā, mīm, lām, yā, kāf; [[مسلمات]] mīm, sīn, lām, mīm, alif, tā; [[تضليل]] tā, ḍād, lām, yā, lām; [[تطمين]] tā, ṭā, mīm, yā, nūn; [[للعلمين]] lām, lām, ʿayn, lām, mīm, yā, nūn; [[نستعين]] nūn, sīn, tā, ʿayn, yā, nūn; [[يستغفر]] yā, sīn, tā, ghayn, fā, rā; [[مستقيم]] mīm, sīn, tā, qāf, yā, mīm; [[لنسئلنهم]] lām, nūn, sīn, hamzah on yā, lām, nūn, hā, mīm; [[ليجمعنكم]] lām, yā, jīm, mīm, ʿayn, nūn, kāf, mīm; [[يستفتح]] yā, sīn, tā, fā, tā, ḥā
+reveal: [[لعلك]] lām, ʿayn, lām, kāf; [[جعلن]] jīm, ʿayn, lām, nūn; [[نعمت]] nūn, ʿayn, mīm, tā; [[لطيف]] lām, ṭā, yā, fā; [[فقير]] fā, qāf, yā, rā; [[تحمل]] tā, ḥā, mīm, lām; [[عميق]] ʿayn, mīm, yā, qāf; [[مبين]] mīm, bā, yā, nūn; [[ممتحن]] mīm, mīm, tā, ḥā, nūn; [[يتكلم]] yā, tā, kāf, lām, mīm; [[ينقلب]] yā, nūn, qāf, lām, bā; [[مصطفى]] mīm, ṣād, ṭā, fā, yā, no dots; [[تمليك]] tā, mīm, lām, yā, kāf; [[مسلمات]] mīm, sīn, lām, mīm, alif, tā; [[تضليل]] tā, ḍād, lām, yā, lām; [[تطمين]] tā, ṭā, mīm, yā, nūn; [[للعلمين]] lām, lām, ʿayn, lām, mīm, yā, nūn; [[نستعين]] nūn, sīn, tā, ʿayn, yā, nūn; [[يستغفر]] yā, sīn, tā, ghayn, fā, rā; [[مستقيم]] mīm, sīn, tā, qāf, yā, mīm; [[لنسئلنهم]] lām, nūn, sīn, hamzah on yā, lām, nūn, hā, mīm; [[ليجمعنكم]] lām, yā, jīm, mīm, ʿayn, nūn, kāf, mīm; [[يستفتح]] yā, sīn, tā, fā, tā, ḥā
 
 These four ayahs are all of Surat al-Ikhlas. Find the letters you know.
 

@@ -16,7 +16,7 @@ Each of these ends in a doubled vowel mark: [[بًا]] is read ban, [[بٍ]] bin
 
 With an n written, [[بَنْ]] sounds the same as [[بًا]].
 
-letters: [[بَنْ]] ban; [[بًا]] ban; [[بِنْ]] bin; [[بٍ]] bin; [[بُنْ]] bun; [[بٌ]] bun
+reveal: [[بَنْ]] ban; [[بًا]] ban; [[بِنْ]] bin; [[بٍ]] bin; [[بُنْ]] bun; [[بٌ]] bun
 
 ## Screen 2: Tanween on every letter
 
@@ -148,7 +148,7 @@ words:
 - {{23:100:8}} | kalimatun
 - {{30:30:5}} | fiṭrata
 
-letters: [[بَعًا]] baʿan; [[دَعًا]] daʿan; [[مَعًا]] maʿan; [[فَقًا]] faqan; [[هَدًا]] hadan; [[لُبَدًا]] lubadan; [[عَمَدٍ]] ʿamadin; [[حَرَسًا]] ḥarasan; [[مَسَدٍ]] masadin; [[لَهَبٍ]] lahabin; [[وَجَلٌ]] wajalun; [[جَمَعًا]] jamaʿan; [[طَبَقٍ]] ṭabaqin; [[ضُحًى]] ḍuḥan; [[عِنَبًا]] ʿinaban; [[سُرُرٌ]] sururun; [[اَحَدٍ]] aḥadin; [[شُهُبًا]] shuhuban; [[سُوًى]] suwan; [[حَسَنٍ]] ḥasanin; [[كَمَثَلٍ]] kamathalin; [[سَنَةٌ]] sanatun; [[نَفَقًا]] nafaqan; [[بِثَمَنٍ]] bithamanin; [[بِقَرَرٍ]] biqararin; [[صُحُفًا]] ṣuḥufan; [[بِرَجُلٍ]] birajulin; [[عَلَقَةٌ]] ʿalaqatun; [[دَرَجَةٌ]] darajatun; [[شَجَرَةٌ]] shajaratun; [[فَرَحَةٌ]] faraḥatun; [[فَنُزُلٌ]] fanuzulun; [[بَرَرَةٍ]] bararatin; [[فَاجَلٌ]] fājalun; [[غَبَرَةٌ]] ghabaratun; [[عَقَبَةٍ]] ʿaqabatin; [[هُمَزَةٍ]] humazatin; [[لُمَزَةٍ]] lumazatin; [[شَجَرَةً]] shajaratan; [[سَفَرَةٍ]] safaratin; [[حَسَنَةٍ]] ḥasanatin
+reveal: [[بَعًا]] baʿan; [[دَعًا]] daʿan; [[مَعًا]] maʿan; [[فَقًا]] faqan; [[هَدًا]] hadan; [[لُبَدًا]] lubadan; [[عَمَدٍ]] ʿamadin; [[حَرَسًا]] ḥarasan; [[مَسَدٍ]] masadin; [[لَهَبٍ]] lahabin; [[وَجَلٌ]] wajalun; [[جَمَعًا]] jamaʿan; [[طَبَقٍ]] ṭabaqin; [[ضُحًى]] ḍuḥan; [[عِنَبًا]] ʿinaban; [[سُرُرٌ]] sururun; [[اَحَدٍ]] aḥadin; [[شُهُبًا]] shuhuban; [[سُوًى]] suwan; [[حَسَنٍ]] ḥasanin; [[كَمَثَلٍ]] kamathalin; [[سَنَةٌ]] sanatun; [[نَفَقًا]] nafaqan; [[بِثَمَنٍ]] bithamanin; [[بِقَرَرٍ]] biqararin; [[صُحُفًا]] ṣuḥufan; [[بِرَجُلٍ]] birajulin; [[عَلَقَةٌ]] ʿalaqatun; [[دَرَجَةٌ]] darajatun; [[شَجَرَةٌ]] shajaratun; [[فَرَحَةٌ]] faraḥatun; [[فَنُزُلٌ]] fanuzulun; [[بَرَرَةٍ]] bararatin; [[فَاجَلٌ]] fājalun; [[غَبَرَةٌ]] ghabaratun; [[عَقَبَةٍ]] ʿaqabatin; [[هُمَزَةٍ]] humazatin; [[لُمَزَةٍ]] lumazatin; [[شَجَرَةً]] shajaratan; [[سَفَرَةٍ]] safaratin; [[حَسَنَةٍ]] ḥasanatin
 
 ## Quiz: Words with tanween
 

@@ -116,7 +116,7 @@ words:
 - {{6:13:3}} | sakana
 - {{25:40:7}} | maṭara
 
-letters: [[طَلَبَ]] ṭalaba; [[وَضَعَ]] waḍaʿa; [[وَزَنَ]] wazana; [[دَفَعَ]] dafaʿa; [[خَرَجَ]] kharaja; [[وَصَلَ]] waṣala; [[صَعَدَ]] ṣaʿada; [[وَقَفَ]] waqafa; [[نَثَرَ]] nathara; [[غَسَلَ]] ghasala; [[مَسَحَ]] masaḥa; [[جَلَسَ]] jalasa; [[يَمَنَ]] yamana; [[حَمَدَ]] ḥamada; [[رَشَدَ]] rashada; [[شَجَعَ]] shajaʿa; [[قَلَمَ]] qalama; [[عَقَلَ]] ʿaqala
+reveal: [[طَلَبَ]] ṭalaba; [[وَضَعَ]] waḍaʿa; [[وَزَنَ]] wazana; [[دَفَعَ]] dafaʿa; [[خَرَجَ]] kharaja; [[وَصَلَ]] waṣala; [[صَعَدَ]] ṣaʿada; [[وَقَفَ]] waqafa; [[نَثَرَ]] nathara; [[غَسَلَ]] ghasala; [[مَسَحَ]] masaḥa; [[جَلَسَ]] jalasa; [[يَمَنَ]] yamana; [[حَمَدَ]] ḥamada; [[رَشَدَ]] rashada; [[شَجَعَ]] shajaʿa; [[قَلَمَ]] qalama; [[عَقَلَ]] ʿaqala
 
 Fatha, kasra and damma mixed
 
@@ -136,7 +136,7 @@ words:
 - {{12:75:4}} | wujida
 - {{2:249:11}} | shariba
 
-letters: [[اَذِنَ]] adhina; [[حَمِدَ]] ḥamida; [[مَرِضَ]] mariḍa; [[طُبِعَ]] ṭubiʿa; [[رُفِعَ]] rufiʿa; [[خَشِيَ]] khashiya; [[رَضِيَ]] raḍiya; [[ثَمِنَ]] thamina; [[ضَحِكَ]] ḍaḥika; [[نَسِيَ]] nasiya; [[لَعِبَ]] laʿiba; [[بَقِيَ]] baqiya; [[حَرِصَ]] ḥariṣa; [[كَرُمَ]] karuma; [[عَجِبَ]] ʿajiba
+reveal: [[اَذِنَ]] adhina; [[حَمِدَ]] ḥamida; [[مَرِضَ]] mariḍa; [[طُبِعَ]] ṭubiʿa; [[رُفِعَ]] rufiʿa; [[خَشِيَ]] khashiya; [[رَضِيَ]] raḍiya; [[ثَمِنَ]] thamina; [[ضَحِكَ]] ḍaḥika; [[نَسِيَ]] nasiya; [[لَعِبَ]] laʿiba; [[بَقِيَ]] baqiya; [[حَرِصَ]] ḥariṣa; [[كَرُمَ]] karuma; [[عَجِبَ]] ʿajiba
 
 ## Quiz: Reading words
 
@@ -184,7 +184,7 @@ words:
 - {{10:92:3}} | bibadanika
 - {{82:7:4}} | faʿadalaka
 
-letters: [[رَكِبَ]] rakiba; [[ثَقُلَ]] thaqula; [[طُبِعَ]] ṭubiʿa; [[نُشِرَ]] nushira; [[رُمِىَ]] rumiya; [[حَسُنَ]] ḥasuna; [[وُهِبَ]] wuhiba; [[اُذِنَ]] udhina; [[حُمِدَ]] ḥumida; [[مُدِحَ]] mudiḥa; [[وُزِنَ]] wuzina; [[يَرِثُ]] yarithu; [[بَعُدَ]] baʿuda; [[قُضِيَ]] quḍiya; [[غُفِرَ]] ghufira; [[خُنِقَ]] khuniqa; [[نُصِرَ]] nuṣira; [[فَسَمِعَ]] fasamiʿa; [[فَحَبِطَ]] faḥabiṭa; [[لَنُفِدَ]] lanufida; [[كَلِمَةِ]] kalimati; [[لِنُرِيَ]] linuriya; [[وَقُضِيَ]] waquḍiya; [[وَخَشِيَ]] wakhashiya; [[لُمَزَةٍ]] lumazatin; [[فَرُفِعَ]] farufiʿa; [[وَرَضِيَ]] waraḍiya; [[هُمَزَةٍ]] humazatin; [[بَرَرَةِ]] bararati; [[فَنُزُلُ]] fanuzulu; [[وَعَمِلَكَ]] waʿamilaka
+reveal: [[رَكِبَ]] rakiba; [[ثَقُلَ]] thaqula; [[طُبِعَ]] ṭubiʿa; [[نُشِرَ]] nushira; [[رُمِىَ]] rumiya; [[حَسُنَ]] ḥasuna; [[وُهِبَ]] wuhiba; [[اُذِنَ]] udhina; [[حُمِدَ]] ḥumida; [[مُدِحَ]] mudiḥa; [[وُزِنَ]] wuzina; [[يَرِثُ]] yarithu; [[بَعُدَ]] baʿuda; [[قُضِيَ]] quḍiya; [[غُفِرَ]] ghufira; [[خُنِقَ]] khuniqa; [[نُصِرَ]] nuṣira; [[فَسَمِعَ]] fasamiʿa; [[فَحَبِطَ]] faḥabiṭa; [[لَنُفِدَ]] lanufida; [[كَلِمَةِ]] kalimati; [[لِنُرِيَ]] linuriya; [[وَقُضِيَ]] waquḍiya; [[وَخَشِيَ]] wakhashiya; [[لُمَزَةٍ]] lumazatin; [[فَرُفِعَ]] farufiʿa; [[وَرَضِيَ]] waraḍiya; [[هُمَزَةٍ]] humazatin; [[بَرَرَةِ]] bararati; [[فَنُزُلُ]] fanuzulu; [[وَعَمِلَكَ]] waʿamilaka
 
 A common phrase to read: [[مَا شَاءَ ٱللَّهُ]], mā shāʾa llāh.
 

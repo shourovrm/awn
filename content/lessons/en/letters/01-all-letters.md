@@ -103,13 +103,22 @@ question: Which letter is not written like the others?
 answer: 3
 explain: [[ج]] belongs with [[ح]] and [[خ]].
 
-## Screen 3: Heavy letters, and pairs that sound close
+## Screen 3: Heavy letters
 
 These seven letters are always said with a full, heavy sound, with the back of the tongue raised. Every other letter is light.
 
-letters: [[خ]] khā; [[ص]] ṣād; [[ض]] ḍād; [[غ]] ghayn; [[ط]] ṭā; [[ق]] qāf; [[ظ]] ẓā
-
 tip: Teachers join the seven into one phrase to remember them: [[خُصَّ ضَغْطٍ قِظْ]], khuṣṣa ḍaghṭin qiẓ.
+
+## Grid: The seven heavy letters
+- خ | khā | qaida-01/007
+- ص | ṣād | qaida-01/014
+- ض | ḍād | qaida-01/015
+- غ | ghayn | qaida-01/019
+- ط | ṭā | qaida-01/016
+- ق | qāf | qaida-01/021
+- ظ | ẓā | qaida-01/017
+
+## Screen 4: Pairs that sound close
 
 Some letters sound close to another letter. Tap a pair to hear both.
 
@@ -134,7 +143,7 @@ clip: qaida-01/016
 answer: 2
 explain: That was ṭā, the heavy one.
 
-## Screen 4: Sounds English does not have
+## Screen 5: Sounds English does not have
 
 Nine letters have no English sound. A beginner learns them by ear from a teacher or a recording.
 
@@ -145,27 +154,48 @@ Nine letters have no English sound. A beginner learns them by ear from a teacher
 - [[ق]] qāf: a k said further back in the mouth
 - [[ص]] [[ض]] [[ط]] [[ظ]]: heavy forms of s, d, t and dh, said with the back of the tongue raised
 
-## Screen 5: Dots on letters
+## Screen 6: Dots on letters
 
 [[ح]] has no dot, [[ج]] has one dot below and [[خ]] has one dot above. The dots tell you which letter you are reading.
 
-No dots, 14 letters:
-
-letters: [[ا]] alif; [[ح]] ḥā; [[د]] dāl; [[ر]] rā; [[س]] sīn; [[ص]] ṣād; [[ط]] ṭā; [[ع]] ʿayn; [[ك]] kāf; [[ل]] lām; [[م]] mīm; [[و]] wāw; [[ه]] hā; [[ء]] hamzah
-
-One dot, 10 letters:
-
-letters: [[ب]] bā; [[ج]] jīm; [[خ]] khā; [[ذ]] dhāl; [[ز]] zāy; [[ض]] ḍād; [[ظ]] ẓā; [[غ]] ghayn; [[ف]] fā; [[ن]] nūn
-
-Two dots, 3 letters:
-
-letters: [[ت]] tā; [[ق]] qāf; [[يـ]] yā
-
-Three dots, 2 letters:
-
-letters: [[ث]] thā; [[ش]] shīn
-
 Yā has two dots below. At the end of a word the Quran's script leaves them out: {{2:10:1}}, fī, in, ends in a yā with no dots.
+
+## Grid: No dots, 14 letters
+- ا | alif | qaida-01/001
+- ح | ḥā | qaida-01/006
+- د | dāl | qaida-01/008
+- ر | rā | qaida-01/010
+- س | sīn | qaida-01/012
+- ص | ṣād | qaida-01/014
+- ط | ṭā | qaida-01/016
+- ع | ʿayn | qaida-01/018
+- ك | kāf | qaida-01/022
+- ل | lām | qaida-01/023
+- م | mīm | qaida-01/024
+- و | wāw | qaida-01/026
+- ه | hā | qaida-01/027
+- ء | hamzah | qaida-01/028
+
+## Grid: One dot, 10 letters
+- ب | bā | qaida-01/002
+- ج | jīm | qaida-01/005
+- خ | khā | qaida-01/007
+- ذ | dhāl | qaida-01/009
+- ز | zāy | qaida-01/011
+- ض | ḍād | qaida-01/015
+- ظ | ẓā | qaida-01/017
+- غ | ghayn | qaida-01/019
+- ف | fā | qaida-01/020
+- ن | nūn | qaida-01/025
+
+## Grid: Two dots, 3 letters
+- ت | tā | qaida-01/003
+- ق | qāf | qaida-01/021
+- يـ | yā | qaida-01/029
+
+## Grid: Three dots, 2 letters
+- ث | thā | qaida-01/004
+- ش | shīn | qaida-01/013
 
 ## Quiz: Dots on letters
 
@@ -186,7 +216,7 @@ pair: [[ث]] | Three above
 pair: [[ح]] | None
 explain: [[ب]] has one dot below, [[ت]] two above, [[ث]] three above, [[ح]] none.
 
-## Screen 6: Letters out of order
+## Screen 7: Letters out of order
 
 The letters are mixed up. Say each one aloud, then tap it to see its name.
 
