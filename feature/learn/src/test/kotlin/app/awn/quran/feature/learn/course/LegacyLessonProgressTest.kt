@@ -35,24 +35,10 @@ class LegacyLessonProgressTest {
     }
 
     @Test
-    fun `finishing an older reading unit finishes the unit that replaced it`() {
-        val expected =
-            mapOf(
-                "letters-03-short-vowels" to "letters-04-short-vowels",
-                "letters-04-tanween" to "letters-05-tanween",
-                "letters-05-long-vowels" to "letters-07-madd-and-leen",
-                "letters-06-sukoon" to "letters-08-sukoon",
-                "letters-07-shaddah" to "letters-09-shaddah",
-                "letters-08-first-ayah" to "letters-10-first-ayah",
-                "letters-09-first-ayah" to "letters-10-first-ayah",
-                "letters-08-letters-by-name" to "letters-03-letters-by-name",
-            )
+    fun `an older reading unit finishes no Averroes unit`() {
+        val result = LegacyLessonProgress.withCarriedOver(setOf("letters-03-short-vowels"))
 
-        expected.forEach { (older, replacement) ->
-            val result = LegacyLessonProgress.withCarriedOver(setOf(older))
-
-            assertTrue("$older should finish $replacement", replacement in result)
-        }
+        assertEquals(setOf("letters-03-short-vowels"), result)
     }
 
     @Test

@@ -240,3 +240,4 @@
 2026-10-28 | In-app update check lives in the github flavor only (app/src/github, About row) | Play must not hold REQUEST_INSTALL_PACKAGES; Wi-Fi only gates the APK; SHA256SUMS.txt is required, else no install
 2026-10-28 | A list scroll pauses following only until the next ayah; a pager drag still stops it (read.md) | scroll to read must not end page turns
 2026-11-08 | About shows the full notice in the interface language only; LICENSE condition 4 changed | NPL-1.2 has no notice clause; QML (Muaalem, not shipped) asks an Arabic notice before first use
+2026-11-10 | Reading track is the Averroes units 1 to 11 only; the nine Wikibooks/Noorani units moved to content/lessons/archive | they were renumbered 12 to 20 on 2026-11-08 and showed after unit 11 as if part of the course (learn.md, archive/README.md)

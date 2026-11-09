@@ -2,9 +2,12 @@ package app.awn.quran.feature.learn.course
 
 /**
  * Carries the progress made in lessons that were replaced over to the units that cover them, so
- * nobody who finished a lesson sees its subject as new. Two sets of lessons were replaced: the
- * twelve older tajweed lessons by tajweed units 11 to 19, and the older Reading units by the ten
- * units of the Qaida order.
+ * nobody who finished a lesson sees its subject as new. The twelve older tajweed lessons were
+ * replaced by tajweed units 11 to 19.
+ *
+ * Reading progress is not carried over: the Averroes Reading units 1 to 11 (2026-11-08) teach the
+ * letters in a new order with new material, so their earlier Wikibooks and Noorani units (now in
+ * content/lessons/archive) count as different lessons.
  *
  * A unit counts as done when every older lesson of one of its sets is done: unit 11 covers both
  * makharij and sifat, so a user who read only makharij still has unit 11 to read.
@@ -28,18 +31,6 @@ object LegacyLessonProgress {
             Coverage("tajweed-17-long-vowels-held-longer", setOf("madd-natural", "madd-extended")),
             Coverage("tajweed-18-stopping-and-starting", setOf("hamzat-al-wasl")),
             Coverage("tajweed-19-stop-signs", setOf("waqf-signs")),
-            Coverage("letters-03-letters-by-name", setOf("letters-08-letters-by-name")),
-            Coverage("letters-04-short-vowels", setOf("letters-03-short-vowels")),
-            Coverage("letters-05-tanween", setOf("letters-04-tanween")),
-            Coverage("letters-07-madd-and-leen", setOf("letters-05-long-vowels")),
-            Coverage("letters-08-sukoon", setOf("letters-06-sukoon")),
-            Coverage("letters-09-shaddah", setOf("letters-07-shaddah")),
-            // The last unit was first called letters-08 and then letters-09, so either one counts.
-            Coverage(
-                "letters-10-first-ayah",
-                setOf("letters-08-first-ayah"),
-                setOf("letters-09-first-ayah"),
-            ),
         )
 
     /** [doneIds] with the units that the finished older lessons cover added. */

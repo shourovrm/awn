@@ -13,8 +13,9 @@ content/lessons/<language>/<course>/NN-slug.md
 ```
 
 - `<language>`: `en`, `bn`. A lesson has the same file name and the same `id` in every language.
-- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (the Reading track: from the letters to a whole ayah, in Qaida order), `tajweed` (the Tajweed track: the rules of reciting, units 11 to 19).
+- `<course>`: `basics` (four short lessons before the first word), `grammar` (a lesson appears after the set that brings its grammar point), `letters` (the Reading track: units 1 to 11 in the order of the Averroes Qaida, from the letters to shaddah and ghunnah), `tajweed` (the Tajweed track: the rules of reciting, units 11 to 19).
 - `NN`: the order in the course. A gap is allowed; the course runs in `order`.
+- `archive/<language>/<course>/`: lessons taken out of the app, kept for their text and clip ids. The build does not read them. `archive/README.md` says what each set was and why it left; do not move a file back without reading it.
 
 ## File format
 
